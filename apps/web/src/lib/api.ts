@@ -67,3 +67,79 @@ export interface User {
   name: string | null;
   role: 'DEVELOPER' | 'MANAGER' | 'ADMIN';
 }
+
+// Project types
+export interface ProjectLanguage {
+  id: string;
+  code: string;
+  name: string;
+  isDefault: boolean;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  defaultLanguage: string;
+  languages: ProjectLanguage[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectStats {
+  id: string;
+  name: string;
+  spaces: number;
+  totalKeys: number;
+  translationsByLanguage: Record<
+    string,
+    {
+      translated: number;
+      total: number;
+      percentage: number;
+    }
+  >;
+}
+
+export interface CreateProjectInput {
+  name: string;
+  slug: string;
+  description?: string;
+  languageCodes: string[];
+  defaultLanguage: string;
+}
+
+export interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+  languageCodes?: string[];
+  defaultLanguage?: string;
+}
+
+// Project API
+export const projectApi = {
+  list: () => fetchApi<{ projects: Project[] }>('/api/projects'),
+
+  get: (id: string) => fetchApi<Project>(`/api/projects/${id}`),
+
+  create: (data: CreateProjectInput) =>
+    fetchApi<Project>('/api/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: UpdateProjectInput) =>
+    fetchApi<Project>(`/api/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    fetchApi<void>(`/api/projects/${id}`, {
+      method: 'DELETE',
+    }),
+
+  getStats: (id: string) =>
+    fetchApi<ProjectStats>(`/api/projects/${id}/stats`),
+};
