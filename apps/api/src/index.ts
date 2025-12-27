@@ -1,11 +1,26 @@
 /**
  * Localeflow API Entry Point
  *
- * This is a placeholder entry point for the API server.
- * Full implementation will be added in subsequent tasks.
+ * Initializes and starts the Fastify server with all plugins,
+ * routes, and middleware configured.
  */
-import { prisma } from './lib/prisma.js';
+import 'dotenv/config';
+import { buildApp } from './app.js';
 
-export { prisma };
+const PORT = parseInt(process.env.PORT || '3001', 10);
+const HOST = process.env.HOST || '0.0.0.0';
 
-console.log('Localeflow API initialized');
+async function start() {
+  const app = await buildApp();
+
+  try {
+    await app.listen({ port: PORT, host: HOST });
+    app.log.info(`Server listening on http://${HOST}:${PORT}`);
+    app.log.info(`API documentation available at http://${HOST}:${PORT}/docs`);
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
+  }
+}
+
+start();
