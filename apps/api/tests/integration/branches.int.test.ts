@@ -3,7 +3,7 @@
 // Test Type: Integration Test
 // Implementation Timing: Created alongside implementation
 
-import { describe, it, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it } from 'vitest';
 
 /**
  * Test Setup Requirements:

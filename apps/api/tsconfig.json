@@ -1,0 +1,9 @@
+{
+  "extends": "@localeflow/config/tsconfig/node",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": ["src", "prisma", "prisma.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

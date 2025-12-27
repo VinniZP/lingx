@@ -1,0 +1,216 @@
+// Localeflow Database Schema
+// Per Design Doc and ADR-0002 (Copy-on-Write Branch Storage)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed (cost factor 12)
+  name      String?
+  role      Role     @default(DEVELOPER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  apiKeys        ApiKey[]
+  projectMembers ProjectMember[]
+
+  @@index([email])
+}
+
+enum Role {
+  DEVELOPER
+  MANAGER
+  ADMIN
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  keyHash     String    @unique // SHA-256 hash of the actual key
+  keyPrefix   String    // First 8 chars for identification (lf_...)
+  userId      String
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  expiresAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([userId])
+}
+
+// ============================================
+// PROJECT STRUCTURE
+// ============================================
+
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  description     String?
+  defaultLanguage String   @default("en")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  languages    ProjectLanguage[]
+  members      ProjectMember[]
+  spaces       Space[]
+  environments Environment[]
+
+  @@index([slug])
+}
+
+model ProjectLanguage {
+  id        String  @id @default(cuid())
+  projectId String
+  code      String  // ISO 639-1 code (en, es, fr, etc.)
+  name      String  // Display name (English, Spanish, French)
+  isDefault Boolean @default(false)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, code])
+  @@index([projectId])
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(DEVELOPER)
+  createdAt DateTime    @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+enum ProjectRole {
+  DEVELOPER
+  MANAGER
+  OWNER
+}
+
+// ============================================
+// SPACES & BRANCHES (per ADR-0002)
+// ============================================
+
+model Space {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  slug        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  branches Branch[]
+
+  @@unique([projectId, slug])
+  @@index([projectId])
+}
+
+model Branch {
+  id             String   @id @default(cuid())
+  spaceId        String
+  name           String
+  slug           String
+  isDefault      Boolean  @default(false) // true for 'main' branch
+  sourceBranchId String?  // Branch this was created from (null for main)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  space        Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  sourceBranch Branch?           @relation("BranchToSource", fields: [sourceBranchId], references: [id])
+  childBranches Branch[]         @relation("BranchToSource")
+  keys         TranslationKey[]
+  environments Environment[]
+
+  @@unique([spaceId, slug])
+  @@index([spaceId])
+  @@index([sourceBranchId])
+}
+
+// ============================================
+// TRANSLATIONS (Copy-on-Write per ADR-0002)
+// ============================================
+
+model TranslationKey {
+  id          String   @id @default(cuid())
+  branchId    String
+  name        String   // The key identifier (e.g., "common.welcome")
+  description String?  // Context for translators
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branch       Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  translations Translation[]
+
+  @@unique([branchId, name])
+  @@index([branchId])
+  @@index([name])
+}
+
+model Translation {
+  id        String   @id @default(cuid())
+  keyId     String
+  language  String   // ISO 639-1 code
+  value     String   // The translated text (supports ICU MessageFormat)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  key TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
+
+  @@unique([keyId, language])
+  @@index([keyId])
+  @@index([language])
+}
+
+// ============================================
+// ENVIRONMENTS
+// ============================================
+
+model Environment {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String   // e.g., "production", "staging", "development"
+  slug      String
+  branchId  String   // Points to the active branch for this environment
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  branch  Branch  @relation(fields: [branchId], references: [id])
+
+  @@unique([projectId, slug])
+  @@index([projectId])
+  @@index([branchId])
+}
+
+// ============================================
+// REFERENCE DATA
+// ============================================
+
+model Language {
+  id   String @id @default(cuid())
+  code String @unique // ISO 639-1 code
+  name String         // Display name
+
+  @@index([code])
+}
