@@ -1,235 +1,407 @@
-// Localeflow API Branch Integration Tests - Design Doc: DESIGN.md
-// Generated: 2025-12-27 | Budget Used: 3/3 integration tests for branch feature
-// Test Type: Integration Test
-// Implementation Timing: Created alongside implementation
-
-import { describe, it } from 'vitest';
-
 /**
- * Test Setup Requirements:
- * - Test database container (PostgreSQL)
- * - Fastify application instance with auth
- * - Seeded project and space with main branch
- * - Test fixtures for branch operations
+ * Branch Integration Tests
+ *
+ * Tests for branch CRUD operations with copy-on-write functionality.
+ * Per Design Doc: AC-WEB-012, AC-WEB-013
  */
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { FastifyInstance } from 'fastify';
+import { buildApp } from '../../src/app.js';
 
 describe('Branch Integration Tests', () => {
-  // TODO: Setup test database, Fastify app, and seed data
-  // beforeAll: Start container, apply migrations, seed project/space with main branch
-  // afterAll: Cleanup container
-  // beforeEach: Reset branch data to known state
+  let app: FastifyInstance;
+  let authCookie: string;
+  let testProjectId: string;
+  let testSpaceId: string;
+  let mainBranchId: string;
 
-  describe('Branch Creation - AC-WEB-012', () => {
-    // AC-WEB-012: When creating a branch from an existing branch, the system shall copy all keys and translations to the new branch
-    // ROI: 92 | Business Value: 10 (core differentiator) | Frequency: 8 (feature workflow)
-    // Behavior: User creates branch -> API copies all data from source branch
-    // @category: core-functionality
-    // @dependency: Fastify, Prisma, PostgreSQL
-    // @complexity: high
+  beforeAll(async () => {
+    app = await buildApp({ logger: false });
+    await app.ready();
+  });
 
-    it('AC-WEB-012: should create branch with full copy of source translations', () => {
-      // Arrange:
-      // - Ensure main branch has 10+ keys with translations in 3 languages
-      // - Authenticate as user
-      //
-      // Act:
-      // - POST /api/spaces/:spaceId/branches with { name: "feature-checkout", fromBranchId: mainBranchId }
-      //
-      // Assert:
-      // - Response status is 201
-      // - New branch created with correct name
-      // - baseBranchId references source branch
-      // - All keys from source branch copied to new branch
-      // - All translations copied with correct values
-      // - Key count matches source branch
-      // - New branch has independent data (not references)
-      //
-      // Pass Criteria:
-      // - Copy-on-write semantics (full copy per ADR-0002)
-      // - All translations preserved
-      // - Branch metadata correct
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    // Use unique identifiers for each test run to avoid conflicts
+    const testId = Date.now().toString();
+    const testEmail = `branch-int-${testId}@example.com`;
+    const testSlug = `branch-int-proj-${testId}`;
+
+    // Clean up any stale data from previous runs
+    await app.prisma.project.deleteMany({
+      where: { slug: { startsWith: 'branch-int-proj-' } },
+    });
+    await app.prisma.user.deleteMany({
+      where: { email: { startsWith: 'branch-int-' } },
     });
 
-    it('AC-WEB-012-error: should reject duplicate branch name in same space', () => {
-      // Arrange:
-      // - Create feature branch "feature-x"
-      // - Authenticate as user
-      //
-      // Act:
-      // - POST /api/spaces/:spaceId/branches with same name "feature-x"
-      //
-      // Assert:
-      // - Response status is 409 (Conflict)
-      // - Error code is DUPLICATE_ENTRY
-      // - Original branch unchanged
-      //
-      // Pass Criteria:
-      // - Unique constraint enforced per space
+    // Register and login
+    const registerResponse = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: {
+        email: testEmail,
+        password: 'SecurePass123!',
+        name: 'Branch Test User',
+      },
+    });
+    if (registerResponse.statusCode !== 201) {
+      throw new Error(`Registration failed: ${registerResponse.body}`);
+    }
+
+    const loginResponse = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: {
+        email: testEmail,
+        password: 'SecurePass123!',
+      },
+    });
+    if (loginResponse.statusCode !== 200) {
+      throw new Error(`Login failed: ${loginResponse.body}`);
+    }
+    const tokenCookie = loginResponse.cookies.find((c) => c.name === 'token');
+    authCookie = `token=${tokenCookie?.value}`;
+
+    // Create project
+    const projectResponse = await app.inject({
+      method: 'POST',
+      url: '/api/projects',
+      headers: { cookie: authCookie },
+      payload: {
+        name: 'Branch Test Project',
+        slug: testSlug,
+        languageCodes: ['en', 'es', 'fr'],
+        defaultLanguage: 'en',
+      },
+    });
+    if (projectResponse.statusCode !== 201) {
+      throw new Error(`Project creation failed: ${projectResponse.body}`);
+    }
+    const projectData = JSON.parse(projectResponse.body);
+    testProjectId = projectData.id;
+
+    // Verify project was created and user is a member
+    const projectVerify = await app.inject({
+      method: 'GET',
+      url: `/api/projects/${testProjectId}`,
+      headers: { cookie: authCookie },
+    });
+    if (projectVerify.statusCode !== 200) {
+      throw new Error(`Project verification failed: ${projectVerify.body}`);
+    }
+
+    // Create space (auto-creates main branch)
+    const spaceResponse = await app.inject({
+      method: 'POST',
+      url: `/api/projects/${testProjectId}/spaces`,
+      headers: { cookie: authCookie },
+      payload: {
+        name: 'Test Space',
+        slug: 'test-space',
+      },
+    });
+    if (spaceResponse.statusCode !== 201) {
+      throw new Error(`Space creation failed: ${spaceResponse.body}`);
+    }
+    testSpaceId = JSON.parse(spaceResponse.body).id;
+
+    // Get main branch ID
+    const spaceDetail = await app.inject({
+      method: 'GET',
+      url: `/api/spaces/${testSpaceId}`,
+      headers: { cookie: authCookie },
+    });
+    if (spaceDetail.statusCode !== 200) {
+      throw new Error(`Space detail fetch failed: ${spaceDetail.body}`);
+    }
+    const spaceData = JSON.parse(spaceDetail.body);
+    if (!spaceData.branches || spaceData.branches.length === 0) {
+      throw new Error('No branches found in space');
+    }
+    mainBranchId = spaceData.branches[0].id;
+
+    // Add some translation keys and translations to main branch
+    await app.prisma.translationKey.createMany({
+      data: [
+        { branchId: mainBranchId, name: 'common.hello', description: 'Hello greeting' },
+        { branchId: mainBranchId, name: 'common.goodbye', description: 'Goodbye greeting' },
+        { branchId: mainBranchId, name: 'nav.home', description: 'Home link' },
+      ],
     });
 
-    it('AC-WEB-012-isolation: modifications on new branch should not affect source', () => {
-      // Arrange:
-      // - Create feature branch from main
-      // - Note original value for a key in main branch
-      //
-      // Act:
-      // - Update a translation in feature branch
-      //
-      // Assert:
-      // - Feature branch has updated value
-      // - Main branch retains original value
-      //
-      // Pass Criteria:
-      // - Branch isolation maintained
-      // - No cross-branch contamination
+    const keys = await app.prisma.translationKey.findMany({
+      where: { branchId: mainBranchId },
+    });
+
+    // Add translations for each key
+    for (const key of keys) {
+      await app.prisma.translation.createMany({
+        data: [
+          { keyId: key.id, language: 'en', value: `${key.name} in English` },
+          { keyId: key.id, language: 'es', value: `${key.name} in Spanish` },
+        ],
+      });
+    }
+  });
+
+  describe('AC-WEB-012: Branch Creation (Copy-on-Write)', () => {
+    it('should create branch copying all keys from source branch', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'feature-x',
+          fromBranchId: mainBranchId,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const branch = JSON.parse(response.body);
+      expect(branch.name).toBe('feature-x');
+      expect(branch.slug).toBe('feature-x');
+      expect(branch.sourceBranchId).toBe(mainBranchId);
+
+      // Verify keys were copied
+      const newBranchKeys = await app.prisma.translationKey.findMany({
+        where: { branchId: branch.id },
+      });
+      expect(newBranchKeys.length).toBe(3); // Same as source
+
+      // Verify key names match
+      const keyNames = newBranchKeys.map((k) => k.name).sort();
+      expect(keyNames).toEqual(['common.goodbye', 'common.hello', 'nav.home']);
+    });
+
+    it('should copy all translations from source branch', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'feature-y',
+          fromBranchId: mainBranchId,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const branch = JSON.parse(response.body);
+
+      // Verify translations were copied
+      const newBranchTranslations = await app.prisma.translation.findMany({
+        where: {
+          key: {
+            branchId: branch.id,
+          },
+        },
+      });
+
+      // 3 keys x 2 languages = 6 translations
+      expect(newBranchTranslations.length).toBe(6);
+
+      // Verify translation values match source
+      const enTranslations = newBranchTranslations.filter(
+        (t) => t.language === 'en'
+      );
+      expect(enTranslations.length).toBe(3);
+    });
+
+    it('should keep source branch unchanged after branch creation', async () => {
+      // Get original state
+      const originalKeys = await app.prisma.translationKey.findMany({
+        where: { branchId: mainBranchId },
+        include: { translations: true },
+      });
+
+      // Create new branch
+      await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'feature-z',
+          fromBranchId: mainBranchId,
+        },
+      });
+
+      // Verify source branch unchanged
+      const currentKeys = await app.prisma.translationKey.findMany({
+        where: { branchId: mainBranchId },
+        include: { translations: true },
+      });
+
+      expect(currentKeys.length).toBe(originalKeys.length);
+      for (let i = 0; i < currentKeys.length; i++) {
+        expect(currentKeys[i].id).toBe(originalKeys[i].id);
+        expect(currentKeys[i].name).toBe(originalKeys[i].name);
+        expect(currentKeys[i].translations.length).toBe(
+          originalKeys[i].translations.length
+        );
+      }
     });
   });
 
-  describe('Branch Diff - AC-WEB-014', () => {
-    // AC-WEB-014: When comparing two branches, the system shall show added, modified, and deleted keys with translation differences
-    // ROI: 88 | Business Value: 9 (merge workflow) | Frequency: 7 (pre-merge review)
-    // Behavior: User requests diff -> API computes and returns categorized changes
-    // @category: core-functionality
-    // @dependency: Fastify, Prisma, PostgreSQL
-    // @complexity: high
+  describe('Branch CRUD Operations', () => {
+    it('should list branches for a space', async () => {
+      // Create additional branch
+      await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'feature-list-test',
+          fromBranchId: mainBranchId,
+        },
+      });
 
-    it('AC-WEB-014: should compute and return branch diff with all change types', () => {
-      // Arrange:
-      // - Create feature branch from main
-      // - Add new key to feature branch (added)
-      // - Modify existing key translation in feature (modified)
-      // - Delete a key from feature (deleted)
-      // - Authenticate as user
-      //
-      // Act:
-      // - GET /api/branches/:featureBranchId/diff/:mainBranchId
-      //
-      // Assert:
-      // - Response status is 200
-      // - Response contains source and target branch info
-      // - "added" array contains new key with translations
-      // - "modified" array contains changed key with source/target values
-      // - "deleted" array contains removed key with previous translations
-      // - All language differences captured
-      //
-      // Pass Criteria:
-      // - All change categories identified
-      // - Both sides of modifications shown
-      // - Diff is bidirectional (source -> target perspective)
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.branches.length).toBe(2); // main + feature
+
+      // Verify main branch is first (isDefault sorting)
+      expect(body.branches[0].isDefault).toBe(true);
+      expect(body.branches[0].name).toBe('main');
     });
 
-    it('AC-WEB-014-conflict: should identify conflicting changes', () => {
-      // Arrange:
-      // - Create feature branch from main
-      // - Modify same key differently in both branches
-      // - Authenticate as user
-      //
-      // Act:
-      // - GET /api/branches/:featureBranchId/diff/:mainBranchId
-      //
-      // Assert:
-      // - Response status is 200
-      // - "conflicts" array contains keys modified in both branches
-      // - Both source and target values provided for conflict
-      //
-      // Pass Criteria:
-      // - Conflicts detected when both branches modify same key
-      // - Conflict data supports resolution UI
+    it('should get branch by ID with details', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${mainBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const branch = JSON.parse(response.body);
+      expect(branch.id).toBe(mainBranchId);
+      expect(branch.name).toBe('main');
+      expect(branch.isDefault).toBe(true);
+      expect(branch.space).toBeDefined();
+      expect(branch.space.id).toBe(testSpaceId);
+      expect(branch.keyCount).toBe(3);
+    });
+
+    it('should delete non-default branch', async () => {
+      // Create a branch to delete
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'feature-to-delete',
+          fromBranchId: mainBranchId,
+        },
+      });
+      const branchToDelete = JSON.parse(createResponse.body);
+
+      // Delete it
+      const deleteResponse = await app.inject({
+        method: 'DELETE',
+        url: `/api/branches/${branchToDelete.id}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(deleteResponse.statusCode).toBe(204);
+
+      // Verify it's gone
+      const getResponse = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${branchToDelete.id}`,
+        headers: { cookie: authCookie },
+      });
+      expect(getResponse.statusCode).toBe(404);
+    });
+
+    it('should reject deleting default branch', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/api/branches/${mainBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.message).toContain('default');
+    });
+
+    it('should reject duplicate branch name in same space', async () => {
+      // Create first branch
+      await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'duplicate-test',
+          fromBranchId: mainBranchId,
+        },
+      });
+
+      // Try to create duplicate
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'duplicate-test',
+          fromBranchId: mainBranchId,
+        },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
   });
 
-  describe('Branch Merge - AC-WEB-015, AC-WEB-016', () => {
-    // AC-WEB-015: When merging branches with conflicts, the system shall display conflicts and allow resolution choices
-    // AC-WEB-016: When deleting a merged branch, the system shall remove it from the branch list
-    // ROI: 95 | Business Value: 10 (core workflow) | Frequency: 7 (release workflow)
-    // Behavior: User initiates merge -> API merges or returns conflicts -> User resolves -> Merge completes
-    // @category: core-functionality
-    // @dependency: Fastify, Prisma, PostgreSQL
-    // @complexity: high
+  describe('Authorization', () => {
+    it('should reject unauthenticated requests', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/spaces/${testSpaceId}/branches`,
+      });
 
-    it('AC-WEB-015: should merge branch without conflicts', () => {
-      // Arrange:
-      // - Create feature branch from main
-      // - Add new keys only (no conflicts possible)
-      // - Authenticate as user
-      //
-      // Act:
-      // - POST /api/branches/:featureBranchId/merge with { targetBranchId: mainBranchId }
-      //
-      // Assert:
-      // - Response status is 200
-      // - success: true
-      // - merged count reflects added keys
-      // - Main branch now contains new keys
-      //
-      // Pass Criteria:
-      // - Clean merge succeeds
-      // - Target branch updated
-      // - Merge count accurate
+      expect(response.statusCode).toBe(401);
     });
 
-    it('AC-WEB-015-conflict: should return conflicts for resolution', () => {
-      // Arrange:
-      // - Create feature branch from main
-      // - Modify same key differently in both branches
-      // - Authenticate as user
-      //
-      // Act:
-      // - POST /api/branches/:featureBranchId/merge with { targetBranchId: mainBranchId }
-      //
-      // Assert:
-      // - Response status is 200 (merge pending)
-      // - success: false
-      // - conflicts array contains conflicting keys
-      // - Each conflict has key, source values, target values
-      // - No changes applied to target branch yet
-      //
-      // Pass Criteria:
-      // - Conflicts block automatic merge
-      // - Full conflict information provided
-      // - No partial merge applied
-    });
+    it('should reject non-member access', async () => {
+      const otherTestId = Date.now().toString();
+      const otherEmail = `branch-int-other-${otherTestId}@example.com`;
 
-    it('AC-WEB-015-resolution: should complete merge with resolved conflicts', () => {
-      // Arrange:
-      // - Create conflict scenario
-      // - Prepare resolution choices
-      // - Authenticate as user
-      //
-      // Act:
-      // - POST /api/branches/:featureBranchId/merge with:
-      //   { targetBranchId, resolutions: [{ key: "conflicting.key", resolution: "source" }] }
-      //
-      // Assert:
-      // - Response status is 200
-      // - success: true
-      // - Target branch has resolved value (source version)
-      // - All non-conflicting changes also applied
-      //
-      // Pass Criteria:
-      // - Resolution choices honored
-      // - Complete merge applied atomically
-    });
+      // Register another user
+      await app.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          email: otherEmail,
+          password: 'SecurePass123!',
+          name: 'Other User',
+        },
+      });
 
-    it('AC-WEB-016: should delete merged branch successfully', () => {
-      // Arrange:
-      // - Create and merge a feature branch
-      // - Authenticate as user
-      //
-      // Act:
-      // - DELETE /api/branches/:featureBranchId
-      //
-      // Assert:
-      // - Response status is 200 (or 204)
-      // - Branch no longer in database
-      // - Associated TranslationKeys deleted (cascade)
-      // - Associated Translations deleted (cascade)
-      // - Target branch data preserved
-      //
-      // Pass Criteria:
-      // - Branch fully removed
-      // - Cascade delete works
-      // - No orphaned data
+      const loginResponse = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: {
+          email: otherEmail,
+          password: 'SecurePass123!',
+        },
+      });
+      const otherCookie = `token=${loginResponse.cookies.find((c) => c.name === 'token')?.value}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: otherCookie },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

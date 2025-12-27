@@ -161,6 +161,24 @@ export interface Branch {
   slug: string;
   isDefault: boolean;
   createdAt: string;
+  updatedAt?: string;
+  spaceId?: string;
+  sourceBranchId?: string | null;
+  keyCount?: number;
+}
+
+export interface BranchWithSpace extends Branch {
+  space: {
+    id: string;
+    name: string;
+    slug: string;
+    projectId: string;
+  };
+}
+
+export interface CreateBranchInput {
+  name: string;
+  fromBranchId: string;
 }
 
 export interface SpaceWithBranches extends Space {
@@ -218,4 +236,23 @@ export const spaceApi = {
     }),
 
   getStats: (id: string) => fetchApi<SpaceStats>(`/api/spaces/${id}/stats`),
+};
+
+// Branch API
+export const branchApi = {
+  list: (spaceId: string) =>
+    fetchApi<{ branches: Branch[] }>(`/api/spaces/${spaceId}/branches`),
+
+  get: (id: string) => fetchApi<BranchWithSpace>(`/api/branches/${id}`),
+
+  create: (spaceId: string, data: CreateBranchInput) =>
+    fetchApi<Branch>(`/api/spaces/${spaceId}/branches`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    fetchApi<void>(`/api/branches/${id}`, {
+      method: 'DELETE',
+    }),
 };
