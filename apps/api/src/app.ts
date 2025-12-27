@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import projectRoutes from './routes/projects.js';
 import spaceRoutes from './routes/spaces.js';
 import branchRoutes from './routes/branches.js';
+import translationRoutes from './routes/translations.js';
 
 /**
  * Application configuration options
@@ -116,6 +117,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(projectRoutes);
   await fastify.register(spaceRoutes);
   await fastify.register(branchRoutes);
+  await fastify.register(translationRoutes);
 
   return fastify;
 }

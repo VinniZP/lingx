@@ -256,3 +256,96 @@ export const branchApi = {
       method: 'DELETE',
     }),
 };
+
+// Translation types
+export interface Translation {
+  id: string;
+  language: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TranslationKey {
+  id: string;
+  name: string;
+  description?: string | null;
+  branchId: string;
+  translations: Translation[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KeyListResult {
+  keys: TranslationKey[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CreateKeyInput {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateKeyInput {
+  name?: string;
+  description?: string;
+}
+
+// Translation API
+export const translationApi = {
+  listKeys: (
+    branchId: string,
+    params?: { search?: string; page?: number; limit?: number }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.set('search', params.search);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    const queryString = query.toString();
+    return fetchApi<KeyListResult>(
+      `/api/branches/${branchId}/keys${queryString ? `?${queryString}` : ''}`
+    );
+  },
+
+  getKey: (id: string) => fetchApi<TranslationKey>(`/api/keys/${id}`),
+
+  createKey: (branchId: string, data: CreateKeyInput) =>
+    fetchApi<TranslationKey>(`/api/branches/${branchId}/keys`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateKey: (id: string, data: UpdateKeyInput) =>
+    fetchApi<TranslationKey>(`/api/keys/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteKey: (id: string) =>
+    fetchApi<void>(`/api/keys/${id}`, {
+      method: 'DELETE',
+    }),
+
+  bulkDeleteKeys: (branchId: string, keyIds: string[]) =>
+    fetchApi<{ deleted: number }>(
+      `/api/branches/${branchId}/keys/bulk-delete`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ keyIds }),
+      }
+    ),
+
+  updateKeyTranslations: (keyId: string, translations: Record<string, string>) =>
+    fetchApi<TranslationKey>(`/api/keys/${keyId}/translations`, {
+      method: 'PUT',
+      body: JSON.stringify({ translations }),
+    }),
+
+  setTranslation: (keyId: string, lang: string, value: string) =>
+    fetchApi<Translation>(`/api/keys/${keyId}/translations/${lang}`, {
+      method: 'PUT',
+      body: JSON.stringify({ value }),
+    }),
+};

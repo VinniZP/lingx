@@ -1,187 +1,390 @@
-// Localeflow API Translation Integration Tests - Design Doc: DESIGN.md
-// Generated: 2025-12-27 | Budget Used: 3/3 integration tests for translations feature
-// Test Type: Integration Test
-// Implementation Timing: Created alongside implementation
-
-import { describe, it, beforeAll, afterAll, beforeEach } from 'vitest';
-
 /**
- * Test Setup Requirements:
- * - Test database container (PostgreSQL)
- * - Fastify application instance with auth
- * - Seeded project, space, and branch for translation tests
- * - Test fixtures for translation data
+ * Translation Integration Tests
+ *
+ * Tests for translation key and value CRUD operations via API endpoints.
+ * Per Design Doc: AC-WEB-007 through AC-WEB-011
  */
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { FastifyInstance } from 'fastify';
+import { buildApp } from '../../src/app.js';
 
 describe('Translation Integration Tests', () => {
-  // TODO: Setup test database, Fastify app, and seed data
-  // beforeAll: Start container, apply migrations, seed project/space/branch
-  // afterAll: Cleanup container
-  // beforeEach: Reset translation data to known state
+  let app: FastifyInstance;
+  let authCookie: string;
+  let testProjectId: string;
+  let testSpaceId: string;
+  let mainBranchId: string;
 
-  describe('Translation CRUD - AC-WEB-007, AC-WEB-008', () => {
-    // AC-WEB-007: When searching for keys in a branch with 100+ keys, the system shall return matching keys within 500ms
-    // AC-WEB-008: When clicking edit on a key, the system shall display all language translations editable simultaneously
-    // ROI: 88 | Business Value: 10 (core editor functionality) | Frequency: 10 (primary use case)
-    // Behavior: User requests translations -> API returns paginated results with all languages
-    // @category: core-functionality
-    // @dependency: Fastify, Prisma, PostgreSQL
-    // @complexity: high
+  beforeAll(async () => {
+    app = await buildApp({ logger: false });
+    await app.ready();
+  });
 
-    it('AC-WEB-007: should return matching keys within performance threshold', () => {
-      // Arrange:
-      // - Seed branch with 100+ translation keys
-      // - Authenticate as user
-      //
-      // Act:
-      // - GET /api/branches/:branchId/keys?search=button
-      // - Record response time
-      //
-      // Assert:
-      // - Response status is 200
-      // - Response contains matching keys with "button" in key name
-      // - Response includes pagination metadata
-      // - Response time < 500ms
-      //
-      // Pass Criteria:
-      // - Search returns filtered results
-      // - Performance within acceptable threshold
-      // - Pagination works correctly
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    // Use unique identifiers for each test run to avoid conflicts
+    const testId = Date.now().toString();
+    const testEmail = `trans-int-${testId}@example.com`;
+    const testSlug = `trans-int-proj-${testId}`;
+
+    // Clean up any stale data from previous runs
+    await app.prisma.project.deleteMany({
+      where: { slug: { startsWith: 'trans-int-proj-' } },
+    });
+    await app.prisma.user.deleteMany({
+      where: { email: { startsWith: 'trans-int-' } },
     });
 
-    it('AC-WEB-008: should return key with all language translations', () => {
-      // Arrange:
-      // - Create key with translations in multiple languages (en, uk, de)
-      // - Authenticate as user
-      //
-      // Act:
-      // - GET /api/keys/:keyId
-      //
-      // Assert:
-      // - Response status is 200
-      // - Response contains key metadata (id, key, description)
-      // - Response contains translations array with all configured languages
-      // - Each translation has languageCode and value
-      //
-      // Pass Criteria:
-      // - All languages returned even if translation is empty
-      // - Translation values correct for each language
+    // Register and login
+    const registerResponse = await app.inject({
+      method: 'POST',
+      url: '/api/auth/register',
+      payload: {
+        email: testEmail,
+        password: 'SecurePass123!',
+        name: 'Translation Test User',
+      },
     });
+    if (registerResponse.statusCode !== 201) {
+      throw new Error(`Registration failed: ${registerResponse.body}`);
+    }
 
-    it('AC-WEB-008-update: should update translation for specific language', () => {
-      // Arrange:
-      // - Create key with initial translations
-      // - Authenticate as user
-      //
-      // Act:
-      // - PUT /api/keys/:keyId/translations/uk with { value: "New Ukrainian Value" }
-      //
-      // Assert:
-      // - Response status is 200
-      // - Translation updated in database
-      // - Other language translations unchanged
-      // - updatedAt timestamp updated
-      //
-      // Pass Criteria:
-      // - Single language updated
-      // - Other languages preserved
+    const loginResponse = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: {
+        email: testEmail,
+        password: 'SecurePass123!',
+      },
+    });
+    if (loginResponse.statusCode !== 200) {
+      throw new Error(`Login failed: ${loginResponse.body}`);
+    }
+    const tokenCookie = loginResponse.cookies.find((c) => c.name === 'token');
+    authCookie = `token=${tokenCookie?.value}`;
+
+    // Create project
+    const projectResponse = await app.inject({
+      method: 'POST',
+      url: '/api/projects',
+      headers: { cookie: authCookie },
+      payload: {
+        name: 'Translation Test Project',
+        slug: testSlug,
+        languageCodes: ['en', 'es', 'fr'],
+        defaultLanguage: 'en',
+      },
+    });
+    if (projectResponse.statusCode !== 201) {
+      throw new Error(`Project creation failed: ${projectResponse.body}`);
+    }
+    testProjectId = JSON.parse(projectResponse.body).id;
+
+    // Create space (auto-creates main branch)
+    const spaceResponse = await app.inject({
+      method: 'POST',
+      url: `/api/projects/${testProjectId}/spaces`,
+      headers: { cookie: authCookie },
+      payload: {
+        name: 'Test Space',
+        slug: 'test-space',
+      },
+    });
+    if (spaceResponse.statusCode !== 201) {
+      throw new Error(`Space creation failed: ${spaceResponse.body}`);
+    }
+    testSpaceId = JSON.parse(spaceResponse.body).id;
+
+    // Get main branch ID
+    const spaceDetail = await app.inject({
+      method: 'GET',
+      url: `/api/spaces/${testSpaceId}`,
+      headers: { cookie: authCookie },
+    });
+    if (spaceDetail.statusCode !== 200) {
+      throw new Error(`Space detail fetch failed: ${spaceDetail.body}`);
+    }
+    const spaceData = JSON.parse(spaceDetail.body);
+    mainBranchId = spaceData.branches[0].id;
+  });
+
+  describe('AC-WEB-007: Search Performance', () => {
+    it('should return matching keys within 500ms for 100+ keys', async () => {
+      // Create 100+ keys
+      const keysToCreate = [];
+      for (let i = 0; i < 120; i++) {
+        keysToCreate.push({
+          branchId: mainBranchId,
+          name: `key.search.test.${i}`,
+          description: `Search test key ${i}`,
+        });
+      }
+      await app.prisma.translationKey.createMany({ data: keysToCreate });
+
+      // Time the search
+      const startTime = Date.now();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${mainBranchId}/keys?search=test.5`,
+        headers: { cookie: authCookie },
+      });
+      const endTime = Date.now();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.keys.length).toBeGreaterThan(0);
+      expect(endTime - startTime).toBeLessThan(500);
     });
   });
 
-  describe('Translation Key Operations - AC-WEB-009, AC-WEB-010', () => {
-    // AC-WEB-009: When adding a description to a key, the system shall persist and display it to translators
-    // AC-WEB-010: When selecting keys for bulk delete, the system shall remove all selected keys and their translations
-    // ROI: 75 | Business Value: 7 (translator workflow) | Frequency: 6 (common operations)
-    // Behavior: User modifies key metadata -> API persists changes
-    // @category: core-functionality
-    // @dependency: Fastify, Prisma, PostgreSQL
-    // @complexity: medium
+  describe('AC-WEB-008: Multi-language Edit', () => {
+    it('should return all language translations for a key', async () => {
+      // Create key with translations
+      const key = await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'multi.lang.test',
+          description: 'Multi-language test',
+        },
+      });
 
-    it('AC-WEB-009: should persist and return key description', () => {
-      // Arrange:
-      // - Create key without description
-      // - Authenticate as user
-      //
-      // Act:
-      // - PUT /api/keys/:keyId with { description: "Button label for submit action" }
-      //
-      // Assert:
-      // - Response status is 200
-      // - Description persisted in database
-      // - Description returned in GET /api/keys/:keyId response
-      //
-      // Pass Criteria:
-      // - Description saved and retrievable
-      // - Helps translators understand context
+      await app.prisma.translation.createMany({
+        data: [
+          { keyId: key.id, language: 'en', value: 'English value' },
+          { keyId: key.id, language: 'es', value: 'Spanish value' },
+          { keyId: key.id, language: 'fr', value: 'French value' },
+        ],
+      });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/keys/${key.id}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.translations).toHaveLength(3);
+      expect(
+        body.translations.find((t: { language: string }) => t.language === 'en')?.value
+      ).toBe('English value');
     });
 
-    it('AC-WEB-010: should bulk delete selected keys and all translations', () => {
-      // Arrange:
-      // - Create 5 keys with translations in 3 languages each
-      // - Note IDs of 3 keys to delete
-      // - Authenticate as user
-      //
-      // Act:
-      // - POST /api/branches/:branchId/keys/bulk with { operation: "delete", keyIds: [...] }
-      //
-      // Assert:
-      // - Response status is 200
-      // - 3 keys deleted from database
-      // - All translations for deleted keys removed (cascade)
-      // - Remaining 2 keys and their translations intact
-      //
-      // Pass Criteria:
-      // - Bulk deletion works atomically
-      // - Cascade delete removes translations
-      // - Non-selected keys unaffected
+    it('should update translations for multiple languages simultaneously', async () => {
+      const key = await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'multi.update.test',
+        },
+      });
+
+      // Update multiple translations at once
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/api/keys/${key.id}/translations`,
+        headers: { cookie: authCookie },
+        payload: {
+          translations: {
+            en: 'Updated English',
+            es: 'Updated Spanish',
+            fr: 'Updated French',
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      // Verify all translations updated
+      const translations = await app.prisma.translation.findMany({
+        where: { keyId: key.id },
+      });
+      expect(translations).toHaveLength(3);
     });
   });
 
-  describe('Branch Translations Sync - CLI Support', () => {
-    // Related to AC-CLI-004, AC-CLI-005 (pull/push)
-    // ROI: 82 | Business Value: 9 (CLI workflow) | Frequency: 8 (developer workflow)
-    // Behavior: CLI pulls/pushes translations via API
-    // @category: integration
-    // @dependency: Fastify, Prisma, PostgreSQL, API Key Auth
-    // @complexity: high
+  describe('AC-WEB-009 & AC-WEB-010: Key Operations', () => {
+    it('should persist key description', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${mainBranchId}/keys`,
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'key.with.description',
+          description: 'This is a helpful description for translators',
+        },
+      });
 
-    it('should return all translations for branch in bulk format', () => {
-      // Arrange:
-      // - Create branch with multiple keys and translations
-      // - Authenticate with API key
-      //
-      // Act:
-      // - GET /api/branches/:branchId/translations
-      //
-      // Assert:
-      // - Response status is 200
-      // - Response contains all keys with all language values
-      // - Format suitable for CLI file generation
-      // - Response includes metadata (branchId, keyCount, languages)
-      //
-      // Pass Criteria:
-      // - Complete translation export
-      // - Format matches CLI expectations
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body);
+      expect(body.description).toBe(
+        'This is a helpful description for translators'
+      );
+
+      // Verify persisted
+      const key = await app.prisma.translationKey.findUnique({
+        where: { id: body.id },
+      });
+      expect(key?.description).toBe(
+        'This is a helpful description for translators'
+      );
     });
 
-    it('should bulk update translations from CLI push', () => {
-      // Arrange:
-      // - Create branch with initial translations
-      // - Prepare bulk update payload (simulating CLI push)
-      // - Authenticate with API key
-      //
-      // Act:
-      // - PUT /api/branches/:branchId/translations with bulk payload
-      //
-      // Assert:
-      // - Response status is 200
-      // - New keys created
-      // - Existing keys updated
-      // - Response includes counts (created, updated, unchanged)
-      //
-      // Pass Criteria:
-      // - Upsert logic works correctly
-      // - All changes atomic
+    it('should bulk delete keys and cascade to translations', async () => {
+      // Create keys with translations
+      const key1 = await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'bulk.delete.1',
+        },
+      });
+      const key2 = await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'bulk.delete.2',
+        },
+      });
+
+      await app.prisma.translation.createMany({
+        data: [
+          { keyId: key1.id, language: 'en', value: 'Value 1' },
+          { keyId: key2.id, language: 'en', value: 'Value 2' },
+        ],
+      });
+
+      // Bulk delete
+      const response = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${mainBranchId}/keys/bulk-delete`,
+        headers: { cookie: authCookie },
+        payload: {
+          keyIds: [key1.id, key2.id],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.deleted).toBe(2);
+
+      // Verify keys deleted
+      const remainingKeys = await app.prisma.translationKey.findMany({
+        where: { id: { in: [key1.id, key2.id] } },
+      });
+      expect(remainingKeys).toHaveLength(0);
+
+      // Verify translations cascade deleted
+      const remainingTranslations = await app.prisma.translation.findMany({
+        where: { keyId: { in: [key1.id, key2.id] } },
+      });
+      expect(remainingTranslations).toHaveLength(0);
+    });
+  });
+
+  describe('CLI Support: Bulk Operations', () => {
+    it('should get all translations for a branch (CLI pull)', async () => {
+      // Create keys with translations
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'cli.test.1',
+          translations: {
+            create: [
+              { language: 'en', value: 'Hello' },
+              { language: 'es', value: 'Hola' },
+            ],
+          },
+        },
+      });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${mainBranchId}/translations`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.translations).toBeDefined();
+      expect(Object.keys(body.translations.en).length).toBeGreaterThan(0);
+    });
+
+    it('should bulk update translations (CLI push)', async () => {
+      // Create initial key
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'cli.push.test',
+        },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/api/branches/${mainBranchId}/translations`,
+        headers: { cookie: authCookie },
+        payload: {
+          translations: {
+            en: {
+              'cli.push.test': 'English from CLI',
+              'cli.push.new': 'New key from CLI',
+            },
+            es: {
+              'cli.push.test': 'Spanish from CLI',
+            },
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.updated).toBeGreaterThanOrEqual(0);
+      expect(body.created).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Authorization', () => {
+    it('should reject unauthenticated requests', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${mainBranchId}/keys`,
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should reject non-member access', async () => {
+      const otherTestId = Date.now().toString();
+      const otherEmail = `trans-int-other-${otherTestId}@example.com`;
+
+      // Register another user
+      await app.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          email: otherEmail,
+          password: 'SecurePass123!',
+          name: 'Other User',
+        },
+      });
+
+      const loginResponse = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: {
+          email: otherEmail,
+          password: 'SecurePass123!',
+        },
+      });
+      const otherCookie = `token=${loginResponse.cookies.find((c) => c.name === 'token')?.value}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${mainBranchId}/keys`,
+        headers: { cookie: otherCookie },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });
