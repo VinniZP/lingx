@@ -143,3 +143,79 @@ export const projectApi = {
   getStats: (id: string) =>
     fetchApi<ProjectStats>(`/api/projects/${id}/stats`),
 };
+
+// Space types
+export interface Space {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  projectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Branch {
+  id: string;
+  name: string;
+  slug: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+export interface SpaceWithBranches extends Space {
+  branches: Branch[];
+}
+
+export interface SpaceStats {
+  id: string;
+  name: string;
+  branches: number;
+  totalKeys: number;
+  translationsByLanguage: Record<
+    string,
+    {
+      translated: number;
+      total: number;
+      percentage: number;
+    }
+  >;
+}
+
+export interface CreateSpaceInput {
+  name: string;
+  slug: string;
+  description?: string;
+}
+
+export interface UpdateSpaceInput {
+  name?: string;
+  description?: string;
+}
+
+// Space API
+export const spaceApi = {
+  list: (projectId: string) =>
+    fetchApi<{ spaces: Space[] }>(`/api/projects/${projectId}/spaces`),
+
+  get: (id: string) => fetchApi<SpaceWithBranches>(`/api/spaces/${id}`),
+
+  create: (projectId: string, data: CreateSpaceInput) =>
+    fetchApi<Space>(`/api/projects/${projectId}/spaces`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: UpdateSpaceInput) =>
+    fetchApi<Space>(`/api/spaces/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    fetchApi<void>(`/api/spaces/${id}`, {
+      method: 'DELETE',
+    }),
+
+  getStats: (id: string) => fetchApi<SpaceStats>(`/api/spaces/${id}/stats`),
+};

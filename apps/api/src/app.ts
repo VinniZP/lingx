@@ -11,6 +11,7 @@ import authPlugin from './plugins/auth.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
 import projectRoutes from './routes/projects.js';
+import spaceRoutes from './routes/spaces.js';
 
 /**
  * Application configuration options
@@ -112,6 +113,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(projectRoutes);
+  await fastify.register(spaceRoutes);
 
   return fastify;
 }
