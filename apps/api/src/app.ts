@@ -54,7 +54,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   await fastify.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
   });
 
