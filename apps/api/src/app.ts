@@ -7,7 +7,9 @@ import swaggerUi from '@fastify/swagger-ui';
 
 import prismaPlugin from './plugins/prisma.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
+import authPlugin from './plugins/auth.js';
 import healthRoutes from './routes/health.js';
+import authRoutes from './routes/auth.js';
 
 /**
  * Application configuration options
@@ -103,9 +105,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   // Register custom plugins
   await fastify.register(errorHandlerPlugin);
   await fastify.register(prismaPlugin);
+  await fastify.register(authPlugin);
 
   // Register routes
   await fastify.register(healthRoutes);
+  await fastify.register(authRoutes);
 
   return fastify;
 }
