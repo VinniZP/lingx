@@ -56,41 +56,30 @@ export interface UseTranslationReturn {
  */
 export function useTranslation(namespace?: string): UseTranslationReturn {
   const context = useLocaleflowContext();
-  const { translations, ready, error } = context;
+  const { translations, ready, error, t: contextT } = context;
 
   /**
-   * Translation function that handles namespace prefixing
+   * Translation function that handles namespace prefixing.
+   * Delegates to context's t function for full ICU MessageFormat support.
    */
   const t = useCallback<TranslationFunction>(
     (key: string, values?: TranslationValues) => {
       // Build full key with namespace prefix if provided
       const fullKey = namespace ? `${namespace}:${key}` : key;
 
-      // Look up translation
-      let translation = translations[fullKey];
+      // Check if namespaced key exists
+      const hasNamespacedKey = fullKey in translations;
 
-      // If not found with namespace, try without (for common keys)
-      if (!translation && namespace) {
-        translation = translations[key];
+      // If namespaced key doesn't exist, try without namespace (for common keys)
+      if (!hasNamespacedKey && namespace && key in translations) {
+        // Use the non-namespaced key with ICU formatting from context
+        return contextT(key, values);
       }
 
-      // Return key if not found
-      if (!translation) {
-        return fullKey;
-      }
-
-      // Simple interpolation for {placeholder} syntax
-      // Full ICU MessageFormat is added in Task 21
-      if (values) {
-        Object.entries(values).forEach(([name, value]) => {
-          const placeholder = new RegExp(`\\{${name}\\}`, 'g');
-          translation = translation.replace(placeholder, String(value));
-        });
-      }
-
-      return translation;
+      // Use the full key (with namespace prefix) with ICU formatting from context
+      return contextT(fullKey, values);
     },
-    [translations, namespace]
+    [translations, namespace, contextT]
   );
 
   return useMemo(

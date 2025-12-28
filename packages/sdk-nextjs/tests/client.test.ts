@@ -270,6 +270,151 @@ describe('LocaleflowClient', () => {
     });
   });
 
+  describe('ICU MessageFormat Support', () => {
+    it('should format ICU plural messages', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: {
+              cart_items:
+                '{count, plural, =0 {No items} one {1 item} other {{count} items}}',
+            },
+          }),
+      });
+
+      const client = new LocaleflowClient(defaultConfig);
+      await client.init();
+
+      expect(client.translate('cart_items', { count: 0 })).toBe('No items');
+      expect(client.translate('cart_items', { count: 1 })).toBe('1 item');
+      expect(client.translate('cart_items', { count: 5 })).toBe('5 items');
+    });
+
+    it('should format ICU select messages', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: {
+              greeting:
+                '{gender, select, male {He} female {She} other {They}} liked your post',
+            },
+          }),
+      });
+
+      const client = new LocaleflowClient(defaultConfig);
+      await client.init();
+
+      expect(client.translate('greeting', { gender: 'male' })).toBe(
+        'He liked your post'
+      );
+      expect(client.translate('greeting', { gender: 'female' })).toBe(
+        'She liked your post'
+      );
+      expect(client.translate('greeting', { gender: 'other' })).toBe(
+        'They liked your post'
+      );
+    });
+
+    it('should format ICU number messages', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: { count: 'Count: {value, number}' },
+          }),
+      });
+
+      const client = new LocaleflowClient(defaultConfig);
+      await client.init();
+
+      expect(client.translate('count', { value: 1234567 })).toBe(
+        'Count: 1,234,567'
+      );
+    });
+
+    it('should format ICU date messages', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: { update: 'Updated: {date, date, medium}' },
+          }),
+      });
+
+      const client = new LocaleflowClient(defaultConfig);
+      await client.init();
+
+      const date = new Date('2025-12-28T10:30:00Z');
+      const result = client.translate('update', { date });
+
+      expect(result).toContain('Dec');
+      expect(result).toContain('2025');
+    });
+
+    it('should use simple interpolation for non-ICU messages (performance)', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: { greeting: 'Hello, {name}!' },
+          }),
+      });
+
+      const client = new LocaleflowClient(defaultConfig);
+      await client.init();
+
+      // Simple placeholder should still work (uses fast path)
+      expect(client.translate('greeting', { name: 'World' })).toBe(
+        'Hello, World!'
+      );
+    });
+
+    it('should update ICU formatter when language changes', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              language: 'en',
+              translations: {
+                count: 'Count: {value, number}',
+              },
+            }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              language: 'de',
+              translations: {
+                count: 'Anzahl: {value, number}',
+              },
+            }),
+        });
+
+      const client = new LocaleflowClient(defaultConfig);
+      await client.init();
+
+      expect(client.translate('count', { value: 1234567 })).toBe(
+        'Count: 1,234,567'
+      );
+
+      await client.setLanguage('de');
+
+      // German uses . as thousands separator
+      expect(client.translate('count', { value: 1234567 })).toBe(
+        'Anzahl: 1.234.567'
+      );
+    });
+  });
+
   describe('createTranslateFunction()', () => {
     it('should create a bound translate function', async () => {
       mockFetch.mockResolvedValueOnce({

@@ -131,26 +131,17 @@ export function LocaleflowProvider({
     [client, loadedNamespaces]
   );
 
-  // Translation function - sync with client's translations
+  // Translation function with full ICU MessageFormat support
+  // Syncs with client's translations state and uses client's translate method
+  // This ensures the ICU formatter has access to correct locale
   const t = useCallback(
     (key: string, values?: Record<string, string | number | Date>) => {
-      // Use current translations from state (not client) for reactivity
-      let translation = translations[key];
-
-      if (!translation) {
-        return key;
-      }
-
-      if (values) {
-        Object.entries(values).forEach(([name, value]) => {
-          const placeholder = new RegExp(`\\{${name}\\}`, 'g');
-          translation = translation.replace(placeholder, String(value));
-        });
-      }
-
-      return translation;
+      // Sync client's translations with state for reactivity
+      // Then use client.translate for ICU formatting support
+      client.updateTranslations(translations);
+      return client.translate(key, values);
     },
-    [translations]
+    [client, translations]
   );
 
   // Memoize context value to prevent unnecessary re-renders

@@ -6,6 +6,7 @@ import type {
   TranslationFunction,
 } from '../types';
 import { TranslationCache } from './cache';
+import { ICUFormatter, hasICUSyntax } from './icu-formatter';
 
 /**
  * Core Localeflow client for API communication and translation management
@@ -16,11 +17,13 @@ export class LocaleflowClient {
   private translations: TranslationBundle = {};
   private availableLanguages: string[] = [];
   private currentLanguage: string;
+  private icuFormatter: ICUFormatter;
 
   constructor(config: LocaleflowConfig) {
     this.config = config;
     this.cache = new TranslationCache();
     this.currentLanguage = config.defaultLanguage;
+    this.icuFormatter = new ICUFormatter(config.defaultLanguage);
 
     // Initialize with static data if provided
     if (config.staticData) {
@@ -126,6 +129,9 @@ export class LocaleflowClient {
     const response = await this.fetchTranslations(language);
     this.translations = response.translations;
     this.currentLanguage = language;
+
+    // Update ICU formatter language
+    this.icuFormatter.setLanguage(language);
   }
 
   /**
@@ -173,26 +179,47 @@ export class LocaleflowClient {
   }
 
   /**
-   * Basic translate function (without ICU formatting)
-   * ICU formatting is added in Task 21
+   * Translate a key with full ICU MessageFormat support.
+   *
+   * Supports:
+   * - Simple interpolation: {name}
+   * - Plural: {count, plural, one {...} other {...}}
+   * - Select: {gender, select, male {...} female {...} other {...}}
+   * - SelectOrdinal: {place, selectordinal, one {...} other {...}}
+   * - Number: {amount, number} or {amount, number, ::currency/USD}
+   * - Date: {date, date, short|medium|long|full}
+   * - Time: {time, time, short|medium|long|full}
+   *
+   * @param key - Translation key
+   * @param values - Values for ICU placeholders
+   * @returns Formatted translation string
    */
   translate(key: string, values?: TranslationValues): string {
-    let translation = this.translations[key];
+    const translation = this.translations[key];
 
     if (!translation) {
       // Return key if translation not found
       return key;
     }
 
-    // Simple interpolation for {placeholder} syntax
-    if (values) {
-      Object.entries(values).forEach(([name, value]) => {
-        const placeholder = new RegExp(`\\{${name}\\}`, 'g');
-        translation = translation.replace(placeholder, String(value));
-      });
+    // Fast path: no values provided
+    if (!values || Object.keys(values).length === 0) {
+      return translation;
     }
 
-    return translation;
+    // Fast path: simple placeholders only (no ICU syntax)
+    // This provides performance optimization for apps with mostly simple translations
+    if (!hasICUSyntax(translation)) {
+      let result = translation;
+      Object.entries(values).forEach(([name, value]) => {
+        const placeholder = new RegExp(`\\{${name}\\}`, 'g');
+        result = result.replace(placeholder, String(value));
+      });
+      return result;
+    }
+
+    // Full ICU MessageFormat parsing
+    return this.icuFormatter.format(translation, values);
   }
 
   /**

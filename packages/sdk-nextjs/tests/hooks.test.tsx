@@ -114,6 +114,105 @@ describe('useTranslation', () => {
     });
   });
 
+  describe('ICU MessageFormat Support', () => {
+    it('should format ICU plural messages via hook', async () => {
+      setupMockFetch();
+
+      const TestComponent = () => {
+        const { t, ready } = useTranslation();
+        if (!ready) return null;
+        return (
+          <div>
+            <span data-testid="zero">{t('cart_items', { count: 0 })}</span>
+            <span data-testid="one">{t('cart_items', { count: 1 })}</span>
+            <span data-testid="many">{t('cart_items', { count: 5 })}</span>
+          </div>
+        );
+      };
+
+      render(
+        <LocaleflowProvider {...defaultConfig}>
+          <TestComponent />
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('zero').textContent).toBe('No items');
+      });
+
+      expect(screen.getByTestId('one').textContent).toBe('1 item');
+      expect(screen.getByTestId('many').textContent).toBe('5 items');
+    });
+
+    it('should format ICU select messages via hook', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: {
+              greeting:
+                '{gender, select, male {He} female {She} other {They}} liked your post',
+            },
+            availableLanguages: ['en'],
+          }),
+      });
+
+      const TestComponent = () => {
+        const { t, ready } = useTranslation();
+        if (!ready) return null;
+        return (
+          <div>
+            <span data-testid="male">{t('greeting', { gender: 'male' })}</span>
+            <span data-testid="female">{t('greeting', { gender: 'female' })}</span>
+          </div>
+        );
+      };
+
+      render(
+        <LocaleflowProvider {...defaultConfig}>
+          <TestComponent />
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('male').textContent).toBe('He liked your post');
+      });
+
+      expect(screen.getByTestId('female').textContent).toBe('She liked your post');
+    });
+
+    it('should format ICU number messages via hook', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            language: 'en',
+            translations: {
+              count: 'Count: {value, number}',
+            },
+            availableLanguages: ['en'],
+          }),
+      });
+
+      const TestComponent = () => {
+        const { t, ready } = useTranslation();
+        if (!ready) return null;
+        return <span data-testid="count">{t('count', { value: 1234567 })}</span>;
+      };
+
+      render(
+        <LocaleflowProvider {...defaultConfig}>
+          <TestComponent />
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('count').textContent).toBe('Count: 1,234,567');
+      });
+    });
+  });
+
   describe('Namespace Support', () => {
     it('should scope translations to namespace', async () => {
       setupMockFetch();
