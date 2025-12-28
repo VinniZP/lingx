@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { branchApi, spaceApi, CreateBranchInput, ApiError } from '@/lib/api';
@@ -40,15 +40,17 @@ export default function NewBranchPage({ params }: PageProps) {
     queryFn: () => branchApi.list(spaceId),
   });
 
-  const branches = branchesData?.branches || [];
+  const branches = useMemo(
+    () => branchesData?.branches || [],
+    [branchesData?.branches]
+  );
 
-  // Set default source branch when branches load
-  useEffect(() => {
-    if (branches.length > 0 && !fromBranchId) {
-      const defaultBranch = branches.find((b) => b.isDefault) || branches[0];
-      setFromBranchId(defaultBranch.id);
-    }
-  }, [branches, fromBranchId]);
+  // Compute selected source branch - default to the first default branch or first available branch
+  const selectedFromBranchId =
+    fromBranchId ||
+    branches.find((b) => b.isDefault)?.id ||
+    branches[0]?.id ||
+    '';
 
   const createMutation = useMutation({
     mutationFn: (data: CreateBranchInput) => branchApi.create(spaceId, data),
@@ -73,11 +75,11 @@ export default function NewBranchPage({ params }: PageProps) {
     e.preventDefault();
     createMutation.mutate({
       name,
-      fromBranchId,
+      fromBranchId: selectedFromBranchId,
     });
   };
 
-  const sourceBranch = branches.find((b) => b.id === fromBranchId);
+  const sourceBranch = branches.find((b) => b.id === selectedFromBranchId);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -126,7 +128,7 @@ export default function NewBranchPage({ params }: PageProps) {
               <Label htmlFor="fromBranch">Copy From</Label>
               <select
                 id="fromBranch"
-                value={fromBranchId}
+                value={selectedFromBranchId}
                 onChange={(e) => setFromBranchId(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md bg-background"
                 required
@@ -169,7 +171,7 @@ export default function NewBranchPage({ params }: PageProps) {
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending || !name || !fromBranchId}
+                disabled={createMutation.isPending || !name || !selectedFromBranchId}
               >
                 {createMutation.isPending ? 'Creating...' : 'Create Branch'}
               </Button>

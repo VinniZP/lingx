@@ -40,15 +40,18 @@ export function KeyFormDialog({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
+  // Sync form values when dialog opens or editKey changes
+  // Using the `open` prop change as trigger for resetting form state
+  // This is an intentional sync - React lint allows setState in effects for external sync
   useEffect(() => {
-    if (editKey) {
-      setName(editKey.name);
-      setDescription(editKey.description || '');
-    } else {
-      setName('');
-      setDescription('');
+    if (open) {
+      // Dialog is opening - initialize form values from editKey
+      setName(editKey?.name || '');
+      setDescription(editKey?.description || '');
     }
-  }, [editKey, open]);
+    // Only run when dialog opens, not when editKey changes while open
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const createMutation = useMutation({
     mutationFn: (data: CreateKeyInput) =>

@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectApi, UpdateProjectInput, ApiError } from '@/lib/api';
@@ -56,24 +56,26 @@ export default function ProjectSettingsPage({ params }: PageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [defaultLanguage, setDefaultLanguage] = useState('');
-
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', projectId],
     queryFn: () => projectApi.get(projectId),
   });
 
-  useEffect(() => {
-    if (project) {
-      setName(project.name);
-      setDescription(project.description || '');
-      setSelectedLanguages(project.languages.map((l) => l.code));
-      setDefaultLanguage(project.defaultLanguage);
-    }
-  }, [project]);
+  // Use local state initialized from project data, falling back to empty values
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [defaultLanguage, setDefaultLanguage] = useState('');
+
+  // Compute effective values - use local state if user has modified, otherwise use project data
+  const effectiveName = name || project?.name || '';
+  const effectiveDescription = description || project?.description || '';
+  const effectiveLanguages =
+    selectedLanguages.length > 0
+      ? selectedLanguages
+      : project?.languages.map((l) => l.code) || [];
+  const effectiveDefaultLanguage =
+    defaultLanguage || project?.defaultLanguage || '';
 
   const updateMutation = useMutation({
     mutationFn: (data: UpdateProjectInput) =>
@@ -109,22 +111,31 @@ export default function ProjectSettingsPage({ params }: PageProps) {
   });
 
   const toggleLanguage = (code: string) => {
-    setSelectedLanguages((prev) => {
-      if (prev.includes(code)) {
-        if (code === defaultLanguage) return prev;
-        return prev.filter((c) => c !== code);
+    // Initialize from project if user hasn't made changes
+    const currentLangs =
+      selectedLanguages.length > 0
+        ? selectedLanguages
+        : project?.languages.map((l) => l.code) || [];
+    const currentDefaultLang = defaultLanguage || project?.defaultLanguage || '';
+
+    if (currentLangs.includes(code)) {
+      if (code === currentDefaultLang) {
+        setSelectedLanguages(currentLangs);
+        return;
       }
-      return [...prev, code];
-    });
+      setSelectedLanguages(currentLangs.filter((c) => c !== code));
+    } else {
+      setSelectedLanguages([...currentLangs, code]);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateMutation.mutate({
-      name,
-      description: description || undefined,
-      languageCodes: selectedLanguages,
-      defaultLanguage,
+      name: effectiveName,
+      description: effectiveDescription || undefined,
+      languageCodes: effectiveLanguages,
+      defaultLanguage: effectiveDefaultLanguage,
     });
   };
 
@@ -165,7 +176,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
               <Label htmlFor="name">Project Name</Label>
               <Input
                 id="name"
-                value={name}
+                value={effectiveName}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
@@ -183,7 +194,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                value={description}
+                value={effectiveDescription}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
@@ -198,7 +209,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                     type="button"
                     onClick={() => toggleLanguage(lang.code)}
                     className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                      selectedLanguages.includes(lang.code)
+                      effectiveLanguages.includes(lang.code)
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
@@ -213,11 +224,11 @@ export default function ProjectSettingsPage({ params }: PageProps) {
               <Label htmlFor="defaultLanguage">Default Language</Label>
               <select
                 id="defaultLanguage"
-                value={defaultLanguage}
+                value={effectiveDefaultLanguage}
                 onChange={(e) => setDefaultLanguage(e.target.value)}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               >
-                {selectedLanguages.map((code) => {
+                {effectiveLanguages.map((code) => {
                   const lang = AVAILABLE_LANGUAGES.find((l) => l.code === code);
                   return (
                     <option key={code} value={code}>

@@ -92,8 +92,8 @@ export default function NewSpacePage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>Space Details</CardTitle>
           <CardDescription>
-            Spaces organize translations within a project (e.g., "frontend",
-            "backend")
+            Spaces organize translations within a project (e.g., &quot;frontend&quot;,
+            &quot;backend&quot;)
           </CardDescription>
         </CardHeader>
         <CardContent>

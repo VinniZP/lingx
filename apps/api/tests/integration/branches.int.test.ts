@@ -2,7 +2,7 @@
  * Branch Integration Tests
  *
  * Tests for branch CRUD operations with copy-on-write functionality.
- * Per Design Doc: AC-WEB-012, AC-WEB-013
+ * Per Design Doc: AC-WEB-012, AC-WEB-013, AC-WEB-014
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
@@ -402,6 +402,192 @@ describe('Branch Integration Tests', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('AC-WEB-014: Branch Diff', () => {
+    it('should identify added, modified, and deleted keys in diff', async () => {
+      // Create feature branch from main
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-diff-test', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      // Modify a key in feature branch (will be detected as conflict since branched from main)
+      const featureKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: featureBranchId, name: 'common.hello' },
+      });
+      await app.prisma.translation.update({
+        where: {
+          keyId_language: { keyId: featureKey!.id, language: 'en' },
+        },
+        data: { value: 'Hi there!' },
+      });
+
+      // Add a new key in feature branch (added)
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: featureBranchId,
+          name: 'feature.new_key',
+          translations: {
+            create: [
+              { language: 'en', value: 'New Feature' },
+              { language: 'es', value: 'Nueva Funcion' },
+            ],
+          },
+        },
+      });
+
+      // Delete a key in feature branch (will appear as deleted)
+      const deleteKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: featureBranchId, name: 'common.goodbye' },
+      });
+      await app.prisma.translationKey.delete({ where: { id: deleteKey!.id } });
+
+      // Get diff: feature -> main (merging feature into main)
+      const diffRes = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${featureBranchId}/diff/${mainBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(diffRes.statusCode).toBe(200);
+      const diff = JSON.parse(diffRes.body);
+
+      expect(diff.source.id).toBe(featureBranchId);
+      expect(diff.target.id).toBe(mainBranchId);
+
+      // Added: feature.new_key (in source but not in target)
+      expect(diff.added).toHaveLength(1);
+      expect(diff.added[0].key).toBe('feature.new_key');
+      expect(diff.added[0].translations.en).toBe('New Feature');
+
+      // Conflicts: common.hello (modified in feature, branched from main)
+      // Since feature was branched from main, any difference is a conflict
+      expect(diff.conflicts).toHaveLength(1);
+      expect(diff.conflicts[0].key).toBe('common.hello');
+      expect(diff.conflicts[0].source.en).toBe('Hi there!');
+      expect(diff.conflicts[0].target.en).toBe('common.hello in English');
+
+      // Deleted: common.goodbye (in target but not in source)
+      expect(diff.deleted).toHaveLength(1);
+      expect(diff.deleted[0].key).toBe('common.goodbye');
+    });
+
+    it('should identify conflicts when same key modified in both branches', async () => {
+      // Setup: Clear existing keys and add a fresh key to main branch
+      await app.prisma.translationKey.deleteMany({
+        where: { branchId: mainBranchId },
+      });
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'shared.title',
+          translations: {
+            create: [
+              { language: 'en', value: 'Original Title' },
+              { language: 'es', value: 'Titulo Original' },
+            ],
+          },
+        },
+      });
+
+      // Create feature branch from main
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-conflict-test', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      // Modify the key in feature branch
+      const featureKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: featureBranchId, name: 'shared.title' },
+      });
+      await app.prisma.translation.update({
+        where: {
+          keyId_language: { keyId: featureKey!.id, language: 'en' },
+        },
+        data: { value: 'Feature Title' },
+      });
+
+      // Modify the same key in main branch (causes conflict)
+      const mainKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'shared.title' },
+      });
+      await app.prisma.translation.update({
+        where: {
+          keyId_language: { keyId: mainKey!.id, language: 'en' },
+        },
+        data: { value: 'Updated Main Title' },
+      });
+
+      // Get diff: feature -> main
+      const diffRes = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${featureBranchId}/diff/${mainBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(diffRes.statusCode).toBe(200);
+      const diff = JSON.parse(diffRes.body);
+
+      // This should be a conflict since both branches modified the same key
+      expect(diff.conflicts).toHaveLength(1);
+      expect(diff.conflicts[0].key).toBe('shared.title');
+      expect(diff.conflicts[0].source.en).toBe('Feature Title');
+      expect(diff.conflicts[0].target.en).toBe('Updated Main Title');
+
+      // Should not be in modified (it's a conflict instead)
+      expect(diff.modified).toHaveLength(0);
+    });
+
+    it('should return 404 for non-existent source branch', async () => {
+      const diffRes = await app.inject({
+        method: 'GET',
+        url: `/api/branches/non-existent-id/diff/${mainBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(diffRes.statusCode).toBe(404);
+    });
+
+    it('should return 400 if branches are from different spaces', async () => {
+      // Create another space within the same test to avoid rate limiting on beforeEach
+      const space2Res = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${testProjectId}/spaces`,
+        headers: { cookie: authCookie },
+        payload: { name: 'Other Space', slug: 'other-space-diff-test' },
+      });
+      expect(space2Res.statusCode).toBe(201);
+      const space2Data = JSON.parse(space2Res.body);
+
+      // Get the branches for the new space
+      const space2BranchesRes = await app.inject({
+        method: 'GET',
+        url: `/api/spaces/${space2Data.id}/branches`,
+        headers: { cookie: authCookie },
+      });
+      expect(space2BranchesRes.statusCode).toBe(200);
+      const space2Branches = JSON.parse(space2BranchesRes.body);
+      const otherMainBranchId = space2Branches.branches[0].id;
+
+      const diffRes = await app.inject({
+        method: 'GET',
+        url: `/api/branches/${mainBranchId}/diff/${otherMainBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(diffRes.statusCode).toBe(400);
+      const body = JSON.parse(diffRes.body);
+      expect(body.message).toContain('same space');
     });
   });
 });

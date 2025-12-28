@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import {
@@ -44,7 +44,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
-  const [branchId, setBranchId] = useState('');
+  const [branchId, setBranchId] = useState<string | null>(null);
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -74,14 +74,10 @@ export default function NewEnvironmentPage({ params }: PageProps) {
     enabled: !!spacesData?.spaces,
   });
 
-  // Set default branch when branches load
-  useEffect(() => {
-    if (allBranches && allBranches.length > 0 && !branchId) {
-      const defaultBranch =
-        allBranches.find((b) => b.isDefault) || allBranches[0];
-      setBranchId(defaultBranch.id);
-    }
-  }, [allBranches, branchId]);
+  // Compute selected branch ID - default to the first default branch or first available branch
+  const selectedBranchId =
+    branchId ??
+    (allBranches?.find((b) => b.isDefault)?.id || allBranches?.[0]?.id || '');
 
   const createMutation = useMutation({
     mutationFn: (data: CreateEnvironmentInput) =>
@@ -114,11 +110,11 @@ export default function NewEnvironmentPage({ params }: PageProps) {
     createMutation.mutate({
       name,
       slug,
-      branchId,
+      branchId: selectedBranchId,
     });
   };
 
-  const selectedBranch = allBranches?.find((b) => b.id === branchId);
+  const selectedBranch = allBranches?.find((b) => b.id === selectedBranchId);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
@@ -196,7 +192,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
               ) : allBranches && allBranches.length > 0 ? (
                 <select
                   id="branch"
-                  value={branchId}
+                  value={selectedBranchId}
                   onChange={(e) => setBranchId(e.target.value)}
                   className="w-full h-11 px-3 py-2 border border-input rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   required
@@ -277,7 +273,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                   createMutation.isPending ||
                   !name ||
                   !slug ||
-                  !branchId ||
+                  !selectedBranchId ||
                   !allBranches?.length
                 }
                 className="flex-1 gap-2"

@@ -3,7 +3,7 @@
 // Test Type: End-to-End Test
 // Implementation Timing: After all feature implementations complete
 
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 /**
  * Test Setup Requirements:

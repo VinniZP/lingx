@@ -1,11 +1,12 @@
 /**
  * Branch Routes
  *
- * Handles branch CRUD operations.
- * Per Design Doc: AC-WEB-012, AC-WEB-013
+ * Handles branch CRUD operations and diff computation.
+ * Per Design Doc: AC-WEB-012, AC-WEB-013, AC-WEB-014
  */
 import { FastifyPluginAsync } from 'fastify';
 import { BranchService } from '../services/branch.service.js';
+import { DiffService } from '../services/diff.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { SpaceService } from '../services/space.service.js';
 import {
@@ -13,6 +14,7 @@ import {
   branchListSchema,
   branchDetailSchema,
 } from '../schemas/branch.schema.js';
+import { branchDiffSchema } from '../schemas/diff.schema.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const branchRoutes: FastifyPluginAsync = async (fastify) => {
@@ -194,6 +196,52 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
 
       await branchService.delete(id);
       return reply.status(204).send();
+    }
+  );
+
+  /**
+   * GET /api/branches/:id/diff/:targetId - Compare two branches
+   *
+   * Per Design Doc: AC-WEB-014 - Diff shows added, modified, deleted keys
+   * Returns categorized changes between source and target branches.
+   */
+  fastify.get(
+    '/api/branches/:id/diff/:targetId',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Compare two branches and show differences',
+        tags: ['Branches'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        ...branchDiffSchema,
+      },
+    },
+    async (request, _reply) => {
+      const { id: sourceBranchId, targetId: targetBranchId } = request.params as {
+        id: string;
+        targetId: string;
+      };
+
+      const diffService = new DiffService(fastify.prisma);
+
+      // Authorization: Check user has access to the branches' project
+      const projectId = await branchService.getProjectIdByBranchId(sourceBranchId);
+
+      if (!projectId) {
+        throw new NotFoundError('Source branch');
+      }
+
+      const isMember = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      const diff = await diffService.computeDiff(sourceBranchId, targetBranchId);
+      return diff;
     }
   );
 };
