@@ -1,8 +1,18 @@
 // Components
 export { LocaleflowProvider } from './provider';
+export { LanguageSwitcher } from './components/LanguageSwitcher';
+export type { LanguageSwitcherProps } from './components/LanguageSwitcher';
 
 // Hooks
 export { useLocaleflow } from './hooks/useLocaleflow';
+export { useTranslation } from './hooks/useTranslation';
+export { useLanguage } from './hooks/useLanguage';
+export { useNamespace } from './hooks/useNamespace';
+
+// Hook types
+export type { UseTranslationReturn } from './hooks/useTranslation';
+export type { UseLanguageReturn } from './hooks/useLanguage';
+export type { UseNamespaceReturn, UseNamespaceOptions } from './hooks/useNamespace';
 
 // Types
 export type {

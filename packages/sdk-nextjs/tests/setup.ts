@@ -1,4 +1,5 @@
 import '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
 
 // Mock fetch globally

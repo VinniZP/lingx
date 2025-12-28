@@ -1,2 +1,9 @@
 export { useLocaleflow } from './useLocaleflow';
-// Additional hooks will be added in Task 20
+export { useTranslation } from './useTranslation';
+export { useLanguage } from './useLanguage';
+export { useNamespace } from './useNamespace';
+
+// Re-export types
+export type { UseTranslationReturn } from './useTranslation';
+export type { UseLanguageReturn } from './useLanguage';
+export type { UseNamespaceReturn, UseNamespaceOptions } from './useNamespace';
