@@ -5,6 +5,7 @@ import { createPushCommand } from './commands/push.js';
 import { createSyncCommand } from './commands/sync.js';
 import { createExtractCommand } from './commands/extract.js';
 import { createCheckCommand } from './commands/check.js';
+import { createBranchCommand } from './commands/branch/index.js';
 
 const VERSION = '0.0.0';
 
@@ -23,9 +24,7 @@ export function createCLI(): Command {
   program.addCommand(createSyncCommand());
   program.addCommand(createExtractCommand());
   program.addCommand(createCheckCommand());
-
-  // Placeholder for future commands
-  // program.addCommand(createBranchCommand());
+  program.addCommand(createBranchCommand());
 
   return program;
 }
