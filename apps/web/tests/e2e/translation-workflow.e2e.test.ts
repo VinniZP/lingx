@@ -163,12 +163,10 @@ test.describe('Translation Management User Journey', () => {
       // Test search functionality (AC-WEB-007)
       const searchInput = page.getByPlaceholder(/search/i);
       if (await searchInput.isVisible().catch(() => false)) {
-        const searchStart = Date.now();
         await searchInput.fill('button');
 
         // Verify search is fast (< 500ms)
         await expect(page.getByText('button')).toBeVisible({ timeout: 500 });
-        const searchTime = Date.now() - searchStart;
 
         // Clear search
         await searchInput.clear();

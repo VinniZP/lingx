@@ -14,9 +14,7 @@
 
 import { test, expect } from '@playwright/test';
 import {
-  TEST_USER,
   registerUser,
-  loginUser,
   logout,
   createUniqueUser,
 } from './fixtures/test-helpers';
