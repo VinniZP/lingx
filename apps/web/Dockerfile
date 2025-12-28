@@ -1,8 +1,8 @@
 # Multi-stage Dockerfile for Next.js 16 application
 # Optimized for production deployment with standalone output
 
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
+# Stage 1: Builder
+FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
 WORKDIR /app
 
@@ -10,17 +10,8 @@ WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json ./apps/web/
 
-# Install all dependencies (including dev for building)
-RUN pnpm install --frozen-lockfile --filter=@localeflow/web...
-
-# Stage 2: Builder
-FROM node:20-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
-WORKDIR /app
-
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+# Install all dependencies (pnpm hoists to root node_modules)
+RUN pnpm install --frozen-lockfile
 
 # Copy all source code
 COPY . .
@@ -36,7 +27,7 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 # Build Next.js with standalone output
 RUN pnpm --filter=@localeflow/web build
 
-# Stage 3: Production
+# Stage 2: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
 

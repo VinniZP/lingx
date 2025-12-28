@@ -1,30 +1,19 @@
 # Multi-stage Dockerfile for Fastify API with Prisma 7
 # Optimized for production deployment
 
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
+# Stage 1: Builder
+FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
 WORKDIR /app
 
-# Copy package files for dependency installation
+# Copy all package files first for dependency installation
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/config/package.json ./packages/config/
 
-# Install all dependencies (including dev for building)
-RUN pnpm install --frozen-lockfile --filter=@localeflow/api...
-
-# Stage 2: Builder
-FROM node:20-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
-WORKDIR /app
-
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
+# Install all dependencies (pnpm hoists to root node_modules)
+RUN pnpm install --frozen-lockfile
 
 # Copy all source code
 COPY . .
@@ -38,9 +27,8 @@ RUN pnpm --filter=@localeflow/api db:generate
 # Build the API
 RUN pnpm --filter=@localeflow/api build
 
-# Stage 3: Production
+# Stage 2: Production
 FROM node:20-alpine AS runner
-RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
 WORKDIR /app
 
 # Create non-root user for security
@@ -51,9 +39,9 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder --chown=localeflow:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=localeflow:nodejs /app/apps/api/package.json ./apps/api/
 COPY --from=builder --chown=localeflow:nodejs /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder --chown=localeflow:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder --chown=localeflow:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=localeflow:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=localeflow:nodejs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 # Copy startup script
 COPY --chown=localeflow:nodejs apps/api/docker-entrypoint.sh ./apps/api/
