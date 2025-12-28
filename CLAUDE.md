@@ -28,6 +28,6 @@ Before implementing features, check:
 - `docs/plans/` - Work plans and task decomposition
 
 ## Frontend Development
-- When implementing FrontEnd ALWAYS use Skill(frontend-design), IT'S REQUIRED.
+- When implementing Next.JS components or FrontEnd part ALWAYS use Skill(frontend-design:frontend-design), IT'S REQUIRED. (path ~/.claude/plugins/marketplaces/claude-plugins-official/plugins/frontend-design)
 - Use shadcn/ui components from `@/components/ui`
 - Follow the distinctive Localeflow design: deep indigo/violet + warm amber accents
