@@ -45,7 +45,7 @@ interface SidebarItem {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/projects', icon: FolderOpen, label: 'Projects' },
   { href: '/settings', icon: Settings, label: 'Settings', requiresManager: true },
 ];

@@ -1,8 +1,6 @@
-'use client';
-
-import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { AuthRedirect } from '@/components/auth-redirect';
 import {
   Languages,
   ArrowRight,
@@ -13,15 +11,6 @@ import {
   Globe,
   Code2,
 } from 'lucide-react';
-
-// Custom hook for hydration-safe mounted state
-function useMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-}
 
 const features = [
   {
@@ -57,10 +46,11 @@ const features = [
 ];
 
 export default function Home() {
-  const mounted = useMounted();
-
   return (
     <div className="min-h-screen bg-background">
+      {/* Silent auth redirect for logged-in users */}
+      <AuthRedirect to="/dashboard" />
+
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -93,26 +83,14 @@ export default function Home() {
 
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div
-            className={`absolute top-20 left-1/4 w-96 h-96 rounded-full bg-primary/5 blur-3xl transition-all duration-1000 ${
-              mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-            }`}
-          />
-          <div
-            className={`absolute bottom-20 right-1/4 w-80 h-80 rounded-full bg-warm/5 blur-3xl transition-all duration-1000 delay-300 ${
-              mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-            }`}
-          />
+          <div className="absolute top-20 left-1/4 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute bottom-20 right-1/4 w-80 h-80 rounded-full bg-warm/5 blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center space-y-8">
             {/* Badge */}
-            <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary transition-all duration-700 ${
-                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
@@ -122,9 +100,7 @@ export default function Home() {
 
             {/* Headline */}
             <h1
-              className={`text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight transition-all duration-700 delay-100 ${
-                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
+              className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
               style={{ fontFamily: 'var(--font-instrument-serif)' }}
             >
               Localization management
@@ -133,21 +109,13 @@ export default function Home() {
             </h1>
 
             {/* Subheadline */}
-            <p
-              className={`text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${
-                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
-            >
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Manage translations with git-like branching. Collaborate with your team,
               review changes, and ship localized products with confidence.
             </p>
 
             {/* CTAs */}
-            <div
-              className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-700 delay-300 ${
-                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
-            >
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/register">
                 <Button size="lg" className="gap-2 h-12 px-6 text-base">
                   Start for free
@@ -180,13 +148,10 @@ export default function Home() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => (
+            {features.map((feature) => (
               <div
                 key={feature.title}
-                className={`group p-6 rounded-2xl bg-card border border-border hover:border-primary/50 hover:shadow-lg transition-all duration-300 ${
-                  mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
+                className="group p-6 rounded-2xl bg-card border border-border hover:border-primary/50 hover:shadow-lg transition-all duration-300"
               >
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">

@@ -15,10 +15,10 @@ import {
 } from '../schemas/auth.schema.js';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
-  // Rate limit auth endpoints (10 req/min per Design Doc, relaxed in test)
-  const isTest = process.env.NODE_ENV === 'test';
+  // Rate limit auth endpoints (10 req/min per Design Doc, relaxed in dev/test)
+  const isProduction = process.env.NODE_ENV === 'production';
   await fastify.register(rateLimit, {
-    max: isTest ? 1000 : 10,
+    max: isProduction ? 10 : 1000,
     timeWindow: '1 minute',
     keyGenerator: (request) => {
       return request.ip;

@@ -51,8 +51,8 @@ test.describe('Authentication User Journey', () => {
       // Submit
       await page.getByRole('button', { name: /create account/i }).click();
 
-      // Verify successful registration - redirected to dashboard or projects
-      await expect(page).toHaveURL(/\/(dashboard|projects|$)/, {
+      // Verify successful registration - redirected to dashboard
+      await expect(page).toHaveURL('/dashboard', {
         timeout: 15000,
       });
 
@@ -60,9 +60,9 @@ test.describe('Authentication User Journey', () => {
       const sidebar = page.locator('aside');
       await expect(sidebar).toBeVisible();
 
-      // User name should be displayed somewhere
+      // User name should be displayed in the greeting heading
       await expect(
-        page.getByText(uniqueUser.name.split(' ')[0], { exact: false })
+        page.getByRole('heading', { name: new RegExp(uniqueUser.name.split(' ')[0], 'i') })
       ).toBeVisible({ timeout: 5000 });
     });
 
@@ -139,14 +139,14 @@ test.describe('Authentication User Journey', () => {
       await page.getByLabel(/password/i).fill(testUser.password);
       await page.getByRole('button', { name: /sign in/i }).click();
 
-      // Verify successful login - redirected to dashboard/projects
-      await expect(page).toHaveURL(/\/(dashboard|projects|$)/, {
+      // Verify successful login - redirected to dashboard
+      await expect(page).toHaveURL('/dashboard', {
         timeout: 15000,
       });
 
       // Verify session persists across page reload
       await page.reload();
-      await expect(page).toHaveURL(/\/(dashboard|projects|$)/);
+      await expect(page).toHaveURL('/dashboard');
 
       // User should still be logged in - sidebar should be visible
       await expect(page.locator('aside')).toBeVisible();
@@ -183,17 +183,14 @@ test.describe('Authentication User Journey', () => {
 
       // Register and verify logged in
       await registerUser(page, user);
-      await expect(page).toHaveURL(/\/(dashboard|projects|$)/);
+      await expect(page).toHaveURL('/dashboard');
 
       // Perform logout via user menu
-      // Click the user button in sidebar (the last button with avatar)
-      await page.locator('aside').getByRole('button').last().click();
+      await page.getByTestId('user-menu').click();
+      await page.getByTestId('logout-button').click();
 
-      // Click sign out option in dropdown
-      await page.getByRole('menuitem', { name: /sign out/i }).click();
-
-      // Verify redirected to login or landing page
-      await expect(page).toHaveURL(/\/(login|$)/, { timeout: 10000 });
+      // Verify redirected to login page
+      await expect(page).toHaveURL('/login', { timeout: 10000 });
 
       // Verify protected route redirects to login
       await page.goto('/projects');

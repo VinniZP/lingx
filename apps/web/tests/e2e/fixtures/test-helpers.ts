@@ -56,11 +56,15 @@ export async function registerUser(
   await page.getByLabel(/^password$/i).fill(user.password);
   await page.getByLabel(/confirm password/i).fill(user.password);
 
-  // Submit form
-  await page.getByRole('button', { name: /create account/i }).click();
+  // Wait for button to be enabled (password validation)
+  const submitButton = page.getByRole('button', { name: /create account/i });
+  await expect(submitButton).toBeEnabled({ timeout: 5000 });
 
-  // Wait for redirect to dashboard/projects
-  await expect(page).toHaveURL(/\/(dashboard|projects|$)/, { timeout: 15000 });
+  // Submit form
+  await submitButton.click();
+
+  // Wait for redirect to dashboard
+  await page.waitForURL('/dashboard', { timeout: 15000 });
 }
 
 /**
@@ -82,8 +86,8 @@ export async function loginUser(
   // Submit form
   await page.getByRole('button', { name: /sign in/i }).click();
 
-  // Wait for redirect to dashboard/projects
-  await expect(page).toHaveURL(/\/(dashboard|projects|$)/, { timeout: 15000 });
+  // Wait for redirect to dashboard
+  await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
 }
 
 /**
@@ -92,14 +96,21 @@ export async function loginUser(
  * @param page - Playwright page object
  */
 export async function logout(page: Page): Promise<void> {
-  // Open user menu (click the avatar/user button in sidebar)
-  await page.locator('aside').getByRole('button').last().click();
+  // Make sure we're on a dashboard page first
+  await page.waitForSelector('aside', { timeout: 5000 });
 
-  // Click sign out option
-  await page.getByRole('menuitem', { name: /sign out/i }).click();
+  // Open user menu using data-testid
+  const userMenu = page.getByTestId('user-menu');
+  await userMenu.click();
 
-  // Wait for redirect to login or landing
-  await expect(page).toHaveURL(/\/(login|$)/, { timeout: 10000 });
+  // Wait for dropdown to appear and click sign out
+  // Use role menuitem since Radix renders in a portal
+  const logoutButton = page.getByRole('menuitem', { name: /sign out/i });
+  await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+  await logoutButton.click();
+
+  // Wait for navigation to complete (logout clears user state)
+  await page.waitForURL('/login', { timeout: 15000 });
 }
 
 // =============================================================================

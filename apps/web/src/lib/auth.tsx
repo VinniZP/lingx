@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const response = await authApi.login({ email, password });
     setUser(response.user);
-    router.push('/');
+    router.push('/dashboard');
   };
 
   const register = async (email: string, password: string, name?: string) => {
@@ -51,7 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await authApi.logout();
+    try {
+      await authApi.logout();
+    } catch (error) {
+      // Ignore logout API errors - still clear local state
+      console.error('Logout API error:', error);
+    }
     setUser(null);
     router.push('/login');
   };
