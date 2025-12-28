@@ -10,6 +10,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
+  isManager: boolean;
+  isDeveloper: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,8 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  // Role-based access helpers
+  const isAdmin = user?.role === 'ADMIN';
+  const isManager = user?.role === 'MANAGER' || isAdmin;
+  const isDeveloper = user?.role === 'DEVELOPER';
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, isManager, isDeveloper, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

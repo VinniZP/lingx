@@ -1,0 +1,71 @@
+# Localeflow Docker Compose Configuration
+# Start the entire stack with: docker-compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: localeflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-localeflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localeflow}
+      POSTGRES_DB: ${POSTGRES_DB:-localeflow}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-localeflow} -d ${POSTGRES_DB:-localeflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - localeflow-network
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: localeflow-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-localeflow}:${POSTGRES_PASSWORD:-localeflow}@postgres:5432/${POSTGRES_DB:-localeflow}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      PORT: 3001
+    ports:
+      - "${API_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - localeflow-network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    container_name: localeflow-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    networks:
+      - localeflow-network
+
+volumes:
+  postgres_data:
+
+networks:
+  localeflow-network:
+    driver: bridge

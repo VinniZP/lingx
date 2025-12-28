@@ -470,3 +470,39 @@ export const environmentApi = {
       method: 'DELETE',
     }),
 };
+
+// API Key types
+export interface ApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  revoked: boolean;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export interface CreateApiKeyResponse {
+  id: string;
+  name: string;
+  key: string;
+  keyPrefix: string;
+  createdAt: string;
+}
+
+// API Key API
+export const apiKeyApi = {
+  list: () =>
+    fetchApi<{ apiKeys: ApiKey[] }>('/api/auth/api-keys'),
+
+  create: (name: string) =>
+    fetchApi<CreateApiKeyResponse>('/api/auth/api-keys', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+
+  revoke: (id: string) =>
+    fetchApi<void>(`/api/auth/api-keys/${id}`, {
+      method: 'DELETE',
+    }),
+};

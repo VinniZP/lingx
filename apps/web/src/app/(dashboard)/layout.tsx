@@ -37,10 +37,17 @@ function useMounted() {
   );
 }
 
-const sidebarItems = [
+interface SidebarItem {
+  href: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  requiresManager?: boolean;
+}
+
+const sidebarItems: SidebarItem[] = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/projects', icon: FolderOpen, label: 'Projects' },
-  { href: '/settings', icon: Settings, label: 'Settings' },
+  { href: '/settings', icon: Settings, label: 'Settings', requiresManager: true },
 ];
 
 export default function DashboardLayout({
@@ -48,7 +55,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, logout, isManager } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const mounted = useMounted();
@@ -121,29 +128,31 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {sidebarItems.map((item, index) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-sidebar-accent text-sidebar-foreground'
-                    : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                }`}
-                style={{
-                  animationDelay: `${index * 50}ms`,
-                }}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-                {isActive && (
-                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-sidebar-foreground/50" />
-                )}
-              </Link>
-            );
-          })}
+          {sidebarItems
+            .filter((item) => !item.requiresManager || isManager)
+            .map((item, index) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-sidebar-accent text-sidebar-foreground'
+                      : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                  }`}
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                  }}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                  {isActive && (
+                    <ChevronRight className="h-3.5 w-3.5 ml-auto text-sidebar-foreground/50" />
+                  )}
+                </Link>
+              );
+            })}
         </nav>
 
         <Separator className="bg-sidebar-border" />
@@ -179,19 +188,23 @@ export default function DashboardLayout({
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/settings/api-keys" className="cursor-pointer">
-                  <Key className="mr-2 h-4 w-4" />
-                  API Keys
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {isManager && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings/api-keys" className="cursor-pointer">
+                      <Key className="mr-2 h-4 w-4" />
+                      API Keys
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem
                 onClick={() => logout()}
                 className="cursor-pointer text-destructive focus:text-destructive"
