@@ -349,3 +349,70 @@ export const translationApi = {
       body: JSON.stringify({ value }),
     }),
 };
+
+// Environment types
+export interface EnvironmentBranch {
+  id: string;
+  name: string;
+  slug: string;
+  spaceId: string;
+  space: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  slug: string;
+  projectId: string;
+  branchId: string;
+  branch: EnvironmentBranch;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEnvironmentInput {
+  name: string;
+  slug: string;
+  branchId: string;
+}
+
+export interface UpdateEnvironmentInput {
+  name?: string;
+}
+
+// Environment API
+export const environmentApi = {
+  list: (projectId: string) =>
+    fetchApi<{ environments: Environment[] }>(
+      `/api/projects/${projectId}/environments`
+    ),
+
+  get: (id: string) => fetchApi<Environment>(`/api/environments/${id}`),
+
+  create: (projectId: string, data: CreateEnvironmentInput) =>
+    fetchApi<Environment>(`/api/projects/${projectId}/environments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: UpdateEnvironmentInput) =>
+    fetchApi<Environment>(`/api/environments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  switchBranch: (id: string, branchId: string) =>
+    fetchApi<Environment>(`/api/environments/${id}/branch`, {
+      method: 'PUT',
+      body: JSON.stringify({ branchId }),
+    }),
+
+  delete: (id: string) =>
+    fetchApi<void>(`/api/environments/${id}`, {
+      method: 'DELETE',
+    }),
+};
