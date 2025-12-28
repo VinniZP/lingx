@@ -1,11 +1,47 @@
 /**
  * Server-side exports for Next.js SDK
- * Server-side rendering support via getTranslations() is added in Task 22.
- * This file serves as a placeholder export.
+ *
+ * This module provides server-side translation support for Next.js 16 Server Components
+ * and Static Site Generation (SSG).
+ *
+ * @example
+ * ```tsx
+ * // app/layout.tsx
+ * import { configureServer } from '@localeflow/nextjs/server';
+ *
+ * configureServer({
+ *   apiKey: process.env.LOCALEFLOW_API_KEY!,
+ *   environment: 'production',
+ *   project: 'my-project',
+ *   space: 'frontend',
+ *   defaultLanguage: 'en',
+ * });
+ *
+ * // app/[locale]/page.tsx
+ * import { getTranslations, getAvailableLanguages } from '@localeflow/nextjs/server';
+ *
+ * export default async function Page({ params }: { params: { locale: string } }) {
+ *   const { t } = await getTranslations(undefined, params.locale);
+ *   return <h1>{t('home.title')}</h1>;
+ * }
+ *
+ * export async function generateStaticParams() {
+ *   const languages = await getAvailableLanguages();
+ *   return languages.map((locale) => ({ locale }));
+ * }
+ * ```
  */
 
-// Server-side translation function will be implemented in Task 22
-// export { getTranslations } from './getTranslations';
+export {
+  configureServer,
+  getServerConfig,
+  isServerConfigured,
+  resetServerConfig,
+} from './config';
 
-// Placeholder export to make the module valid
-export {};
+export { getTranslations, getAvailableLanguages } from './getTranslations';
+
+export { fetchTranslationsServer, getServerTranslations } from './cache';
+
+// Re-export types
+export type { GetTranslationsReturn } from './getTranslations';
