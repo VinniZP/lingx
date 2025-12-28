@@ -1,71 +1,49 @@
-'use client';
+'use client'
 
-import { useEffect, useSyncExternalStore } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/lib/auth';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { useAuth } from '@/lib/auth'
+import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
-import {
-  FolderOpen,
-  Settings,
-  LogOut,
-  Key,
-  LayoutDashboard,
-  Languages,
-  ChevronRight,
-  Search,
-  Bell,
-  Plus,
-} from 'lucide-react';
+  AppSidebar,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from '@/components/layout/app-sidebar'
+import { Languages, Bell, Plus } from 'lucide-react'
 
-// Custom hook for hydration-safe mounted state
-function useMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-}
-
-interface SidebarItem {
-  href: string;
-  icon: typeof LayoutDashboard;
-  label: string;
-  requiresManager?: boolean;
-}
-
-const sidebarItems: SidebarItem[] = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/projects', icon: FolderOpen, label: 'Projects' },
-  { href: '/settings', icon: Settings, label: 'Settings', requiresManager: true },
-];
-
+/**
+ * DashboardLayout - Main layout wrapper for all dashboard pages
+ *
+ * Implements responsive sidebar behavior:
+ * - Mobile (< 768px): Sheet overlay sidebar with hamburger toggle
+ * - Tablet (768-1023px): Collapsible icon-only sidebar
+ * - Desktop (>= 1024px): Expanded persistent sidebar
+ *
+ * Features:
+ * - SidebarProvider for state management and persistence
+ * - AppSidebar for navigation with permission-aware menu items
+ * - Mobile header with SidebarTrigger (hamburger menu)
+ * - Authentication check and route protection
+ */
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const { user, isLoading, logout, isManager } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const mounted = useMounted();
+  const { user, isLoading, logout, isManager } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname()
 
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push('/login');
+      router.push('/login')
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router])
 
+  // Loading state while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -79,174 +57,71 @@ export default function DashboardLayout({
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
-    );
+    )
   }
 
+  // Don't render dashboard if not authenticated
   if (!user) {
-    return null;
+    return null
   }
 
-  const userInitials = user.name
-    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : user.email[0].toUpperCase();
-
-  const displayName = user.name || user.email.split('@')[0];
+  // Create user object with isManager for AppSidebar
+  const sidebarUser = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    isManager: isManager,
+  }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 ${
-          mounted ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        data-testid="sidebar"
-      >
-        {/* Logo */}
-        <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground transition-all group-hover:scale-105">
-              <Languages className="w-4 h-4" />
-            </div>
-            <span className="text-lg font-semibold text-sidebar-foreground tracking-tight">
-              Localeflow
-            </span>
-          </Link>
-        </div>
+    <SidebarProvider>
+      {/* Main sidebar navigation */}
+      <AppSidebar user={sidebarUser} pathname={pathname} onLogout={logout} />
 
-        {/* Quick actions */}
-        <div className="p-3 border-b border-sidebar-border">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2 h-9 bg-sidebar-accent border-sidebar-border text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+      {/* Main content area with responsive behavior */}
+      <SidebarInset>
+        {/* Mobile header - visible only on mobile with hamburger menu */}
+        <header className="flex h-14 items-center gap-4 border-b border-border bg-background/95 backdrop-blur-sm px-4 md:hidden">
+          <SidebarTrigger className="size-9" />
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 flex-1"
           >
-            <Search className="w-4 h-4" />
-            <span className="text-sm">Search...</span>
-            <kbd className="ml-auto text-xs bg-sidebar border border-sidebar-border rounded px-1.5 py-0.5 text-sidebar-foreground/50">
-              /
-            </kbd>
-          </Button>
-        </div>
+            <div className="flex items-center justify-center size-8 rounded-lg bg-primary text-primary-foreground">
+              <Languages className="size-4" />
+            </div>
+            <span className="font-semibold text-foreground">Localeflow</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="size-9">
+              <Bell className="size-4" />
+            </Button>
+          </div>
+        </header>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {sidebarItems
-            .filter((item) => !item.requiresManager || isManager)
-            .map((item, index) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-sidebar-accent text-sidebar-foreground'
-                      : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                  }`}
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                  }}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                  {isActive && (
-                    <ChevronRight className="h-3.5 w-3.5 ml-auto text-sidebar-foreground/50" />
-                  )}
-                </Link>
-              );
-            })}
-        </nav>
-
-        <Separator className="bg-sidebar-border" />
-
-        {/* User menu */}
-        <div className="p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 h-auto py-2.5 px-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-lg"
-                data-testid="user-menu"
-              >
-                <Avatar className="h-8 w-8 ring-2 ring-sidebar-border">
-                  <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start text-left min-w-0 flex-1">
-                  <span className="text-sm font-medium truncate w-full">
-                    {displayName}
-                  </span>
-                  <span className="text-xs text-sidebar-foreground/50 truncate w-full">
-                    {user.email}
-                  </span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-56">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {isManager && (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings/api-keys" className="cursor-pointer">
-                      <Key className="mr-2 h-4 w-4" />
-                      API Keys
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuItem
-                onClick={() => logout()}
-                className="cursor-pointer text-destructive focus:text-destructive"
-                data-testid="logout-button"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 ml-64">
-        {/* Top bar */}
-        <header className="sticky top-0 z-40 h-16 bg-background/95 backdrop-blur-sm border-b border-border flex items-center justify-between px-6">
+        {/* Desktop/Tablet header - hidden on mobile */}
+        <header className="sticky top-0 z-40 hidden h-16 bg-background/95 backdrop-blur-sm border-b border-border md:flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            {/* Breadcrumb would go here */}
+            {/* Sidebar toggle for tablet/desktop */}
+            <SidebarTrigger className="size-8" />
+            {/* Breadcrumb area - can be extended */}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Bell className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="size-9">
+              <Bell className="size-4" />
             </Button>
             <Button className="h-9 gap-2">
-              <Plus className="h-4 w-4" />
+              <Plus className="size-4" />
               New Project
             </Button>
           </div>
         </header>
 
-        {/* Page content */}
-        <div
-          className={`p-6 lg:p-8 transition-all duration-300 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}
-        >
+        {/* Page content with responsive padding */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8 animate-fade-in">
           {children}
-        </div>
-      </main>
-    </div>
-  );
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }

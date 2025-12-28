@@ -53,6 +53,12 @@
 
 :root {
   --radius: 0.625rem;
+
+  /* Sidebar dimensions - used by shadcn sidebar component */
+  --sidebar-width: 16rem;
+  --sidebar-width-mobile: 18rem;
+  --sidebar-width-collapsed: 3rem;
+
   /* Localeflow brand colors - deep indigo/violet with warm accents */
   --background: oklch(0.99 0.002 280);
   --foreground: oklch(0.13 0.02 280);
