@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ArrowLeft, GitBranch, Key, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, GitBranch, Key, Trash2, Edit, GitCompare } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -185,6 +185,28 @@ export default function BranchDetailPage({ params }: PageProps) {
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Translations
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Branch Operations */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Branch Operations</CardTitle>
+          <CardDescription>
+            Compare and merge branches
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <Button variant="outline" asChild>
+              <Link
+                href={`/projects/${projectId}/spaces/${spaceId}/branches/${branchId}/diff`}
+              >
+                <GitCompare className="h-4 w-4 mr-2" />
+                Compare Branches
               </Link>
             </Button>
           </div>

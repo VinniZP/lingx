@@ -238,6 +238,49 @@ export const spaceApi = {
   getStats: (id: string) => fetchApi<SpaceStats>(`/api/spaces/${id}/stats`),
 };
 
+// Branch Diff types
+export interface DiffEntry {
+  key: string;
+  translations: Record<string, string>;
+}
+
+export interface ModifiedEntry {
+  key: string;
+  source: Record<string, string>;
+  target: Record<string, string>;
+}
+
+export interface ConflictEntry {
+  key: string;
+  source: Record<string, string>;
+  target: Record<string, string>;
+}
+
+export interface BranchDiffResult {
+  source: { id: string; name: string };
+  target: { id: string; name: string };
+  added: DiffEntry[];
+  modified: ModifiedEntry[];
+  deleted: DiffEntry[];
+  conflicts: ConflictEntry[];
+}
+
+export interface Resolution {
+  key: string;
+  resolution: 'source' | 'target' | Record<string, string>;
+}
+
+export interface MergeRequest {
+  targetBranchId: string;
+  resolutions?: Resolution[];
+}
+
+export interface MergeResult {
+  success: boolean;
+  merged: number;
+  conflicts?: ConflictEntry[];
+}
+
 // Branch API
 export const branchApi = {
   list: (spaceId: string) =>
@@ -254,6 +297,17 @@ export const branchApi = {
   delete: (id: string) =>
     fetchApi<void>(`/api/branches/${id}`, {
       method: 'DELETE',
+    }),
+
+  diff: (sourceBranchId: string, targetBranchId: string) =>
+    fetchApi<BranchDiffResult>(
+      `/api/branches/${sourceBranchId}/diff/${targetBranchId}`
+    ),
+
+  merge: (sourceBranchId: string, request: MergeRequest) =>
+    fetchApi<MergeResult>(`/api/branches/${sourceBranchId}/merge`, {
+      method: 'POST',
+      body: JSON.stringify(request),
     }),
 };
 
