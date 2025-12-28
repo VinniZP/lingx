@@ -172,7 +172,7 @@ export default function ApiKeysPage() {
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+        <Button onClick={() => setShowCreateDialog(true)} className="gap-2" data-testid="generate-key-button">
           <Plus className="h-4 w-4" />
           Generate New Key
         </Button>
@@ -208,7 +208,7 @@ export default function ApiKeysPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
-              <code className="block p-4 bg-background rounded-lg border font-mono text-sm break-all pr-12">
+              <code className="block p-4 bg-background rounded-lg border font-mono text-sm break-all pr-12" data-testid="new-api-key">
                 {newKey}
               </code>
               <Button
@@ -319,6 +319,7 @@ export default function ApiKeysPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            data-testid="revoke-key-button"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

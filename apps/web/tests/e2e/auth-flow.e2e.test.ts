@@ -1,165 +1,251 @@
-// Localeflow Web Authentication E2E Tests - Design Doc: DESIGN.md
-// Generated: 2025-12-27 | Budget Used: 1/2 E2E
-// Test Type: End-to-End Test
-// Implementation Timing: After all feature implementations complete
-
-import { test } from '@playwright/test';
-
 /**
- * Test Setup Requirements:
- * - Running API server with test database
- * - Running Web application
- * - Clean database state before each test
- * - Test user credentials available
+ * Localeflow Web Authentication E2E Tests
+ *
+ * Design Doc: DESIGN.md
+ * Test Type: End-to-End Test
+ * Test Count: 6 tests
+ *
+ * Tests cover:
+ * - User registration flow (AC-WEB-020)
+ * - User login flow (AC-WEB-021)
+ * - Logout flow
+ * - Role-based access (AC-WEB-022)
  */
 
+import { test, expect } from '@playwright/test';
+import {
+  TEST_USER,
+  registerUser,
+  loginUser,
+  logout,
+  createUniqueUser,
+} from './fixtures/test-helpers';
+
 test.describe('Authentication User Journey', () => {
-  // User Journey: Complete authentication flow (register -> login -> logout -> re-login)
-  // ROI: 92 | Business Value: 10 (business-critical) | Frequency: 10 (every user session) | Legal: false
-  // Verification: End-to-end user experience from registration to authenticated dashboard access
-  // @category: e2e
-  // @dependency: full-system
-  // @complexity: high
+  // ==========================================================================
+  // User Registration Flow - AC-WEB-020
+  // ==========================================================================
 
   test.describe('User Registration Flow - AC-WEB-020', () => {
-    // AC-WEB-020: When registering with valid email and password, the system shall create a new user account
-    // Behavior: User fills registration form -> Submits -> Sees success/redirected to dashboard
+    test('User Journey: Complete registration from landing page to dashboard', async ({
+      page,
+    }) => {
+      const uniqueUser = createUniqueUser('reg');
 
-    test('User Journey: Complete registration from landing page to dashboard', () => {
-      // Navigation:
-      // - Visit landing page (/)
-      // - Click "Register" or "Get Started" link
-      // - Navigate to /register
-      //
-      // Form Interaction:
-      // - Fill name field
-      // - Fill email field with unique test email
-      // - Fill password field (meeting requirements)
-      // - Fill confirm password field
-      // - Submit form
-      //
-      // Verification Points:
-      // - Registration form visible and accessible
-      // - Form validation shows errors for invalid input
-      // - Success message or redirect occurs on valid submission
-      // - User lands on dashboard (/projects or /dashboard)
-      // - User name displayed in header/sidebar
-      //
-      // Pass Criteria:
-      // - Complete flow from landing to authenticated state
-      // - User can access protected routes after registration
+      // Start from landing page
+      await page.goto('/');
+
+      // Navigate to register - click "Get started" or "Register" link
+      const getStartedButton = page.getByRole('link', {
+        name: /get started|register/i,
+      });
+      await getStartedButton.first().click();
+      await expect(page).toHaveURL('/register');
+
+      // Fill registration form
+      await page.getByLabel(/full name/i).fill(uniqueUser.name);
+      await page.getByLabel(/email address/i).fill(uniqueUser.email);
+      await page.getByLabel(/^password$/i).fill(uniqueUser.password);
+      await page.getByLabel(/confirm password/i).fill(uniqueUser.password);
+
+      // Submit
+      await page.getByRole('button', { name: /create account/i }).click();
+
+      // Verify successful registration - redirected to dashboard or projects
+      await expect(page).toHaveURL(/\/(dashboard|projects|$)/, {
+        timeout: 15000,
+      });
+
+      // Verify user is logged in - should see user menu or avatar in sidebar
+      const sidebar = page.locator('aside');
+      await expect(sidebar).toBeVisible();
+
+      // User name should be displayed somewhere
+      await expect(
+        page.getByText(uniqueUser.name.split(' ')[0], { exact: false })
+      ).toBeVisible({ timeout: 5000 });
     });
 
-    test('should show validation errors for invalid registration input', () => {
-      // Navigation:
-      // - Visit /register
-      //
-      // Form Interaction:
-      // - Submit empty form
-      // - Fill with invalid email format
-      // - Fill with weak password
-      //
-      // Verification Points:
-      // - Required field errors shown
-      // - Email format error displayed
-      // - Password strength error displayed
-      // - Form not submitted until valid
-      //
-      // Pass Criteria:
-      // - Client-side validation prevents invalid submissions
-      // - Clear error messages guide user
+    test('should show validation errors for invalid registration input', async ({
+      page,
+    }) => {
+      await page.goto('/register');
+
+      // Try to submit with empty password (name is optional)
+      await page.getByLabel(/email address/i).fill('test@example.com');
+      await page.getByLabel(/^password$/i).fill('');
+
+      // The submit button should be disabled or form should not submit
+      const submitButton = page.getByRole('button', {
+        name: /create account/i,
+      });
+
+      // Test with weak password
+      await page.getByLabel(/^password$/i).fill('123');
+      await page.getByLabel(/confirm password/i).fill('123');
+
+      // Password requirements should show as not met
+      // The password requirements UI shows checkmarks for met requirements
+      const requirementsList = page.locator('.text-muted-foreground');
+      await expect(requirementsList.first()).toBeVisible();
+
+      // Button should be disabled with weak password
+      await expect(submitButton).toBeDisabled();
+
+      // Test with valid password but non-matching confirmation
+      await page.getByLabel(/^password$/i).fill('TestPassword123!');
+      await page.getByLabel(/confirm password/i).fill('DifferentPassword123!');
+
+      // Should show password mismatch error
+      await expect(page.getByText(/passwords do not match/i)).toBeVisible();
+
+      // Button should still be disabled
+      await expect(submitButton).toBeDisabled();
+
+      // Test with invalid email format
+      await page.getByLabel(/email address/i).fill('invalid-email');
+      await page.getByLabel(/^password$/i).fill('TestPassword123!');
+      await page.getByLabel(/confirm password/i).fill('TestPassword123!');
+
+      // Try to submit - HTML5 validation should prevent submission
+      await submitButton.click({ force: true });
+
+      // Should still be on register page
+      await expect(page).toHaveURL('/register');
     });
   });
+
+  // ==========================================================================
+  // User Login Flow - AC-WEB-021
+  // ==========================================================================
 
   test.describe('User Login Flow - AC-WEB-021', () => {
-    // AC-WEB-021: When logging in with valid credentials, the system shall return a JWT token
-    // Behavior: User fills login form -> Submits -> Redirected to dashboard with session
+    let testUser: { name: string; email: string; password: string };
 
-    test('User Journey: Login with existing account and access dashboard', () => {
-      // Prerequisites:
-      // - User account exists (created in beforeEach or test fixture)
-      //
-      // Navigation:
-      // - Visit /login
-      //
-      // Form Interaction:
-      // - Fill email field
-      // - Fill password field
-      // - Submit form
-      //
-      // Verification Points:
-      // - Login form visible and accessible
-      // - Successful login redirects to dashboard
-      // - Session persists (cookie set)
-      // - Protected routes accessible
-      // - User info displayed correctly
-      //
-      // Pass Criteria:
-      // - User authenticated successfully
-      // - Session maintained across page reloads
+    test.beforeEach(async ({ page }) => {
+      // Register a user first
+      testUser = createUniqueUser('login');
+      await registerUser(page, testUser);
+      await logout(page);
     });
 
-    test('should show error for invalid login credentials', () => {
-      // Navigation:
-      // - Visit /login
-      //
-      // Form Interaction:
-      // - Fill with wrong password
-      // - Submit form
-      //
-      // Verification Points:
-      // - Error message displayed (generic, not revealing which field)
-      // - User remains on login page
-      // - No session created
-      //
-      // Pass Criteria:
-      // - Secure error handling (no information leakage)
-      // - User can retry login
+    test('User Journey: Login with existing account and access dashboard', async ({
+      page,
+    }) => {
+      await page.goto('/login');
+
+      // Fill login form
+      await page.getByLabel(/email address/i).fill(testUser.email);
+      await page.getByLabel(/password/i).fill(testUser.password);
+      await page.getByRole('button', { name: /sign in/i }).click();
+
+      // Verify successful login - redirected to dashboard/projects
+      await expect(page).toHaveURL(/\/(dashboard|projects|$)/, {
+        timeout: 15000,
+      });
+
+      // Verify session persists across page reload
+      await page.reload();
+      await expect(page).toHaveURL(/\/(dashboard|projects|$)/);
+
+      // User should still be logged in - sidebar should be visible
+      await expect(page.locator('aside')).toBeVisible();
+    });
+
+    test('should show error for invalid login credentials', async ({
+      page,
+    }) => {
+      await page.goto('/login');
+
+      // Fill with wrong password
+      await page.getByLabel(/email address/i).fill(testUser.email);
+      await page.getByLabel(/password/i).fill('WrongPassword123!');
+      await page.getByRole('button', { name: /sign in/i }).click();
+
+      // Wait for error toast/message
+      // The app uses sonner for toasts
+      await expect(page.getByText(/sign in failed|invalid/i)).toBeVisible({
+        timeout: 10000,
+      });
+
+      // Verify still on login page
+      await expect(page).toHaveURL('/login');
     });
   });
+
+  // ==========================================================================
+  // Logout Flow
+  // ==========================================================================
 
   test.describe('Logout Flow', () => {
-    // Behavior: Authenticated user logs out -> Session cleared -> Redirected to public page
+    test('should logout user and clear session', async ({ page }) => {
+      const user = createUniqueUser('logout');
 
-    test('should logout user and clear session', () => {
-      // Prerequisites:
-      // - User logged in
-      //
-      // Navigation:
-      // - Click user menu in header
-      // - Click logout button
-      //
-      // Verification Points:
-      // - User redirected to login page or landing
-      // - Session cookie cleared
-      // - Protected routes no longer accessible
-      // - Visiting /projects redirects to login
-      //
-      // Pass Criteria:
-      // - Clean session termination
-      // - No residual authentication state
+      // Register and verify logged in
+      await registerUser(page, user);
+      await expect(page).toHaveURL(/\/(dashboard|projects|$)/);
+
+      // Perform logout via user menu
+      // Click the user button in sidebar (the last button with avatar)
+      await page.locator('aside').getByRole('button').last().click();
+
+      // Click sign out option in dropdown
+      await page.getByRole('menuitem', { name: /sign out/i }).click();
+
+      // Verify redirected to login or landing page
+      await expect(page).toHaveURL(/\/(login|$)/, { timeout: 10000 });
+
+      // Verify protected route redirects to login
+      await page.goto('/projects');
+      await expect(page).toHaveURL('/login', { timeout: 10000 });
     });
   });
 
-  test.describe('Role-Based Access - AC-WEB-022', () => {
-    // AC-WEB-022: If user with developer role accesses manager-only features, then the system shall deny access
-    // Behavior: Developer tries to access restricted feature -> Access denied message
+  // ==========================================================================
+  // Role-Based Access - AC-WEB-022
+  // ==========================================================================
 
-    test('should deny developer access to manager-only features', () => {
-      // Prerequisites:
-      // - User with developer role logged in
-      //
-      // Navigation:
-      // - Attempt to access manager-only page (e.g., project settings, user management)
-      //
-      // Verification Points:
-      // - Access denied message or redirect
-      // - Manager-only UI elements hidden/disabled
-      // - No data exposed
-      //
-      // Pass Criteria:
-      // - Role-based authorization enforced in UI
-      // - Graceful handling of unauthorized access
+  test.describe('Role-Based Access - AC-WEB-022', () => {
+    test('should deny developer access to manager-only features', async ({
+      page,
+    }) => {
+      // Register as a regular user (developer role by default)
+      const user = createUniqueUser('dev-role');
+      await registerUser(page, user);
+
+      // The sidebar should NOT show Settings link for regular users
+      // Check if Settings link is hidden from navigation
+      const sidebar = page.locator('aside');
+      await expect(sidebar).toBeVisible();
+
+      // Settings link should not be visible for non-manager users
+      const settingsNavLink = sidebar.getByRole('link', { name: /settings/i });
+      await expect(settingsNavLink).not.toBeVisible();
+
+      // Try to directly access settings page
+      await page.goto('/settings');
+
+      // Should either:
+      // 1. Be redirected away from settings
+      // 2. See an access denied message
+      // 3. See a 404/not found page
+
+      // Wait for page to settle
+      await page.waitForLoadState('networkidle');
+
+      const url = page.url();
+      const hasAccessDenied = await page
+        .getByText(/access denied|unauthorized|forbidden/i)
+        .isVisible()
+        .catch(() => false);
+      const wasRedirected =
+        !url.includes('/settings') ||
+        url.includes('/login') ||
+        url.includes('/projects') ||
+        url.includes('/dashboard');
+
+      // Either redirected or shown access denied
+      expect(hasAccessDenied || wasRedirected).toBeTruthy();
     });
   });
 });

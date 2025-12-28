@@ -99,6 +99,7 @@ export default function DashboardLayout({
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 ${
           mounted ? 'translate-x-0' : '-translate-x-full'
         }`}
+        data-testid="sidebar"
       >
         {/* Logo */}
         <div className="h-16 flex items-center px-4 border-b border-sidebar-border">
@@ -164,6 +165,7 @@ export default function DashboardLayout({
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 h-auto py-2.5 px-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-lg"
+                data-testid="user-menu"
               >
                 <Avatar className="h-8 w-8 ring-2 ring-sidebar-border">
                   <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
@@ -208,6 +210,7 @@ export default function DashboardLayout({
               <DropdownMenuItem
                 onClick={() => logout()}
                 className="cursor-pointer text-destructive focus:text-destructive"
+                data-testid="logout-button"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
