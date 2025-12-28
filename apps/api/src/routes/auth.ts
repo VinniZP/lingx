@@ -94,7 +94,15 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       tags: ['Auth'],
     },
   }, async (_request, reply) => {
-    reply.clearCookie('token', { path: '/' });
+    // Explicitly set cookie to empty with expired date
+    // Using setCookie with maxAge=0 is more reliable than clearCookie for cross-origin
+    reply.setCookie('token', '', {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0, // Expire immediately
+    });
     return { message: 'Logged out successfully' };
   });
 

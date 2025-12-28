@@ -54,6 +54,7 @@ export const authApi = {
   logout: () =>
     fetchApi<{ message: string }>('/api/auth/logout', {
       method: 'POST',
+      body: JSON.stringify({}), // Fastify requires body when Content-Type is application/json
     }),
 
   me: () =>

@@ -163,8 +163,8 @@ test.describe('Authentication User Journey', () => {
       await page.getByRole('button', { name: /sign in/i }).click();
 
       // Wait for error toast/message
-      // The app uses sonner for toasts
-      await expect(page.getByText(/sign in failed|invalid/i)).toBeVisible({
+      // The app uses sonner for toasts - target the toast title specifically
+      await expect(page.getByText('Sign in failed')).toBeVisible({
         timeout: 10000,
       });
 
@@ -187,14 +187,25 @@ test.describe('Authentication User Journey', () => {
 
       // Perform logout via user menu
       await page.getByTestId('user-menu').click();
-      await page.getByTestId('logout-button').click();
+
+      // Wait for menu to be visible before clicking logout
+      const logoutButton = page.getByTestId('logout-button');
+      await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+      await logoutButton.click();
 
       // Verify redirected to login page
-      await expect(page).toHaveURL('/login', { timeout: 10000 });
+      await expect(page).toHaveURL('/login', { timeout: 15000 });
+
+      // Wait a moment for cookies to be cleared on the server
+      await page.waitForTimeout(500);
 
       // Verify protected route redirects to login
+      // Use waitForURL after goto to handle client-side redirect
       await page.goto('/projects');
-      await expect(page).toHaveURL('/login', { timeout: 10000 });
+
+      // The dashboard layout should redirect to login when not authenticated
+      // Wait for either the redirect or the loading to finish
+      await expect(page).toHaveURL('/login', { timeout: 15000 });
     });
   });
 
