@@ -3,6 +3,7 @@ import { createAuthCommand } from './commands/auth/index.js';
 import { createPullCommand } from './commands/pull.js';
 import { createPushCommand } from './commands/push.js';
 import { createSyncCommand } from './commands/sync.js';
+import { createExtractCommand } from './commands/extract.js';
 
 const VERSION = '0.0.0';
 
@@ -19,9 +20,9 @@ export function createCLI(): Command {
   program.addCommand(createPullCommand());
   program.addCommand(createPushCommand());
   program.addCommand(createSyncCommand());
+  program.addCommand(createExtractCommand());
 
   // Placeholder for future commands
-  // program.addCommand(createExtractCommand());
   // program.addCommand(createCheckCommand());
   // program.addCommand(createBranchCommand());
 
