@@ -7,6 +7,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { BranchService } from '../services/branch.service.js';
 import { DiffService } from '../services/diff.service.js';
+import { MergeService } from '../services/merge.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { SpaceService } from '../services/space.service.js';
 import {
@@ -15,6 +16,7 @@ import {
   branchDetailSchema,
 } from '../schemas/branch.schema.js';
 import { branchDiffSchema } from '../schemas/diff.schema.js';
+import { mergeEndpointSchema } from '../schemas/merge.schema.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const branchRoutes: FastifyPluginAsync = async (fastify) => {
@@ -242,6 +244,62 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
 
       const diff = await diffService.computeDiff(sourceBranchId, targetBranchId);
       return diff;
+    }
+  );
+
+  /**
+   * POST /api/branches/:id/merge - Merge source branch into target
+   *
+   * Per Design Doc: AC-WEB-015 - Merge with conflicts and resolution
+   * Merges changes from source branch into target branch.
+   * Returns conflicts if any exist and no resolutions are provided.
+   */
+  fastify.post(
+    '/api/branches/:id/merge',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Merge source branch into target branch',
+        tags: ['Branches'],
+        security: [{ bearerAuth: [] }],
+        ...mergeEndpointSchema,
+      },
+    },
+    async (request, _reply) => {
+      const { id: sourceBranchId } = request.params as { id: string };
+      const { targetBranchId, resolutions } = request.body as {
+        targetBranchId: string;
+        resolutions?: Array<{
+          key: string;
+          resolution: 'source' | 'target' | Record<string, string>;
+        }>;
+      };
+
+      const mergeService = new MergeService(fastify.prisma);
+
+      // Authorization: Check user has access to the project
+      const projectId = await branchService.getProjectIdByBranchId(sourceBranchId);
+
+      if (!projectId) {
+        throw new NotFoundError('Source branch');
+      }
+
+      // For merge operations, require project membership
+      const isMember = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      const result = await mergeService.merge(sourceBranchId, {
+        targetBranchId,
+        resolutions,
+      });
+
+      return result;
     }
   );
 };

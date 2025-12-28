@@ -590,4 +590,317 @@ describe('Branch Integration Tests', () => {
       expect(body.message).toContain('same space');
     });
   });
+
+  describe('AC-WEB-015: Branch Merge API', () => {
+    it('should merge non-conflicting changes successfully', async () => {
+      // Clear main branch keys and add fresh key
+      await app.prisma.translationKey.deleteMany({
+        where: { branchId: mainBranchId },
+      });
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'existing.key',
+          translations: {
+            create: [{ language: 'en', value: 'Existing Value' }],
+          },
+        },
+      });
+
+      // Create feature branch from main
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-merge-clean', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      // Add new key in feature branch
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: featureBranchId,
+          name: 'feature.new_feature',
+          translations: {
+            create: [
+              { language: 'en', value: 'New Feature Text' },
+              { language: 'es', value: 'Nuevo texto de funcionalidad' },
+            ],
+          },
+        },
+      });
+
+      // Merge feature into main
+      const mergeRes = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${featureBranchId}/merge`,
+        headers: { cookie: authCookie },
+        payload: { targetBranchId: mainBranchId },
+      });
+
+      expect(mergeRes.statusCode).toBe(200);
+      const result = JSON.parse(mergeRes.body);
+      expect(result.success).toBe(true);
+      expect(result.merged).toBeGreaterThan(0);
+      expect(result.conflicts).toBeUndefined();
+
+      // Verify new key exists in main branch
+      const mainKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'feature.new_feature' },
+        include: { translations: true },
+      });
+      expect(mainKey).not.toBeNull();
+      expect(mainKey!.translations.find((t) => t.language === 'en')?.value).toBe(
+        'New Feature Text'
+      );
+    });
+
+    it('should return conflicts when same key modified in both branches', async () => {
+      // Clear and setup: Add key to main branch
+      await app.prisma.translationKey.deleteMany({
+        where: { branchId: mainBranchId },
+      });
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'shared.button',
+          translations: {
+            create: [{ language: 'en', value: 'Click Me' }],
+          },
+        },
+      });
+
+      // Create feature branch
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-conflict', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      // Modify in feature branch
+      const featureKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: featureBranchId, name: 'shared.button' },
+      });
+      await app.prisma.translation.update({
+        where: { keyId_language: { keyId: featureKey!.id, language: 'en' } },
+        data: { value: 'Press Here' },
+      });
+
+      // Modify same key in main branch
+      const mainKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'shared.button' },
+      });
+      await app.prisma.translation.update({
+        where: { keyId_language: { keyId: mainKey!.id, language: 'en' } },
+        data: { value: 'Tap to Continue' },
+      });
+
+      // Attempt merge without resolutions
+      const mergeRes = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${featureBranchId}/merge`,
+        headers: { cookie: authCookie },
+        payload: { targetBranchId: mainBranchId },
+      });
+
+      expect(mergeRes.statusCode).toBe(200);
+      const result = JSON.parse(mergeRes.body);
+      expect(result.success).toBe(false);
+      expect(result.conflicts).toHaveLength(1);
+      expect(result.conflicts[0].key).toBe('shared.button');
+      expect(result.conflicts[0].source.en).toBe('Press Here');
+      expect(result.conflicts[0].target.en).toBe('Tap to Continue');
+    });
+
+    it('should apply resolution choices correctly', async () => {
+      // Clear and setup: Create conflict scenario
+      await app.prisma.translationKey.deleteMany({
+        where: { branchId: mainBranchId },
+      });
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'resolve.test',
+          translations: {
+            create: [
+              { language: 'en', value: 'Original' },
+              { language: 'es', value: 'Original en Espanol' },
+            ],
+          },
+        },
+      });
+
+      // Create and modify feature branch
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-resolve', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      const featureKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: featureBranchId, name: 'resolve.test' },
+      });
+      await app.prisma.translation.update({
+        where: { keyId_language: { keyId: featureKey!.id, language: 'en' } },
+        data: { value: 'Feature Version' },
+      });
+
+      // Modify main branch
+      const mainKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'resolve.test' },
+      });
+      await app.prisma.translation.update({
+        where: { keyId_language: { keyId: mainKey!.id, language: 'en' } },
+        data: { value: 'Main Version' },
+      });
+
+      // Merge with 'source' resolution (use feature branch value)
+      const mergeRes = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${featureBranchId}/merge`,
+        headers: { cookie: authCookie },
+        payload: {
+          targetBranchId: mainBranchId,
+          resolutions: [{ key: 'resolve.test', resolution: 'source' }],
+        },
+      });
+
+      expect(mergeRes.statusCode).toBe(200);
+      const result = JSON.parse(mergeRes.body);
+      expect(result.success).toBe(true);
+
+      // Verify main branch has feature value
+      const updatedKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'resolve.test' },
+        include: { translations: true },
+      });
+      expect(updatedKey!.translations.find((t) => t.language === 'en')?.value).toBe(
+        'Feature Version'
+      );
+    });
+
+    it('should apply custom resolution values', async () => {
+      // Clear and setup conflict
+      await app.prisma.translationKey.deleteMany({
+        where: { branchId: mainBranchId },
+      });
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'custom.resolve',
+          translations: {
+            create: [{ language: 'en', value: 'Original' }],
+          },
+        },
+      });
+
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-custom', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      // Modify both branches
+      const featureKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: featureBranchId, name: 'custom.resolve' },
+      });
+      await app.prisma.translation.update({
+        where: { keyId_language: { keyId: featureKey!.id, language: 'en' } },
+        data: { value: 'Feature Value' },
+      });
+
+      const mainKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'custom.resolve' },
+      });
+      await app.prisma.translation.update({
+        where: { keyId_language: { keyId: mainKey!.id, language: 'en' } },
+        data: { value: 'Main Value' },
+      });
+
+      // Merge with custom resolution
+      const mergeRes = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${featureBranchId}/merge`,
+        headers: { cookie: authCookie },
+        payload: {
+          targetBranchId: mainBranchId,
+          resolutions: [
+            { key: 'custom.resolve', resolution: { en: 'Custom Merged Value' } },
+          ],
+        },
+      });
+
+      expect(mergeRes.statusCode).toBe(200);
+
+      // Verify custom value applied
+      const updatedKey = await app.prisma.translationKey.findFirst({
+        where: { branchId: mainBranchId, name: 'custom.resolve' },
+        include: { translations: true },
+      });
+      expect(updatedKey!.translations.find((t) => t.language === 'en')?.value).toBe(
+        'Custom Merged Value'
+      );
+    });
+  });
+
+  describe('AC-WEB-016: Branch deletion after merge', () => {
+    it('should allow deleting merged branch', async () => {
+      // Clear and setup
+      await app.prisma.translationKey.deleteMany({
+        where: { branchId: mainBranchId },
+      });
+      await app.prisma.translationKey.create({
+        data: {
+          branchId: mainBranchId,
+          name: 'delete.test',
+          translations: {
+            create: [{ language: 'en', value: 'Test' }],
+          },
+        },
+      });
+
+      const branchRes = await app.inject({
+        method: 'POST',
+        url: `/api/spaces/${testSpaceId}/branches`,
+        headers: { cookie: authCookie },
+        payload: { name: 'feature-to-delete', fromBranchId: mainBranchId },
+      });
+      expect(branchRes.statusCode).toBe(201);
+      const featureBranchId = JSON.parse(branchRes.body).id;
+
+      // Merge (no conflicts expected since no modifications)
+      const mergeRes = await app.inject({
+        method: 'POST',
+        url: `/api/branches/${featureBranchId}/merge`,
+        headers: { cookie: authCookie },
+        payload: { targetBranchId: mainBranchId },
+      });
+      expect(mergeRes.statusCode).toBe(200);
+
+      // Delete the merged branch
+      const deleteRes = await app.inject({
+        method: 'DELETE',
+        url: `/api/branches/${featureBranchId}`,
+        headers: { cookie: authCookie },
+      });
+
+      expect(deleteRes.statusCode).toBe(204);
+
+      // Verify branch is deleted
+      const branch = await app.prisma.branch.findUnique({
+        where: { id: featureBranchId },
+      });
+      expect(branch).toBeNull();
+    });
+  });
 });
