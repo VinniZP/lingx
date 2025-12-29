@@ -53,19 +53,21 @@ export default function SpacesPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${projectId}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">Spaces</h1>
-          <p className="text-muted-foreground mt-1">
-            {project?.name} - Manage translation spaces
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+            <Link href={`/projects/${projectId}`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold sm:text-3xl">Spaces</h1>
+            <p className="text-muted-foreground mt-1">
+              {project?.name} - Manage translation spaces
+            </p>
+          </div>
         </div>
-        <Button asChild>
+        <Button asChild className="h-11 w-full sm:w-auto touch-manipulation">
           <Link href={`/projects/${projectId}/spaces/new`}>
             <Plus className="h-4 w-4 mr-2" />
             New Space
@@ -81,7 +83,7 @@ export default function SpacesPage({ params }: PageProps) {
             <p className="text-muted-foreground mb-4">
               Create your first space to organize translations.
             </p>
-            <Button asChild>
+            <Button asChild className="h-11 touch-manipulation">
               <Link href={`/projects/${projectId}/spaces/new`}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Space
@@ -90,7 +92,7 @@ export default function SpacesPage({ params }: PageProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {spaces.map((space) => (
             <SpaceCard key={space.id} space={space} projectId={projectId} />
           ))}
@@ -108,9 +110,9 @@ function SpaceCard({ space, projectId }: { space: Space; projectId: string }) {
 
   return (
     <Link href={`/projects/${projectId}/spaces/${space.id}`}>
-      <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
+      <Card className="touch-manipulation hover:border-primary/50 hover:shadow-md transition-shadow cursor-pointer h-full">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Layers className="h-5 w-5" />
             {space.name}
           </CardTitle>
@@ -122,7 +124,7 @@ function SpaceCard({ space, projectId }: { space: Space; projectId: string }) {
               {space.description}
             </p>
           )}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <GitBranch className="h-4 w-4" />
               <span>

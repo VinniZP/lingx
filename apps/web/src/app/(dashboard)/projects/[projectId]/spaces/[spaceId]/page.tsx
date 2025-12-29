@@ -54,17 +54,19 @@ export default function SpaceDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${projectId}/spaces`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="text-sm text-muted-foreground">{project?.name}</div>
-          <h1 className="text-3xl font-bold">{space.name}</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+            <Link href={`/projects/${projectId}/spaces`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <div className="text-sm text-muted-foreground">{project?.name}</div>
+            <h1 className="text-2xl font-bold sm:text-3xl">{space.name}</h1>
+          </div>
         </div>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="h-11 w-11 touch-manipulation self-start sm:self-auto">
           <Settings className="h-4 w-4" />
         </Button>
       </div>
@@ -74,7 +76,7 @@ export default function SpaceDetailPage({ params }: PageProps) {
       )}
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Branches</CardDescription>
@@ -115,14 +117,14 @@ export default function SpaceDetailPage({ params }: PageProps) {
 
       {/* Branches */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Branches</CardTitle>
             <CardDescription>
               Manage translation branches for this space
             </CardDescription>
           </div>
-          <Button size="sm" asChild>
+          <Button size="sm" asChild className="h-11 w-full sm:w-auto touch-manipulation">
             <Link
               href={`/projects/${projectId}/spaces/${spaceId}/branches/new`}
             >
@@ -132,15 +134,15 @@ export default function SpaceDetailPage({ params }: PageProps) {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {space.branches.map((branch) => (
               <Link
                 key={branch.id}
                 href={`/projects/${projectId}/spaces/${spaceId}/branches/${branch.id}`}
-                className="flex items-center justify-between p-3 rounded-md border hover:border-primary/50 transition-colors"
+                className="touch-manipulation flex flex-col gap-3 p-4 rounded-md border hover:border-primary/50 hover:shadow-sm transition-shadow sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <GitBranch className="h-4 w-4 text-muted-foreground" />
+                  <GitBranch className="h-5 w-5 text-muted-foreground" />
                   <span className="font-medium">{branch.name}</span>
                   {branch.isDefault && (
                     <span className="px-2 py-0.5 rounded text-xs bg-primary/10 text-primary">

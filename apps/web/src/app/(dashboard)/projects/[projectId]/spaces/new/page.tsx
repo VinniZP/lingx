@@ -73,15 +73,15 @@ export default function NewSpacePage({ params }: PageProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-2xl mx-auto space-y-6 px-0 sm:px-0">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
           <Link href={`/projects/${projectId}/spaces`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">New Space</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">New Space</h1>
           <p className="text-muted-foreground mt-1">
             {project?.name} - Create a new space
           </p>
@@ -106,6 +106,7 @@ export default function NewSpacePage({ params }: PageProps) {
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="Frontend"
                 required
+                className="h-11"
               />
             </div>
 
@@ -118,6 +119,7 @@ export default function NewSpacePage({ params }: PageProps) {
                 placeholder="frontend"
                 pattern="^[a-z0-9-]+$"
                 required
+                className="h-11"
               />
               <p className="text-sm text-muted-foreground">
                 URL-safe identifier for your space
@@ -132,6 +134,7 @@ export default function NewSpacePage({ params }: PageProps) {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Frontend web application translations..."
                 rows={3}
+                className="min-h-[88px]"
               />
             </div>
 
@@ -142,17 +145,19 @@ export default function NewSpacePage({ params }: PageProps) {
               </p>
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:gap-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !name || !slug}
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 {createMutation.isPending ? 'Creating...' : 'Create Space'}
               </Button>
