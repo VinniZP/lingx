@@ -16,6 +16,7 @@ import {
   Trash2,
   AlertTriangle,
 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type {
   BranchDiffResult,
   DiffEntry,
@@ -185,25 +186,25 @@ function DiffSection({
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <Card className={styles.card}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-white/50 transition-colors py-4">
-            <CardTitle className="flex items-center gap-3 text-lg font-semibold">
-              <span className="transition-transform duration-200">
+          <CardHeader className="cursor-pointer hover:bg-white/50 transition-colors py-4 touch-manipulation min-h-[44px]">
+            <CardTitle className="flex items-center gap-3 text-base md:text-lg font-semibold">
+              <span className="transition-transform duration-200 shrink-0">
                 {isExpanded ? (
                   <ChevronDown className="h-5 w-5" />
                 ) : (
                   <ChevronRight className="h-5 w-5" />
                 )}
               </span>
-              {icon}
-              <span>{title}</span>
-              <Badge variant="outline" className={styles.badge}>
+              <span className="shrink-0">{icon}</span>
+              <span className="truncate">{title}</span>
+              <Badge variant="outline" className={`${styles.badge} shrink-0`}>
                 {count}
               </Badge>
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent className="space-y-3 pt-0">{children}</CardContent>
+          <CardContent className="space-y-3 pt-0 px-3 md:px-6">{children}</CardContent>
         </CollapsibleContent>
       </Card>
     </Collapsible>
@@ -212,10 +213,10 @@ function DiffSection({
 
 function AddedCard({ entry }: { entry: DiffEntry }) {
   return (
-    <div className="rounded-lg border border-emerald-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+    <div className="rounded-lg border border-emerald-200 bg-white p-3 md:p-4 shadow-sm transition-shadow hover:shadow-md touch-manipulation">
       <div className="font-mono text-sm font-semibold text-emerald-700 flex items-center gap-2">
-        <Plus className="h-3.5 w-3.5" />
-        {entry.key}
+        <Plus className="h-3.5 w-3.5 shrink-0" />
+        <span className="break-all">{entry.key}</span>
       </div>
       <div className="mt-3 space-y-2">
         {Object.entries(entry.translations).map(([lang, value]) => (
@@ -226,7 +227,7 @@ function AddedCard({ entry }: { entry: DiffEntry }) {
             >
               {lang}
             </Badge>
-            <span className="text-emerald-600">{value}</span>
+            <span className="text-emerald-600 whitespace-pre-wrap break-words">{value}</span>
           </div>
         ))}
       </div>
@@ -235,18 +236,24 @@ function AddedCard({ entry }: { entry: DiffEntry }) {
 }
 
 function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="rounded-lg border border-violet-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-      <div className="font-mono text-sm font-semibold text-violet-700 flex items-center gap-2">
-        <Pencil className="h-3.5 w-3.5" />
-        {entry.key}
+    <div className="rounded-lg border border-violet-200 bg-white p-3 md:p-4 shadow-sm transition-shadow hover:shadow-md touch-manipulation">
+      <div className="font-mono text-sm font-semibold text-violet-700 flex items-center gap-2 mb-3">
+        <Pencil className="h-3.5 w-3.5 shrink-0" />
+        <span className="break-all">{entry.key}</span>
       </div>
-      <div className="mt-3 grid gap-4 md:grid-cols-2">
-        <div className="rounded-md bg-gradient-to-br from-violet-50 to-indigo-50 p-3">
-          <div className="text-xs font-medium text-violet-600 mb-2 uppercase tracking-wide">
+
+      {/* Mobile: Stacked layout, Desktop: Side-by-side */}
+      <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+        {/* Source section */}
+        <div className="rounded-md bg-gradient-to-br from-violet-50 to-indigo-50 p-3 border-l-4 border-violet-400">
+          <div className="text-xs font-medium text-violet-600 mb-2 uppercase tracking-wide flex items-center gap-2">
+            {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-violet-500" />}
             Source (New)
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {Object.entries(entry.source).map(([lang, value]) => (
               <div key={lang} className="flex items-start gap-2 text-sm">
                 <Badge
@@ -255,16 +262,19 @@ function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
                 >
                   {lang}
                 </Badge>
-                <span className="text-violet-700">{value}</span>
+                <span className="text-violet-700 whitespace-pre-wrap break-words">{value}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-md bg-slate-50 p-3">
-          <div className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+
+        {/* Target section */}
+        <div className="rounded-md bg-slate-50 p-3 border-l-4 border-slate-300">
+          <div className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
+            {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />}
             Target (Current)
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {Object.entries(entry.target).map(([lang, value]) => (
               <div key={lang} className="flex items-start gap-2 text-sm">
                 <Badge
@@ -273,7 +283,7 @@ function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
                 >
                   {lang}
                 </Badge>
-                <span className="text-slate-600">{value}</span>
+                <span className="text-slate-600 whitespace-pre-wrap break-words">{value}</span>
               </div>
             ))}
           </div>
@@ -285,10 +295,10 @@ function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
 
 function DeletedCard({ entry }: { entry: DiffEntry }) {
   return (
-    <div className="rounded-lg border border-rose-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md opacity-75">
+    <div className="rounded-lg border border-rose-200 bg-white p-3 md:p-4 shadow-sm transition-shadow hover:shadow-md opacity-75 touch-manipulation">
       <div className="font-mono text-sm font-semibold text-rose-700 flex items-center gap-2 line-through">
-        <Trash2 className="h-3.5 w-3.5" />
-        {entry.key}
+        <Trash2 className="h-3.5 w-3.5 shrink-0" />
+        <span className="break-all">{entry.key}</span>
       </div>
       <div className="mt-3 space-y-2">
         {Object.entries(entry.translations).map(([lang, value]) => (
@@ -299,7 +309,7 @@ function DeletedCard({ entry }: { entry: DiffEntry }) {
             >
               {lang}
             </Badge>
-            <span className="text-rose-400 line-through">{value}</span>
+            <span className="text-rose-400 line-through whitespace-pre-wrap break-words">{value}</span>
           </div>
         ))}
       </div>
@@ -314,9 +324,11 @@ function ConflictCard({
   conflict: ConflictEntry;
   onSelect: () => void;
 }) {
+  const isMobile = useIsMobile();
+
   return (
     <div
-      className="rounded-lg border-2 border-amber-400 bg-white p-4 shadow-sm cursor-pointer transition-all hover:shadow-lg hover:border-amber-500 hover:scale-[1.01]"
+      className="rounded-lg border-2 border-amber-400 bg-white p-3 md:p-4 shadow-sm cursor-pointer transition-all hover:shadow-lg hover:border-amber-500 active:scale-[0.99] md:hover:scale-[1.01] touch-manipulation min-h-[44px]"
       onClick={onSelect}
       role="button"
       tabIndex={0}
@@ -327,16 +339,20 @@ function ConflictCard({
         }
       }}
     >
-      <div className="font-mono text-sm font-semibold text-amber-700 flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4" />
-        {conflict.key}
+      <div className="font-mono text-sm font-semibold text-amber-700 flex items-center gap-2 mb-3">
+        <AlertTriangle className="h-4 w-4 shrink-0" />
+        <span className="break-all">{conflict.key}</span>
       </div>
-      <div className="mt-3 grid gap-4 md:grid-cols-2">
-        <div className="rounded-md bg-gradient-to-br from-amber-50 to-orange-50 p-3 border border-amber-200">
-          <div className="text-xs font-medium text-amber-600 mb-2 uppercase tracking-wide">
+
+      {/* Mobile: Stacked layout, Desktop: Side-by-side */}
+      <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+        {/* Source section */}
+        <div className="rounded-md bg-gradient-to-br from-amber-50 to-orange-50 p-3 border border-amber-200 border-l-4 border-l-amber-400">
+          <div className="text-xs font-medium text-amber-600 mb-2 uppercase tracking-wide flex items-center gap-2">
+            {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />}
             Source (Incoming)
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {Object.entries(conflict.source).map(([lang, value]) => (
               <div key={lang} className="flex items-start gap-2 text-sm">
                 <Badge
@@ -345,16 +361,19 @@ function ConflictCard({
                 >
                   {lang}
                 </Badge>
-                <span className="text-amber-700">{value}</span>
+                <span className="text-amber-700 whitespace-pre-wrap break-words">{value}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-md bg-slate-50 p-3 border border-slate-200">
-          <div className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+
+        {/* Target section */}
+        <div className="rounded-md bg-slate-50 p-3 border border-slate-200 border-l-4 border-l-slate-300">
+          <div className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
+            {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />}
             Target (Current)
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {Object.entries(conflict.target).map(([lang, value]) => (
               <div key={lang} className="flex items-start gap-2 text-sm">
                 <Badge
@@ -363,15 +382,17 @@ function ConflictCard({
                 >
                   {lang}
                 </Badge>
-                <span className="text-slate-600">{value}</span>
+                <span className="text-slate-600 whitespace-pre-wrap break-words">{value}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Touch-friendly action hint */}
       <div className="mt-3 flex items-center gap-2 text-xs text-amber-600">
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100">
-          Click to resolve this conflict
+        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100 min-h-[32px]">
+          {isMobile ? 'Tap to resolve' : 'Click to resolve this conflict'}
         </span>
       </div>
     </div>
