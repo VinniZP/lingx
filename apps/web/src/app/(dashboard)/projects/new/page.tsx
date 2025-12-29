@@ -96,14 +96,14 @@ export default function NewProjectPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation shrink-0 self-start sm:self-auto">
           <Link href="/projects">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">New Project</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">New Project</h1>
           <p className="text-muted-foreground mt-1">
             Create a new localization project
           </p>
@@ -127,6 +127,7 @@ export default function NewProjectPage() {
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="My Application"
                 required
+                className="h-11"
               />
             </div>
 
@@ -139,6 +140,7 @@ export default function NewProjectPage() {
                 placeholder="my-application"
                 pattern="^[a-z0-9-]+$"
                 required
+                className="h-11"
               />
               <p className="text-sm text-muted-foreground">
                 URL-safe identifier for your project
@@ -167,7 +169,7 @@ export default function NewProjectPage() {
                     key={lang.code}
                     type="button"
                     onClick={() => toggleLanguage(lang.code)}
-                    className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    className={`px-3 py-2.5 min-h-[44px] rounded-md text-sm transition-colors touch-manipulation ${
                       selectedLanguages.includes(lang.code)
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -185,7 +187,7 @@ export default function NewProjectPage() {
                 id="defaultLanguage"
                 value={defaultLanguage}
                 onChange={(e) => setDefaultLanguage(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full h-11 px-3 py-2 border rounded-md bg-background touch-manipulation"
               >
                 {selectedLanguages.map((code) => {
                   const lang = AVAILABLE_LANGUAGES.find((l) => l.code === code);
@@ -201,17 +203,19 @@ export default function NewProjectPage() {
               </p>
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:gap-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !name || !slug}
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 {createMutation.isPending ? 'Creating...' : 'Create Project'}
               </Button>

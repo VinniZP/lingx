@@ -47,17 +47,17 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation shrink-0 self-start sm:self-auto">
           <Link href="/projects">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">{project.name}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold sm:text-3xl truncate">{project.name}</h1>
           <p className="text-muted-foreground mt-1">{project.slug}</p>
         </div>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="h-11 w-full sm:w-auto touch-manipulation">
           <Link href={`/projects/${projectId}/settings`}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
@@ -70,7 +70,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
       )}
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Languages</CardDescription>
@@ -175,8 +175,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
       </Card>
 
       {/* Quick Actions */}
-      <div className="flex gap-4">
-        <Button asChild>
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+        <Button asChild className="h-11 w-full sm:w-auto touch-manipulation">
           <Link href={`/projects/${projectId}/spaces`}>
             <Layers className="h-4 w-4 mr-2" />
             Manage Spaces

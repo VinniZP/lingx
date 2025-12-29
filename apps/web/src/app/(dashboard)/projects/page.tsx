@@ -41,14 +41,14 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Projects</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Projects</h1>
           <p className="text-muted-foreground mt-1">
             Manage your localization projects
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="h-11 w-full sm:w-auto touch-manipulation">
           <Link href="/projects/new">
             <Plus className="h-4 w-4 mr-2" />
             New Project
@@ -64,7 +64,7 @@ export default function ProjectsPage() {
             <p className="text-muted-foreground mb-4">
               Create your first project to get started with localization.
             </p>
-            <Button asChild>
+            <Button asChild className="h-11 touch-manipulation">
               <Link href="/projects/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Project
@@ -73,7 +73,7 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
@@ -86,7 +86,7 @@ export default function ProjectsPage() {
 function ProjectCard({ project }: { project: Project }) {
   return (
     <Link href={`/projects/${project.id}`}>
-      <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
+      <Card className="touch-manipulation hover:border-primary/50 hover:shadow-md transition-shadow cursor-pointer h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FolderOpen className="h-5 w-5" />
