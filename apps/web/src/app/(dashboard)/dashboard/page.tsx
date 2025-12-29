@@ -104,10 +104,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {stats.map((stat) => (
           <Link key={stat.title} href={stat.href}>
-            <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
+            <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group touch-manipulation">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
@@ -138,7 +138,7 @@ export default function DashboardPage() {
             {quickActions.map((action) => (
               <Link key={action.title} href={action.href}>
                 <Card
-                  className={`h-full hover:shadow-md transition-all cursor-pointer group ${
+                  className={`h-full min-h-[88px] hover:shadow-md transition-all cursor-pointer group touch-manipulation ${
                     action.primary
                       ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                       : 'hover:border-primary/50'
@@ -188,7 +188,7 @@ export default function DashboardPage() {
         {/* Recent activity */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Recent activity</h2>
-          <Card>
+          <Card className="touch-manipulation">
             <CardContent className="pt-6">
               {recentActivity.length > 0 ? (
                 <div className="space-y-4">
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                 with version control and collaboration features.
               </p>
             </div>
-            <Button className="gap-2">
+            <Button className="h-11 gap-2 touch-manipulation">
               Create your first project
               <ArrowRight className="h-4 w-4" />
             </Button>
