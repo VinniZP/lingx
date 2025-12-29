@@ -75,9 +75,9 @@ export default function NewSpacePage({ params }: PageProps) {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 px-0 sm:px-0">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation" aria-label="Go back to spaces">
           <Link href={`/projects/${projectId}/spaces`}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
         <div>

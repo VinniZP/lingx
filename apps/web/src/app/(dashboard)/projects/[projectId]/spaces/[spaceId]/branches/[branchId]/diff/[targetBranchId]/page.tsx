@@ -119,11 +119,11 @@ export default function BranchDiffPage({ params }: PageProps) {
       {/* Header - Stacked on mobile, inline on desktop */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3 md:gap-4">
-          <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0 touch-manipulation" asChild>
+          <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0 touch-manipulation" asChild aria-label="Go back to branch selection">
             <Link
               href={`/projects/${projectId}/spaces/${spaceId}/branches/${branchId}/diff`}
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
           <div className="min-w-0">

@@ -81,9 +81,9 @@ export default function BranchDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation" aria-label="Go back to space">
             <Link href={`/projects/${projectId}/spaces/${spaceId}`}>
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
           <div>

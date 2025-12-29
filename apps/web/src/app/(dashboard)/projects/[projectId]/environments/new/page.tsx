@@ -120,9 +120,9 @@ export default function NewEnvironmentPage({ params }: PageProps) {
     <div className="w-full max-w-2xl mx-auto space-y-6 px-0 sm:px-0 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation" aria-label="Go back to environments">
           <Link href={`/projects/${projectId}/environments`}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
         <div>

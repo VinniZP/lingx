@@ -280,11 +280,11 @@ export default function TranslationsPage({ params }: PageProps) {
           // Key list mode: Regular header
           <div className="border-b p-4" data-testid="mobile-list-header">
             <div className="flex items-center gap-4 mb-4">
-              <Button variant="ghost" size="icon" asChild className="h-11 w-11">
+              <Button variant="ghost" size="icon" asChild className="h-11 w-11" aria-label="Go back to branch">
                 <Link
                   href={`/projects/${projectId}/spaces/${spaceId}/branches/${branchId}`}
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
               <div className="flex-1">
@@ -297,8 +297,9 @@ export default function TranslationsPage({ params }: PageProps) {
                 onClick={() => setShowKeyDialog(true)}
                 size="icon"
                 className="h-11 w-11"
+                aria-label="Add new translation key"
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-5 w-5" aria-hidden="true" />
               </Button>
             </div>
 
@@ -498,11 +499,11 @@ export default function TranslationsPage({ params }: PageProps) {
   return (
     <div className="space-y-6" data-testid="desktop-translation-editor">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" asChild aria-label="Go back to branch">
           <Link
             href={`/projects/${projectId}/spaces/${spaceId}/branches/${branchId}`}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
         <div className="flex-1">

@@ -82,7 +82,7 @@ export default function DashboardLayout({
       <SidebarInset>
         {/* Mobile header - visible only on mobile with hamburger menu */}
         <header className="flex h-14 items-center gap-4 border-b border-border bg-background/95 backdrop-blur-sm px-4 md:hidden">
-          <SidebarTrigger className="size-9" />
+          <SidebarTrigger className="size-9" aria-label="Toggle navigation menu" />
           <Link
             href="/dashboard"
             className="flex items-center gap-2 flex-1"
@@ -93,7 +93,7 @@ export default function DashboardLayout({
             <span className="font-semibold text-foreground">Localeflow</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="size-9">
+            <Button variant="ghost" size="icon" className="size-9" aria-label="Notifications">
               <Bell className="size-4" />
             </Button>
           </div>
@@ -103,11 +103,11 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-40 hidden h-16 bg-background/95 backdrop-blur-sm border-b border-border md:flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
             {/* Sidebar toggle for tablet/desktop */}
-            <SidebarTrigger className="size-8" />
+            <SidebarTrigger className="size-8" aria-label="Toggle sidebar" />
             {/* Breadcrumb area - can be extended */}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="size-9">
+            <Button variant="ghost" size="icon" className="size-9" aria-label="Notifications">
               <Bell className="size-4" />
             </Button>
             <Button className="h-9 gap-2">

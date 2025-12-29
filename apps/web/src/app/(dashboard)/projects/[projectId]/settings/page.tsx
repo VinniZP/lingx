@@ -154,9 +154,9 @@ export default function ProjectSettingsPage({ params }: PageProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-0">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="h-11 w-11 touch-manipulation" asChild>
+        <Button variant="ghost" size="icon" className="h-11 w-11 touch-manipulation" asChild aria-label="Go back to project">
           <Link href={`/projects/${projectId}`}>
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
         <div>

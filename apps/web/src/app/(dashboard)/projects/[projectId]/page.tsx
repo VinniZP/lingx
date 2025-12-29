@@ -48,9 +48,9 @@ export default function ProjectDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation shrink-0 self-start sm:self-auto">
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation shrink-0 self-start sm:self-auto" aria-label="Go back to projects">
           <Link href="/projects">
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
         <div className="flex-1 min-w-0">

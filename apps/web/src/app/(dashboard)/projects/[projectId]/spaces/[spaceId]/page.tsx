@@ -56,9 +56,9 @@ export default function SpaceDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation" aria-label="Go back to spaces">
             <Link href={`/projects/${projectId}/spaces`}>
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
           <div>
@@ -66,8 +66,8 @@ export default function SpaceDetailPage({ params }: PageProps) {
             <h1 className="text-2xl font-bold sm:text-3xl">{space.name}</h1>
           </div>
         </div>
-        <Button variant="outline" size="icon" className="h-11 w-11 touch-manipulation self-start sm:self-auto">
-          <Settings className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="h-11 w-11 touch-manipulation self-start sm:self-auto" aria-label="Space settings">
+          <Settings className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
 

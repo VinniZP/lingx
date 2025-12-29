@@ -157,10 +157,11 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
         <Button
           variant="outline"
           className="w-full justify-start gap-2 h-9 bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          aria-label="Search translations and projects"
         >
-          <Search className="size-4" />
+          <Search className="size-4" aria-hidden="true" />
           <span className="text-sm">Search...</span>
-          <kbd className="ml-auto text-xs bg-sidebar border border-sidebar-border rounded px-1.5 py-0.5 text-sidebar-foreground/50">
+          <kbd className="ml-auto text-xs bg-sidebar border border-sidebar-border rounded px-1.5 py-0.5 text-sidebar-foreground/50" aria-hidden="true">
             /
           </kbd>
         </Button>
@@ -175,7 +176,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu role="navigation" aria-label="Main navigation">
               {filteredNavItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
@@ -212,6 +213,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                   size="lg"
                   className="h-auto py-2.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   data-testid="user-menu"
+                  aria-label="User menu"
                 >
                   <Avatar className="size-8 ring-2 ring-sidebar-border shrink-0">
                     <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
