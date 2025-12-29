@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, FolderOpen, Globe } from 'lucide-react';
 
 export default function ProjectsPage() {
@@ -21,9 +22,33 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-muted-foreground">
-          Loading projects...
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold sm:text-3xl">Projects</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your localization projects
+            </p>
+          </div>
+          <Skeleton className="h-11 w-full sm:w-32" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="h-full">
+              <CardHeader>
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2 mt-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-24" />
+                <div className="mt-2 flex gap-1">
+                  <Skeleton className="h-5 w-10" />
+                  <Skeleton className="h-5 w-10" />
+                  <Skeleton className="h-5 w-10" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
