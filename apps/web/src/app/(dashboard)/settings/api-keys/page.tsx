@@ -153,9 +153,9 @@ export default function ApiKeysPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" className="h-11 w-11 touch-manipulation" asChild>
             <Link href="/settings">
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -172,7 +172,7 @@ export default function ApiKeysPage() {
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="gap-2" data-testid="generate-key-button">
+        <Button onClick={() => setShowCreateDialog(true)} className="h-11 gap-2 w-full sm:w-auto touch-manipulation" data-testid="generate-key-button">
           <Plus className="h-4 w-4" />
           Generate New Key
         </Button>
@@ -180,7 +180,7 @@ export default function ApiKeysPage() {
 
       {/* New Key Alert */}
       {newKey && (
-        <Card className="border-warm/50 bg-warm/5 animate-fade-in">
+        <Card className="border-warm/50 bg-warm/5 animate-fade-in touch-manipulation">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -199,7 +199,7 @@ export default function ApiKeysPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-11 w-11 touch-manipulation"
                 onClick={() => setNewKey(null)}
               >
                 <X className="h-4 w-4" />
@@ -208,13 +208,13 @@ export default function ApiKeysPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
-              <code className="block p-4 bg-background rounded-lg border font-mono text-sm break-all pr-12" data-testid="new-api-key">
+              <code className="block p-4 bg-background rounded-lg border font-mono text-sm break-all pr-14" data-testid="new-api-key">
                 {newKey}
               </code>
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-11 w-11 touch-manipulation"
                 onClick={copyToClipboard}
               >
                 {copied ? (
@@ -225,7 +225,7 @@ export default function ApiKeysPage() {
               </Button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <AlertTriangle className="h-4 w-4 text-warm" />
+              <AlertTriangle className="h-4 w-4 text-warm flex-shrink-0" />
               <span>
                 Store this key securely. You will not be able to see it again.
               </span>
@@ -235,7 +235,7 @@ export default function ApiKeysPage() {
       )}
 
       {/* Active Keys */}
-      <Card>
+      <Card className="touch-manipulation">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-500/10">
@@ -250,115 +250,173 @@ export default function ApiKeysPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Key Prefix</TableHead>
-                <TableHead>Last Used</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      <span className="text-muted-foreground">Loading...</span>
+        <CardContent className="p-0 sm:p-0">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <span className="text-muted-foreground">Loading...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && activeKeys.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground px-4">
+              <div className="flex flex-col items-center gap-2">
+                <Key className="h-8 w-8 opacity-50" />
+                <p>No active API keys</p>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(true)}
+                  className="mt-2 h-11 touch-manipulation"
+                >
+                  Generate your first key
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile: Card-based list */}
+          {!isLoading && activeKeys.length > 0 && (
+            <div className="space-y-4 p-4 sm:hidden">
+              {activeKeys.map((key) => (
+                <Card key={key.id} className="touch-manipulation">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{key.name}</span>
+                      <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">
+                        Active
+                      </Badge>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ) : activeKeys.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <Key className="h-8 w-8 opacity-50" />
-                      <p>No active API keys</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowCreateDialog(true)}
-                        className="mt-2"
-                      >
-                        Generate your first key
-                      </Button>
+                    <div className="font-mono text-sm bg-muted p-2 rounded truncate">
+                      {key.keyPrefix}...
                     </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                activeKeys.map((key) => (
-                  <TableRow key={key.id}>
-                    <TableCell className="font-medium">{key.name}</TableCell>
-                    <TableCell>
-                      <code className="text-sm bg-muted px-2 py-0.5 rounded">
-                        {key.keyPrefix}...
-                      </code>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {key.lastUsedAt
-                        ? formatDistanceToNow(new Date(key.lastUsedAt), {
-                            addSuffix: true,
-                          })
-                        : 'Never'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(key.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            data-testid="revoke-key-button"
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <div>Last used: {key.lastUsedAt
+                        ? formatDistanceToNow(new Date(key.lastUsedAt), { addSuffix: true })
+                        : 'Never'}</div>
+                      <div>Created: {formatDistanceToNow(new Date(key.createdAt), { addSuffix: true })}</div>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          className="h-11 w-full touch-manipulation"
+                          data-testid="revoke-key-button"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Revoke Key
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Revoke API Key?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently revoke the API key{' '}
+                            <strong>{key.name}</strong>. Any applications
+                            using this key will no longer be able to
+                            authenticate. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+                          <AlertDialogCancel className="h-11 touch-manipulation">Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => revokeMutation.mutate(key.id)}
+                            className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90 touch-manipulation"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Revoke API Key?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently revoke the API key{' '}
-                              <strong>{key.name}</strong>. Any applications
-                              using this key will no longer be able to
-                              authenticate. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => revokeMutation.mutate(key.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {revokeMutation.isPending
-                                ? 'Revoking...'
-                                : 'Revoke Key'}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
+                            {revokeMutation.isPending ? 'Revoking...' : 'Revoke Key'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop: Table layout */}
+          {!isLoading && activeKeys.length > 0 && (
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Key Prefix</TableHead>
+                    <TableHead>Last Used</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="w-[80px]">Actions</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {activeKeys.map((key) => (
+                    <TableRow key={key.id}>
+                      <TableCell className="font-medium">{key.name}</TableCell>
+                      <TableCell>
+                        <code className="text-sm bg-muted px-2 py-0.5 rounded">
+                          {key.keyPrefix}...
+                        </code>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {key.lastUsedAt
+                          ? formatDistanceToNow(new Date(key.lastUsedAt), {
+                              addSuffix: true,
+                            })
+                          : 'Never'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDistanceToNow(new Date(key.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              data-testid="revoke-key-button"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Revoke API Key?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently revoke the API key{' '}
+                                <strong>{key.name}</strong>. Any applications
+                                using this key will no longer be able to
+                                authenticate. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => revokeMutation.mutate(key.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {revokeMutation.isPending ? 'Revoking...' : 'Revoke Key'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Revoked Keys */}
       {revokedKeys.length > 0 && (
-        <Card className="opacity-75">
+        <Card className="opacity-75 touch-manipulation">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-muted">
@@ -375,39 +433,64 @@ export default function ApiKeysPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Key Prefix</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {revokedKeys.map((key) => (
-                  <TableRow key={key.id} className="opacity-60">
-                    <TableCell className="font-medium">{key.name}</TableCell>
-                    <TableCell>
-                      <code className="text-sm bg-muted px-2 py-0.5 rounded">
-                        {key.keyPrefix}...
-                      </code>
-                    </TableCell>
-                    <TableCell>
+          <CardContent className="p-0 sm:p-0">
+            {/* Mobile: Card-based list */}
+            <div className="space-y-4 p-4 sm:hidden">
+              {revokedKeys.map((key) => (
+                <Card key={key.id} className="opacity-60">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{key.name}</span>
                       <Badge variant="destructive" className="font-normal">
                         Revoked
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(key.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </TableCell>
+                    </div>
+                    <div className="font-mono text-sm bg-muted p-2 rounded truncate">
+                      {key.keyPrefix}...
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Created: {formatDistanceToNow(new Date(key.createdAt), { addSuffix: true })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop: Table layout */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Key Prefix</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {revokedKeys.map((key) => (
+                    <TableRow key={key.id} className="opacity-60">
+                      <TableCell className="font-medium">{key.name}</TableCell>
+                      <TableCell>
+                        <code className="text-sm bg-muted px-2 py-0.5 rounded">
+                          {key.keyPrefix}...
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive" className="font-normal">
+                          Revoked
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDistanceToNow(new Date(key.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

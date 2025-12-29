@@ -152,9 +152,9 @@ export default function ProjectSettingsPage({ params }: PageProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-0">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" className="h-11 w-11 touch-manipulation" asChild>
           <Link href={`/projects/${projectId}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -165,7 +165,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
         </div>
       </div>
 
-      <Card>
+      <Card className="touch-manipulation">
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
           <CardDescription>Update your project information</CardDescription>
@@ -179,12 +179,13 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 value={effectiveName}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="h-11 w-full"
               />
             </div>
 
             <div className="space-y-2">
               <Label>Slug</Label>
-              <Input value={project.slug} disabled className="bg-muted" />
+              <Input value={project.slug} disabled className="h-11 w-full bg-muted" />
               <p className="text-sm text-muted-foreground">
                 Slug cannot be changed after creation
               </p>
@@ -197,6 +198,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 value={effectiveDescription}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                className="w-full min-h-[88px]"
               />
             </div>
 
@@ -208,7 +210,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                     key={lang.code}
                     type="button"
                     onClick={() => toggleLanguage(lang.code)}
-                    className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    className={`px-3 py-2.5 min-h-[44px] rounded-md text-sm transition-colors touch-manipulation ${
                       effectiveLanguages.includes(lang.code)
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -226,7 +228,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 id="defaultLanguage"
                 value={effectiveDefaultLanguage}
                 onChange={(e) => setDefaultLanguage(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="h-11 w-full px-3 py-2 border rounded-md bg-background touch-manipulation"
               >
                 {effectiveLanguages.map((code) => {
                   const lang = AVAILABLE_LANGUAGES.find((l) => l.code === code);
@@ -239,7 +241,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
               </select>
             </div>
 
-            <Button type="submit" disabled={updateMutation.isPending}>
+            <Button type="submit" disabled={updateMutation.isPending} className="h-11 w-full sm:w-auto touch-manipulation">
               {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
@@ -247,7 +249,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/50">
+      <Card className="border-destructive/50 touch-manipulation">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>
@@ -257,7 +259,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
         <CardContent>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">
+              <Button variant="destructive" className="h-11 w-full sm:w-auto touch-manipulation">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Project
               </Button>
@@ -271,11 +273,11 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                   be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+                <AlertDialogCancel className="h-11 touch-manipulation">Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteMutation.mutate()}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90 touch-manipulation"
                 >
                   {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
                 </AlertDialogAction>

@@ -68,7 +68,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" className="h-11 w-11 touch-manipulation" asChild>
             <Link href="/">
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -88,7 +88,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings Grid */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         {settingsCards.map((card) => (
           <Link
             key={card.title}
@@ -96,7 +96,7 @@ export default function SettingsPage() {
             className={card.disabled ? 'cursor-not-allowed' : ''}
           >
             <Card
-              className={`h-full transition-all ${
+              className={`h-full transition-all touch-manipulation ${
                 card.disabled
                   ? 'opacity-50'
                   : 'hover:border-primary/50 hover:shadow-md cursor-pointer'
