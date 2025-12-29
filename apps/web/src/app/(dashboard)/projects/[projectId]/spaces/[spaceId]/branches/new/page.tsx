@@ -82,15 +82,15 @@ export default function NewBranchPage({ params }: PageProps) {
   const sourceBranch = branches.find((b) => b.id === selectedFromBranchId);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-2xl mx-auto space-y-6 px-0 sm:px-0">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
           <Link href={`/projects/${projectId}/spaces/${spaceId}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">New Branch</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">New Branch</h1>
           <p className="text-muted-foreground mt-1">
             {space?.name} - Create a new translation branch
           </p>
@@ -118,6 +118,7 @@ export default function NewBranchPage({ params }: PageProps) {
                 placeholder="feature-login"
                 pattern="^[a-zA-Z0-9-_]+$"
                 required
+                className="h-11"
               />
               <p className="text-sm text-muted-foreground">
                 Use alphanumeric characters, hyphens, and underscores only
@@ -130,7 +131,7 @@ export default function NewBranchPage({ params }: PageProps) {
                 id="fromBranch"
                 value={selectedFromBranchId}
                 onChange={(e) => setFromBranchId(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="h-11 w-full px-3 border rounded-md bg-background touch-manipulation"
                 required
               >
                 {branches.map((branch) => (
@@ -161,17 +162,19 @@ export default function NewBranchPage({ params }: PageProps) {
               </div>
             )}
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:gap-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !name || !selectedFromBranchId}
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 {createMutation.isPending ? 'Creating...' : 'Create Branch'}
               </Button>

@@ -79,32 +79,34 @@ export default function BranchDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${projectId}/spaces/${spaceId}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="text-sm text-muted-foreground">
-            {project?.name} / {branch.space.name}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+            <Link href={`/projects/${projectId}/spaces/${spaceId}`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <div className="text-sm text-muted-foreground">
+              {project?.name} / {branch.space.name}
+            </div>
+            <h1 className="text-2xl font-bold flex items-center gap-2 sm:text-3xl">
+              <GitBranch className="h-6 w-6" />
+              {branch.name}
+              {branch.isDefault && (
+                <span className="px-2 py-0.5 rounded text-sm bg-primary/10 text-primary">
+                  default
+                </span>
+              )}
+            </h1>
           </div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <GitBranch className="h-6 w-6" />
-            {branch.name}
-            {branch.isDefault && (
-              <span className="px-2 py-0.5 rounded text-sm bg-primary/10 text-primary">
-                default
-              </span>
-            )}
-          </h1>
         </div>
         {!branch.isDefault && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                className="text-destructive hover:text-destructive"
+                className="h-11 text-destructive hover:text-destructive touch-manipulation self-start sm:self-auto"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -119,10 +121,10 @@ export default function BranchDetailPage({ params }: PageProps) {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel className="h-11 touch-manipulation">Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteMutation.mutate()}
-                  className="bg-destructive hover:bg-destructive/90"
+                  className="h-11 bg-destructive hover:bg-destructive/90 touch-manipulation"
                 >
                   {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
                 </AlertDialogAction>
@@ -133,7 +135,7 @@ export default function BranchDetailPage({ params }: PageProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Translation Keys</CardDescription>
@@ -178,8 +180,8 @@ export default function BranchDetailPage({ params }: PageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
-            <Button asChild>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild className="h-11 w-full sm:w-auto touch-manipulation">
               <Link
                 href={`/projects/${projectId}/spaces/${spaceId}/branches/${branchId}/translations`}
               >
@@ -200,8 +202,8 @@ export default function BranchDetailPage({ params }: PageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
-            <Button variant="outline" asChild>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="outline" asChild className="h-11 w-full sm:w-auto touch-manipulation">
               <Link
                 href={`/projects/${projectId}/spaces/${spaceId}/branches/${branchId}/diff`}
               >
