@@ -67,7 +67,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
               autoComplete="email"
             />
           </div>
@@ -79,7 +79,7 @@ export default function LoginPage() {
               </Label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
               >
                 Forgot password?
               </Link>
@@ -92,7 +92,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
               autoComplete="current-password"
             />
           </div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
 
         <Button
           type="submit"
-          className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all"
+          className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all touch-manipulation"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -133,7 +133,7 @@ export default function LoginPage() {
       <div className="text-center">
         <Link
           href="/register"
-          className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+          className="inline-flex items-center gap-2 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors touch-manipulation"
         >
           Create an account
           <ArrowRight className="h-3.5 w-3.5" />

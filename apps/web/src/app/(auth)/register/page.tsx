@@ -96,7 +96,7 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
-              className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
               autoComplete="name"
             />
           </div>
@@ -113,7 +113,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
               autoComplete="email"
             />
           </div>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
               onFocus={() => setShowPasswordHints(true)}
               required
               disabled={isLoading}
-              className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
               autoComplete="new-password"
             />
             {/* Password requirements */}
@@ -173,7 +173,7 @@ export default function RegisterPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isLoading}
-              className={`h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all ${
+              className={`h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation ${
                 confirmPassword.length > 0 && !doPasswordsMatch ? 'border-destructive' : ''
               }`}
               autoComplete="new-password"
@@ -186,7 +186,7 @@ export default function RegisterPage() {
 
         <Button
           type="submit"
-          className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all"
+          className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all touch-manipulation"
           disabled={isLoading || !isPasswordValid || !doPasswordsMatch}
         >
           {isLoading ? (
@@ -219,7 +219,7 @@ export default function RegisterPage() {
       <div className="text-center">
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+          className="inline-flex items-center gap-2 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors touch-manipulation"
         >
           Sign in instead
           <ArrowRight className="h-3.5 w-3.5" />
