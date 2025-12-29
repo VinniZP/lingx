@@ -163,19 +163,21 @@ export default function EnvironmentsPage({ params }: PageProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/projects/${projectId}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">Environments</h1>
-          <p className="text-muted-foreground mt-1">
-            {project?.name} - Manage deployment environments
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
+            <Link href={`/projects/${projectId}`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold sm:text-3xl tracking-tight">Environments</h1>
+            <p className="text-muted-foreground mt-1">
+              {project?.name} - Manage deployment environments
+            </p>
+          </div>
         </div>
-        <Button asChild className="gap-2">
+        <Button asChild className="h-11 w-full sm:w-auto touch-manipulation gap-2">
           <Link href={`/projects/${projectId}/environments/new`}>
             <Plus className="h-4 w-4" />
             New Environment
@@ -200,7 +202,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
               environments like &quot;production&quot;, &quot;staging&quot;, or
               &quot;development&quot; to manage translation deployments.
             </p>
-            <Button asChild size="lg" className="gap-2">
+            <Button asChild size="lg" className="h-11 touch-manipulation gap-2">
               <Link href={`/projects/${projectId}/environments/new`}>
                 <Plus className="h-4 w-4" />
                 Create Your First Environment
@@ -209,11 +211,11 @@ export default function EnvironmentsPage({ params }: PageProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {environments.map((env, index) => (
             <Card
               key={env.id}
-              className="group hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 animate-fade-in"
+              className="group touch-manipulation hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 animate-fade-in"
               style={{ animationDelay: `${index * 75}ms` }}
             >
               <CardHeader className="pb-3">
@@ -229,17 +231,6 @@ export default function EnvironmentsPage({ params }: PageProps) {
                       {env.slug}
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => {
-                      setDeletingEnv(env);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -247,27 +238,39 @@ export default function EnvironmentsPage({ params }: PageProps) {
                   {/* Branch info */}
                   <div className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg bg-muted/50">
                     <GitBranch className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground truncate">
                       {env.branch.space.name}
                     </span>
                     <span className="text-muted-foreground/50">/</span>
-                    <span className="font-medium">{env.branch.name}</span>
+                    <span className="font-medium truncate">{env.branch.name}</span>
                   </div>
 
-                  {/* Switch branch button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => {
-                      setSwitchingEnv(env);
-                      setSelectedBranchId(env.branchId);
-                      setSwitchDialogOpen(true);
-                    }}
-                  >
-                    <Settings className="h-4 w-4" />
-                    Switch Branch
-                  </Button>
+                  {/* Card actions */}
+                  <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
+                    <Button
+                      variant="outline"
+                      className="h-11 w-full sm:w-auto touch-manipulation gap-2"
+                      onClick={() => {
+                        setSwitchingEnv(env);
+                        setSelectedBranchId(env.branchId);
+                        setSwitchDialogOpen(true);
+                      }}
+                    >
+                      <Settings className="h-4 w-4" />
+                      Switch Branch
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-11 w-full sm:w-auto touch-manipulation gap-2 text-destructive hover:text-destructive"
+                      onClick={() => {
+                        setDeletingEnv(env);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -296,7 +299,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
               id="branch"
               value={selectedBranchId}
               onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="w-full mt-2 px-3 py-2.5 border border-input rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="w-full mt-2 h-11 px-3 border border-input rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               {allBranches?.map((branch) => (
                 <option key={branch.id} value={branch.id}>
@@ -306,9 +309,10 @@ export default function EnvironmentsPage({ params }: PageProps) {
               ))}
             </select>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
             <Button
               variant="outline"
+              className="h-11 w-full sm:w-auto touch-manipulation"
               onClick={() => {
                 setSwitchDialogOpen(false);
                 setSwitchingEnv(null);
@@ -324,7 +328,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 })
               }
               disabled={switchBranchMutation.isPending}
-              className="gap-2"
+              className="h-11 w-full sm:w-auto touch-manipulation gap-2"
             >
               {switchBranchMutation.isPending ? (
                 <>

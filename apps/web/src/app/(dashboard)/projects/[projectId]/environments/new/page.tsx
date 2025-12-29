@@ -117,16 +117,16 @@ export default function NewEnvironmentPage({ params }: PageProps) {
   const selectedBranch = allBranches?.find((b) => b.id === selectedBranchId);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <div className="w-full max-w-2xl mx-auto space-y-6 px-0 sm:px-0 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" asChild className="h-11 w-11 touch-manipulation">
           <Link href={`/projects/${projectId}/environments`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">New Environment</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl tracking-tight">New Environment</h1>
           <p className="text-muted-foreground mt-1">
             {project?.name} - Create a deployment environment
           </p>
@@ -158,7 +158,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="Production"
-                className="h-11"
+                className="h-11 w-full"
                 required
               />
             </div>
@@ -173,7 +173,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="production"
                 pattern="^[a-z0-9-]+$"
-                className="h-11 font-mono"
+                className="h-11 w-full font-mono"
                 required
               />
               <p className="text-sm text-muted-foreground">
@@ -258,12 +258,12 @@ export default function NewEnvironmentPage({ params }: PageProps) {
               </div>
             )}
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:gap-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                className="flex-1"
+                className="h-11 w-full sm:w-auto touch-manipulation"
               >
                 Cancel
               </Button>
@@ -276,7 +276,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                   !selectedBranchId ||
                   !allBranches?.length
                 }
-                className="flex-1 gap-2"
+                className="h-11 w-full sm:w-auto touch-manipulation gap-2"
               >
                 {createMutation.isPending ? (
                   <>
