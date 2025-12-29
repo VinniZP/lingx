@@ -79,7 +79,11 @@ export class ProjectService {
   constructor(private prisma: PrismaClient) {}
 
   /**
-   * Create a new project with languages and owner membership
+   * Create a new project with languages, owner membership, and default space+branch
+   *
+   * Auto-creates a "Default" space and "main" branch for immediate use.
+   * This reduces onboarding friction by allowing users to start adding
+   * translations right after project creation.
    *
    * @param input - Project creation data
    * @returns Project with languages
@@ -103,30 +107,56 @@ export class ProjectService {
       throw new ConflictError('Project slug already exists');
     }
 
-    // Create project with languages and owner membership
-    const project = await this.prisma.project.create({
-      data: {
-        name: input.name,
-        slug: input.slug,
-        description: input.description,
-        defaultLanguage: input.defaultLanguage,
-        languages: {
-          create: input.languageCodes.map((code) => ({
-            code,
-            name: LANGUAGE_NAMES[code] || code,
-            isDefault: code === input.defaultLanguage,
-          })),
-        },
-        members: {
-          create: {
-            userId: input.userId,
-            role: ProjectRole.OWNER,
+    // Create project with languages, owner membership, and default space+branch
+    // Using transaction to ensure all operations succeed together
+    const project = await this.prisma.$transaction(async (tx) => {
+      // 1. Create project with languages and owner membership
+      const newProject = await tx.project.create({
+        data: {
+          name: input.name,
+          slug: input.slug,
+          description: input.description,
+          defaultLanguage: input.defaultLanguage,
+          languages: {
+            create: input.languageCodes.map((code) => ({
+              code,
+              name: LANGUAGE_NAMES[code] || code,
+              isDefault: code === input.defaultLanguage,
+            })),
+          },
+          members: {
+            create: {
+              userId: input.userId,
+              role: ProjectRole.OWNER,
+            },
           },
         },
-      },
-      include: {
-        languages: true,
-      },
+        include: {
+          languages: true,
+        },
+      });
+
+      // 2. Auto-create default space
+      const defaultSpace = await tx.space.create({
+        data: {
+          name: 'Default',
+          slug: 'default',
+          description: 'Default translation space',
+          projectId: newProject.id,
+        },
+      });
+
+      // 3. Auto-create main branch in default space
+      await tx.branch.create({
+        data: {
+          name: 'main',
+          slug: 'main',
+          spaceId: defaultSpace.id,
+          isDefault: true,
+        },
+      });
+
+      return newProject;
     });
 
     return project;

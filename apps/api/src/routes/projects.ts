@@ -232,6 +232,129 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       return stats;
     }
   );
+
+  /**
+   * GET /api/projects/:id/tree - Get project navigation tree
+   *
+   * Returns hierarchical data for sidebar tree navigation:
+   * Project -> Spaces -> Branches with key counts
+   */
+  fastify.get(
+    '/api/projects/:id/tree',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Get project navigation tree for sidebar',
+        tags: ['Projects'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              slug: { type: 'string' },
+              spaces: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' },
+                    slug: { type: 'string' },
+                    branches: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          name: { type: 'string' },
+                          slug: { type: 'string' },
+                          isDefault: { type: 'boolean' },
+                          keyCount: { type: 'number' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { id } = request.params as { id: string };
+
+      // Check membership
+      const isMember = await projectService.checkMembership(
+        id,
+        request.user.userId
+      );
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      // Fetch project with spaces and branches including key counts
+      const project = await fastify.prisma.project.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          spaces: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              branches: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  isDefault: true,
+                  _count: {
+                    select: { keys: true },
+                  },
+                },
+                orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+              },
+            },
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+      });
+
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
+      // Transform _count to keyCount for cleaner API
+      return {
+        id: project.id,
+        name: project.name,
+        slug: project.slug,
+        spaces: project.spaces.map((space) => ({
+          id: space.id,
+          name: space.name,
+          slug: space.slug,
+          branches: space.branches.map((branch) => ({
+            id: branch.id,
+            name: branch.name,
+            slug: branch.slug,
+            isDefault: branch.isDefault,
+            keyCount: branch._count.keys,
+          })),
+        })),
+      };
+    }
+  );
 };
 
 export default projectRoutes;

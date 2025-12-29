@@ -1,28 +1,11 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { Providers } from '@/components/providers';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
-// Instrument Serif for distinctive display headings
-const instrumentSerif = Instrument_Serif({
-  weight: '400',
-  variable: '--font-instrument-serif',
-  subsets: ['latin'],
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
-  title: 'Localeflow',
+  title: 'LocaleFlow',
   description: 'Self-hosted localization management with git-like branching',
   icons: {
     icon: '/favicon.ico',
@@ -37,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} font-sans`}
+        className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

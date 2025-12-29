@@ -12,13 +12,16 @@ export class ApiError extends Error {
 }
 
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  // Only set Content-Type for requests with a body
+  const headers: HeadersInit = { ...options.headers };
+  if (options.body) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/json';
+  }
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     credentials: 'include', // Include cookies for JWT
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -67,6 +70,7 @@ export interface User {
   email: string;
   name: string | null;
   role: 'DEVELOPER' | 'MANAGER' | 'ADMIN';
+  createdAt?: string;
 }
 
 // Project types
@@ -118,6 +122,29 @@ export interface UpdateProjectInput {
   defaultLanguage?: string;
 }
 
+// Project Tree type for sidebar navigation
+export interface ProjectTreeBranch {
+  id: string;
+  name: string;
+  slug: string;
+  isDefault: boolean;
+  keyCount: number;
+}
+
+export interface ProjectTreeSpace {
+  id: string;
+  name: string;
+  slug: string;
+  branches: ProjectTreeBranch[];
+}
+
+export interface ProjectTree {
+  id: string;
+  name: string;
+  slug: string;
+  spaces: ProjectTreeSpace[];
+}
+
 // Project API
 export const projectApi = {
   list: () => fetchApi<{ projects: Project[] }>('/api/projects'),
@@ -143,6 +170,9 @@ export const projectApi = {
 
   getStats: (id: string) =>
     fetchApi<ProjectStats>(`/api/projects/${id}/stats`),
+
+  getTree: (id: string) =>
+    fetchApi<ProjectTree>(`/api/projects/${id}/tree`),
 };
 
 // Space types

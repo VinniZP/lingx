@@ -29,7 +29,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
+const SIDEBAR_WIDTH_ICON = "4rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextProps = {
@@ -221,9 +221,8 @@ function Sidebar({
           "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+          // Gap width matches container width in collapsed mode for consistent spacing
+          "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
         )}
       />
       <div
@@ -234,9 +233,8 @@ function Sidebar({
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
           // Adjust the padding for floating and inset variants.
-          variant === "floating" || variant === "inset"
-            ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
+          // Symmetric padding when collapsed for centered island appearance
+          "p-4 pr-0 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]",
           className
         )}
         {...props}
@@ -244,7 +242,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="bg-sidebar flex h-full w-full flex-col rounded-xl shadow-sm"
         >
           {children}
         </div>
@@ -362,7 +360,7 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("bg-sidebar-border mx-2 w-auto", className)}
+      className={cn("bg-sidebar-border mx-2 data-[orientation=horizontal]:w-auto", className)}
       {...props}
     />
   )
@@ -387,7 +385,11 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+      className={cn(
+        "relative flex w-full min-w-0 flex-col p-2",
+        "group-data-[collapsible=icon]:p-0",
+        className
+      )}
       {...props}
     />
   )
@@ -405,7 +407,7 @@ function SidebarGroupLabel({
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "text-sidebar-foreground/40 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-[11px] font-medium uppercase tracking-wide outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
         className
       )}
@@ -474,18 +476,44 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  [
+    // Base styles - clean and minimal
+    "peer/menu-button flex w-full items-center gap-2.5 overflow-hidden rounded-lg px-3 py-2 text-left text-sm outline-hidden",
+    "ring-sidebar-ring transition-all duration-150",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "group-has-data-[sidebar=menu-action]/menu-item:pr-8",
+    "aria-disabled:pointer-events-none aria-disabled:opacity-50",
+    // Text and icon colors - muted by default
+    "text-sidebar-foreground/60",
+    "[&>svg]:size-[18px] [&>svg]:shrink-0 [&>svg]:text-sidebar-foreground/50",
+    "[&>span:last-child]:truncate",
+    // Hover - simple background
+    "hover:bg-sidebar-accent hover:text-sidebar-foreground",
+    "hover:[&>svg]:text-sidebar-foreground/70",
+    // Focus visible
+    "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+    // Active item - filled primary background
+    "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-medium",
+    "data-[active=true]:[&>svg]:text-sidebar-primary-foreground",
+    // Open state (dropdowns)
+    "data-[state=open]:bg-sidebar-accent/70",
+    // Collapsed icon mode - square centered buttons, clip overflow naturally
+    "group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:p-0!",
+    "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg",
+    // Hide text labels and extra content when collapsed (keep first icon/avatar visible via overflow clip)
+    "group-data-[collapsible=icon]:[&>svg~span]:sr-only group-data-[collapsible=icon]:[&>svg~div]:sr-only",
+    "group-data-[collapsible=icon]:[&>:not(:first-child):not(svg)]:sr-only",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-        outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+        default: "",
+        outline: "bg-transparent border border-sidebar-border/50 hover:border-sidebar-border",
       },
       size: {
-        default: "h-8 text-sm",
-        sm: "h-7 text-xs",
-        lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+        default: "h-9 text-sm",
+        sm: "h-8 text-xs",
+        lg: "h-11 text-sm group-data-[collapsible=icon]:p-0!",
       },
     },
     defaultVariants: {
@@ -607,7 +635,9 @@ function SidebarMenuSkeleton({
   showIcon?: boolean
 }) {
   // Random width between 50 to 90%.
-  const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)
+  const width = React.useMemo(() => {
+    return `${Math.floor(Math.random() * 40) + 50}%`
+  }, [])
 
   return (
     <div

@@ -11,8 +11,29 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Key, Sparkles } from 'lucide-react';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Key, Sparkles, Terminal, Globe, Code } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { cn } from '@/lib/utils';
+
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Key name is required')
+    .max(64, 'Key name must be 64 characters or less'),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 interface ApiKeyDialogProps {
   open: boolean;
@@ -21,98 +42,157 @@ interface ApiKeyDialogProps {
   isLoading: boolean;
 }
 
+// Suggested key name templates
+const suggestions = [
+  { icon: Terminal, label: 'CLI', value: 'CLI' },
+  { icon: Code, label: 'Development', value: 'Development SDK' },
+  { icon: Globe, label: 'Production', value: 'Production' },
+];
+
 export function ApiKeyDialog({
   open,
   onOpenChange,
   onSubmit,
   isLoading,
 }: ApiKeyDialogProps) {
-  const [name, setName] = useState('');
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      name: '',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    await onSubmit(name.trim());
-    setName('');
+  const handleSubmit = async (data: FormData) => {
+    await onSubmit(data.name.trim());
+    form.reset();
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      setName('');
+      form.reset();
     }
     onOpenChange(newOpen);
   };
 
+  const handleSuggestionClick = (value: string) => {
+    form.setValue('name', value, { shouldValidate: true });
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-warm/10">
-              <Key className="h-5 w-5 text-warm" />
+      <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-br from-warm/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+          <DialogHeader className="gap-3">
+            <div className="flex items-center gap-3">
+              <div className="size-12 rounded-xl bg-warm/20 flex items-center justify-center border border-warm/20">
+                <Key className="size-5 text-warm" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-semibold tracking-tight">
+                  Generate New API Key
+                </DialogTitle>
+                <DialogDescription className="mt-1">
+                  Create a key for CLI or SDK authentication
+                </DialogDescription>
+              </div>
             </div>
-            <div>
-              <DialogTitle
-                className="text-xl"
-                style={{ fontFamily: 'var(--font-instrument-serif)' }}
-              >
-                Generate New API Key
-              </DialogTitle>
-            </div>
-          </div>
-          <DialogDescription>
-            Create a new API key for CLI or SDK authentication. The key will
-            only be shown once after creation.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium">
-                Key Name
-              </Label>
-              <Input
-                id="name"
-                placeholder="e.g., Production CLI, Development SDK"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-10"
-                autoFocus
-                required
+          </DialogHeader>
+        </div>
+
+        {/* Form content */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="px-6 pb-6">
+            <div className="space-y-4">
+              {/* Quick suggestions */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Quick Start
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.value}
+                      type="button"
+                      onClick={() => handleSuggestionClick(suggestion.value)}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                        'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground',
+                        'border border-transparent hover:border-border'
+                      )}
+                    >
+                      <suggestion.icon className="size-3.5" />
+                      {suggestion.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name input */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Key Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Production API, CI/CD Pipeline"
+                        autoFocus
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      A descriptive name to identify this key's purpose
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <p className="text-xs text-muted-foreground">
-                Give this key a descriptive name to identify its purpose.
-              </p>
+
+              {/* Security note */}
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 border border-border/50">
+                <div className="size-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="size-4 text-info" />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <p className="font-medium text-foreground mb-0.5">One-time display</p>
+                  <p>The key will only be shown once after creation. Store it securely.</p>
+                </div>
+              </div>
             </div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              className="order-2 sm:order-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || !name.trim()}
-              className="gap-2 order-1 sm:order-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate Key
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+
+            {/* Footer */}
+            <DialogFooter className="mt-6 gap-3 sm:gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                className="h-11 flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || !form.formState.isValid}
+                className="h-11 gap-2 flex-1 sm:flex-none"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Key className="size-4" />
+                    Generate Key
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

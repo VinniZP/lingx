@@ -2,26 +2,54 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { ApiError } from '@/lib/api';
 import { toast } from 'sonner';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+
+// Validation schema
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(1, 'Password is required'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(email, password);
+      await login(data.email, data.password);
       toast.success('Welcome back!', {
         description: 'You have successfully signed in.',
       });
@@ -32,98 +60,137 @@ export default function LoginPage() {
       toast.error('Sign in failed', {
         description: message,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h1
-          className="text-3xl font-semibold tracking-tight"
+          className="text-[2rem] font-semibold tracking-tight text-foreground"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
           Welcome back
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-[15px] leading-relaxed">
           Enter your credentials to access your projects
         </p>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
-              autoComplete="email"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-4">
+            {/* Email field */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                        focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
+                      }`}>
+                        <Mail className="w-[18px] h-[18px]" />
+                      </div>
+                      <Input
+                        type="email"
+                        placeholder="you@example.com"
+                        {...field}
+                        onFocus={() => setFocusedField('email')}
+                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        autoComplete="email"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password field */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Password</FormLabel>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 touch-manipulation"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <FormControl>
+                    <div className="relative">
+                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                        focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
+                      }`}>
+                        <Lock className="w-[18px] h-[18px]" />
+                      </div>
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        {...field}
+                        onFocus={() => setFocusedField('password')}
+                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        className="h-12 w-full pl-12 pr-12 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        autoComplete="current-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors duration-200 touch-manipulation"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-[18px] h-[18px]" />
+                        ) : (
+                          <Eye className="w-[18px] h-[18px]" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
-              <Link
-                href="/forgot-password"
-                className="inline-block py-2 text-sm text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
-              autoComplete="current-password"
-            />
-          </div>
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all touch-manipulation"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            <>
-              Sign in
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-      </form>
+          {/* Submit button */}
+          <Button
+            type="submit"
+            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-[15px] transition-all duration-200 touch-manipulation shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                Sign in
+                <ArrowRight className="ml-2 h-[18px] w-[18px]" />
+              </>
+            )}
+          </Button>
+        </form>
+      </Form>
 
       {/* Divider */}
-      <div className="relative">
+      <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
+        <div className="relative flex justify-center">
+          <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
             New to Localeflow?
           </span>
         </div>
@@ -133,10 +200,10 @@ export default function LoginPage() {
       <div className="text-center">
         <Link
           href="/register"
-          className="inline-flex items-center gap-2 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors touch-manipulation"
+          className="group inline-flex items-center gap-2 py-2.5 px-5 text-sm font-medium text-foreground rounded-xl border border-border/60 bg-card hover:bg-accent hover:border-border transition-all duration-200 touch-manipulation"
         >
           Create an account
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
       </div>
     </div>

@@ -2,55 +2,63 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { ApiError } from '@/lib/api';
 import { toast } from 'sonner';
-import { Loader2, ArrowRight, Check } from 'lucide-react';
+import { Loader2, ArrowRight, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-const PASSWORD_REQUIREMENTS = [
-  { test: (p: string) => p.length >= 8, label: 'At least 8 characters' },
-  { test: (p: string) => /[A-Z]/.test(p), label: 'One uppercase letter' },
-  { test: (p: string) => /[a-z]/.test(p), label: 'One lowercase letter' },
-  { test: (p: string) => /[0-9]/.test(p), label: 'One number' },
-];
+// Validation schema
+const registerSchema = z.object({
+  name: z
+    .string()
+    .max(100, 'Name must be less than 100 characters')
+    .optional()
+    .or(z.literal('')),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPasswordHints, setShowPasswordHints] = useState(false);
-  const { register } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const { register: registerUser } = useAuth();
 
-  const passwordRequirementsMet = PASSWORD_REQUIREMENTS.filter(req => req.test(password));
-  const isPasswordValid = passwordRequirementsMet.length === PASSWORD_REQUIREMENTS.length;
-  const doPasswordsMatch = password === confirmPassword && confirmPassword.length > 0;
+  const form = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isPasswordValid) {
-      toast.error('Password requirements not met', {
-        description: 'Please ensure your password meets all requirements.',
-      });
-      return;
-    }
-
-    if (!doPasswordsMatch) {
-      toast.error('Passwords do not match', {
-        description: 'Please ensure both passwords are identical.',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
+  const onSubmit = async (data: RegisterFormData) => {
     try {
-      await register(email, password, name || undefined);
+      await registerUser(data.email, data.password, data.name || undefined);
       toast.success('Account created!', {
         description: 'Welcome to Localeflow. Your account is ready.',
       });
@@ -61,155 +69,161 @@ export default function RegisterPage() {
       toast.error('Registration failed', {
         description: message,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h1
-          className="text-3xl font-semibold tracking-tight"
+          className="text-[2rem] font-semibold tracking-tight text-foreground"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
           Create your account
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-[15px] leading-relaxed">
           Start managing your translations in minutes
         </p>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium">
-              Full name
-              <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
-              autoComplete="name"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Create a strong password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => setShowPasswordHints(true)}
-              required
-              disabled={isLoading}
-              className="h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation"
-              autoComplete="new-password"
-            />
-            {/* Password requirements */}
-            {showPasswordHints && password.length > 0 && (
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                {PASSWORD_REQUIREMENTS.map((req, index) => {
-                  const isMet = req.test(password);
-                  return (
-                    <div
-                      key={index}
-                      className={`flex items-center gap-2 text-xs transition-colors ${
-                        isMet ? 'text-green-600' : 'text-muted-foreground'
-                      }`}
-                    >
-                      <div
-                        className={`flex items-center justify-center w-4 h-4 rounded-full transition-colors ${
-                          isMet ? 'bg-green-100 text-green-600' : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        {isMet && <Check className="w-3 h-3" />}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-4">
+            {/* Name field */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Full name
+                    <span className="ml-1 text-muted-foreground/60 font-normal">(optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                        focusedField === 'name' ? 'text-primary' : 'text-muted-foreground/50'
+                      }`}>
+                        <User className="w-[18px] h-[18px]" />
                       </div>
-                      <span>{req.label}</span>
+                      <Input
+                        placeholder="John Doe"
+                        {...field}
+                        onFocus={() => setFocusedField('name')}
+                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        autoComplete="name"
+                      />
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm password
-            </Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              className={`h-11 w-full bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all touch-manipulation ${
-                confirmPassword.length > 0 && !doPasswordsMatch ? 'border-destructive' : ''
-              }`}
-              autoComplete="new-password"
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {confirmPassword.length > 0 && !doPasswordsMatch && (
-              <p className="text-xs text-destructive">Passwords do not match</p>
-            )}
-          </div>
-        </div>
 
-        <Button
-          type="submit"
-          className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all touch-manipulation"
-          disabled={isLoading || !isPasswordValid || !doPasswordsMatch}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            <>
-              Create account
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-      </form>
+            {/* Email field */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                        focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
+                      }`}>
+                        <Mail className="w-[18px] h-[18px]" />
+                      </div>
+                      <Input
+                        type="email"
+                        placeholder="you@example.com"
+                        {...field}
+                        onFocus={() => setFocusedField('email')}
+                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        autoComplete="email"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password field */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                        focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
+                      }`}>
+                        <Lock className="w-[18px] h-[18px]" />
+                      </div>
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Create a strong password"
+                        {...field}
+                        onFocus={() => setFocusedField('password')}
+                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        className="h-12 w-full pl-12 pr-12 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors duration-200 touch-manipulation"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-[18px] h-[18px]" />
+                        ) : (
+                          <Eye className="w-[18px] h-[18px]" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Submit button */}
+          <Button
+            type="submit"
+            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-[15px] transition-all duration-200 touch-manipulation shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              <>
+                Create account
+                <ArrowRight className="ml-2 h-[18px] w-[18px]" />
+              </>
+            )}
+          </Button>
+        </form>
+      </Form>
 
       {/* Divider */}
-      <div className="relative">
+      <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
+        <div className="relative flex justify-center">
+          <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
             Already have an account?
           </span>
         </div>
@@ -219,10 +233,10 @@ export default function RegisterPage() {
       <div className="text-center">
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors touch-manipulation"
+          className="group inline-flex items-center gap-2 py-2.5 px-5 text-sm font-medium text-foreground rounded-xl border border-border/60 bg-card hover:bg-accent hover:border-border transition-all duration-200 touch-manipulation"
         >
           Sign in instead
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
       </div>
     </div>

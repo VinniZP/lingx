@@ -1,11 +1,13 @@
 'use client';
 
+import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { projectApi, CreateProjectInput, ApiError } from '@/lib/api';
+import { projectApi, UpdateProjectInput, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,9 +27,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, Globe2, Check, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowLeft, Trash2, Globe2, Check, Loader2, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AVAILABLE_LANGUAGES = [
@@ -48,67 +60,90 @@ const AVAILABLE_LANGUAGES = [
 ];
 
 // Validation schema
-const projectSchema = z.object({
+const settingsSchema = z.object({
   name: z
     .string()
     .min(2, 'Project name must be at least 2 characters')
     .max(50, 'Project name must be less than 50 characters'),
-  slug: z
-    .string()
-    .min(2, 'Slug must be at least 2 characters')
-    .max(50, 'Slug must be less than 50 characters')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
   languages: z.array(z.string()).min(1, 'Select at least one language'),
   defaultLanguage: z.string().min(1, 'Select a default language'),
 });
 
-type ProjectFormData = z.infer<typeof projectSchema>;
+type SettingsFormData = z.infer<typeof settingsSchema>;
 
-export default function NewProjectPage() {
+interface PageProps {
+  params: Promise<{ projectId: string }>;
+}
+
+export default function ProjectSettingsPage({ params }: PageProps) {
+  const { projectId } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const form = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema),
+  const { data: project, isLoading } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectApi.get(projectId),
+  });
+
+  const form = useForm<SettingsFormData>({
+    resolver: zodResolver(settingsSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
-      slug: '',
       description: '',
-      languages: ['en'],
-      defaultLanguage: 'en',
+      languages: [],
+      defaultLanguage: '',
     },
   });
+
+  // Update form when project data loads
+  useEffect(() => {
+    if (project) {
+      form.reset({
+        name: project.name,
+        description: project.description || '',
+        languages: project.languages.map((l) => l.code),
+        defaultLanguage: project.defaultLanguage,
+      });
+    }
+  }, [project, form]);
 
   const selectedLanguages = form.watch('languages');
   const defaultLanguage = form.watch('defaultLanguage');
 
-  const createMutation = useMutation({
-    mutationFn: (data: CreateProjectInput) => projectApi.create(data),
-    onSuccess: (project) => {
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateProjectInput) =>
+      projectApi.update(projectId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast.success('Project created', {
-        description: `${project.name} has been created successfully.`,
+      toast.success('Project updated', {
+        description: 'Your changes have been saved.',
       });
-      router.push(`/projects/${project.id}`);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create project', {
+      toast.error('Failed to update project', {
         description: error.message,
       });
     },
   });
 
-  const handleNameChange = (value: string) => {
-    form.setValue('name', value, { shouldValidate: true });
-    // Auto-generate slug from name
-    const generatedSlug = value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    form.setValue('slug', generatedSlug, { shouldValidate: true });
-  };
+  const deleteMutation = useMutation({
+    mutationFn: () => projectApi.delete(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project deleted', {
+        description: 'The project has been deleted.',
+      });
+      router.push('/projects');
+    },
+    onError: (error: ApiError) => {
+      toast.error('Failed to delete project', {
+        description: error.message,
+      });
+    },
+  });
 
   const toggleLanguage = (code: string) => {
     const current = selectedLanguages || [];
@@ -121,29 +156,52 @@ export default function NewProjectPage() {
     }
   };
 
-  const onSubmit = (data: ProjectFormData) => {
-    createMutation.mutate({
+  const onSubmit = (data: SettingsFormData) => {
+    updateMutation.mutate({
       name: data.name,
-      slug: data.slug,
       description: data.description || undefined,
       languageCodes: data.languages,
       defaultLanguage: data.defaultLanguage,
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="size-10 rounded-xl bg-primary/10 animate-pulse" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Settings className="size-5 text-primary animate-pulse" />
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="text-destructive p-6 rounded-xl bg-destructive/10 border border-destructive/20">
+        Project not found.
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in-up">
+    <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild aria-label="Go back to projects">
-          <Link href="/projects">
+      <div className="flex items-center gap-4 animate-fade-in-up">
+        <Button variant="ghost" size="icon" asChild aria-label="Go back to project">
+          <Link href={`/projects/${projectId}`}>
             <ArrowLeft className="size-5" aria-hidden="true" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">New Project</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Project Settings</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Create a new localization project
+            {project.name}
           </p>
         </div>
       </div>
@@ -156,7 +214,7 @@ export default function NewProjectPage() {
             <div>
               <h2 className="font-semibold text-lg">Project Details</h2>
               <p className="text-sm text-muted-foreground">
-                Enter the basic information for your project
+                Update your project information
               </p>
             </div>
 
@@ -168,38 +226,25 @@ export default function NewProjectPage() {
                 <FormItem>
                   <FormLabel>Project Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="My Application"
-                      {...field}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                    />
+                    <Input placeholder="My Application" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Slug */}
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="my-application"
-                      className="font-mono"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    URL-safe identifier for your project
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Slug (read-only) */}
+            <div className="space-y-2">
+              <FormLabel>Slug</FormLabel>
+              <Input
+                value={project.slug}
+                disabled
+                className="bg-muted font-mono"
+              />
+              <p className="text-sm text-muted-foreground">
+                Slug cannot be changed after creation
+              </p>
+            </div>
 
             {/* Description */}
             <FormField
@@ -231,7 +276,7 @@ export default function NewProjectPage() {
                 Languages
               </h2>
               <p className="text-sm text-muted-foreground">
-                Select the languages for your project
+                Manage your project languages
               </p>
             </div>
 
@@ -252,7 +297,7 @@ export default function NewProjectPage() {
                           type="button"
                           onClick={() => toggleLanguage(lang.code)}
                           className={cn(
-                            'relative flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
+                            'relative flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer',
                             isSelected
                               ? 'bg-primary text-primary-foreground shadow-sm'
                               : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -309,35 +354,64 @@ export default function NewProjectPage() {
                 </FormItem>
               )}
             />
-          </div>
 
-          {/* Actions */}
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end animate-fade-in-up stagger-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending || !form.formState.isValid}
-              className="sm:w-auto"
-            >
-              {createMutation.isPending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Project'
-              )}
-            </Button>
+            {/* Save Button */}
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending || !form.formState.isValid}
+              >
+                {updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
+
+      {/* Danger Zone */}
+      <div className="island p-6 border-destructive/30 animate-fade-in-up stagger-3">
+        <div className="mb-4">
+          <h2 className="font-semibold text-lg text-destructive">Danger Zone</h2>
+          <p className="text-sm text-muted-foreground">
+            Irreversible actions for this project
+          </p>
+        </div>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="gap-2">
+              <Trash2 className="size-4" />
+              Delete Project
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete &quot;{project.name}&quot; and
+                all its spaces, branches, and translations. This action cannot
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="h-11">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteMutation.mutate()}
+                className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
