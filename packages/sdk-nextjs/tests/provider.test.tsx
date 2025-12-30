@@ -18,9 +18,9 @@ describe('LocaleflowProvider', () => {
 
   // Test Consumer Component
   const TestConsumer = () => {
-    const { ready, language, t, error } = useLocaleflow();
+    const { ready, language, t, error, isLoading } = useLocaleflow();
 
-    if (!ready) return <div>Loading...</div>;
+    if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
 
     return (
@@ -32,18 +32,15 @@ describe('LocaleflowProvider', () => {
   };
 
   describe('Initial Loading', () => {
-    it('should render loading state initially when no static data', () => {
+    it('should render loading state initially when fetching from localePath', () => {
       mockFetch.mockImplementation(
         () => new Promise(() => {}) // Never resolves
       );
 
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
           defaultLanguage="en"
+          localePath="/locales"
           fallback={<div>Loading translations...</div>}
         >
           <TestConsumer />
@@ -53,25 +50,14 @@ describe('LocaleflowProvider', () => {
       expect(screen.getByText('Loading translations...')).toBeDefined();
     });
 
-    it('should fetch translations and become ready', async () => {
+    it('should fetch translations from localePath and become ready', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: { greeting: 'Hello' },
-            availableLanguages: ['en', 'uk'],
-          }),
+        json: () => Promise.resolve({ greeting: 'Hello' }),
       });
 
       render(
-        <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
-          defaultLanguage="en"
-        >
+        <LocaleflowProvider defaultLanguage="en" localePath="/locales">
           <TestConsumer />
         </LocaleflowProvider>
       );
@@ -88,10 +74,6 @@ describe('LocaleflowProvider', () => {
     it('should use static data when provided', async () => {
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
           defaultLanguage="en"
           staticData={{ greeting: 'Hello from static' }}
         >
@@ -109,81 +91,60 @@ describe('LocaleflowProvider', () => {
       // Should not have made a fetch call
       expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    it('should use multi-language static data', async () => {
+      const translations = {
+        en: { greeting: 'Hello' },
+        de: { greeting: 'Hallo' },
+      };
+
+      render(
+        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+          <TestConsumer />
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('translation').textContent).toBe('Hello');
+      });
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
   });
 
   describe('Error Handling', () => {
-    it('should handle API errors gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
-      });
+    it('should handle fetch errors gracefully', async () => {
+      // Retry exhausts after 3 attempts
+      mockFetch
+        .mockRejectedValueOnce(new Error('Failed'))
+        .mockRejectedValueOnce(new Error('Failed'))
+        .mockRejectedValueOnce(new Error('Failed'));
 
       render(
-        <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
-          defaultLanguage="en"
-        >
+        <LocaleflowProvider defaultLanguage="en" localePath="/locales">
           <TestConsumer />
         </LocaleflowProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByText(/Error:/)).toBeDefined();
-      });
-    });
-
-    it('should handle network errors', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
-
-      render(
-        <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
-          defaultLanguage="en"
-        >
-          <TestConsumer />
-        </LocaleflowProvider>
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Error:/)).toBeDefined();
+        },
+        { timeout: 5000 }
       );
-
-      await waitFor(() => {
-        expect(screen.getByText(/Error:/)).toBeDefined();
-        expect(screen.getByText(/Network error/)).toBeDefined();
-      });
     });
   });
 
   describe('Translation Function', () => {
     it('should return key when translation is missing', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {},
-            availableLanguages: ['en'],
-          }),
-      });
-
       const MissingKeyConsumer = () => {
-        const { ready, t } = useLocaleflow();
-        if (!ready) return null;
+        const { t, isLoading } = useLocaleflow();
+        if (isLoading) return null;
         return <div data-testid="missing">{t('nonexistent.key')}</div>;
       };
 
       render(
-        <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
-          defaultLanguage="en"
-        >
+        <LocaleflowProvider defaultLanguage="en" staticData={{ greeting: 'Hi' }}>
           <MissingKeyConsumer />
         </LocaleflowProvider>
       );
@@ -196,19 +157,9 @@ describe('LocaleflowProvider', () => {
     });
 
     it('should interpolate values in translations', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: { greeting: 'Hello, {name}!' },
-            availableLanguages: ['en'],
-          }),
-      });
-
       const InterpolationConsumer = () => {
-        const { ready, t } = useLocaleflow();
-        if (!ready) return null;
+        const { t, isLoading } = useLocaleflow();
+        if (isLoading) return null;
         return (
           <div data-testid="interpolated">
             {t('greeting', { name: 'World' })}
@@ -218,11 +169,8 @@ describe('LocaleflowProvider', () => {
 
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
           defaultLanguage="en"
+          staticData={{ greeting: 'Hello, {name}!' }}
         >
           <InterpolationConsumer />
         </LocaleflowProvider>
@@ -236,21 +184,9 @@ describe('LocaleflowProvider', () => {
     });
 
     it('should handle multiple interpolation values', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {
-              message: '{user} sent {count} messages to {recipient}',
-            },
-            availableLanguages: ['en'],
-          }),
-      });
-
       const MultiInterpolationConsumer = () => {
-        const { ready, t } = useLocaleflow();
-        if (!ready) return null;
+        const { t, isLoading } = useLocaleflow();
+        if (isLoading) return null;
         return (
           <div data-testid="multi">
             {t('message', { user: 'Alice', count: 5, recipient: 'Bob' })}
@@ -260,11 +196,10 @@ describe('LocaleflowProvider', () => {
 
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
           defaultLanguage="en"
+          staticData={{
+            message: '{user} sent {count} messages to {recipient}',
+          }}
         >
           <MultiInterpolationConsumer />
         </LocaleflowProvider>
@@ -276,27 +211,68 @@ describe('LocaleflowProvider', () => {
         );
       });
     });
+
+    it('should support nested keys', async () => {
+      const NestedConsumer = () => {
+        const { t, isLoading } = useLocaleflow();
+        if (isLoading) return null;
+        return <div data-testid="nested">{t('common.greeting')}</div>;
+      };
+
+      render(
+        <LocaleflowProvider
+          defaultLanguage="en"
+          staticData={{ common: { greeting: 'Nested Hello' } }}
+        >
+          <NestedConsumer />
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('nested').textContent).toBe('Nested Hello');
+      });
+    });
   });
 
   describe('API URL Construction', () => {
-    it('should construct API URL correctly', async () => {
+    it('should construct local path URL correctly', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ greeting: 'Hello' }),
+      });
+
+      render(
+        <LocaleflowProvider defaultLanguage="en" localePath="/locales">
+          <div>Test</div>
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/locales/en.json',
+          expect.any(Object)
+        );
+      });
+    });
+
+    it('should use API URL when provided with project config', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
             language: 'en',
-            translations: {},
-            availableLanguages: ['en'],
+            translations: { greeting: 'Hello' },
           }),
       });
 
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="production"
+          defaultLanguage="en"
+          apiUrl="https://api.example.com"
           project="my-project"
           space="frontend"
-          defaultLanguage="en"
+          environment="production"
+          localePath="/locales"
         >
           <div>Test</div>
         </LocaleflowProvider>
@@ -304,53 +280,42 @@ describe('LocaleflowProvider', () => {
 
       await waitFor(() => {
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('/api/sdk/translations'),
-          expect.objectContaining({
-            headers: expect.objectContaining({
-              Authorization: 'Bearer lf_test_key',
-            }),
-          })
+          expect.stringContaining('https://api.example.com/sdk/translations'),
+          expect.any(Object)
         );
       });
 
-      // Check query params
       const calledUrl = mockFetch.mock.calls[0][0];
       expect(calledUrl).toContain('project=my-project');
       expect(calledUrl).toContain('space=frontend');
       expect(calledUrl).toContain('environment=production');
-      expect(calledUrl).toContain('lang=en');
     });
 
-    it('should use custom API URL when provided', async () => {
+    it('should not include Authorization header', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {},
-            availableLanguages: ['en'],
-          }),
+        json: () => Promise.resolve({ greeting: 'Hello' }),
       });
 
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="production"
+          defaultLanguage="en"
+          apiUrl="https://api.example.com"
           project="my-project"
           space="frontend"
-          defaultLanguage="en"
-          apiUrl="https://custom.api.com"
+          environment="production"
+          localePath="/locales"
         >
           <div>Test</div>
         </LocaleflowProvider>
       );
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('https://custom.api.com/sdk/translations'),
-          expect.any(Object)
-        );
+        expect(mockFetch).toHaveBeenCalled();
       });
+
+      const options = mockFetch.mock.calls[0][1] as RequestInit;
+      expect(options.headers).not.toHaveProperty('Authorization');
     });
   });
 
@@ -362,7 +327,9 @@ describe('LocaleflowProvider', () => {
       };
 
       // Suppress console.error for expected error
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       expect(() => {
         render(<ConsumerWithoutProvider />);
@@ -374,20 +341,20 @@ describe('LocaleflowProvider', () => {
 
   describe('Language Switching', () => {
     it('should provide setLanguage function', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: { greeting: 'Hello' },
-            availableLanguages: ['en', 'uk'],
-          }),
-      });
+      const translations = {
+        en: { greeting: 'Hello' },
+        uk: { greeting: 'Привіт' },
+      };
 
       const LanguageConsumer = () => {
-        const { ready, language, availableLanguages, setLanguage, isChanging } =
-          useLocaleflow();
-        if (!ready) return <div>Loading...</div>;
+        const {
+          language,
+          availableLanguages,
+          setLanguage,
+          isChanging,
+          isLoading,
+        } = useLocaleflow();
+        if (isLoading) return <div>Loading...</div>;
         return (
           <div>
             <span data-testid="current-lang">{language}</span>
@@ -401,13 +368,7 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
-          defaultLanguage="en"
-        >
+        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
           <LanguageConsumer />
         </LocaleflowProvider>
       );
@@ -419,23 +380,56 @@ describe('LocaleflowProvider', () => {
       expect(screen.getByTestId('available-langs').textContent).toBe('en,uk');
       expect(screen.getByTestId('is-changing').textContent).toBe('false');
     });
+
+    it('should switch language using multi-language static data', async () => {
+      const translations = {
+        en: { greeting: 'Hello' },
+        uk: { greeting: 'Привіт' },
+      };
+
+      const LanguageSwitchConsumer = () => {
+        const { language, t, setLanguage, isLoading, isChanging } =
+          useLocaleflow();
+        if (isLoading) return <div>Loading...</div>;
+        return (
+          <div>
+            <span data-testid="lang">{language}</span>
+            <span data-testid="greeting">{t('greeting')}</span>
+            <span data-testid="changing">{String(isChanging)}</span>
+            <button data-testid="switch-btn" onClick={() => setLanguage('uk')}>
+              Switch
+            </button>
+          </div>
+        );
+      };
+
+      render(
+        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+          <LanguageSwitchConsumer />
+        </LocaleflowProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('greeting').textContent).toBe('Hello');
+      });
+
+      // Click switch button
+      await act(async () => {
+        screen.getByTestId('switch-btn').click();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lang').textContent).toBe('uk');
+        expect(screen.getByTestId('greeting').textContent).toBe('Привіт');
+      });
+    });
   });
 
   describe('Namespace Loading', () => {
     it('should provide loadNamespace function', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: { common: 'Common' },
-            availableLanguages: ['en'],
-          }),
-      });
-
       const NamespaceConsumer = () => {
-        const { ready, loadedNamespaces, loadNamespace } = useLocaleflow();
-        if (!ready) return <div>Loading...</div>;
+        const { loadedNamespaces, loadNamespace, isLoading } = useLocaleflow();
+        if (isLoading) return <div>Loading...</div>;
         return (
           <div>
             <span data-testid="namespaces">
@@ -448,11 +442,8 @@ describe('LocaleflowProvider', () => {
 
       render(
         <LocaleflowProvider
-          apiKey="lf_test_key"
-          environment="test"
-          project="test-project"
-          space="frontend"
           defaultLanguage="en"
+          staticData={{ common: 'Common' }}
           namespaces={['common']}
         >
           <NamespaceConsumer />
@@ -462,6 +453,33 @@ describe('LocaleflowProvider', () => {
       await waitFor(() => {
         expect(screen.getByTestId('namespaces').textContent).toBe('common');
       });
+    });
+  });
+
+  describe('Non-blocking Render', () => {
+    it('should be ready immediately with static data', () => {
+      const ReadyConsumer = () => {
+        const { ready, isLoading } = useLocaleflow();
+        return (
+          <div>
+            <span data-testid="ready">{String(ready)}</span>
+            <span data-testid="loading">{String(isLoading)}</span>
+          </div>
+        );
+      };
+
+      render(
+        <LocaleflowProvider
+          defaultLanguage="en"
+          staticData={{ greeting: 'Hello' }}
+        >
+          <ReadyConsumer />
+        </LocaleflowProvider>
+      );
+
+      // Should be ready immediately
+      expect(screen.getByTestId('ready').textContent).toBe('true');
+      expect(screen.getByTestId('loading').textContent).toBe('false');
     });
   });
 });

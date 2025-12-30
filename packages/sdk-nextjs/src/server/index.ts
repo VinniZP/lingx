@@ -4,29 +4,29 @@
  * This module provides server-side translation support for Next.js 16 Server Components
  * and Static Site Generation (SSG).
  *
+ * Server-side always uses static data - no API fetching.
+ * This ensures serverless/edge safety and predictable performance.
+ *
  * @example
  * ```tsx
- * // app/layout.tsx
- * import { configureServer } from '@localeflow/nextjs/server';
- *
- * configureServer({
- *   apiKey: process.env.LOCALEFLOW_API_KEY!,
- *   environment: 'production',
- *   project: 'my-project',
- *   space: 'frontend',
- *   defaultLanguage: 'en',
- * });
- *
  * // app/[locale]/page.tsx
  * import { getTranslations, getAvailableLanguages } from '@localeflow/nextjs/server';
+ * import en from '@/locales/en.json';
+ * import de from '@/locales/de.json';
+ *
+ * const translations = { en, de };
  *
  * export default async function Page({ params }: { params: { locale: string } }) {
- *   const { t } = await getTranslations(undefined, params.locale);
+ *   const { t } = await getTranslations({
+ *     staticData: translations[params.locale],
+ *     language: params.locale,
+ *   });
+ *
  *   return <h1>{t('home.title')}</h1>;
  * }
  *
  * export async function generateStaticParams() {
- *   const languages = await getAvailableLanguages();
+ *   const languages = getAvailableLanguages(translations);
  *   return languages.map((locale) => ({ locale }));
  * }
  * ```
@@ -41,7 +41,5 @@ export {
 
 export { getTranslations, getAvailableLanguages } from './getTranslations';
 
-export { fetchTranslationsServer, getServerTranslations } from './cache';
-
 // Re-export types
-export type { GetTranslationsReturn } from './getTranslations';
+export type { GetTranslationsReturn, GetTranslationsOptions } from './getTranslations';

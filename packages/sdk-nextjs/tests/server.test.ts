@@ -1,44 +1,27 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Store the original fetch
-const mockFetch = vi.fn();
-
-// Mock React cache - React's cache() is for request deduplication
-vi.mock('react', async () => {
-  const actual = await vi.importActual('react');
-  return {
-    ...actual,
-    cache: (fn: (...args: unknown[]) => unknown) => fn, // Pass-through for testing
-  };
-});
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('Server Functions', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Reset module state between tests
     vi.resetModules();
-    mockFetch.mockReset();
-    global.fetch = mockFetch;
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
+    const { resetServerConfig } = await import('../src/server');
+    resetServerConfig();
   });
 
   describe('configureServer', () => {
-    it('should set server configuration', async () => {
-      const { configureServer, isServerConfigured } = await import(
-        '../src/server'
-      );
+    it('should configure server with static data', async () => {
+      const { configureServer, isServerConfigured, getServerConfig } =
+        await import('../src/server');
 
-      configureServer({
-        apiKey: 'lf_server_key',
-        environment: 'production',
-        project: 'my-project',
-        space: 'frontend',
+      const config = {
         defaultLanguage: 'en',
-        apiUrl: 'https://api.localeflow.io',
-      });
+        staticData: { greeting: 'Hello' },
+      };
+
+      configureServer(config);
 
       expect(isServerConfigured()).toBe(true);
+      expect(getServerConfig()?.defaultLanguage).toBe('en');
     });
 
     it('should overwrite previous configuration', async () => {
@@ -47,316 +30,255 @@ describe('Server Functions', () => {
       );
 
       configureServer({
-        apiKey: 'lf_first_key',
-        environment: 'staging',
-        project: 'project1',
-        space: 'space1',
         defaultLanguage: 'en',
+        staticData: { key: 'first' },
       });
 
       configureServer({
-        apiKey: 'lf_second_key',
-        environment: 'production',
-        project: 'project2',
-        space: 'space2',
         defaultLanguage: 'uk',
+        staticData: { key: 'second' },
       });
 
       const config = getServerConfig();
-      expect(config.apiKey).toBe('lf_second_key');
-      expect(config.project).toBe('project2');
+      expect(config?.defaultLanguage).toBe('uk');
     });
   });
 
   describe('getServerConfig', () => {
-    it('should throw error when not configured', async () => {
+    it('should return null when not configured', async () => {
       vi.resetModules();
       const { getServerConfig } = await import('../src/server');
 
-      expect(() => getServerConfig()).toThrow(
-        /Localeflow server not configured/
-      );
+      expect(getServerConfig()).toBeNull();
     });
   });
 
   describe('getTranslations', () => {
-    beforeEach(async () => {
-      vi.resetModules();
-      const { configureServer } = await import('../src/server');
-      configureServer({
-        apiKey: 'lf_server_key',
-        environment: 'production',
-        project: 'my-project',
-        space: 'frontend',
-        defaultLanguage: 'en',
-        apiUrl: 'https://api.localeflow.io',
-      });
-    });
-
-    it('should fetch translations and return t function', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {
-              greeting: 'Hello, {name}!',
-              simple: 'Simple text',
-            },
-          }),
-      });
-
+    it('should return translation function using staticData option', async () => {
       const { getTranslations } = await import('../src/server');
-      const { t } = await getTranslations();
 
-      expect(t('simple')).toBe('Simple text');
-      expect(t('greeting', { name: 'World' })).toBe('Hello, World!');
-    });
-
-    it('should support namespace parameter', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {
-              'auth:login.title': 'Sign In',
-              'auth:login.button': 'Log In',
-            },
-          }),
+      const { t, language } = await getTranslations({
+        staticData: { greeting: 'Hello' },
+        language: 'en',
       });
 
-      const { getTranslations } = await import('../src/server');
-      const { t } = await getTranslations('auth');
-
-      expect(t('login.title')).toBe('Sign In');
-    });
-
-    it('should support explicit language parameter', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'uk',
-            translations: {
-              greeting: 'Привіт, {name}!',
-            },
-          }),
-      });
-
-      const { getTranslations } = await import('../src/server');
-      const { t, language } = await getTranslations(undefined, 'uk');
-
-      expect(language).toBe('uk');
-      expect(t('greeting', { name: 'Світ' })).toBe('Привіт, Світ!');
-    });
-
-    it('should support ICU plural formatting', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {
-              cart_items:
-                '{count, plural, =0 {No items} one {1 item} other {{count} items}}',
-            },
-          }),
-      });
-
-      const { getTranslations } = await import('../src/server');
-      const { t } = await getTranslations();
-
-      expect(t('cart_items', { count: 0 })).toBe('No items');
-      expect(t('cart_items', { count: 1 })).toBe('1 item');
-      expect(t('cart_items', { count: 5 })).toBe('5 items');
-    });
-
-    it('should support ICU select formatting', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {
-              pronoun:
-                '{gender, select, male {He} female {She} other {They}}',
-            },
-          }),
-      });
-
-      const { getTranslations } = await import('../src/server');
-      const { t } = await getTranslations();
-
-      expect(t('pronoun', { gender: 'male' })).toBe('He');
-      expect(t('pronoun', { gender: 'female' })).toBe('She');
-      expect(t('pronoun', { gender: 'other' })).toBe('They');
+      expect(language).toBe('en');
+      expect(t('greeting')).toBe('Hello');
     });
 
     it('should return key for missing translations', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {},
-          }),
+      const { getTranslations } = await import('../src/server');
+
+      const { t } = await getTranslations({
+        staticData: { greeting: 'Hello' },
+        language: 'en',
       });
 
-      const { getTranslations } = await import('../src/server');
-      const { t } = await getTranslations();
-
-      expect(t('nonexistent.key')).toBe('nonexistent.key');
+      expect(t('missing.key')).toBe('missing.key');
     });
 
-    it('should throw error on API failure', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
+    it('should interpolate placeholders', async () => {
+      const { getTranslations } = await import('../src/server');
+
+      const { t } = await getTranslations({
+        staticData: { greeting: 'Hello, {name}!' },
+        language: 'en',
       });
 
+      expect(t('greeting', { name: 'World' })).toBe('Hello, World!');
+    });
+
+    it('should support ICU plural formatting', async () => {
+      const { getTranslations } = await import('../src/server');
+
+      const { t } = await getTranslations({
+        staticData: {
+          items:
+            '{count, plural, =0 {No items} one {1 item} other {{count} items}}',
+        },
+        language: 'en',
+      });
+
+      expect(t('items', { count: 0 })).toBe('No items');
+      expect(t('items', { count: 1 })).toBe('1 item');
+      expect(t('items', { count: 5 })).toBe('5 items');
+    });
+
+    it('should support ICU select formatting', async () => {
+      const { getTranslations } = await import('../src/server');
+
+      const { t } = await getTranslations({
+        staticData: {
+          greeting:
+            '{gender, select, male {He} female {She} other {They}} liked it',
+        },
+        language: 'en',
+      });
+
+      expect(t('greeting', { gender: 'male' })).toBe('He liked it');
+      expect(t('greeting', { gender: 'female' })).toBe('She liked it');
+    });
+
+    it('should support nested keys', async () => {
+      const { getTranslations } = await import('../src/server');
+
+      const { t } = await getTranslations({
+        staticData: {
+          common: {
+            greeting: 'Hello',
+            farewell: 'Goodbye',
+          },
+        },
+        language: 'en',
+      });
+
+      expect(t('common.greeting')).toBe('Hello');
+      expect(t('common.farewell')).toBe('Goodbye');
+    });
+
+    it('should support multi-language bundles', async () => {
+      const { getTranslations } = await import('../src/server');
+
+      const translations = {
+        en: { greeting: 'Hello' },
+        de: { greeting: 'Hallo' },
+      };
+
+      const enResult = await getTranslations({
+        staticData: translations,
+        language: 'en',
+        defaultLanguage: 'en',
+      });
+
+      const deResult = await getTranslations({
+        staticData: translations,
+        language: 'de',
+        defaultLanguage: 'en',
+      });
+
+      expect(enResult.t('greeting')).toBe('Hello');
+      expect(deResult.t('greeting')).toBe('Hallo');
+    });
+
+    it('should use namespace prefix when provided', async () => {
+      const { getTranslations } = await import('../src/server');
+
+      const { t } = await getTranslations({
+        staticData: { 'auth:login': 'Sign In' },
+        language: 'en',
+        namespace: 'auth',
+      });
+
+      expect(t('login')).toBe('Sign In');
+    });
+
+    it('should throw error when no static data is provided', async () => {
       const { getTranslations } = await import('../src/server');
 
       await expect(getTranslations()).rejects.toThrow(
-        'Failed to fetch translations'
+        'No translations provided'
       );
     });
 
-    it('should include authorization header', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {},
-          }),
+    it('should fall back to global config if no staticData option', async () => {
+      const { configureServer, getTranslations } = await import(
+        '../src/server'
+      );
+
+      configureServer({
+        defaultLanguage: 'en',
+        staticData: { greeting: 'From global config' },
       });
 
-      const { getTranslations } = await import('../src/server');
-      await getTranslations();
+      const { t } = await getTranslations();
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer lf_server_key',
-          }),
-        })
-      );
+      expect(t('greeting')).toBe('From global config');
     });
 
-    it('should build correct API URL with parameters', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: {},
-          }),
+    it('should support legacy signature (namespace, language)', async () => {
+      const { configureServer, getTranslations } = await import(
+        '../src/server'
+      );
+
+      configureServer({
+        defaultLanguage: 'en',
+        staticData: {
+          'common:welcome': 'Welcome!',
+        },
       });
 
-      const { getTranslations } = await import('../src/server');
-      await getTranslations('auth', 'de');
+      const { t } = await getTranslations('common', 'en');
 
-      const calledUrl = mockFetch.mock.calls[0][0];
-      expect(calledUrl).toContain('https://api.localeflow.io');
-      expect(calledUrl).toContain('project=my-project');
-      expect(calledUrl).toContain('space=frontend');
-      expect(calledUrl).toContain('environment=production');
-      expect(calledUrl).toContain('lang=de');
-      expect(calledUrl).toContain('namespace=auth');
+      expect(t('welcome')).toBe('Welcome!');
     });
   });
 
   describe('getAvailableLanguages', () => {
-    beforeEach(async () => {
-      vi.resetModules();
-      const { configureServer } = await import('../src/server');
+    it('should return languages from multi-language bundle', async () => {
+      const { getAvailableLanguages } = await import('../src/server');
+
+      const translations = {
+        en: { greeting: 'Hello' },
+        de: { greeting: 'Hallo' },
+        fr: { greeting: 'Bonjour' },
+      };
+
+      const languages = getAvailableLanguages(translations);
+
+      expect(languages).toEqual(['en', 'de', 'fr']);
+    });
+
+    it('should return languages from global config', async () => {
+      const { configureServer, getAvailableLanguages } = await import(
+        '../src/server'
+      );
+
       configureServer({
-        apiKey: 'lf_server_key',
-        environment: 'production',
-        project: 'my-project',
-        space: 'frontend',
         defaultLanguage: 'en',
-        apiUrl: 'https://api.localeflow.io',
+        availableLanguages: ['en', 'de', 'fr', 'es'],
       });
+
+      const languages = getAvailableLanguages();
+
+      expect(languages).toEqual(['en', 'de', 'fr', 'es']);
     });
 
-    it('should fetch available languages', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            availableLanguages: ['en', 'uk', 'de', 'fr'],
-          }),
-      });
-
+    it('should return default language if nothing configured', async () => {
       const { getAvailableLanguages } = await import('../src/server');
-      const languages = await getAvailableLanguages();
 
-      expect(languages).toEqual(['en', 'uk', 'de', 'fr']);
-    });
-
-    it('should return default language if no languages available', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({}),
-      });
-
-      const { getAvailableLanguages } = await import('../src/server');
-      const languages = await getAvailableLanguages();
+      const languages = getAvailableLanguages();
 
       expect(languages).toEqual(['en']);
-    });
-
-    it('should throw error on API failure', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        statusText: 'Unauthorized',
-      });
-
-      const { getAvailableLanguages } = await import('../src/server');
-
-      await expect(getAvailableLanguages()).rejects.toThrow(
-        'Failed to fetch available languages'
-      );
     });
   });
 
   describe('SSG Support', () => {
-    beforeEach(async () => {
-      vi.resetModules();
-      const { configureServer } = await import('../src/server');
-      configureServer({
-        apiKey: 'lf_server_key',
-        environment: 'production',
-        project: 'my-project',
-        space: 'frontend',
-        defaultLanguage: 'en',
-        apiUrl: 'https://api.localeflow.io',
-      });
-    });
-
     it('should work with generateStaticParams pattern', async () => {
-      const languages = ['en', 'uk', 'de'];
+      const { getTranslations, getAvailableLanguages } = await import(
+        '../src/server'
+      );
 
-      for (const lang of languages) {
-        mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              language: lang,
-              translations: { title: `Title in ${lang}` },
-            }),
+      const translations = {
+        en: { title: 'Welcome' },
+        de: { title: 'Willkommen' },
+      };
+
+      // Simulate generateStaticParams
+      const languages = getAvailableLanguages(translations);
+      const staticParams = languages.map((locale) => ({ locale }));
+
+      expect(staticParams).toEqual([{ locale: 'en' }, { locale: 'de' }]);
+
+      // Simulate page render for each locale
+      for (const { locale } of staticParams) {
+        const { t, language } = await getTranslations({
+          staticData: translations,
+          language: locale,
+          defaultLanguage: 'en',
         });
 
-        const { getTranslations } = await import('../src/server');
-        const { t, language } = await getTranslations(undefined, lang);
-
-        expect(language).toBe(lang);
-        expect(t('title')).toBe(`Title in ${lang}`);
+        expect(language).toBe(locale);
+        expect(t('title')).toBeTruthy();
       }
     });
 
@@ -368,10 +290,6 @@ describe('Server Functions', () => {
 
       // Configure with static data
       configureServer({
-        apiKey: 'lf_server_key',
-        environment: 'production',
-        project: 'my-project',
-        space: 'frontend',
         defaultLanguage: 'en',
         staticData: {
           'home.title': 'Welcome Home',
@@ -383,46 +301,6 @@ describe('Server Functions', () => {
       const { t } = await getTranslations();
 
       expect(t('home.title')).toBe('Welcome Home');
-      expect(mockFetch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Caching', () => {
-    beforeEach(async () => {
-      vi.resetModules();
-      const { configureServer } = await import('../src/server');
-      configureServer({
-        apiKey: 'lf_server_key',
-        environment: 'production',
-        project: 'my-project',
-        space: 'frontend',
-        defaultLanguage: 'en',
-        apiUrl: 'https://api.localeflow.io',
-      });
-    });
-
-    it('should configure Next.js fetch options for revalidation', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            language: 'en',
-            translations: { key: 'value' },
-          }),
-      });
-
-      const { getTranslations } = await import('../src/server');
-      await getTranslations();
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          next: expect.objectContaining({
-            revalidate: expect.any(Number),
-            tags: expect.arrayContaining(['translations']),
-          }),
-        })
-      );
     });
   });
 });

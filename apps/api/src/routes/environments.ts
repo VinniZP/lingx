@@ -43,15 +43,21 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { projectId } = request.params as { projectId: string };
 
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(projectId);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
       const isMember = await projectService.checkMembership(
-        projectId,
+        project.id,
         request.user.userId
       );
       if (!isMember) {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      const environments = await environmentService.findByProjectId(projectId);
+      const environments = await environmentService.findByProjectId(project.id);
       return { environments };
     }
   );
@@ -84,9 +90,15 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         branchId: string;
       };
 
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(projectId);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
       // Check manager role
       const role = await projectService.getMemberRole(
-        projectId,
+        project.id,
         request.user.userId
       );
       if (!role || role === 'DEVELOPER') {
@@ -96,7 +108,7 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
       const environment = await environmentService.create({
         name,
         slug,
-        projectId,
+        projectId: project.id,
         branchId,
       });
 

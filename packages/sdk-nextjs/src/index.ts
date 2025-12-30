@@ -22,11 +22,33 @@ export type {
   TranslationFunction,
   TranslationValues,
   TranslationBundle,
+  NestedTranslationValue,
   MultiLanguageBundle,
   SdkTranslationsResponse,
   CacheEntry,
   CacheOptions,
+  DetectionConfig,
 } from './types';
+
+// Language Detection
+export {
+  LanguageDetectorService,
+  createLanguageDetector,
+} from './detection/LanguageDetectorService';
+export {
+  cookieDetector,
+  localStorageDetector,
+  sessionStorageDetector,
+  navigatorDetector,
+  queryStringDetector,
+  pathDetector,
+  htmlTagDetector,
+  hashDetector,
+  subdomainDetector,
+  builtInDetectors,
+} from './detection/detectors';
+export type { LanguageDetector, DetectorOptions } from './detection/types';
+export { DEFAULT_DETECTION_CONFIG } from './detection/types';
 
 // Client (for advanced usage)
 export { LocaleflowClient } from './client/LocaleflowClient';

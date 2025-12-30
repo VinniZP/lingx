@@ -1,0 +1,115 @@
+{
+  "common": {
+    "welcome": "Welcome to LocaleFlow!",
+    "hello": "Hello, {name}!",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "viewAll": "View all",
+    "languages": "{count, plural, one {# language} other {# languages}}"
+  },
+  "cart": {
+    "items": "{count, plural, =0 {No items} one {1 item} other {{count} items}} in cart",
+    "total": "Total: {amount, number, ::currency/USD}"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Log in",
+    "logout": "Log out",
+    "register": "Sign up",
+    "forgotPassword": "Forgot password?"
+  },
+  "form": {
+    "email": "Email",
+    "password": "Password",
+    "required": "This field is required"
+  },
+  "messages": {
+    "success": "Operation completed successfully",
+    "error": "An error occurred. Please try again.",
+    "notFound": "Page not found"
+  },
+  "datetime": {
+    "lastUpdated": "Last updated: {date, date, medium}"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "overview": "Here's your translation overview",
+    "stats": {
+      "projects": "Projects",
+      "keys": "Keys",
+      "languages": "Languages",
+      "complete": "Complete"
+    },
+    "progress": "Overall translation progress",
+    "createProject": {
+      "title": "Create new project",
+      "description": "Start a localization project with version control, branching, and team collaboration",
+      "cta": "Get started"
+    },
+    "recentProjects": "Recent Projects",
+    "noProjects": "No projects yet",
+    "createFirst": "Create your first project",
+    "addAnother": "Add another project",
+    "quickActions": "Quick Actions",
+    "import": {
+      "title": "Import translations",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "API Keys",
+      "description": "Manage access"
+    },
+    "branches": {
+      "title": "Manage branches",
+      "description": "Version control"
+    },
+    "team": {
+      "title": "Team members",
+      "description": "Collaborate"
+    },
+    "cli": {
+      "title": "CLI Available",
+      "description": "Sync translations from your terminal"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "period": "Last 24 hours",
+      "empty": "Activity will appear here as you work"
+    },
+    "resources": {
+      "title": "Resources",
+      "docs": "Documentation",
+      "guide": "Getting started guide",
+      "bestPractices": "Language best practices"
+    },
+    "welcome": {
+      "title": "Welcome to LocaleFlow",
+      "description": "Professional translation management with git-like version control for modern teams"
+    },
+    "onboarding": {
+      "step1": {
+        "title": "Create a project",
+        "description": "Define your source and target languages"
+      },
+      "step2": {
+        "title": "Add translation keys",
+        "description": "Import existing or create new keys"
+      },
+      "step3": {
+        "title": "Sync with your app",
+        "description": "Use CLI or API to pull translations"
+      }
+    }
+  }
+}

@@ -111,6 +111,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.69.0(react@19.2.3))
+      '@localeflow/sdk-nextjs':
+        specifier: workspace:*
+        version: link:../../packages/sdk-nextjs
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -190,6 +193,9 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
     devDependencies:
+      '@localeflow/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
@@ -256,6 +262,9 @@ importers:
       '@formatjs/icu-messageformat-parser':
         specifier: ^3.2.0
         version: 3.2.0
+      '@inquirer/prompts':
+        specifier: ^8.1.0
+        version: 8.1.0(@types/node@25.0.3)
       chalk:
         specifier: ^5.6.2
         version: 5.6.2

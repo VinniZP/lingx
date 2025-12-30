@@ -23,6 +23,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 // Placeholder activity data
 const recentActivity = [
@@ -44,6 +45,7 @@ const getActivityIcon = (type: string) => {
 
 export default function DashboardPage() {
   const { user, isManager } = useAuth();
+  const { t } = useTranslation();
 
   const { data: projectsData, isLoading: projectsLoading } = useQuery({
     queryKey: ['projects'],
@@ -64,9 +66,9 @@ export default function DashboardPage() {
 
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('dashboard.greeting.morning');
+    if (hour < 18) return t('dashboard.greeting.afternoon');
+    return t('dashboard.greeting.evening');
   };
 
   const displayName = user?.name || user?.email?.split('@')[0] || 'there';
@@ -101,14 +103,14 @@ export default function DashboardPage() {
               {greeting()}, {displayName}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's your translation overview
+              {t('dashboard.overview')}
             </p>
           </div>
 
           {/* Stats Row - Inline */}
           <div className="flex flex-wrap items-center gap-8 lg:gap-12">
             <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Projects</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('dashboard.stats.projects')}</p>
               {isLoading ? (
                 <Skeleton className="h-8 w-12 mt-1 mx-auto" />
               ) : (
@@ -117,7 +119,7 @@ export default function DashboardPage() {
             </div>
             <div className="w-px h-10 bg-border hidden sm:block" />
             <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Keys</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('dashboard.stats.keys')}</p>
               {isLoading ? (
                 <Skeleton className="h-8 w-16 mt-1 mx-auto" />
               ) : (
@@ -126,7 +128,7 @@ export default function DashboardPage() {
             </div>
             <div className="w-px h-10 bg-border hidden sm:block" />
             <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Languages</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('dashboard.stats.languages')}</p>
               {isLoading ? (
                 <Skeleton className="h-8 w-8 mt-1 mx-auto" />
               ) : (
@@ -135,7 +137,7 @@ export default function DashboardPage() {
             </div>
             <div className="w-px h-10 bg-border hidden sm:block" />
             <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Complete</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('dashboard.stats.complete')}</p>
               {isLoading ? (
                 <Skeleton className="h-8 w-12 mt-1 mx-auto" />
               ) : (
@@ -149,7 +151,7 @@ export default function DashboardPage() {
         {projectCount > 0 && (
           <div className="mt-6 pt-6 border-t border-border">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Overall translation progress</span>
+              <span className="text-muted-foreground">{t('dashboard.progress')}</span>
               <span className="font-medium">{completionRate}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -178,12 +180,12 @@ export default function DashboardPage() {
                 <Plus className="size-6 text-primary group-hover:text-primary-foreground transition-colors" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-lg">Create new project</h3>
+                <h3 className="font-semibold text-lg">{t('dashboard.createProject.title')}</h3>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Start a localization project with version control, branching, and team collaboration
+                  {t('dashboard.createProject.description')}
                 </p>
                 <div className="mt-4 flex items-center text-primary text-sm font-medium">
-                  Get started
+                  {t('dashboard.createProject.cta')}
                   <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -194,10 +196,10 @@ export default function DashboardPage() {
           <div className="space-y-3 animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Recent Projects
+                {t('dashboard.recentProjects')}
               </h2>
               <Link href="/projects" className="text-xs text-primary hover:underline">
-                View all
+                {t('common.viewAll')}
               </Link>
             </div>
             <div className="island divide-y divide-border">
@@ -227,7 +229,7 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{project.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {project.languages} language{project.languages !== 1 ? 's' : ''} · {project.updatedAt}
+                          {t('common.languages', { count: project.languages })} · {project.updatedAt}
                         </p>
                       </div>
                       <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />

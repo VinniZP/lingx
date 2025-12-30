@@ -4,12 +4,40 @@ import type {
   SdkTranslationsResponse,
   TranslationValues,
   TranslationFunction,
+  NestedTranslationValue,
 } from '../types';
 import { TranslationCache } from './cache';
 import { ICUFormatter, hasICUSyntax } from './icu-formatter';
 
 /**
- * Core Localeflow client for API communication and translation management
+ * Get a nested value from an object using dot notation
+ * @param obj - The object to traverse
+ * @param path - Dot-separated path (e.g., "common.welcome")
+ * @returns The value at the path or undefined
+ */
+export function getNestedValue(obj: TranslationBundle, path: string): string | undefined {
+  // Fast path: direct key lookup (for flat bundles)
+  if (path in obj && typeof obj[path] === 'string') {
+    return obj[path] as string;
+  }
+
+  // Nested path traversal
+  const parts = path.split('.');
+  let current: NestedTranslationValue | undefined = obj;
+
+  for (const part of parts) {
+    if (current === undefined || current === null || typeof current === 'string') {
+      return undefined;
+    }
+    current = (current as Record<string, NestedTranslationValue>)[part];
+  }
+
+  return typeof current === 'string' ? current : undefined;
+}
+
+/**
+ * Core Localeflow client for translation management.
+ * Supports hybrid loading: API first with local JSON fallback.
  */
 export class LocaleflowClient {
   private config: LocaleflowConfig;
@@ -19,6 +47,9 @@ export class LocaleflowClient {
   private currentLanguage: string;
   private icuFormatter: ICUFormatter;
 
+  // Request deduplication: track pending requests
+  private pendingRequests: Map<string, Promise<TranslationBundle>> = new Map();
+
   constructor(config: LocaleflowConfig) {
     this.config = config;
     this.cache = new TranslationCache();
@@ -27,97 +58,231 @@ export class LocaleflowClient {
 
     // Initialize with static data if provided
     if (config.staticData) {
-      this.translations = config.staticData;
-      this.cache.set(config.defaultLanguage, config.staticData);
+      this.translations = config.staticData as TranslationBundle;
+      this.cache.set(config.defaultLanguage, this.translations);
+    }
+
+    // Initialize available languages
+    if (config.availableLanguages?.length) {
+      this.availableLanguages = config.availableLanguages;
     }
   }
 
   /**
-   * Get the API base URL
+   * Check if API is configured
    */
-  private getApiUrl(): string {
-    return this.config.apiUrl || '/api';
+  private hasApiConfig(): boolean {
+    return !!(this.config.apiUrl && this.config.project && this.config.space && this.config.environment);
   }
 
   /**
-   * Build query string for SDK endpoint
+   * Build API URL for fetching translations
    */
-  private buildQueryString(params: Record<string, string>): string {
-    return new URLSearchParams(params).toString();
+  private buildApiUrl(language: string, namespace?: string): string {
+    const params = new URLSearchParams({
+      project: this.config.project!,
+      space: this.config.space!,
+      environment: this.config.environment!,
+      lang: language,
+    });
+
+    if (namespace) {
+      params.set('namespace', namespace);
+    }
+
+    return `${this.config.apiUrl}/sdk/translations?${params.toString()}`;
+  }
+
+  /**
+   * Build local path for JSON file
+   */
+  private buildLocalPath(language: string): string {
+    const basePath = this.config.localePath || '/locales';
+    return `${basePath}/${language}.json`;
+  }
+
+  /**
+   * Retry helper with exponential backoff
+   */
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    context: string
+  ): Promise<T> {
+    const maxAttempts = this.config.retry?.maxAttempts ?? 3;
+    const baseDelay = this.config.retry?.baseDelay ?? 1000;
+    const maxDelay = this.config.retry?.maxDelay ?? 10000;
+
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        if (attempt === maxAttempts) {
+          break;
+        }
+
+        // Exponential backoff with jitter
+        const delay = Math.min(
+          baseDelay * Math.pow(2, attempt - 1) + Math.random() * 100,
+          maxDelay
+        );
+
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
   }
 
   /**
    * Fetch translations from API
    */
-  async fetchTranslations(
+  private async fetchFromApi(
     language: string,
     namespace?: string
-  ): Promise<SdkTranslationsResponse> {
-    // Check cache first
-    const cached = this.cache.get(language, namespace);
-    if (cached) {
-      return {
-        language,
-        translations: cached,
-        availableLanguages: this.availableLanguages,
-      };
-    }
-
-    const params: Record<string, string> = {
-      project: this.config.project,
-      space: this.config.space,
-      environment: this.config.environment,
-      lang: language,
-    };
-
-    if (namespace) {
-      params.namespace = namespace;
-    }
-
-    const url = `${this.getApiUrl()}/sdk/translations?${this.buildQueryString(params)}`;
+  ): Promise<TranslationBundle> {
+    const url = this.buildApiUrl(language, namespace);
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${this.config.apiKey}`,
         'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch translations: ${response.status} ${response.statusText}`
+        `API fetch failed: ${response.status} ${response.statusText}`
       );
     }
 
     const data: SdkTranslationsResponse = await response.json();
-
-    // Update cache
-    this.cache.set(language, data.translations, namespace);
 
     // Update available languages if provided
     if (data.availableLanguages) {
       this.availableLanguages = data.availableLanguages;
     }
 
-    return data;
+    return data.translations;
+  }
+
+  /**
+   * Fetch translations from local JSON file
+   */
+  private async fetchFromLocal(language: string): Promise<TranslationBundle> {
+    const path = this.buildLocalPath(language);
+
+    const response = await fetch(path, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Local fetch failed: ${response.status} ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Load translations with hybrid strategy: API first, local fallback
+   */
+  async loadTranslations(
+    language: string,
+    namespace?: string
+  ): Promise<TranslationBundle> {
+    const cacheKey = namespace ? `${language}:${namespace}` : language;
+
+    // Check cache first
+    const cached = this.cache.get(language, namespace);
+    if (cached) {
+      return cached;
+    }
+
+    // Check for pending request (deduplication)
+    const pending = this.pendingRequests.get(cacheKey);
+    if (pending) {
+      return pending;
+    }
+
+    // Create loading promise
+    const loadPromise = this.doLoadTranslations(language, namespace, cacheKey);
+    this.pendingRequests.set(cacheKey, loadPromise);
+
+    try {
+      return await loadPromise;
+    } finally {
+      this.pendingRequests.delete(cacheKey);
+    }
+  }
+
+  /**
+   * Internal load with retry and fallback
+   */
+  private async doLoadTranslations(
+    language: string,
+    namespace: string | undefined,
+    cacheKey: string
+  ): Promise<TranslationBundle> {
+    let translations: TranslationBundle;
+
+    // Try API first if configured
+    if (this.hasApiConfig()) {
+      try {
+        translations = await this.withRetry(
+          () => this.fetchFromApi(language, namespace),
+          `fetchFromApi(${language})`
+        );
+        this.cache.set(language, translations, namespace);
+        return translations;
+      } catch (apiError) {
+        // API failed, try local fallback
+        console.warn(
+          `[Localeflow] API fetch failed for ${language}, falling back to local:`,
+          apiError
+        );
+      }
+    }
+
+    // Fallback to local JSON (or primary if no API)
+    if (this.config.localePath) {
+      try {
+        translations = await this.withRetry(
+          () => this.fetchFromLocal(language),
+          `fetchFromLocal(${language})`
+        );
+        this.cache.set(language, translations, namespace);
+        return translations;
+      } catch (localError) {
+        throw new Error(
+          `Failed to load translations for ${language}: ${localError}`
+        );
+      }
+    }
+
+    throw new Error(
+      `No translation source configured for ${language}. Set apiUrl or localePath.`
+    );
   }
 
   /**
    * Load initial translations
    */
   async init(): Promise<void> {
-    // Skip fetch if we have static data
+    // Skip if we have static data
     if (this.config.staticData) {
       return;
     }
 
-    const response = await this.fetchTranslations(this.currentLanguage);
-    this.translations = response.translations;
-
-    if (response.availableLanguages) {
-      this.availableLanguages = response.availableLanguages;
-    }
+    // Load default language
+    this.translations = await this.loadTranslations(this.currentLanguage);
   }
 
   /**
@@ -126,11 +291,8 @@ export class LocaleflowClient {
   async setLanguage(language: string): Promise<void> {
     if (language === this.currentLanguage) return;
 
-    const response = await this.fetchTranslations(language);
-    this.translations = response.translations;
+    this.translations = await this.loadTranslations(language);
     this.currentLanguage = language;
-
-    // Update ICU formatter language
     this.icuFormatter.setLanguage(language);
   }
 
@@ -138,16 +300,16 @@ export class LocaleflowClient {
    * Load additional namespace
    */
   async loadNamespace(namespace: string): Promise<TranslationBundle> {
-    const response = await this.fetchTranslations(
+    const nsTranslations = await this.loadTranslations(
       this.currentLanguage,
       namespace
     );
     // Merge namespace translations
     this.translations = {
       ...this.translations,
-      ...response.translations,
+      ...nsTranslations,
     };
-    return response.translations;
+    return nsTranslations;
   }
 
   /**
@@ -180,25 +342,12 @@ export class LocaleflowClient {
 
   /**
    * Translate a key with full ICU MessageFormat support.
-   *
-   * Supports:
-   * - Simple interpolation: {name}
-   * - Plural: {count, plural, one {...} other {...}}
-   * - Select: {gender, select, male {...} female {...} other {...}}
-   * - SelectOrdinal: {place, selectordinal, one {...} other {...}}
-   * - Number: {amount, number} or {amount, number, ::currency/USD}
-   * - Date: {date, date, short|medium|long|full}
-   * - Time: {time, time, short|medium|long|full}
-   *
-   * @param key - Translation key
-   * @param values - Values for ICU placeholders
-   * @returns Formatted translation string
+   * Supports nested keys using dot notation (e.g., "common.welcome").
    */
   translate(key: string, values?: TranslationValues): string {
-    const translation = this.translations[key];
+    const translation = getNestedValue(this.translations, key);
 
     if (!translation) {
-      // Return key if translation not found
       return key;
     }
 
@@ -208,7 +357,6 @@ export class LocaleflowClient {
     }
 
     // Fast path: simple placeholders only (no ICU syntax)
-    // This provides performance optimization for apps with mostly simple translations
     if (!hasICUSyntax(translation)) {
       let result = translation;
       Object.entries(values).forEach(([name, value]) => {
@@ -229,6 +377,13 @@ export class LocaleflowClient {
     return (key: string, values?: TranslationValues) => {
       return this.translate(key, values);
     };
+  }
+
+  /**
+   * Get ICU formatter (for provider use)
+   */
+  getFormatter(): ICUFormatter {
+    return this.icuFormatter;
   }
 
   /**

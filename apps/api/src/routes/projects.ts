@@ -100,18 +100,19 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { id } = request.params as { id: string };
 
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(id);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
       // Check membership
       const isMember = await projectService.checkMembership(
-        id,
+        project.id,
         request.user.userId
       );
       if (!isMember) {
         throw new ForbiddenError('Not a member of this project');
-      }
-
-      const project = await projectService.findById(id);
-      if (!project) {
-        throw new NotFoundError('Project');
       }
 
       return project;
@@ -150,14 +151,20 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         defaultLanguage?: string;
       };
 
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(id);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
       // Check membership and role
-      const role = await projectService.getMemberRole(id, request.user.userId);
+      const role = await projectService.getMemberRole(project.id, request.user.userId);
       if (!role || role === 'DEVELOPER') {
         throw new ForbiddenError('Requires manager or owner role');
       }
 
-      const project = await projectService.update(id, input);
-      return project;
+      const updated = await projectService.update(project.id, input);
+      return updated;
     }
   );
 
@@ -183,13 +190,19 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { id } = request.params as { id: string };
 
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(id);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
       // Check ownership
-      const role = await projectService.getMemberRole(id, request.user.userId);
+      const role = await projectService.getMemberRole(project.id, request.user.userId);
       if (role !== 'OWNER') {
         throw new ForbiddenError('Only project owner can delete');
       }
 
-      await projectService.delete(id);
+      await projectService.delete(project.id);
       return reply.status(204).send();
     }
   );
@@ -219,16 +232,22 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { id } = request.params as { id: string };
 
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(id);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
       // Check membership
       const isMember = await projectService.checkMembership(
-        id,
+        project.id,
         request.user.userId
       );
       if (!isMember) {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      const stats = await projectService.getStats(id);
+      const stats = await projectService.getStats(project.id);
       return stats;
     }
   );
@@ -292,9 +311,15 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { id } = request.params as { id: string };
 
+      // Look up project by ID or slug (flexible lookup)
+      const projectRef = await projectService.findByIdOrSlug(id);
+      if (!projectRef) {
+        throw new NotFoundError('Project');
+      }
+
       // Check membership
       const isMember = await projectService.checkMembership(
-        id,
+        projectRef.id,
         request.user.userId
       );
       if (!isMember) {
@@ -303,7 +328,7 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Fetch project with spaces and branches including key counts
       const project = await fastify.prisma.project.findUnique({
-        where: { id },
+        where: { id: projectRef.id },
         select: {
           id: true,
           name: true,

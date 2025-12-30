@@ -7,21 +7,26 @@ let serverConfig: LocaleflowConfig | null = null;
 
 /**
  * Configure the SDK for server-side usage.
- * Call this in your Next.js instrumentation.ts or layout.tsx.
+ *
+ * @deprecated For serverless/edge safety, prefer passing config directly to getTranslations().
+ * This global configuration is not thread-safe in concurrent render environments.
  *
  * @param config - Server configuration
  *
  * @example
  * ```ts
- * // app/layout.tsx
- * import { configureServer } from '@localeflow/nextjs/server';
+ * // Preferred: pass config to getTranslations()
+ * import en from '@/locales/en.json';
  *
+ * const { t } = await getTranslations({
+ *   staticData: en,
+ *   language: 'en',
+ * });
+ *
+ * // Legacy: global config (not thread-safe)
  * configureServer({
- *   apiKey: process.env.LOCALEFLOW_API_KEY!,
- *   environment: 'production',
- *   project: 'my-project',
- *   space: 'frontend',
  *   defaultLanguage: 'en',
+ *   staticData: en,
  * });
  * ```
  */
@@ -31,15 +36,9 @@ export function configureServer(config: LocaleflowConfig): void {
 
 /**
  * Get the current server configuration.
- * Throws if not configured.
+ * Returns null if not configured.
  */
-export function getServerConfig(): LocaleflowConfig {
-  if (!serverConfig) {
-    throw new Error(
-      'Localeflow server not configured. ' +
-        'Call configureServer() in your layout.tsx or instrumentation.ts before using getTranslations().'
-    );
-  }
+export function getServerConfig(): LocaleflowConfig | null {
   return serverConfig;
 }
 

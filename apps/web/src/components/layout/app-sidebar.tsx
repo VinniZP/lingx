@@ -11,6 +11,7 @@ import {
   Key,
   Languages,
   ChevronsUpDown,
+  Globe,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -34,6 +35,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { LanguagePickerCompact } from '@/components/language-picker';
 
 interface NavItem {
   href: string;
@@ -142,8 +144,17 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
           </SidebarGroup>
         </SidebarContent>
 
-        {/* Footer - User */}
-        <SidebarFooter className="mt-auto border-t border-border p-3">
+        {/* Footer - Language & User */}
+        <SidebarFooter className="mt-auto border-t border-border p-3 space-y-2">
+          {/* Language Picker */}
+          <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
+            <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
+              <Globe className="size-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Language</span>
+            </div>
+            <LanguagePickerCompact />
+          </div>
+
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>

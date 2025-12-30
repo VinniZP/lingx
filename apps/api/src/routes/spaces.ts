@@ -42,10 +42,10 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { projectId: projectSlug } = request.params as { projectId: string };
+      const { projectId } = request.params as { projectId: string };
 
-      // Look up project by slug
-      const project = await projectService.findBySlug(projectSlug);
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(projectId);
       if (!project) {
         throw new NotFoundError('Project');
       }
@@ -85,15 +85,15 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { projectId: projectSlug } = request.params as { projectId: string };
+      const { projectId } = request.params as { projectId: string };
       const { name, slug, description } = request.body as {
         name: string;
         slug: string;
         description?: string;
       };
 
-      // Look up project by slug
-      const project = await projectService.findBySlug(projectSlug);
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(projectId);
       if (!project) {
         throw new NotFoundError('Project');
       }

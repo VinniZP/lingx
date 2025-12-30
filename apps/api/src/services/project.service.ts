@@ -193,6 +193,24 @@ export class ProjectService {
   }
 
   /**
+   * Find project by ID or slug (flexible lookup)
+   *
+   * Tries slug first (shorter/cleaner), then falls back to ID.
+   * This allows both clean URLs with slugs and backwards compatibility with IDs.
+   *
+   * @param idOrSlug - Project ID or slug
+   * @returns Project with languages or null
+   */
+  async findByIdOrSlug(idOrSlug: string): Promise<ProjectWithLanguages | null> {
+    // Try slug first (more common in URLs)
+    const bySlug = await this.findBySlug(idOrSlug);
+    if (bySlug) return bySlug;
+
+    // Fall back to ID
+    return this.findById(idOrSlug);
+  }
+
+  /**
    * Find all projects for a user
    *
    * @param userId - User ID

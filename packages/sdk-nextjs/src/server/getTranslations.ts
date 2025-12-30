@@ -2,11 +2,37 @@ import type {
   TranslationFunction,
   TranslationValues,
   TranslationBundle,
+  NestedTranslationValue,
+  MultiLanguageBundle,
 } from '../types';
 import { getServerConfig } from './config';
-import { getServerTranslations } from './cache';
 import { ICUFormatter, hasICUSyntax } from '../client/icu-formatter';
-import { nextFetch } from './next-types';
+
+/**
+ * Get a nested value from an object using dot notation
+ * @param obj - The object to traverse
+ * @param path - Dot-separated path (e.g., "common.welcome")
+ * @returns The value at the path or undefined
+ */
+function getNestedValue(obj: TranslationBundle, path: string): string | undefined {
+  // Fast path: direct key lookup (for flat bundles)
+  if (path in obj && typeof obj[path] === 'string') {
+    return obj[path] as string;
+  }
+
+  // Nested path traversal
+  const parts = path.split('.');
+  let current: NestedTranslationValue | undefined = obj;
+
+  for (const part of parts) {
+    if (current === undefined || current === null || typeof current === 'string') {
+      return undefined;
+    }
+    current = (current as Record<string, NestedTranslationValue>)[part];
+  }
+
+  return typeof current === 'string' ? current : undefined;
+}
 
 /**
  * Return type for getTranslations
@@ -28,61 +54,140 @@ export interface GetTranslationsReturn {
 }
 
 /**
+ * Options for getTranslations
+ */
+export interface GetTranslationsOptions {
+  /**
+   * Static translation data (required for server-side).
+   * Can be single language bundle or multi-language bundle.
+   */
+  staticData?: TranslationBundle | MultiLanguageBundle;
+
+  /**
+   * Language code to use
+   */
+  language?: string;
+
+  /**
+   * Namespace to scope translations
+   */
+  namespace?: string;
+
+  /**
+   * Default language (used to detect multi-language bundles)
+   */
+  defaultLanguage?: string;
+}
+
+/**
+ * Check if data is a multi-language bundle
+ */
+function isMultiLanguageBundle(
+  data: TranslationBundle | MultiLanguageBundle | undefined,
+  language: string
+): data is MultiLanguageBundle {
+  if (!data) return false;
+  const langValue = data[language];
+  return langValue !== undefined && typeof langValue === 'object' && langValue !== null;
+}
+
+/**
  * Get translations for use in Server Components.
  *
- * This is an async function that fetches translations server-side
- * and returns a translation function with full ICU MessageFormat support.
- *
- * @param namespace - Optional namespace to scope translations
- * @param language - Optional language override (defaults to config.defaultLanguage)
- * @returns Translation function and language
+ * Server-side always uses static data - no API fetching.
+ * Pass your translation data directly for serverless/edge safety.
  *
  * @example
  * ```tsx
- * // app/[locale]/page.tsx
- * import { getTranslations } from '@localeflow/nextjs/server';
+ * // Recommended: pass translations directly
+ * import en from '@/locales/en.json';
+ * import de from '@/locales/de.json';
  *
- * export default async function HomePage({ params }: { params: { locale: string } }) {
- *   const { t } = await getTranslations(undefined, params.locale);
+ * const translations = { en, de };
  *
- *   return (
- *     <div>
- *       <h1>{t('home.title')}</h1>
- *       <p>{t('home.description', { year: 2025 })}</p>
- *       <p>{t('cart_items', { count: 5 })}</p>
- *     </div>
- *   );
+ * export default async function Page({ params }: { params: { locale: string } }) {
+ *   const { t } = await getTranslations({
+ *     staticData: translations[params.locale],
+ *     language: params.locale,
+ *   });
+ *
+ *   return <h1>{t('home.title')}</h1>;
  * }
  *
- * // With namespace
- * export default async function AuthPage() {
- *   const { t } = await getTranslations('auth');
+ * // With multi-language bundle
+ * const { t } = await getTranslations({
+ *   staticData: { en, de },
+ *   language: 'de',
+ *   defaultLanguage: 'en',
+ * });
  *
- *   return <h1>{t('login.title')}</h1>; // Looks up 'auth:login.title'
- * }
+ * // Legacy: using global config (deprecated)
+ * const { t } = await getTranslations('namespace', 'en');
  * ```
  */
 export async function getTranslations(
-  namespace?: string,
+  optionsOrNamespace?: GetTranslationsOptions | string,
   language?: string
 ): Promise<GetTranslationsReturn> {
-  const config = getServerConfig();
-  const lang = language || config.defaultLanguage;
+  let options: GetTranslationsOptions;
 
-  // Check for static data first (SSG support)
-  let translations: TranslationBundle;
-  if (config.staticData && Object.keys(config.staticData).length > 0) {
-    translations = config.staticData;
+  // Handle both old and new signatures
+  if (typeof optionsOrNamespace === 'string') {
+    // Legacy: getTranslations(namespace?, language?)
+    options = { namespace: optionsOrNamespace, language };
   } else {
-    // Fetch translations (uses React cache for deduplication)
-    translations = await getServerTranslations(lang, namespace);
+    options = optionsOrNamespace || {};
+  }
+
+  // Get translations and language
+  let translations: TranslationBundle;
+  let lang: string;
+
+  if (options.staticData) {
+    // New API: use provided static data
+    const defaultLang = options.defaultLanguage || options.language || 'en';
+    lang = options.language || defaultLang;
+
+    if (isMultiLanguageBundle(options.staticData, lang)) {
+      translations = options.staticData[lang] || {};
+    } else if (isMultiLanguageBundle(options.staticData, defaultLang)) {
+      translations = options.staticData[lang] || options.staticData[defaultLang] || {};
+    } else {
+      translations = options.staticData as TranslationBundle;
+    }
+  } else {
+    // Fallback to global config
+    const config = getServerConfig();
+    if (!config) {
+      throw new Error(
+        'No translations provided. Pass staticData to getTranslations() or call configureServer().'
+      );
+    }
+
+    lang = options.language || config.defaultLanguage;
+
+    if (config.staticData) {
+      if (isMultiLanguageBundle(config.staticData, lang)) {
+        translations = config.staticData[lang] || {};
+      } else if (isMultiLanguageBundle(config.staticData, config.defaultLanguage)) {
+        translations = config.staticData[lang] || config.staticData[config.defaultLanguage] || {};
+      } else {
+        translations = config.staticData as TranslationBundle;
+      }
+    } else {
+      throw new Error(
+        'No staticData in config. Server-side requires static translations - no API fetching.'
+      );
+    }
   }
 
   // Create ICU formatter for this language
   const formatter = new ICUFormatter(lang);
+  const namespace = options.namespace;
 
   /**
-   * Translation function with namespace support and ICU formatting
+   * Translation function with namespace support and ICU formatting.
+   * Supports nested keys using dot notation (e.g., "common.welcome").
    */
   const t: TranslationFunction = (
     key: string,
@@ -91,12 +196,12 @@ export async function getTranslations(
     // Build full key with namespace prefix if provided
     const fullKey = namespace ? `${namespace}:${key}` : key;
 
-    // Look up translation
-    let translation = translations[fullKey];
+    // Look up translation using nested key support
+    let translation = getNestedValue(translations, fullKey);
 
     // If not found with namespace, try without (for common keys)
     if (!translation && namespace) {
-      translation = translations[key];
+      translation = getNestedValue(translations, key);
     }
 
     // Return key if not found
@@ -130,55 +235,40 @@ export async function getTranslations(
 }
 
 /**
- * Generate static params for all available languages.
- *
- * Use this in your generateStaticParams to create static pages for each language.
- *
- * @returns Array of locale params
+ * Get available languages from static data.
  *
  * @example
  * ```tsx
- * // app/[locale]/page.tsx
- * import { getAvailableLanguages } from '@localeflow/nextjs/server';
+ * import en from '@/locales/en.json';
+ * import de from '@/locales/de.json';
+ *
+ * const translations = { en, de };
  *
  * export async function generateStaticParams() {
- *   const languages = await getAvailableLanguages();
+ *   const languages = getAvailableLanguages(translations);
  *   return languages.map((locale) => ({ locale }));
  * }
  * ```
  */
-export async function getAvailableLanguages(): Promise<string[]> {
-  const config = getServerConfig();
-
-  // Use apiUrl from config, fall back to empty string (relative URL)
-  const baseUrl = config.apiUrl || '';
-  const params = new URLSearchParams({
-    project: config.project,
-    space: config.space,
-    environment: config.environment,
-  });
-
-  const response = await nextFetch(
-    `${baseUrl}/api/sdk/languages?${params.toString()}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      next: {
-        revalidate: 3600, // Cache for 1 hour
-        tags: ['available-languages'],
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch available languages: ${response.status} ${response.statusText}`
-    );
+export function getAvailableLanguages(
+  staticData?: MultiLanguageBundle
+): string[] {
+  if (staticData) {
+    return Object.keys(staticData);
   }
 
-  const data = await response.json();
-  return data.availableLanguages || [config.defaultLanguage];
+  const config = getServerConfig();
+  if (config?.staticData && typeof config.staticData === 'object') {
+    // Check if it's a multi-language bundle
+    const firstKey = Object.keys(config.staticData)[0];
+    if (firstKey && typeof config.staticData[firstKey] === 'object') {
+      return Object.keys(config.staticData);
+    }
+  }
+
+  if (config?.availableLanguages) {
+    return config.availableLanguages;
+  }
+
+  return [config?.defaultLanguage || 'en'];
 }

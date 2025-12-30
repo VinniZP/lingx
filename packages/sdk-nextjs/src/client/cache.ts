@@ -4,7 +4,7 @@ const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 const DEFAULT_MAX_ENTRIES = 50;
 
 /**
- * In-memory cache for translations with TTL support
+ * In-memory cache for translations with TTL and LRU eviction
  */
 export class TranslationCache {
   private cache: Map<string, CacheEntry> = new Map();
@@ -24,7 +24,8 @@ export class TranslationCache {
   }
 
   /**
-   * Get cached translations if not expired
+   * Get cached translations if not expired.
+   * Updates lastAccessed time for LRU tracking.
    */
   get(language: string, namespace?: string): TranslationBundle | null {
     const key = this.getCacheKey(language, namespace);
@@ -32,36 +33,60 @@ export class TranslationCache {
 
     if (!entry) return null;
 
+    // Check if expired
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return null;
     }
 
+    // Update last accessed time (LRU tracking)
+    entry.lastAccessed = Date.now();
+
     return entry.translations;
   }
 
   /**
-   * Set cached translations
+   * Set cached translations with LRU eviction
    */
   set(
     language: string,
     translations: TranslationBundle,
     namespace?: string
   ): void {
-    // Evict oldest entries if at capacity
-    if (this.cache.size >= this.maxEntries) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey) this.cache.delete(oldestKey);
+    const key = this.getCacheKey(language, namespace);
+
+    // Evict LRU entry if at capacity (skip if updating existing key)
+    if (this.cache.size >= this.maxEntries && !this.cache.has(key)) {
+      this.evictLRU();
     }
 
-    const key = this.getCacheKey(language, namespace);
     const now = Date.now();
 
     this.cache.set(key, {
       translations,
       timestamp: now,
       expiresAt: now + this.ttl,
+      lastAccessed: now,
     });
+  }
+
+  /**
+   * Evict the least recently used entry
+   */
+  private evictLRU(): void {
+    let lruKey: string | null = null;
+    let lruTime = Infinity;
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.lastAccessed < lruTime) {
+        lruTime = entry.lastAccessed;
+        lruKey = key;
+      }
+    }
+
+    if (lruKey) {
+      this.cache.delete(lruKey);
+    }
   }
 
   /**

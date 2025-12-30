@@ -1,0 +1,115 @@
+{
+  "common": {
+    "welcome": "¡Bienvenido a LocaleFlow!",
+    "hello": "¡Hola, {name}!",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "viewAll": "Ver todo",
+    "languages": "{count, plural, one {# idioma} other {# idiomas}}"
+  },
+  "cart": {
+    "items": "{count, plural, =0 {Sin artículos} one {1 artículo} other {{count} artículos}} en el carrito",
+    "total": "Total: {amount, number, ::currency/EUR}"
+  },
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "settings": "Configuración"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "register": "Registrarse",
+    "forgotPassword": "¿Olvidaste tu contraseña?"
+  },
+  "form": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "required": "Este campo es obligatorio"
+  },
+  "messages": {
+    "success": "Operación completada con éxito",
+    "error": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+    "notFound": "Página no encontrada"
+  },
+  "datetime": {
+    "lastUpdated": "Última actualización: {date, date, medium}"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "overview": "Aquí está tu resumen de traducciones",
+    "stats": {
+      "projects": "Proyectos",
+      "keys": "Claves",
+      "languages": "Idiomas",
+      "complete": "Completo"
+    },
+    "progress": "Progreso general de traducciones",
+    "createProject": {
+      "title": "Crear nuevo proyecto",
+      "description": "Inicia un proyecto de localización con control de versiones, ramificación y colaboración en equipo",
+      "cta": "Comenzar"
+    },
+    "recentProjects": "Proyectos Recientes",
+    "noProjects": "Aún no hay proyectos",
+    "createFirst": "Crea tu primer proyecto",
+    "addAnother": "Añadir otro proyecto",
+    "quickActions": "Acciones Rápidas",
+    "import": {
+      "title": "Importar traducciones",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "Claves API",
+      "description": "Gestionar acceso"
+    },
+    "branches": {
+      "title": "Gestionar ramas",
+      "description": "Control de versiones"
+    },
+    "team": {
+      "title": "Miembros del equipo",
+      "description": "Colaborar"
+    },
+    "cli": {
+      "title": "CLI Disponible",
+      "description": "Sincroniza traducciones desde tu terminal"
+    },
+    "activity": {
+      "title": "Actividad Reciente",
+      "period": "Últimas 24 horas",
+      "empty": "La actividad aparecerá aquí mientras trabajas"
+    },
+    "resources": {
+      "title": "Recursos",
+      "docs": "Documentación",
+      "guide": "Guía de inicio",
+      "bestPractices": "Mejores prácticas de idiomas"
+    },
+    "welcome": {
+      "title": "Bienvenido a LocaleFlow",
+      "description": "Gestión profesional de traducciones con control de versiones tipo Git para equipos modernos"
+    },
+    "onboarding": {
+      "step1": {
+        "title": "Crear un proyecto",
+        "description": "Define tus idiomas de origen y destino"
+      },
+      "step2": {
+        "title": "Añadir claves de traducción",
+        "description": "Importa existentes o crea nuevas"
+      },
+      "step3": {
+        "title": "Sincroniza con tu app",
+        "description": "Usa CLI o API para obtener traducciones"
+      }
+    }
+  }
+}

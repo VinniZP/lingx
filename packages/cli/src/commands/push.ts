@@ -1,9 +1,11 @@
 import { Command } from 'commander';
 import { join } from 'path';
+import { select } from '@inquirer/prompts';
+import chalk from 'chalk';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
-import { readTranslationFiles } from '../lib/translation-io.js';
+import { readTranslationFiles, computeTranslationDiff } from '../lib/translation-io.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 
@@ -13,6 +15,15 @@ interface PushOptions {
   branch?: string;
   source?: string;
   format?: 'json' | 'yaml';
+  languages?: string;
+  force?: boolean;
+}
+
+interface Conflict {
+  lang: string;
+  key: string;
+  localValue: string;
+  remoteValue: string;
 }
 
 export function createPushCommand(): Command {
@@ -22,7 +33,9 @@ export function createPushCommand(): Command {
     .option('-s, --space <slug>', 'Space slug')
     .option('-b, --branch <name>', 'Branch name')
     .option('-S, --source <dir>', 'Source directory')
-    .option('-f, --format <type>', 'File format: json or yaml')
+    .option('--format <type>', 'File format: json or yaml')
+    .option('-l, --languages <langs>', 'Languages to push (comma-separated)')
+    .option('-f, --force', 'Force push without conflict prompts')
     .action(async (options: PushOptions) => {
       try {
         await push(options);
@@ -31,6 +44,78 @@ export function createPushCommand(): Command {
         process.exit(1);
       }
     });
+}
+
+/**
+ * Resolve conflicts interactively with user prompts.
+ * Returns approved and skipped conflicts.
+ */
+async function resolveConflicts(
+  conflicts: Conflict[],
+  force: boolean
+): Promise<{ approved: Conflict[]; skipped: Conflict[] }> {
+  if (force || conflicts.length === 0) {
+    return { approved: conflicts, skipped: [] };
+  }
+
+  const approved: Conflict[] = [];
+  const skipped: Conflict[] = [];
+  let yesToAll = false;
+  let skipAll = false;
+
+  console.log();
+  console.log(chalk.bold(`Found ${conflicts.length} conflict(s):`));
+  console.log(chalk.gray('For each conflict, choose whether to update the server value.'));
+  console.log();
+
+  for (let i = 0; i < conflicts.length; i++) {
+    const conflict = conflicts[i];
+
+    if (skipAll) {
+      skipped.push(conflict);
+      continue;
+    }
+    if (yesToAll) {
+      approved.push(conflict);
+      continue;
+    }
+
+    console.log(chalk.cyan(`[${i + 1}/${conflicts.length}] ${conflict.key}`));
+    console.log(chalk.gray(`  [${conflict.lang}]`));
+    console.log(`    ${chalk.yellow('Server:')} ${conflict.remoteValue}`);
+    console.log(`    ${chalk.green('Local:')}  ${conflict.localValue}`);
+
+    const action = await select({
+      message: 'Update server with local value?',
+      choices: [
+        { name: 'Yes - update this key', value: 'yes' },
+        { name: 'No - keep server value', value: 'no' },
+        { name: 'Yes to all remaining', value: 'yes-all' },
+        { name: 'Skip all remaining', value: 'skip-all' },
+      ],
+    });
+
+    switch (action) {
+      case 'yes':
+        approved.push(conflict);
+        break;
+      case 'no':
+        skipped.push(conflict);
+        break;
+      case 'yes-all':
+        yesToAll = true;
+        approved.push(conflict);
+        break;
+      case 'skip-all':
+        skipAll = true;
+        skipped.push(conflict);
+        break;
+    }
+
+    console.log();
+  }
+
+  return { approved, skipped };
 }
 
 async function push(options: PushOptions): Promise<void> {
@@ -43,6 +128,11 @@ async function push(options: PushOptions): Promise<void> {
   const branch = options.branch ?? config.defaultBranch;
   const format = options.format ?? config.format.type;
   const sourceDir = options.source ?? config.paths.translations;
+  const force = options.force ?? false;
+
+  // Language filtering: CLI flag > config > all detected
+  const languageFilter = options.languages?.split(',').map(l => l.trim())
+    ?? config.push?.languages;
 
   if (!project) {
     throw new Error('Project is required. Use --project or set in config file.');
@@ -64,20 +154,34 @@ async function push(options: PushOptions): Promise<void> {
     });
 
     // Read all translation files
-    const allTranslations = await readTranslationFiles(
+    let allTranslations = await readTranslationFiles(
       absSourceDir,
       format,
       formatter,
       config.push.filePattern
     );
 
+    // Apply language filter if specified
+    if (languageFilter && languageFilter.length > 0) {
+      allTranslations = Object.fromEntries(
+        Object.entries(allTranslations).filter(([lang]) =>
+          languageFilter.includes(lang)
+        )
+      );
+      spinner.text = `Pushing languages: ${languageFilter.join(', ')}`;
+    }
+
     const languages = Object.keys(allTranslations);
     if (languages.length === 0) {
-      spinner.fail(`No ${format} files found in ${sourceDir}`);
+      if (languageFilter) {
+        spinner.fail(`No matching translations found for languages: ${languageFilter.join(', ')}`);
+      } else {
+        spinner.fail(`No ${format} files found in ${sourceDir}`);
+      }
       return;
     }
 
-    spinner.text = 'Uploading translations...';
+    spinner.text = 'Connecting to server...';
 
     const client = await createApiClientFromConfig(cwd);
 
@@ -100,20 +204,82 @@ async function push(options: PushOptions): Promise<void> {
       throw new Error(`Branch "${branch}" not found in space "${space}"`);
     }
 
+    // Fetch server translations for conflict detection
+    spinner.text = 'Checking for conflicts...';
+    const serverResponse = await client.get<{ translations: Record<string, Record<string, string>> }>(
+      `/api/branches/${targetBranch.id}/translations`
+    );
+    const serverTranslations = serverResponse.translations ?? {};
+
+    // Compute diff
+    const diff = computeTranslationDiff(allTranslations, serverTranslations);
+
+    // Handle conflicts
+    let pushPayload = structuredClone(allTranslations);
+    let skippedCount = 0;
+    let updatedCount = 0;
+    let newCount = diff.localOnly.length;
+
+    if (diff.conflicts.length > 0) {
+      if (force) {
+        spinner.stop();
+        logger.warn(`Force mode: overriding ${diff.conflicts.length} conflict(s)`);
+        updatedCount = diff.conflicts.length;
+        spinner.start();
+      } else {
+        spinner.stop();
+
+        const { approved, skipped } = await resolveConflicts(diff.conflicts, force);
+
+        // Remove skipped conflicts from payload
+        for (const skip of skipped) {
+          if (pushPayload[skip.lang]) {
+            delete pushPayload[skip.lang][skip.key];
+          }
+        }
+
+        skippedCount = skipped.length;
+        updatedCount = approved.length;
+        spinner.start();
+      }
+    }
+
+    // Check if there's anything to push
+    const hasContent = Object.values(pushPayload).some(
+      langTrans => Object.keys(langTrans).length > 0
+    );
+
+    if (!hasContent) {
+      spinner.warn('Nothing to push (all changes skipped)');
+      return;
+    }
+
     // Push translations
+    spinner.text = 'Uploading translations...';
     await client.put(`/api/branches/${targetBranch.id}/translations`, {
-      translations: allTranslations,
+      translations: pushPayload,
     });
 
     let totalKeys = 0;
     for (const lang of languages) {
-      totalKeys += Object.keys(allTranslations[lang]).length;
+      if (pushPayload[lang]) {
+        totalKeys += Object.keys(pushPayload[lang]).length;
+      }
     }
 
-    spinner.succeed(`Uploaded ${totalKeys} keys across ${languages.length} language(s)`);
+    // Build success message
+    const parts: string[] = [];
+    if (updatedCount > 0) parts.push(`${updatedCount} updated`);
+    if (newCount > 0) parts.push(`${newCount} new`);
+    if (skippedCount > 0) parts.push(`${skippedCount} skipped`);
+
+    const summary = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+    spinner.succeed(`Pushed ${totalKeys} keys across ${languages.length} language(s)${summary}`);
 
     for (const lang of languages) {
-      logger.info(`  ${lang}: ${Object.keys(allTranslations[lang]).length} keys`);
+      if (pushPayload[lang]) {
+        logger.info(`  ${lang}: ${Object.keys(pushPayload[lang]).length} keys`);
+      }
     }
   } catch (error) {
     spinner.fail('Failed to push translations');

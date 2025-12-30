@@ -26,6 +26,7 @@ export interface LocaleflowConfig {
   };
   push: {
     filePattern: string;
+    languages?: string[];
   };
   extract: {
     framework: 'nextjs' | 'angular';
