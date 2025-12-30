@@ -66,7 +66,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /api/auth/login
    *
    * Authenticate with email and password.
-   * Returns JWT in HttpOnly cookie (24h expiry).
+   * Creates a session and returns JWT in HttpOnly cookie (24h expiry).
    */
   app.post('/api/auth/login', {
     schema: {
@@ -82,8 +82,11 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     const user = await fastify.authService.login({ email, password });
 
-    // Generate JWT with userId payload
-    const token = fastify.jwt.sign({ userId: user.id });
+    // Create session for this login
+    const session = await fastify.securityService.createSession(user.id, request);
+
+    // Generate JWT with userId and sessionId payload
+    const token = fastify.jwt.sign({ userId: user.id, sessionId: session.id });
 
     // Set HttpOnly cookie per security best practices
     reply.setCookie('token', token, {
@@ -100,7 +103,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/auth/logout
    *
-   * Clear the JWT cookie to end the session.
+   * Delete the session and clear the JWT cookie.
    */
   app.post('/api/auth/logout', {
     schema: {
@@ -110,9 +113,18 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         200: messageResponseSchema,
       },
     },
-  }, async (_request, reply) => {
-    // Explicitly set cookie to empty with expired date
-    // Using setCookie with maxAge=0 is more reliable than clearCookie for cross-origin
+  }, async (request, reply) => {
+    // Try to delete session if user is authenticated with a session
+    try {
+      await request.jwtVerify();
+      if (request.user?.sessionId) {
+        await fastify.securityService.deleteSession(request.user.sessionId);
+      }
+    } catch {
+      // JWT invalid or expired - session may already be gone
+    }
+
+    // Clear cookie regardless of session deletion result
     reply.setCookie('token', '', {
       path: '/',
       httpOnly: true,

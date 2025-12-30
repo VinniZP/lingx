@@ -141,9 +141,7 @@ export default function SettingsPage() {
                 iconBg="bg-primary/10"
                 iconColor="text-primary"
                 title="Security"
-                description="Manage your password and security preferences"
-                disabled
-                comingSoon
+                description="Manage your password and active sessions"
               />
               <SettingsActionCard
                 href="/settings/profile"

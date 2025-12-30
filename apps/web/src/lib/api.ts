@@ -672,3 +672,45 @@ export const profileApi = {
       method: 'DELETE',
     }),
 };
+
+// Security types
+export interface Session {
+  id: string;
+  deviceInfo: string | null;
+  ipAddress: string | null;
+  lastActive: string;
+  createdAt: string;
+  isCurrent: boolean;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+// Security API
+export const securityApi = {
+  /** Change password (invalidates all other sessions) */
+  changePassword: (data: ChangePasswordInput) =>
+    fetchApi<{ message: string }>('/api/security/password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Get all active sessions */
+  getSessions: () =>
+    fetchApi<{ sessions: Session[] }>('/api/security/sessions'),
+
+  /** Revoke a specific session */
+  revokeSession: (sessionId: string) =>
+    fetchApi<void>(`/api/security/sessions/${sessionId}`, {
+      method: 'DELETE',
+    }),
+
+  /** Revoke all sessions except current */
+  revokeAllOtherSessions: () =>
+    fetchApi<{ message: string; revokedCount: number }>('/api/security/sessions', {
+      method: 'DELETE',
+    }),
+};

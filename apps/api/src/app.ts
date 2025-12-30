@@ -16,6 +16,7 @@ import authPlugin from './plugins/auth.js';
 import profilePlugin from './plugins/profile.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
+import securityRoutes from './routes/security.js';
 import profileRoutes from './routes/profile.js';
 import dashboardRoutes from './routes/dashboard.js';
 import activityRoutes from './routes/activity.js';
@@ -137,6 +138,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
+  await fastify.register(securityRoutes);
   await fastify.register(profileRoutes);
   await fastify.register(dashboardRoutes);
   await fastify.register(activityRoutes);

@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Profile settings complete)
+> **Updated**: 2025-12-31 (Security settings complete)
 
 ---
 
@@ -69,7 +69,7 @@
 - [x] Activity feed UI with diff preview drawer
 - [x] Zod validation with unified API/frontend types
 - [x] **User profile settings** (name, email change with verification, avatar upload, preferences UI)
-- [ ] **Security settings** (password change, active sessions)
+- [x] **Security settings** (password change, active sessions)
 - [ ] **Two-factor authentication** (TOTP with backup codes)
 - [ ] **Passkeys/WebAuthn** (passwordless login)
 - [ ] **Key approval status** (pending/approved, auto-reset on change)
@@ -124,8 +124,8 @@
 | High | Activity feed UI with diff preview | ✅ Done |
 | High | Zod validation & unified types | ✅ Done |
 | High | User profile settings | ✅ Done |
-| High | Security settings | 📋 Next |
-| High | Two-factor authentication (TOTP) | 📋 |
+| High | Security settings | ✅ Done |
+| High | Two-factor authentication (TOTP) | 📋 Next |
 | High | Key approval status | 📋 |
 | Medium | Passkeys/WebAuthn | 📋 |
 

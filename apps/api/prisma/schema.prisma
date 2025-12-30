@@ -28,8 +28,25 @@ model User {
   projectMembers     ProjectMember[]
   activities         Activity[]
   emailVerifications EmailVerification[]
+  sessions           Session[]
 
   @@index([email])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  deviceInfo String?  // Parsed browser/OS from user agent
+  userAgent  String?  // Raw user agent string
+  ipAddress  String?
+  lastActive DateTime @default(now())
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime // 24h from creation, matches JWT expiry
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model EmailVerification {

@@ -10,6 +10,7 @@ import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import { ApiKeyService } from '../services/api-key.service.js';
 import { AuthService } from '../services/auth.service.js';
+import { SecurityService } from '../services/security.service.js';
 import { UnauthorizedError } from './error-handler.js';
 
 /**
@@ -21,16 +22,17 @@ declare module 'fastify' {
     authenticateOptional: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     authService: AuthService;
     apiKeyService: ApiKeyService;
+    securityService: SecurityService;
   }
 }
 
 /**
- * Extend JWT types with payload structure
+ * Extend JWT types with payload structure (includes sessionId for session tracking)
  */
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { userId: string };
-    user: { userId: string };
+    payload: { userId: string; sessionId?: string };
+    user: { userId: string; sessionId?: string };
   }
 }
 
@@ -53,14 +55,17 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
   // Create services with Prisma client
   const authService = new AuthService(fastify.prisma);
   const apiKeyService = new ApiKeyService(fastify.prisma);
+  const securityService = new SecurityService(fastify.prisma);
 
   fastify.decorate('authService', authService);
   fastify.decorate('apiKeyService', apiKeyService);
+  fastify.decorate('securityService', securityService);
 
   /**
    * Required authentication decorator
    *
    * Checks for authentication via API key header or JWT cookie.
+   * For JWT auth, validates session exists and is not expired.
    * Throws UnauthorizedError if not authenticated.
    */
   fastify.decorate('authenticate', async function (request: FastifyRequest, _reply: FastifyReply) {
@@ -78,8 +83,25 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     // Then, try JWT from cookie
     try {
       await request.jwtVerify();
+
+      // Validate session if sessionId is present in JWT
+      // (JWTs without sessionId are from before session tracking was added)
+      if (request.user.sessionId) {
+        const isValid = await securityService.validateSession(request.user.sessionId);
+        if (!isValid) {
+          throw new UnauthorizedError('Session expired or revoked');
+        }
+
+        // Update session activity (fire and forget)
+        securityService.updateSessionActivity(request.user.sessionId).catch(() => {});
+      }
+
       return;
-    } catch {
+    } catch (err) {
+      // Re-throw our custom errors
+      if (err instanceof UnauthorizedError) {
+        throw err;
+      }
       throw new UnauthorizedError('Authentication required');
     }
   });
@@ -104,6 +126,19 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     // Try JWT
     try {
       await request.jwtVerify();
+
+      // Validate session if sessionId is present
+      if (request.user?.sessionId) {
+        const isValid = await securityService.validateSession(request.user.sessionId);
+        if (!isValid) {
+          // Clear user if session is invalid
+          request.user = undefined as unknown as typeof request.user;
+          return;
+        }
+
+        // Update session activity (fire and forget)
+        securityService.updateSessionActivity(request.user.sessionId).catch(() => {});
+      }
     } catch {
       // Silently fail - optional auth
     }
