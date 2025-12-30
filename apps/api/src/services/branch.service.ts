@@ -7,10 +7,11 @@
  */
 import { PrismaClient, Branch } from '@prisma/client';
 import {
-  ConflictError,
+  FieldValidationError,
   NotFoundError,
   ValidationError,
 } from '../plugins/error-handler.js';
+import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
 export interface CreateBranchInput {
   name: string;
@@ -45,7 +46,7 @@ export class BranchService {
    * @returns Created branch with key count
    * @throws NotFoundError if space or source branch doesn't exist
    * @throws ValidationError if source branch belongs to different space
-   * @throws ConflictError if branch name already exists in space
+   * @throws FieldValidationError if branch name already exists in space
    */
   async create(input: CreateBranchInput): Promise<BranchWithKeyCount> {
     // Verify space exists
@@ -84,7 +85,16 @@ export class BranchService {
     });
 
     if (existing) {
-      throw new ConflictError('Branch with this name already exists in the space');
+      throw new FieldValidationError(
+        [
+          {
+            field: 'name',
+            message: 'A branch with this name already exists in this space',
+            code: UNIQUE_VIOLATION_CODES.BRANCH_SLUG,
+          },
+        ],
+        'Branch with this name already exists in the space'
+      );
     }
 
     // Copy-on-write: Create branch and copy all keys/translations in a transaction

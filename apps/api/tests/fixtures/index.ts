@@ -1,222 +1,293 @@
-// Localeflow API Test Fixtures - Design Doc: DESIGN.md
-// Generated: 2025-12-27
-// Purpose: Shared test data and setup utilities for integration tests
-
 /**
- * Test Fixture Types
+ * Test Fixtures
  *
- * These types define the structure of test fixtures used across integration tests.
- * Implementation should create actual fixture data matching these structures.
+ * Re-exports test helper functions and provides additional fixture utilities.
  */
 
-// =============================================================================
-// User Fixtures
-// =============================================================================
+// Re-export core fixtures from test-app
+export {
+  createTestUser,
+  createTestProject,
+  resetDatabase,
+  getTestPrisma,
+} from '../helpers/test-app.js';
 
-export interface TestUserFixture {
-  id: string;
-  email: string;
-  password: string; // Plaintext for test login
-  name: string;
-  role: 'developer' | 'manager' | 'admin';
-}
+// Re-export types
+export type { TestUser, AuthResult } from '../helpers/test-app.js';
 
-/**
- * TODO: Implement createTestUser function
- *
- * Creates a user in the test database with specified role.
- *
- * @param overrides - Partial user data to override defaults
- * @returns Created user with test password (plaintext)
- */
-// export async function createTestUser(overrides?: Partial<TestUserFixture>): Promise<TestUserFixture>
+import { getTestPrisma } from '../helpers/test-app.js';
 
 // =============================================================================
-// Project Fixtures
+// Additional Fixture Types
 // =============================================================================
 
-export interface TestProjectFixture {
+export interface TestSpace {
   id: string;
   name: string;
   slug: string;
-  languages: Array<{
-    code: string;
-    name: string;
-    nativeName: string;
-    isDefault: boolean;
-  }>;
+  projectId: string;
 }
 
-/**
- * TODO: Implement createTestProject function
- *
- * Creates a project with specified languages.
- *
- * @param userId - Owner user ID
- * @param overrides - Partial project data to override defaults
- * @returns Created project
- */
-// export async function createTestProject(userId: string, overrides?: Partial<TestProjectFixture>): Promise<TestProjectFixture>
+export interface TestBranch {
+  id: string;
+  name: string;
+  slug: string;
+  spaceId: string;
+  isDefault: boolean;
+}
+
+export interface TestTranslationKey {
+  id: string;
+  name: string;
+  branchId: string;
+  translations: Record<string, string>;
+}
+
+export interface TestApiKey {
+  id: string;
+  name: string;
+  key: string;
+  keyPrefix: string;
+  userId: string;
+}
 
 // =============================================================================
 // Space Fixtures
 // =============================================================================
 
-export interface TestSpaceFixture {
-  id: string;
-  projectId: string;
-  name: string;
-  slug: string;
-  mainBranchId: string;
-}
-
 /**
- * TODO: Implement createTestSpace function
- *
- * Creates a space with auto-generated main branch.
- *
- * @param projectId - Parent project ID
- * @param overrides - Partial space data to override defaults
- * @returns Created space with main branch reference
+ * Creates a test space with a default branch.
  */
-// export async function createTestSpace(projectId: string, overrides?: Partial<Omit<TestSpaceFixture, 'mainBranchId'>>): Promise<TestSpaceFixture>
+export async function createTestSpace(
+  projectId: string,
+  data: { name?: string; slug?: string } = {}
+): Promise<TestSpace & { defaultBranchId: string }> {
+  const prisma = getTestPrisma();
+  const name = data.name || 'Test Space';
+  const slug = data.slug || 'test-space';
+
+  const space = await prisma.space.create({
+    data: {
+      name,
+      slug,
+      projectId,
+      branches: {
+        create: {
+          name: 'main',
+          slug: 'main',
+          isDefault: true,
+        },
+      },
+    },
+    include: {
+      branches: true,
+    },
+  });
+
+  return {
+    id: space.id,
+    name: space.name,
+    slug: space.slug,
+    projectId: space.projectId,
+    defaultBranchId: space.branches[0].id,
+  };
+}
 
 // =============================================================================
 // Branch Fixtures
 // =============================================================================
 
-export interface TestBranchFixture {
-  id: string;
-  spaceId: string;
-  name: string;
-  baseBranchId: string | null;
-  isDefault: boolean;
-}
-
 /**
- * TODO: Implement createTestBranch function
- *
- * Creates a branch from specified source branch.
- *
- * @param spaceId - Parent space ID
- * @param fromBranchId - Source branch to copy from
- * @param name - New branch name
- * @returns Created branch
+ * Creates a test branch in a space.
  */
-// export async function createTestBranch(spaceId: string, fromBranchId: string, name: string): Promise<TestBranchFixture>
+export async function createTestBranch(
+  spaceId: string,
+  data: { name?: string; slug?: string; isDefault?: boolean } = {}
+): Promise<TestBranch> {
+  const prisma = getTestPrisma();
+  const name = data.name || 'feature-branch';
+  const slug = data.slug || 'feature-branch';
+
+  const branch = await prisma.branch.create({
+    data: {
+      name,
+      slug,
+      spaceId,
+      isDefault: data.isDefault ?? false,
+    },
+  });
+
+  return {
+    id: branch.id,
+    name: branch.name,
+    slug: branch.slug,
+    spaceId: branch.spaceId,
+    isDefault: branch.isDefault,
+  };
+}
 
 // =============================================================================
 // Translation Fixtures
 // =============================================================================
 
-export interface TestTranslationKeyFixture {
-  id: string;
-  branchId: string;
-  key: string;
-  description: string | null;
-  translations: Record<string, string>; // languageCode -> value
+/**
+ * Creates a translation key with translations.
+ */
+export async function createTestTranslationKey(
+  branchId: string,
+  data: {
+    name?: string;
+    description?: string;
+    translations?: Record<string, string>;
+  } = {}
+): Promise<TestTranslationKey> {
+  const prisma = getTestPrisma();
+  const name = data.name || 'test.key';
+  const translations = data.translations || { en: 'Test value' };
+
+  const key = await prisma.translationKey.create({
+    data: {
+      name,
+      description: data.description,
+      branchId,
+      translations: {
+        create: Object.entries(translations).map(([lang, value]) => ({
+          language: lang,
+          value,
+        })),
+      },
+    },
+    include: {
+      translations: true,
+    },
+  });
+
+  const translationMap: Record<string, string> = {};
+  for (const t of key.translations) {
+    translationMap[t.language] = t.value;
+  }
+
+  return {
+    id: key.id,
+    name: key.name,
+    branchId: key.branchId,
+    translations: translationMap,
+  };
 }
 
 /**
- * TODO: Implement createTestTranslationKey function
- *
- * Creates a translation key with values for specified languages.
- *
- * @param branchId - Parent branch ID
- * @param key - Translation key name
- * @param translations - Map of language code to translation value
- * @param description - Optional key description
- * @returns Created translation key with translations
+ * Seeds a branch with multiple translation keys.
  */
-// export async function createTestTranslationKey(
-//   branchId: string,
-//   key: string,
-//   translations: Record<string, string>,
-//   description?: string
-// ): Promise<TestTranslationKeyFixture>
+export async function seedBranchWithTranslations(
+  branchId: string,
+  count: number = 10,
+  languages: string[] = ['en']
+): Promise<TestTranslationKey[]> {
+  const keys: TestTranslationKey[] = [];
 
-/**
- * TODO: Implement seedBranchWithTranslations function
- *
- * Seeds a branch with multiple translation keys for testing.
- *
- * @param branchId - Branch to seed
- * @param count - Number of keys to create
- * @param languages - Language codes to create translations for
- * @returns Array of created translation keys
- */
-// export async function seedBranchWithTranslations(
-//   branchId: string,
-//   count: number,
-//   languages: string[]
-// ): Promise<TestTranslationKeyFixture[]>
+  for (let i = 0; i < count; i++) {
+    const translations: Record<string, string> = {};
+    for (const lang of languages) {
+      translations[lang] = `Translation ${i} in ${lang}`;
+    }
+
+    const key = await createTestTranslationKey(branchId, {
+      name: `key.${i}`,
+      translations,
+    });
+    keys.push(key);
+  }
+
+  return keys;
+}
 
 // =============================================================================
 // API Key Fixtures
 // =============================================================================
 
-export interface TestApiKeyFixture {
-  id: string;
-  userId: string;
-  name: string;
-  key: string; // Full key (normally only available at creation)
-  keyPrefix: string;
+/**
+ * Creates a test API key.
+ */
+export async function createTestApiKey(
+  userId: string,
+  data: { name?: string } = {}
+): Promise<TestApiKey> {
+  const prisma = getTestPrisma();
+  const name = data.name || 'Test API Key';
+
+  // Generate a test API key
+  const crypto = await import('crypto');
+  const keyBytes = crypto.randomBytes(32);
+  const key = `lf_${keyBytes.toString('hex')}`;
+  const keyPrefix = key.substring(0, 10);
+
+  // Hash the key for storage
+  const bcrypt = await import('bcrypt');
+  const hashedKey = await bcrypt.hash(key, 10);
+
+  const apiKey = await prisma.apiKey.create({
+    data: {
+      name,
+      keyPrefix,
+      keyHash: hashedKey,
+      userId,
+    },
+  });
+
+  return {
+    id: apiKey.id,
+    name: apiKey.name,
+    key, // Return the unhashed key for test use
+    keyPrefix: apiKey.keyPrefix,
+    userId: apiKey.userId,
+  };
+}
+
+// =============================================================================
+// Complete Test Setup
+// =============================================================================
+
+export interface FullTestSetup {
+  user: import('../helpers/test-app.js').TestUser;
+  project: { id: string; name: string; slug: string };
+  space: TestSpace & { defaultBranchId: string };
+  apiKey: TestApiKey;
 }
 
 /**
- * TODO: Implement createTestApiKey function
- *
- * Creates an API key for testing CLI/SDK authentication.
- *
- * @param userId - User to create key for
- * @param name - Key name
- * @returns Created API key with full key (for testing)
+ * Creates a complete test environment with user, project, space, and API key.
  */
-// export async function createTestApiKey(userId: string, name: string): Promise<TestApiKeyFixture>
+export async function createFullTestSetup(
+  options: {
+    userEmail?: string;
+    projectName?: string;
+    spaceName?: string;
+  } = {}
+): Promise<FullTestSetup> {
+  const { createTestUser, createTestProject } = await import(
+    '../helpers/test-app.js'
+  );
 
-// =============================================================================
-// Complete Setup Fixtures
-// =============================================================================
+  const user = await createTestUser({
+    email: options.userEmail || 'test@example.com',
+  });
 
-export interface FullTestSetupFixture {
-  user: TestUserFixture;
-  apiKey: TestApiKeyFixture;
-  project: TestProjectFixture;
-  space: TestSpaceFixture;
-  mainBranch: TestBranchFixture;
-  translations: TestTranslationKeyFixture[];
+  const project = await createTestProject(user.id, {
+    name: options.projectName || 'Test Project',
+    slug: options.projectName?.toLowerCase().replace(/\s+/g, '-') || 'test-project',
+  });
+
+  const space = await createTestSpace(project.id, {
+    name: options.spaceName || 'Test Space',
+    slug: options.spaceName?.toLowerCase().replace(/\s+/g, '-') || 'test-space',
+  });
+
+  const apiKey = await createTestApiKey(user.id);
+
+  return {
+    user,
+    project,
+    space,
+    apiKey,
+  };
 }
-
-/**
- * TODO: Implement createFullTestSetup function
- *
- * Creates a complete test environment with user, project, space, branch, and translations.
- * Useful for tests that need a fully populated system.
- *
- * @param options - Configuration options
- * @returns Complete test setup
- */
-// export async function createFullTestSetup(options?: {
-//   translationCount?: number;
-//   languages?: string[];
-// }): Promise<FullTestSetupFixture>
-
-// =============================================================================
-// Cleanup Utilities
-// =============================================================================
-
-/**
- * TODO: Implement cleanupTestData function
- *
- * Removes all test data created during tests.
- * Should be called in afterEach or afterAll hooks.
- */
-// export async function cleanupTestData(): Promise<void>
-
-/**
- * TODO: Implement resetDatabase function
- *
- * Resets database to a known clean state.
- * Useful between tests for isolation.
- */
-// export async function resetDatabase(): Promise<void>

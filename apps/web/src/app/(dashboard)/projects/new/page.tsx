@@ -3,9 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { projectApi, CreateProjectInput, ApiError } from '@/lib/api';
+import { createProjectSchema, type CreateProjectInput } from '@localeflow/shared';
+import { projectApi, ApiError } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,41 +48,23 @@ const AVAILABLE_LANGUAGES = [
   { code: 'uk', name: 'Ukrainian', flag: '🇺🇦' },
 ];
 
-// Validation schema
-const projectSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Project name must be at least 2 characters')
-    .max(50, 'Project name must be less than 50 characters'),
-  slug: z
-    .string()
-    .min(2, 'Slug must be at least 2 characters')
-    .max(50, 'Slug must be less than 50 characters')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-  languages: z.array(z.string()).min(1, 'Select at least one language'),
-  defaultLanguage: z.string().min(1, 'Select a default language'),
-});
-
-type ProjectFormData = z.infer<typeof projectSchema>;
-
 export default function NewProjectPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const form = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema),
+  const form = useForm<CreateProjectInput>({
+    resolver: zodResolver(createProjectSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
       slug: '',
       description: '',
-      languages: ['en'],
+      languageCodes: ['en'],
       defaultLanguage: 'en',
     },
   });
 
-  const selectedLanguages = form.watch('languages');
+  const selectedLanguages = form.watch('languageCodes');
   const defaultLanguage = form.watch('defaultLanguage');
 
   const createMutation = useMutation({
@@ -94,9 +77,13 @@ export default function NewProjectPage() {
       router.push(`/projects/${project.id}`);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create project', {
-        description: error.message,
-      });
+      // Try to map field-level errors to form fields first
+      if (!handleApiFieldErrors(error, form.setError)) {
+        // Only show toast for non-field errors
+        toast.error('Failed to create project', {
+          description: error.message,
+        });
+      }
     },
   });
 
@@ -115,20 +102,14 @@ export default function NewProjectPage() {
     if (current.includes(code)) {
       // Don't allow removing the default language
       if (code === defaultLanguage) return;
-      form.setValue('languages', current.filter((c) => c !== code), { shouldValidate: true });
+      form.setValue('languageCodes', current.filter((c) => c !== code), { shouldValidate: true });
     } else {
-      form.setValue('languages', [...current, code], { shouldValidate: true });
+      form.setValue('languageCodes', [...current, code], { shouldValidate: true });
     }
   };
 
-  const onSubmit = (data: ProjectFormData) => {
-    createMutation.mutate({
-      name: data.name,
-      slug: data.slug,
-      description: data.description || undefined,
-      languageCodes: data.languages,
-      defaultLanguage: data.defaultLanguage,
-    });
+  const onSubmit = (data: CreateProjectInput) => {
+    createMutation.mutate(data);
   };
 
   return (
@@ -238,7 +219,7 @@ export default function NewProjectPage() {
             {/* Language Grid */}
             <FormField
               control={form.control}
-              name="languages"
+              name="languageCodes"
               render={() => (
                 <FormItem>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">

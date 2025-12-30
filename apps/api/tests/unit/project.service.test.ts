@@ -223,7 +223,8 @@ describe('ProjectService', () => {
       });
 
       const stats = await projectService.getStats(project.id);
-      expect(stats.spaces).toBe(0);
+      // Project auto-creates a default space on creation
+      expect(stats.spaces).toBe(1);
       expect(stats.totalKeys).toBe(0);
       expect(stats.translationsByLanguage).toBeDefined();
     });

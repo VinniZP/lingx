@@ -5,25 +5,35 @@
  * Per Design Doc: AC-WEB-001, AC-WEB-002, AC-WEB-003
  */
 import { FastifyPluginAsync } from 'fastify';
-import { ProjectService } from '../services/project.service.js';
-import { ActivityService } from '../services/activity.service.js';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import {
   createProjectSchema,
   updateProjectSchema,
-  projectListSchema,
+  projectListResponseSchema,
   projectResponseSchema,
-  projectStatsSchema,
-} from '../schemas/project.schema.js';
+  projectStatsDetailSchema,
+  projectTreeResponseSchema,
+  activityListResponseSchema,
+} from '@localeflow/shared';
+import { ProjectService } from '../services/project.service.js';
+import { ActivityService } from '../services/activity.service.js';
+import {
+  toProjectDto,
+  toProjectWithStatsDtoList,
+  toProjectTreeDto,
+} from '../dto/index.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const projectRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const projectService = new ProjectService(fastify.prisma);
   const activityService = new ActivityService(fastify.prisma);
 
   /**
    * GET /api/projects - List user's projects with stats
    */
-  fastify.get(
+  app.get(
     '/api/projects',
     {
       onRequest: [fastify.authenticate],
@@ -31,19 +41,21 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'List all projects for the authenticated user with statistics',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        ...projectListSchema,
+        response: {
+          200: projectListResponseSchema,
+        },
       },
     },
     async (request, _reply) => {
       const projects = await projectService.findByUserIdWithStats(request.user.userId);
-      return { projects };
+      return { projects: toProjectWithStatsDtoList(projects) };
     }
   );
 
   /**
    * POST /api/projects - Create new project
    */
-  fastify.post(
+  app.post(
     '/api/projects',
     {
       onRequest: [fastify.authenticate],
@@ -51,18 +63,14 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Create a new project',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }],
-        ...createProjectSchema,
+        body: createProjectSchema,
+        response: {
+          201: projectResponseSchema,
+        },
       },
     },
     async (request, reply) => {
-      const { name, slug, description, languageCodes, defaultLanguage } =
-        request.body as {
-          name: string;
-          slug: string;
-          description?: string;
-          languageCodes: string[];
-          defaultLanguage: string;
-        };
+      const { name, slug, description, languageCodes, defaultLanguage } = request.body;
 
       const project = await projectService.create({
         name,
@@ -73,14 +81,14 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         userId: request.user.userId,
       });
 
-      return reply.status(201).send(project);
+      return reply.status(201).send(toProjectDto(project));
     }
   );
 
   /**
    * GET /api/projects/:id - Get project details
    */
-  fastify.get(
+  app.get(
     '/api/projects/:id',
     {
       onRequest: [fastify.authenticate],
@@ -88,19 +96,16 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get project by ID',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
           200: projectResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(id);
@@ -117,14 +122,14 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return project;
+      return toProjectDto(project);
     }
   );
 
   /**
    * PUT /api/projects/:id - Update project
    */
-  fastify.put(
+  app.put(
     '/api/projects/:id',
     {
       onRequest: [fastify.authenticate],
@@ -132,26 +137,18 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Update project',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
-        ...updateProjectSchema,
+        params: z.object({
+          id: z.string(),
+        }),
+        body: updateProjectSchema,
         response: {
           200: projectResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const input = request.body as {
-        name?: string;
-        description?: string;
-        languageCodes?: string[];
-        defaultLanguage?: string;
-      };
+      const { id } = request.params;
+      const input = request.body;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(id);
@@ -193,14 +190,14 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      return updated;
+      return toProjectDto(updated);
     }
   );
 
   /**
    * DELETE /api/projects/:id - Delete project
    */
-  fastify.delete(
+  app.delete(
     '/api/projects/:id',
     {
       onRequest: [fastify.authenticate],
@@ -208,16 +205,13 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Delete project',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
       },
     },
     async (request, reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(id);
@@ -239,7 +233,7 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/projects/:id/stats - Get project statistics
    */
-  fastify.get(
+  app.get(
     '/api/projects/:id/stats',
     {
       onRequest: [fastify.authenticate],
@@ -247,19 +241,16 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get project statistics',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
-          200: projectStatsSchema,
+          200: projectStatsDetailSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(id);
@@ -287,7 +278,7 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
    * Returns hierarchical data for sidebar tree navigation:
    * Project -> Spaces -> Branches with key counts
    */
-  fastify.get(
+  app.get(
     '/api/projects/:id/tree',
     {
       onRequest: [fastify.authenticate],
@@ -295,50 +286,16 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get project navigation tree for sidebar',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
-              slug: { type: 'string' },
-              spaces: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    name: { type: 'string' },
-                    slug: { type: 'string' },
-                    branches: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          id: { type: 'string' },
-                          name: { type: 'string' },
-                          slug: { type: 'string' },
-                          isDefault: { type: 'boolean' },
-                          keyCount: { type: 'number' },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
+          200: projectTreeResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       // Look up project by ID or slug (flexible lookup)
       const projectRef = await projectService.findByIdOrSlug(id);
@@ -389,24 +346,7 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         throw new NotFoundError('Project');
       }
 
-      // Transform _count to keyCount for cleaner API
-      return {
-        id: project.id,
-        name: project.name,
-        slug: project.slug,
-        spaces: project.spaces.map((space) => ({
-          id: space.id,
-          name: space.name,
-          slug: space.slug,
-          branches: space.branches.map((branch) => ({
-            id: branch.id,
-            name: branch.name,
-            slug: branch.slug,
-            isDefault: branch.isDefault,
-            keyCount: branch._count.keys,
-          })),
-        })),
-      };
+      return toProjectTreeDto(project);
     }
   );
 
@@ -416,7 +356,7 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
    * Returns recent activities for the project.
    * Used by the project details page activity feed.
    */
-  fastify.get(
+  app.get(
     '/api/projects/:id/activity',
     {
       onRequest: [fastify.authenticate],
@@ -424,52 +364,21 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get project activity feed',
         tags: ['Projects', 'Activity'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-          required: ['id'],
-        },
-        querystring: {
-          type: 'object',
-          properties: {
-            limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
-            cursor: { type: 'string', description: 'ISO date cursor for pagination' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
+        querystring: z.object({
+          limit: z.coerce.number().min(1).max(50).default(10).optional(),
+          cursor: z.string().optional(),
+        }),
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              activities: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    projectId: { type: 'string' },
-                    projectName: { type: 'string' },
-                    branchId: { type: ['string', 'null'] },
-                    branchName: { type: 'string' },
-                    userId: { type: 'string' },
-                    userName: { type: 'string' },
-                    type: { type: 'string' },
-                    count: { type: 'number' },
-                    metadata: { type: 'object' },
-                    createdAt: { type: 'string' },
-                  },
-                },
-              },
-              nextCursor: { type: 'string' },
-            },
-          },
+          200: activityListResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const { limit, cursor } = request.query as { limit?: number; cursor?: string };
+      const { id } = request.params;
+      const { limit, cursor } = request.query;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(id);

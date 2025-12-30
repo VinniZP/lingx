@@ -1,32 +1,7 @@
 import chalk from 'chalk';
+import type { BranchDiffResponse } from '@localeflow/shared';
 
-export interface DiffEntry {
-  key: string;
-  translations: Record<string, string>;
-}
-
-export interface ModifiedEntry {
-  key: string;
-  source: Record<string, string>;
-  target: Record<string, string>;
-}
-
-export interface ConflictEntry {
-  key: string;
-  source: Record<string, string>;
-  target: Record<string, string>;
-}
-
-export interface DiffData {
-  source: { id: string; name: string };
-  target: { id: string; name: string };
-  added: DiffEntry[];
-  modified: ModifiedEntry[];
-  deleted: DiffEntry[];
-  conflicts: ConflictEntry[];
-}
-
-export function formatDiffOutput(diff: DiffData): string {
+export function formatDiffOutput(diff: BranchDiffResponse): string {
   const lines: string[] = [];
 
   lines.push('');

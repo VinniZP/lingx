@@ -7,9 +7,10 @@
  */
 import { PrismaClient, Space } from '@prisma/client';
 import {
-  ConflictError,
+  FieldValidationError,
   NotFoundError,
 } from '../plugins/error-handler.js';
+import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
 export interface CreateSpaceInput {
   name: string;
@@ -60,7 +61,7 @@ export class SpaceService {
    * @param input - Space creation data
    * @returns Created space
    * @throws NotFoundError if project doesn't exist
-   * @throws ConflictError if slug already exists in project
+   * @throws FieldValidationError if slug already exists in project
    */
   async create(input: CreateSpaceInput): Promise<Space> {
     // Verify project exists
@@ -84,7 +85,16 @@ export class SpaceService {
     });
 
     if (existing) {
-      throw new ConflictError('Space slug already exists in this project');
+      throw new FieldValidationError(
+        [
+          {
+            field: 'slug',
+            message: 'A space with this slug already exists in this project',
+            code: UNIQUE_VIOLATION_CODES.SPACE_SLUG,
+          },
+        ],
+        'Space slug already exists in this project'
+      );
     }
 
     // Create space with main branch in a transaction

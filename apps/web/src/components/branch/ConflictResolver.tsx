@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, X, Edit2, ArrowRight, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { ConflictEntry, Resolution } from '@/lib/api';
+import type { ConflictEntry } from '@localeflow/shared';
+import type { Resolution } from '@/lib/api';
 
 interface ConflictResolverProps {
   conflicts: ConflictEntry[];

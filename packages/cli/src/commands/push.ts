@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { join } from 'path';
 import { select } from '@inquirer/prompts';
 import chalk from 'chalk';
+import type { CliTranslationsResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
@@ -206,7 +207,7 @@ async function push(options: PushOptions): Promise<void> {
 
     // Fetch server translations for conflict detection
     spinner.text = 'Checking for conflicts...';
-    const serverResponse = await client.get<{ translations: Record<string, Record<string, string>> }>(
+    const serverResponse = await client.get<CliTranslationsResponse>(
       `/api/branches/${targetBranch.id}/translations`
     );
     const serverTranslations = serverResponse.translations ?? {};

@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { createKeySchema, updateKeySchema, type CreateKeyInput, type UpdateKeyInput } from '@localeflow/shared';
 import {
   translationApi,
-  CreateKeyInput,
   TranslationKey,
   ApiError,
 } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,25 +44,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-// Validation schema
-const keyFormSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Key name is required')
-    .max(255, 'Key name must be 255 characters or less')
-    .regex(
-      /^[a-zA-Z][a-zA-Z0-9._-]*$/,
-      'Start with a letter, use only letters, numbers, dots, underscores, or hyphens'
-    ),
-  description: z
-    .string()
-    .max(500, 'Description must be 500 characters or less')
-    .optional()
-    .or(z.literal('')),
-});
-
-type KeyFormData = z.infer<typeof keyFormSchema>;
-
 interface KeyFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -87,8 +68,8 @@ export function KeyFormDialog({
   const queryClient = useQueryClient();
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
 
-  const form = useForm<KeyFormData>({
-    resolver: zodResolver(keyFormSchema),
+  const form = useForm<CreateKeyInput>({
+    resolver: zodResolver(createKeySchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
@@ -119,14 +100,16 @@ export function KeyFormDialog({
       onOpenChange(false);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create key', {
-        description: error.message,
-      });
+      if (!handleApiFieldErrors(error, form.setError)) {
+        toast.error('Failed to create key', {
+          description: error.message,
+        });
+      }
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { name?: string; description?: string }) =>
+    mutationFn: (data: UpdateKeyInput) =>
       translationApi.updateKey(editKey!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
@@ -136,13 +119,15 @@ export function KeyFormDialog({
       onOpenChange(false);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to update key', {
-        description: error.message,
-      });
+      if (!handleApiFieldErrors(error, form.setError)) {
+        toast.error('Failed to update key', {
+          description: error.message,
+        });
+      }
     },
   });
 
-  const handleSubmit = (data: KeyFormData) => {
+  const handleSubmit = (data: CreateKeyInput) => {
     if (editKey) {
       updateMutation.mutate({
         name: data.name !== editKey.name ? data.name : undefined,
@@ -151,7 +136,7 @@ export function KeyFormDialog({
     } else {
       createMutation.mutate({
         name: data.name,
-        description: data.description || undefined,
+        description: data.description,
       });
     }
   };

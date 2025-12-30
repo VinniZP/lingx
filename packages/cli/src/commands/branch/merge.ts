@@ -1,13 +1,14 @@
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import type {
+  BranchDiffResponse,
+  ConflictEntry,
+  MergeResponse,
+} from '@localeflow/shared';
 import { createApiClientFromConfig } from '../../lib/api.js';
 import { loadConfig } from '../../lib/config.js';
-import {
-  formatDiffOutput,
-  type DiffData,
-  type ConflictEntry,
-} from '../../lib/diff/display.js';
+import { formatDiffOutput } from '../../lib/diff/display.js';
 import { logger } from '../../utils/logger.js';
 import { createSpinner } from '../../utils/spinner.js';
 
@@ -22,12 +23,6 @@ interface MergeOptions {
 interface Resolution {
   key: string;
   resolution: 'source' | 'target' | Record<string, string>;
-}
-
-interface MergeResponse {
-  success: boolean;
-  merged: number;
-  conflicts?: ConflictEntry[];
 }
 
 export function createBranchMergeCommand(): Command {
@@ -96,7 +91,7 @@ async function mergeBranch(source: string, options: MergeOptions): Promise<void>
     }
 
     // Get diff first to check for conflicts
-    const diff = await client.get<DiffData>(
+    const diff = await client.get<BranchDiffResponse>(
       `/api/branches/${sourceBranch.id}/diff/${targetBranch.id}`
     );
 

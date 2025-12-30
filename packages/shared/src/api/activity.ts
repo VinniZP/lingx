@@ -5,6 +5,15 @@
  * Per ADR-0005: Activity Tracking System
  */
 
+// Re-export Zod-inferred types as the single source of truth
+export type {
+  Activity,
+  ActivityChange,
+  ActivityMetadata,
+  ActivityChangesResponse,
+  ActivityListResponse,
+} from '../validation/response.schema.js';
+
 /**
  * Activity types supported by the system
  * Matches the Prisma ActivityType enum
@@ -47,82 +56,10 @@ export interface ActivityPreviewItem {
 }
 
 /**
- * Metadata stored with each activity
- * Structure varies by activity type
- */
-export interface ActivityMetadata {
-  // Common for translation activities
-  languages?: string[];
-
-  // For branch operations
-  branchName?: string;
-  branchId?: string;
-  sourceBranchName?: string;
-  sourceBranchId?: string;
-  targetBranchName?: string;
-  targetBranchId?: string;
-
-  // For import/export
-  fileName?: string;
-  format?: string;
-  keyCount?: number;
-
-  // For environment operations
-  environmentName?: string;
-  environmentId?: string;
-  oldBranchName?: string;
-  newBranchName?: string;
-
-  // For project settings
-  changedFields?: string[];
-
-  // For merge
-  conflictsResolved?: number;
-
-  // Preview for hover (first 10 changes)
-  preview?: ActivityPreviewItem[];
-
-  // Overflow indicator
-  hasMore?: boolean;
-}
-
-/**
- * Single activity item (grouped summary)
- */
-export interface Activity {
-  id: string;
-  projectId: string;
-  projectName?: string;
-  branchId: string | null;
-  branchName?: string;
-  userId: string;
-  userName: string;
-  type: ActivityType;
-  count: number;
-  metadata: ActivityMetadata;
-  createdAt: string;
-}
-
-/**
- * Individual change in the full audit trail
- */
-export interface ActivityChange {
-  id: string;
-  activityId: string;
-  entityType: string;
-  entityId: string;
-  keyName?: string;
-  language?: string;
-  oldValue?: string;
-  newValue?: string;
-  createdAt: string;
-}
-
-/**
  * Response from GET /api/activity (user's activities across projects)
  */
 export interface UserActivityResponse {
-  activities: Activity[];
+  activities: import('../validation/response.schema.js').Activity[];
   nextCursor?: string;
 }
 
@@ -130,17 +67,8 @@ export interface UserActivityResponse {
  * Response from GET /api/projects/:id/activity
  */
 export interface ProjectActivityResponse {
-  activities: Activity[];
+  activities: import('../validation/response.schema.js').Activity[];
   nextCursor?: string;
-}
-
-/**
- * Response from GET /api/activity/:id/changes
- */
-export interface ActivityChangesResponse {
-  changes: ActivityChange[];
-  nextCursor?: string;
-  total: number;
 }
 
 /**
@@ -151,7 +79,7 @@ export interface CreateActivityInput {
   projectId: string;
   branchId?: string;
   userId: string;
-  metadata?: Partial<ActivityMetadata>;
+  metadata?: Partial<import('../validation/response.schema.js').ActivityMetadata>;
   changes: CreateActivityChangeInput[];
 }
 

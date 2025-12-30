@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -23,23 +22,18 @@ import {
 import { Key, Sparkles, Terminal, Globe, Code } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { createApiKeySchema, type CreateApiKeyInput } from '@localeflow/shared';
 import { cn } from '@/lib/utils';
-
-const formSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Key name is required')
-    .max(64, 'Key name must be 64 characters or less'),
-});
-
-type FormData = z.infer<typeof formSchema>;
+import { ApiError } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 
 interface ApiKeyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (name: string) => Promise<void>;
   isLoading: boolean;
+  /** Optional: API error to display as field error */
+  error?: ApiError | null;
 }
 
 // Suggested key name templates
@@ -54,16 +48,22 @@ export function ApiKeyDialog({
   onOpenChange,
   onSubmit,
   isLoading,
+  error,
 }: ApiKeyDialogProps) {
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CreateApiKeyInput>({
+    resolver: zodResolver(createApiKeySchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
     },
   });
 
-  const handleSubmit = async (data: FormData) => {
+  // Handle API errors passed from parent
+  if (error) {
+    handleApiFieldErrors(error, form.setError);
+  }
+
+  const handleSubmit = async (data: CreateApiKeyInput) => {
     await onSubmit(data.name.trim());
     form.reset();
   };

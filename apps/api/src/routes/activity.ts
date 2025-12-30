@@ -5,10 +5,17 @@
  * Per ADR-0005: Activity Tracking System
  */
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
+import {
+  activityListResponseSchema,
+  activityChangesResponseSchema,
+} from '@localeflow/shared';
 import { ActivityService } from '../services/activity.service.js';
 import { NotFoundError, ForbiddenError } from '../plugins/error-handler.js';
 
 const activityRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const activityService = new ActivityService(fastify.prisma);
 
   /**
@@ -17,7 +24,7 @@ const activityRoutes: FastifyPluginAsync = async (fastify) => {
    * Get recent activities for the current user across all their projects.
    * Used by the dashboard activity feed.
    */
-  fastify.get(
+  app.get(
     '/api/activity',
     {
       onRequest: [fastify.authenticate],
@@ -25,44 +32,17 @@ const activityRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get user activities across all projects',
         tags: ['Activity'],
         security: [{ bearerAuth: [] }],
-        querystring: {
-          type: 'object',
-          properties: {
-            limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
-            cursor: { type: 'string', description: 'ISO date cursor for pagination' },
-          },
-        },
+        querystring: z.object({
+          limit: z.coerce.number().min(1).max(50).default(10).optional(),
+          cursor: z.string().optional(),
+        }),
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              activities: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    projectId: { type: 'string' },
-                    projectName: { type: 'string' },
-                    branchId: { type: ['string', 'null'] },
-                    branchName: { type: 'string' },
-                    userId: { type: 'string' },
-                    userName: { type: 'string' },
-                    type: { type: 'string' },
-                    count: { type: 'number' },
-                    metadata: { type: 'object' },
-                    createdAt: { type: 'string' },
-                  },
-                },
-              },
-              nextCursor: { type: 'string' },
-            },
-          },
+          200: activityListResponseSchema,
         },
       },
     },
     async (request) => {
-      const { limit, cursor } = request.query as { limit?: number; cursor?: string };
+      const { limit, cursor } = request.query;
       return await activityService.getUserActivities(request.user.userId, {
         limit,
         cursor,
@@ -76,7 +56,7 @@ const activityRoutes: FastifyPluginAsync = async (fastify) => {
    * Get full audit trail for a specific activity.
    * Used for the "View all changes" modal.
    */
-  fastify.get(
+  app.get(
     '/api/activity/:id/changes',
     {
       onRequest: [fastify.authenticate],
@@ -84,51 +64,21 @@ const activityRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get full change history for an activity',
         tags: ['Activity'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-          required: ['id'],
-        },
-        querystring: {
-          type: 'object',
-          properties: {
-            limit: { type: 'number', minimum: 1, maximum: 100, default: 20 },
-            cursor: { type: 'string', description: 'ISO date cursor for pagination' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
+        querystring: z.object({
+          limit: z.coerce.number().min(1).max(100).default(20).optional(),
+          cursor: z.string().optional(),
+        }),
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              changes: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    activityId: { type: 'string' },
-                    entityType: { type: 'string' },
-                    entityId: { type: 'string' },
-                    keyName: { type: 'string' },
-                    language: { type: 'string' },
-                    oldValue: { type: 'string' },
-                    newValue: { type: 'string' },
-                    createdAt: { type: 'string' },
-                  },
-                },
-              },
-              nextCursor: { type: 'string' },
-              total: { type: 'number' },
-            },
-          },
+          200: activityChangesResponseSchema,
         },
       },
     },
     async (request) => {
-      const { id } = request.params as { id: string };
-      const { limit, cursor } = request.query as { limit?: number; cursor?: string };
+      const { id } = request.params;
+      const { limit, cursor } = request.query;
 
       // Verify user has access to this activity
       const activity = await fastify.prisma.activity.findUnique({

@@ -6,10 +6,11 @@
  */
 import { PrismaClient, Project, ProjectRole } from '@prisma/client';
 import {
-  ConflictError,
+  FieldValidationError,
   NotFoundError,
   ValidationError,
 } from '../plugins/error-handler.js';
+import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
 /** Language name lookup (common languages) */
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -95,7 +96,7 @@ export class ProjectService {
    *
    * @param input - Project creation data
    * @returns Project with languages
-   * @throws ConflictError if slug already exists
+   * @throws FieldValidationError if slug already exists
    * @throws ValidationError if default language not in language codes
    */
   async create(input: CreateProjectInput): Promise<ProjectWithLanguages> {
@@ -112,7 +113,16 @@ export class ProjectService {
     });
 
     if (existing) {
-      throw new ConflictError('Project slug already exists');
+      throw new FieldValidationError(
+        [
+          {
+            field: 'slug',
+            message: 'A project with this slug already exists',
+            code: UNIQUE_VIOLATION_CODES.PROJECT_SLUG,
+          },
+        ],
+        'Project slug already exists'
+      );
     }
 
     // Create project with languages, owner membership, and default space+branch

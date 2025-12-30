@@ -1,6 +1,7 @@
 'use client';
 
-import { TranslationKey, ProjectLanguage } from '@/lib/api';
+import type { ProjectLanguage } from '@localeflow/shared';
+import { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { TrendingUp, Clock, Languages } from 'lucide-react';
 

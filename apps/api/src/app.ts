@@ -4,6 +4,11 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import {
+  serializerCompiler,
+  validatorCompiler,
+  jsonSchemaTransform,
+} from 'fastify-type-provider-zod';
 
 import prismaPlugin from './plugins/prisma.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
@@ -51,6 +56,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       } : undefined,
     },
   });
+
+  // Setup Zod type provider for request validation and response serialization
+  fastify.setValidatorCompiler(validatorCompiler);
+  fastify.setSerializerCompiler(serializerCompiler);
 
   // Register security plugins
   await fastify.register(helmet, {
@@ -106,6 +115,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
         },
       },
     },
+    transform: jsonSchemaTransform,
   });
 
   await fastify.register(swaggerUi, {

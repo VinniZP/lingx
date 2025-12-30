@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { ConflictEntry } from '@localeflow/shared';
 import {
   branchApi,
   ApiError,
   ProjectTreeBranch,
-  ConflictEntry,
   Resolution,
 } from '@/lib/api';
 import { Button } from '@/components/ui/button';

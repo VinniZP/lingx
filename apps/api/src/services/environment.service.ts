@@ -6,7 +6,12 @@
  * Environments point to branches and are used by SDKs to fetch translations.
  */
 import { PrismaClient, Environment } from '@prisma/client';
-import { ConflictError, NotFoundError, ValidationError } from '../plugins/error-handler.js';
+import {
+  FieldValidationError,
+  NotFoundError,
+  ValidationError,
+} from '../plugins/error-handler.js';
+import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
 export interface CreateEnvironmentInput {
   name: string;
@@ -43,7 +48,7 @@ export class EnvironmentService {
    * @returns Created environment with branch details
    * @throws NotFoundError if project or branch doesn't exist
    * @throws ValidationError if branch doesn't belong to project
-   * @throws ConflictError if slug already exists in project
+   * @throws FieldValidationError if slug already exists in project
    */
   async create(input: CreateEnvironmentInput): Promise<EnvironmentWithBranch> {
     // Verify project exists
@@ -90,7 +95,16 @@ export class EnvironmentService {
     });
 
     if (existing) {
-      throw new ConflictError('Environment with this slug already exists');
+      throw new FieldValidationError(
+        [
+          {
+            field: 'slug',
+            message: 'An environment with this slug already exists in this project',
+            code: UNIQUE_VIOLATION_CODES.ENVIRONMENT_SLUG,
+          },
+        ],
+        'Environment with this slug already exists'
+      );
     }
 
     const environment = await this.prisma.environment.create({

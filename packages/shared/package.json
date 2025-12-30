@@ -17,5 +17,8 @@
   },
   "devDependencies": {
     "@localeflow/config": "workspace:*"
+  },
+  "dependencies": {
+    "zod": "^4.2.1"
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { TranslationKey, ProjectLanguage } from '@/lib/api';
+import type { ProjectLanguage } from '@localeflow/shared';
+import { TranslationKey } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';

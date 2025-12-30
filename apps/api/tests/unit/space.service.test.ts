@@ -201,17 +201,19 @@ describe('SpaceService', () => {
       expect(spaces.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('should return empty array for project with no spaces', async () => {
+    it('should return default space for new project', async () => {
+      // Projects auto-create a "Default" space on creation
       const project2 = await projectService.create({
-        name: 'Empty Project',
-        slug: `space-test-proj-empty-${Date.now()}`,
+        name: 'New Project',
+        slug: `space-test-proj-new-${Date.now()}`,
         languageCodes: ['en'],
         defaultLanguage: 'en',
         userId: testUserId,
       });
 
       const spaces = await spaceService.findByProjectId(project2.id);
-      expect(spaces).toHaveLength(0);
+      expect(spaces).toHaveLength(1);
+      expect(spaces[0].name).toBe('Default');
     });
 
     it('should order spaces by name', async () => {

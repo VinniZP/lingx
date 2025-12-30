@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { join } from 'path';
+import type { CliTranslationsResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
@@ -14,11 +15,6 @@ interface PullOptions {
   format?: 'json' | 'yaml';
   output?: string;
   lang?: string;
-}
-
-interface TranslationResponse {
-  translations: Record<string, Record<string, string>>;
-  languages: string[];
 }
 
 export function createPullCommand(): Command {
@@ -85,7 +81,7 @@ async function pull(options: PullOptions): Promise<void> {
     }
 
     // Fetch all translations for the branch
-    const response = await client.get<TranslationResponse>(
+    const response = await client.get<CliTranslationsResponse>(
       `/api/branches/${targetBranch.id}/translations`
     );
 

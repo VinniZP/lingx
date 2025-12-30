@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FolderOpen, ArrowRight, Plus } from 'lucide-react';
 import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { Project } from '@/lib/api';
+import type { ProjectResponse } from '@localeflow/shared';
 
 interface RecentProjectsProps {
-  projects: Project[];
+  projects: ProjectResponse[];
   isLoading: boolean;
 }
 

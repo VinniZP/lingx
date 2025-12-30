@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { registerSchema, type RegisterInput } from '@localeflow/shared';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,36 +17,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ApiError } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { toast } from 'sonner';
 import { Loader2, ArrowRight, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-
-// Validation schema
-const registerSchema = z.object({
-  name: z
-    .string()
-    .max(100, 'Name must be less than 100 characters')
-    .optional()
-    .or(z.literal('')),
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
-});
-
-type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const { register: registerUser } = useAuth();
 
-  const form = useForm<RegisterFormData>({
+  const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     mode: 'onTouched',
     defaultValues: {
@@ -56,19 +36,23 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (data: RegisterInput) => {
     try {
       await registerUser(data.email, data.password, data.name || undefined);
       toast.success('Account created!', {
         description: 'Welcome to Localeflow. Your account is ready.',
       });
     } catch (error) {
-      const message = error instanceof ApiError
-        ? error.message
-        : 'An unexpected error occurred. Please try again.';
-      toast.error('Registration failed', {
-        description: message,
-      });
+      // Try to map field-level errors to form fields first
+      if (!handleApiFieldErrors(error, form.setError)) {
+        // Only show toast for non-field errors (network issues, 500s, etc.)
+        const message = error instanceof ApiError
+          ? error.message
+          : 'An unexpected error occurred. Please try again.';
+        toast.error('Registration failed', {
+          description: message,
+        });
+      }
     }
   };
 

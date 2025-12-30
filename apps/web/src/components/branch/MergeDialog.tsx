@@ -23,13 +23,14 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { BranchDiffResult, Resolution } from '@/lib/api';
+import type { BranchDiffResponse } from '@localeflow/shared';
+import type { Resolution } from '@/lib/api';
 import { ConflictResolver } from './ConflictResolver';
 
 interface MergeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  diff: BranchDiffResult;
+  diff: BranchDiffResponse;
   onMerge: (resolutions: Resolution[]) => Promise<void>;
   merging: boolean;
   mergeError?: string;

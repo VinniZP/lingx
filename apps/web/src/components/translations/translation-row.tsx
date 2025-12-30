@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { TranslationKey, ProjectLanguage } from '@/lib/api';
+import type { ProjectLanguage } from '@localeflow/shared';
+import { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Check, Loader2 } from 'lucide-react';
 

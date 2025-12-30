@@ -1,13 +1,25 @@
+import type {
+  FieldError,
+  ProjectResponse,
+  ProjectWithStats,
+  ConflictEntry,
+  BranchDiffResponse,
+} from '@localeflow/shared';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export class ApiError extends Error {
+  public fieldErrors?: FieldError[];
+
   constructor(
     public statusCode: number,
     public code: string,
-    message: string
+    message: string,
+    fieldErrors?: FieldError[]
   ) {
     super(message);
     this.name = 'ApiError';
+    this.fieldErrors = fieldErrors;
   }
 }
 
@@ -29,7 +41,12 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
       code: 'UNKNOWN_ERROR',
       message: 'An unexpected error occurred',
     }));
-    throw new ApiError(response.status, error.code, error.message);
+    throw new ApiError(
+      response.status,
+      error.code,
+      error.message,
+      error.fieldErrors
+    );
   }
 
   // Handle 204 No Content
@@ -73,36 +90,7 @@ export interface User {
   createdAt?: string;
 }
 
-// Project types
-export interface ProjectLanguage {
-  id: string;
-  code: string;
-  name: string;
-  isDefault: boolean;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  defaultLanguage: string;
-  languages: ProjectLanguage[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-/** Project stats embedded in project list response */
-export interface ProjectStatsEmbedded {
-  totalKeys: number;
-  translatedKeys: number;
-  completionRate: number;
-}
-
-/** Project with stats - returned by list endpoint */
-export interface ProjectWithStats extends Project {
-  stats: ProjectStatsEmbedded;
-}
+// Project types (ProjectLanguage, ProjectResponse, ProjectStatsEmbedded, ProjectWithStats are from @localeflow/shared)
 
 /** Legacy detailed stats - used by /api/projects/:id/stats */
 export interface ProjectStatsDetailed {
@@ -197,16 +185,16 @@ export const activityApi = {
 export const projectApi = {
   list: () => fetchApi<{ projects: ProjectWithStats[] }>('/api/projects'),
 
-  get: (id: string) => fetchApi<Project>(`/api/projects/${id}`),
+  get: (id: string) => fetchApi<ProjectResponse>(`/api/projects/${id}`),
 
   create: (data: CreateProjectInput) =>
-    fetchApi<Project>('/api/projects', {
+    fetchApi<ProjectResponse>('/api/projects', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   update: (id: string, data: UpdateProjectInput) =>
-    fetchApi<Project>(`/api/projects/${id}`, {
+    fetchApi<ProjectResponse>(`/api/projects/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -328,32 +316,7 @@ export const spaceApi = {
   getStats: (id: string) => fetchApi<SpaceStats>(`/api/spaces/${id}/stats`),
 };
 
-// Branch Diff types
-export interface DiffEntry {
-  key: string;
-  translations: Record<string, string>;
-}
-
-export interface ModifiedEntry {
-  key: string;
-  source: Record<string, string>;
-  target: Record<string, string>;
-}
-
-export interface ConflictEntry {
-  key: string;
-  source: Record<string, string>;
-  target: Record<string, string>;
-}
-
-export interface BranchDiffResult {
-  source: { id: string; name: string };
-  target: { id: string; name: string };
-  added: DiffEntry[];
-  modified: ModifiedEntry[];
-  deleted: DiffEntry[];
-  conflicts: ConflictEntry[];
-}
+// Branch Diff types (DiffEntry, ModifiedEntry, ConflictEntry, BranchDiffResponse are from @localeflow/shared)
 
 export interface Resolution {
   key: string;
@@ -390,7 +353,7 @@ export const branchApi = {
     }),
 
   diff: (sourceBranchId: string, targetBranchId: string) =>
-    fetchApi<BranchDiffResult>(
+    fetchApi<BranchDiffResponse>(
       `/api/branches/${sourceBranchId}/diff/${targetBranchId}`
     ),
 

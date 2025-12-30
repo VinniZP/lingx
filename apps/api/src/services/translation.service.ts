@@ -5,7 +5,8 @@
  * Per Design Doc: AC-WEB-007 through AC-WEB-011
  */
 import { PrismaClient, TranslationKey, Translation } from '@prisma/client';
-import { ConflictError, NotFoundError } from '../plugins/error-handler.js';
+import { FieldValidationError, NotFoundError } from '../plugins/error-handler.js';
+import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
 export interface CreateKeyInput {
   name: string;
@@ -47,7 +48,7 @@ export class TranslationService {
    *
    * @param input - Key creation data
    * @returns Created key with translations
-   * @throws ConflictError if key name already exists in branch
+   * @throws FieldValidationError if key name already exists in branch
    */
   async createKey(input: CreateKeyInput): Promise<KeyWithTranslations> {
     // Check for duplicate key name in branch
@@ -61,7 +62,16 @@ export class TranslationService {
     });
 
     if (existing) {
-      throw new ConflictError('Key with this name already exists in the branch');
+      throw new FieldValidationError(
+        [
+          {
+            field: 'name',
+            message: 'A key with this name already exists in this branch',
+            code: UNIQUE_VIOLATION_CODES.TRANSLATION_KEY,
+          },
+        ],
+        'Key with this name already exists in the branch'
+      );
     }
 
     const key = await this.prisma.translationKey.create({
@@ -156,7 +166,7 @@ export class TranslationService {
    * @param input - Update data
    * @returns Updated key with translations
    * @throws NotFoundError if key doesn't exist
-   * @throws ConflictError if new name already exists
+   * @throws FieldValidationError if new name already exists
    */
   async updateKey(id: string, input: UpdateKeyInput): Promise<KeyWithTranslations> {
     const existing = await this.prisma.translationKey.findUnique({
@@ -179,7 +189,16 @@ export class TranslationService {
       });
 
       if (conflict) {
-        throw new ConflictError('Key with this name already exists');
+        throw new FieldValidationError(
+          [
+            {
+              field: 'name',
+              message: 'A key with this name already exists in this branch',
+              code: UNIQUE_VIOLATION_CODES.TRANSLATION_KEY,
+            },
+          ],
+          'Key with this name already exists'
+        );
       }
     }
 

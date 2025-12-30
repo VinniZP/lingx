@@ -89,9 +89,12 @@ export default function ApiKeysPage() {
       });
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create API key', {
-        description: error.message,
-      });
+      // Only show toast if no field errors (field errors show in the dialog)
+      if (!error.fieldErrors?.length) {
+        toast.error('Failed to create API key', {
+          description: error.message,
+        });
+      }
     },
   });
 
@@ -415,6 +418,7 @@ export default function ApiKeysPage() {
         onOpenChange={setShowCreateDialog}
         onSubmit={handleCreate}
         isLoading={createMutation.isPending}
+        error={createMutation.error as ApiError | null}
       />
     </div>
   );

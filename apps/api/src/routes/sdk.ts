@@ -5,23 +5,43 @@
  * No authentication required - translations are public.
  */
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
-interface SdkTranslationsQuery {
-  project: string;
-  space: string;
-  environment: string;
-  lang: string;
-  namespace?: string;
-}
+/** SDK translations query schema */
+const sdkTranslationsQuerySchema = z.object({
+  project: z.string().describe('Project slug'),
+  space: z.string().describe('Space slug'),
+  environment: z.string().describe('Environment slug'),
+  lang: z.string().describe('Language code'),
+  namespace: z.string().optional().describe('Optional namespace filter'),
+});
 
-interface SdkTranslationsResponse {
-  language: string;
-  translations: Record<string, string>;
-  availableLanguages: string[];
-}
+/** SDK translations response schema */
+const sdkTranslationsResponseSchema = z.object({
+  language: z.string(),
+  translations: z.record(z.string(), z.string()),
+  availableLanguages: z.array(z.string()),
+});
+
+/** Error response schema */
+const errorResponseSchema = z.object({
+  error: z.string(),
+});
+
+/** SDK languages query schema */
+const sdkLanguagesQuerySchema = z.object({
+  project: z.string().describe('Project slug'),
+});
+
+/** SDK languages response schema */
+const sdkLanguagesResponseSchema = z.object({
+  availableLanguages: z.array(z.string()),
+});
 
 const sdkRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const prisma: PrismaClient = fastify.prisma;
 
   /**
@@ -30,38 +50,16 @@ const sdkRoutes: FastifyPluginAsync = async (fastify) => {
    * Public endpoint - no authentication required.
    * Returns flat key-value translations for a specific language.
    */
-  fastify.get<{ Querystring: SdkTranslationsQuery }>(
+  app.get(
     '/sdk/translations',
     {
       schema: {
         description: 'Fetch translations for SDK (public, no auth)',
         tags: ['SDK'],
-        querystring: {
-          type: 'object',
-          required: ['project', 'space', 'environment', 'lang'],
-          properties: {
-            project: { type: 'string', description: 'Project slug' },
-            space: { type: 'string', description: 'Space slug' },
-            environment: { type: 'string', description: 'Environment slug' },
-            lang: { type: 'string', description: 'Language code' },
-            namespace: { type: 'string', description: 'Optional namespace filter' },
-          },
-        },
+        querystring: sdkTranslationsQuerySchema,
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              language: { type: 'string' },
-              translations: {
-                type: 'object',
-                additionalProperties: { type: 'string' },
-              },
-              availableLanguages: {
-                type: 'array',
-                items: { type: 'string' },
-              },
-            },
-          },
+          200: sdkTranslationsResponseSchema,
+          404: errorResponseSchema,
         },
       },
     },
@@ -134,45 +132,30 @@ const sdkRoutes: FastifyPluginAsync = async (fastify) => {
         (l: { code: string }) => l.code
       );
 
-      const response: SdkTranslationsResponse = {
+      // Add cache headers for CDN
+      reply.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+
+      return {
         language: lang,
         translations,
         availableLanguages,
       };
-
-      // Add cache headers for CDN
-      reply.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-
-      return response;
     }
   );
 
   /**
    * GET /sdk/languages - Get available languages for a project
    */
-  fastify.get<{ Querystring: { project: string } }>(
+  app.get(
     '/sdk/languages',
     {
       schema: {
         description: 'Get available languages for SDK (public, no auth)',
         tags: ['SDK'],
-        querystring: {
-          type: 'object',
-          required: ['project'],
-          properties: {
-            project: { type: 'string', description: 'Project slug' },
-          },
-        },
+        querystring: sdkLanguagesQuerySchema,
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              availableLanguages: {
-                type: 'array',
-                items: { type: 'string' },
-              },
-            },
-          },
+          200: sdkLanguagesResponseSchema,
+          404: errorResponseSchema,
         },
       },
     },

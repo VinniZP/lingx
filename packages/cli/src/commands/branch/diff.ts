@@ -1,7 +1,8 @@
 import { Command } from 'commander';
+import type { BranchDiffResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../../lib/api.js';
 import { loadConfig } from '../../lib/config.js';
-import { formatDiffOutput, type DiffData } from '../../lib/diff/display.js';
+import { formatDiffOutput } from '../../lib/diff/display.js';
 import { logger } from '../../utils/logger.js';
 import { createSpinner } from '../../utils/spinner.js';
 
@@ -79,7 +80,7 @@ async function diffBranches(
     }
 
     // Get diff
-    const diff = await client.get<DiffData>(
+    const diff = await client.get<BranchDiffResponse>(
       `/api/branches/${sourceBranch.id}/diff/${targetBranch.id}`
     );
 

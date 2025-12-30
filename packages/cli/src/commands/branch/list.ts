@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import type { BranchResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../../lib/api.js';
 import { loadConfig } from '../../lib/config.js';
 import { logger } from '../../utils/logger.js';
@@ -8,14 +9,6 @@ import { createSpinner } from '../../utils/spinner.js';
 interface ListOptions {
   project?: string;
   space?: string;
-}
-
-interface Branch {
-  id: string;
-  name: string;
-  isDefault: boolean;
-  createdAt: string;
-  keyCount?: number;
 }
 
 export function createBranchListCommand(): Command {
@@ -64,7 +57,7 @@ async function listBranches(options: ListOptions): Promise<void> {
     }
 
     // Get branches
-    const result = await client.get<{ branches: Branch[] }>(
+    const result = await client.get<{ branches: BranchResponse[] }>(
       `/api/spaces/${targetSpace.id}/branches`
     );
 

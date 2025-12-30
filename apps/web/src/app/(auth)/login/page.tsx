@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, type LoginInput } from '@localeflow/shared';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,28 +17,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ApiError } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { toast } from 'sonner';
 import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-
-// Validation schema
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(1, 'Password is required'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const { login } = useAuth();
 
-  const form = useForm<LoginFormData>({
+  const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     defaultValues: {
@@ -47,19 +35,22 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: LoginInput) => {
     try {
       await login(data.email, data.password);
       toast.success('Welcome back!', {
         description: 'You have successfully signed in.',
       });
     } catch (error) {
-      const message = error instanceof ApiError
-        ? error.message
-        : 'An unexpected error occurred. Please try again.';
-      toast.error('Sign in failed', {
-        description: message,
-      });
+      // Try to map field-level errors to form fields first
+      if (!handleApiFieldErrors(error, form.setError)) {
+        const message = error instanceof ApiError
+          ? error.message
+          : 'An unexpected error occurred. Please try again.';
+        toast.error('Sign in failed', {
+          description: message,
+        });
+      }
     }
   };
 

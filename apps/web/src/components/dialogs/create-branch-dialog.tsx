@@ -4,9 +4,10 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { branchApi, CreateBranchInput, ApiError, ProjectTreeBranch } from '@/lib/api';
+import { createBranchSchema, type CreateBranchInput } from '@localeflow/shared';
+import { branchApi, ApiError, ProjectTreeBranch } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -35,17 +36,6 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { GitBranch, Loader2, Copy, Star } from 'lucide-react';
-
-// Validation schema
-const branchSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Branch name must be at least 2 characters')
-    .max(50, 'Branch name must be less than 50 characters'),
-  sourceBranchId: z.string().min(1, 'Select a source branch'),
-});
-
-type BranchFormData = z.infer<typeof branchSchema>;
 
 interface CreateBranchDialogProps {
   open: boolean;
@@ -83,18 +73,18 @@ export function CreateBranchDialog({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const form = useForm<BranchFormData>({
-    resolver: zodResolver(branchSchema),
+  const form = useForm<CreateBranchInput>({
+    resolver: zodResolver(createBranchSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
-      sourceBranchId: '',
+      fromBranchId: '',
     },
   });
 
   const branchName = form.watch('name');
-  const sourceBranchId = form.watch('sourceBranchId');
-  const selectedSourceBranch = branches.find((b) => b.id === sourceBranchId);
+  const fromBranchId = form.watch('fromBranchId');
+  const selectedSourceBranch = branches.find((b) => b.id === fromBranchId);
 
   // Reset form and set default source branch when dialog opens
   useEffect(() => {
@@ -102,7 +92,7 @@ export function CreateBranchDialog({
       const defaultBranch = branches.find((b) => b.isDefault);
       form.reset({
         name: '',
-        sourceBranchId: defaultBranch?.id || branches[0]?.id || '',
+        fromBranchId: defaultBranch?.id || branches[0]?.id || '',
       });
     }
   }, [open, branches, form]);
@@ -119,16 +109,18 @@ export function CreateBranchDialog({
       router.push(`/projects/${projectId}/translations/${newBranch.id}`);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create branch', {
-        description: error.message,
-      });
+      if (!handleApiFieldErrors(error, form.setError)) {
+        toast.error('Failed to create branch', {
+          description: error.message,
+        });
+      }
     },
   });
 
-  const onSubmit = (data: BranchFormData) => {
+  const onSubmit = (data: CreateBranchInput) => {
     createMutation.mutate({
       name: generateSlug(data.name),
-      fromBranchId: data.sourceBranchId,
+      fromBranchId: data.fromBranchId,
     });
   };
 
@@ -190,7 +182,7 @@ export function CreateBranchDialog({
               {/* Source Branch */}
               <FormField
                 control={form.control}
-                name="sourceBranchId"
+                name="fromBranchId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Copy From</FormLabel>

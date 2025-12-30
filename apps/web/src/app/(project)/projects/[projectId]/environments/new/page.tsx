@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { createEnvironmentSchema, type CreateEnvironmentInput } from '@localeflow/shared';
 import {
   environmentApi,
   projectApi,
@@ -14,6 +14,7 @@ import {
   branchApi,
   ApiError,
 } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -50,25 +51,6 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Form validation schema
-const environmentSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Name must be at least 2 characters')
-    .max(50, 'Name must be less than 50 characters'),
-  slug: z
-    .string()
-    .min(2, 'Slug must be at least 2 characters')
-    .max(50, 'Slug must be less than 50 characters')
-    .regex(
-      /^[a-z0-9-]+$/,
-      'Slug can only contain lowercase letters, numbers, and hyphens'
-    ),
-  branchId: z.string().min(1, 'Please select a branch'),
-});
-
-type EnvironmentFormData = z.infer<typeof environmentSchema>;
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
@@ -115,8 +97,8 @@ export default function NewEnvironmentPage({ params }: PageProps) {
     enabled: !!spacesData?.spaces,
   });
 
-  const form = useForm<EnvironmentFormData>({
-    resolver: zodResolver(environmentSchema),
+  const form = useForm<CreateEnvironmentInput>({
+    resolver: zodResolver(createEnvironmentSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
@@ -137,7 +119,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
   }, [allBranches, form]);
 
   const createMutation = useMutation({
-    mutationFn: (data: EnvironmentFormData) =>
+    mutationFn: (data: CreateEnvironmentInput) =>
       environmentApi.create(projectId, data),
     onSuccess: (env) => {
       queryClient.invalidateQueries({ queryKey: ['environments', projectId] });
@@ -147,9 +129,11 @@ export default function NewEnvironmentPage({ params }: PageProps) {
       router.push(`/projects/${projectId}/environments`);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create environment', {
-        description: error.message,
-      });
+      if (!handleApiFieldErrors(error, form.setError)) {
+        toast.error('Failed to create environment', {
+          description: error.message,
+        });
+      }
     },
   });
 
@@ -163,7 +147,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
     form.setValue('slug', generatedSlug, { shouldValidate: form.formState.touchedFields.slug });
   };
 
-  const onSubmit = (data: EnvironmentFormData) => {
+  const onSubmit = (data: CreateEnvironmentInput) => {
     createMutation.mutate(data);
   };
 

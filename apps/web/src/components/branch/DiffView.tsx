@@ -18,14 +18,14 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type {
-  BranchDiffResult,
+  BranchDiffResponse,
   DiffEntry,
   ModifiedEntry,
   ConflictEntry,
-} from '@/lib/api';
+} from '@localeflow/shared';
 
 interface DiffViewProps {
-  diff: BranchDiffResult;
+  diff: BranchDiffResponse;
   onConflictSelect?: (conflict: ConflictEntry) => void;
 }
 

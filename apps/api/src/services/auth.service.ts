@@ -7,9 +7,10 @@
 import { PrismaClient, User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import {
-  ConflictError,
+  FieldValidationError,
   UnauthorizedError,
 } from '../plugins/error-handler.js';
+import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
 /** bcrypt cost factor per Design Doc NFRs */
 const BCRYPT_ROUNDS = 12;
@@ -33,7 +34,7 @@ export class AuthService {
    *
    * @param input - Registration data (email, password, name)
    * @returns User object without password
-   * @throws ConflictError if email already exists
+   * @throws FieldValidationError if email already exists
    */
   async register(input: RegisterInput): Promise<Omit<User, 'password'>> {
     // Check for existing user
@@ -42,7 +43,16 @@ export class AuthService {
     });
 
     if (existing) {
-      throw new ConflictError('Email already registered');
+      throw new FieldValidationError(
+        [
+          {
+            field: 'email',
+            message: 'This email is already registered',
+            code: UNIQUE_VIOLATION_CODES.USER_EMAIL,
+          },
+        ],
+        'Email already registered'
+      );
     }
 
     // Hash password with cost factor 12

@@ -181,9 +181,9 @@ describe('Authentication Integration Tests', () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body);
-      expect(body.key).toMatch(/^lf_/); // Key prefix
-      expect(body.apiKey.name).toBe('Test API Key');
-      expect(body.apiKey.keyPrefix).toMatch(/^lf_/);
+      expect(body.key).toMatch(/^lf_/); // Full key
+      expect(body.name).toBe('Test API Key');
+      expect(body.keyPrefix).toMatch(/^lf_/);
     });
 
     it('should authenticate requests with valid API key', async () => {
@@ -220,12 +220,14 @@ describe('Authentication Integration Tests', () => {
           name: 'Revoke Test Key',
         },
       });
-      const { key, apiKey } = JSON.parse(createResponse.body);
+      const body = JSON.parse(createResponse.body);
+      const key = body.key;
+      const apiKeyId = body.id;
 
       // Revoke API key
       await app.inject({
         method: 'DELETE',
-        url: `/api/auth/api-keys/${apiKey.id}`,
+        url: `/api/auth/api-keys/${apiKeyId}`,
         headers: { cookie: authCookie },
       });
 

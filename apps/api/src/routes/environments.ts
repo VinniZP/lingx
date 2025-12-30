@@ -5,20 +5,24 @@
  * Per Design Doc: AC-WEB-017, AC-WEB-018, AC-WEB-019
  */
 import { FastifyPluginAsync } from 'fastify';
-import { EnvironmentService } from '../services/environment.service.js';
-import { ProjectService } from '../services/project.service.js';
-import { ActivityService } from '../services/activity.service.js';
-import { BranchService } from '../services/branch.service.js';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import {
   createEnvironmentSchema,
   updateEnvironmentSchema,
   switchBranchSchema,
-  environmentListSchema,
+  environmentListResponseSchema,
   environmentResponseSchema,
-} from '../schemas/environment.schema.js';
+} from '@localeflow/shared';
+import { EnvironmentService } from '../services/environment.service.js';
+import { ProjectService } from '../services/project.service.js';
+import { ActivityService } from '../services/activity.service.js';
+import { BranchService } from '../services/branch.service.js';
+import { toEnvironmentDto, toEnvironmentDtoList } from '../dto/index.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const environmentRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const environmentService = new EnvironmentService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
   const activityService = new ActivityService(fastify.prisma);
@@ -27,7 +31,7 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/projects/:projectId/environments - List environments
    */
-  fastify.get(
+  app.get(
     '/api/projects/:projectId/environments',
     {
       onRequest: [fastify.authenticate],
@@ -35,17 +39,16 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'List all environments for a project',
         tags: ['Environments'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            projectId: { type: 'string' },
-          },
+        params: z.object({
+          projectId: z.string(),
+        }),
+        response: {
+          200: environmentListResponseSchema,
         },
-        ...environmentListSchema,
       },
     },
     async (request, _reply) => {
-      const { projectId } = request.params as { projectId: string };
+      const { projectId } = request.params;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(projectId);
@@ -62,14 +65,14 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const environments = await environmentService.findByProjectId(project.id);
-      return { environments };
+      return { environments: toEnvironmentDtoList(environments) };
     }
   );
 
   /**
    * POST /api/projects/:projectId/environments - Create environment
    */
-  fastify.post(
+  app.post(
     '/api/projects/:projectId/environments',
     {
       onRequest: [fastify.authenticate],
@@ -77,22 +80,18 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Create a new environment',
         tags: ['Environments'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            projectId: { type: 'string' },
-          },
+        params: z.object({
+          projectId: z.string(),
+        }),
+        body: createEnvironmentSchema,
+        response: {
+          201: environmentResponseSchema,
         },
-        ...createEnvironmentSchema,
       },
     },
     async (request, reply) => {
-      const { projectId } = request.params as { projectId: string };
-      const { name, slug, branchId } = request.body as {
-        name: string;
-        slug: string;
-        branchId: string;
-      };
+      const { projectId } = request.params;
+      const { name, slug, branchId } = request.body;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(projectId);
@@ -135,14 +134,16 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         ],
       });
 
-      return reply.status(201).send(environment);
+      // Fetch with branch for response
+      const envWithBranch = await environmentService.findById(environment.id);
+      return reply.status(201).send(toEnvironmentDto(envWithBranch!));
     }
   );
 
   /**
    * GET /api/environments/:id - Get environment details
    */
-  fastify.get(
+  app.get(
     '/api/environments/:id',
     {
       onRequest: [fastify.authenticate],
@@ -150,19 +151,16 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get environment by ID',
         tags: ['Environments'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
           200: environmentResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const environment = await environmentService.findById(id);
       if (!environment) {
@@ -177,14 +175,14 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return environment;
+      return toEnvironmentDto(environment);
     }
   );
 
   /**
    * PUT /api/environments/:id - Update environment
    */
-  fastify.put(
+  app.put(
     '/api/environments/:id',
     {
       onRequest: [fastify.authenticate],
@@ -192,21 +190,18 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Update environment',
         tags: ['Environments'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
-        ...updateEnvironmentSchema,
+        params: z.object({
+          id: z.string(),
+        }),
+        body: updateEnvironmentSchema,
         response: {
           200: environmentResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const input = request.body as { name?: string };
+      const { id } = request.params;
+      const input = request.body;
 
       const environment = await environmentService.findById(id);
       if (!environment) {
@@ -222,14 +217,16 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Requires manager or owner role');
       }
 
-      return environmentService.update(id, input);
+      const updated = await environmentService.update(id, input);
+      const updatedWithBranch = await environmentService.findById(updated.id);
+      return toEnvironmentDto(updatedWithBranch!);
     }
   );
 
   /**
    * PUT /api/environments/:id/branch - Switch branch pointer
    */
-  fastify.put(
+  app.put(
     '/api/environments/:id/branch',
     {
       onRequest: [fastify.authenticate],
@@ -237,21 +234,18 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Switch environment branch pointer',
         tags: ['Environments'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
-        ...switchBranchSchema,
+        params: z.object({
+          id: z.string(),
+        }),
+        body: switchBranchSchema,
         response: {
           200: environmentResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const { branchId } = request.body as { branchId: string };
+      const { id } = request.params;
+      const { branchId } = request.body;
 
       const environment = await environmentService.findById(id);
       if (!environment) {
@@ -298,14 +292,15 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         ],
       });
 
-      return result;
+      const resultWithBranch = await environmentService.findById(result.id);
+      return toEnvironmentDto(resultWithBranch!);
     }
   );
 
   /**
    * DELETE /api/environments/:id - Delete environment
    */
-  fastify.delete(
+  app.delete(
     '/api/environments/:id',
     {
       onRequest: [fastify.authenticate],
@@ -313,16 +308,13 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Delete environment',
         tags: ['Environments'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
       },
     },
     async (request, reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const environment = await environmentService.findById(id);
       if (!environment) {

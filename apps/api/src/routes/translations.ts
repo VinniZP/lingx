@@ -5,24 +5,33 @@
  * Per Design Doc: AC-WEB-007 through AC-WEB-011
  */
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
+import {
+  createKeySchema,
+  updateKeySchema,
+  updateTranslationsSchema,
+  setTranslationSchema,
+  bulkDeleteKeysSchema,
+  bulkUpdateTranslationsSchema,
+  keyListResponseSchema,
+  translationKeyResponseSchema,
+  translationValueSchema,
+  bulkDeleteResponseSchema,
+} from '@localeflow/shared';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { BranchService } from '../services/branch.service.js';
 import { ActivityService } from '../services/activity.service.js';
 import {
-  createKeySchema,
-  updateKeySchema,
-  keyListSchema,
-  keyWithTranslationsSchema,
-  updateTranslationsSchema,
-  setTranslationSchema,
-  bulkDeleteSchema,
-  branchTranslationsSchema,
-  bulkUpdateTranslationsSchema,
-} from '../schemas/translation.schema.js';
+  toTranslationKeyDto,
+  toKeyListResultDto,
+  toTranslationValueDto,
+} from '../dto/index.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const translationRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const translationService = new TranslationService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
   const branchService = new BranchService(fastify.prisma);
@@ -31,7 +40,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/branches/:branchId/keys - List keys with pagination and search
    */
-  fastify.get(
+  app.get(
     '/api/branches/:branchId/keys',
     {
       onRequest: [fastify.authenticate],
@@ -39,30 +48,22 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'List translation keys with pagination and search',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            branchId: { type: 'string' },
-          },
+        params: z.object({
+          branchId: z.string(),
+        }),
+        querystring: z.object({
+          search: z.string().optional(),
+          page: z.coerce.number().default(1),
+          limit: z.coerce.number().max(100).default(50),
+        }),
+        response: {
+          200: keyListResponseSchema,
         },
-        querystring: {
-          type: 'object',
-          properties: {
-            search: { type: 'string' },
-            page: { type: 'number', default: 1 },
-            limit: { type: 'number', default: 50, maximum: 100 },
-          },
-        },
-        ...keyListSchema,
       },
     },
     async (request, _reply) => {
-      const { branchId } = request.params as { branchId: string };
-      const { search, page, limit } = request.query as {
-        search?: string;
-        page?: number;
-        limit?: number;
-      };
+      const { branchId } = request.params;
+      const { search, page, limit } = request.query;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -77,18 +78,19 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return translationService.findKeysByBranchId(branchId, {
+      const result = await translationService.findKeysByBranchId(branchId, {
         search,
         page,
         limit,
       });
+      return toKeyListResultDto(result);
     }
   );
 
   /**
    * POST /api/branches/:branchId/keys - Create new key
    */
-  fastify.post(
+  app.post(
     '/api/branches/:branchId/keys',
     {
       onRequest: [fastify.authenticate],
@@ -96,21 +98,18 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Create a new translation key',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            branchId: { type: 'string' },
-          },
+        params: z.object({
+          branchId: z.string(),
+        }),
+        body: createKeySchema,
+        response: {
+          201: translationKeyResponseSchema,
         },
-        ...createKeySchema,
       },
     },
     async (request, reply) => {
-      const { branchId } = request.params as { branchId: string };
-      const { name, description } = request.body as {
-        name: string;
-        description?: string;
-      };
+      const { branchId } = request.params;
+      const { name, description } = request.body;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -147,14 +146,14 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         ],
       });
 
-      return reply.status(201).send(key);
+      return reply.status(201).send(toTranslationKeyDto(key));
     }
   );
 
   /**
    * GET /api/keys/:id - Get key with translations
    */
-  fastify.get(
+  app.get(
     '/api/keys/:id',
     {
       onRequest: [fastify.authenticate],
@@ -162,19 +161,16 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get translation key with all translations',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
-          200: keyWithTranslationsSchema,
+          200: translationKeyResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const key = await translationService.findKeyById(id);
       if (!key) {
@@ -192,14 +188,14 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         }
       }
 
-      return key;
+      return toTranslationKeyDto(key);
     }
   );
 
   /**
    * PUT /api/keys/:id - Update key
    */
-  fastify.put(
+  app.put(
     '/api/keys/:id',
     {
       onRequest: [fastify.authenticate],
@@ -207,18 +203,18 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Update translation key',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
+        params: z.object({
+          id: z.string(),
+        }),
+        body: updateKeySchema,
+        response: {
+          200: translationKeyResponseSchema,
         },
-        ...updateKeySchema,
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const input = request.body as { name?: string; description?: string };
+      const { id } = request.params;
+      const { name, description } = request.body;
 
       const projectId = await translationService.getProjectIdByKeyId(id);
       if (!projectId) {
@@ -233,14 +229,15 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return translationService.updateKey(id, input);
+      const updated = await translationService.updateKey(id, { name, description });
+      return toTranslationKeyDto(updated);
     }
   );
 
   /**
    * DELETE /api/keys/:id - Delete key
    */
-  fastify.delete(
+  app.delete(
     '/api/keys/:id',
     {
       onRequest: [fastify.authenticate],
@@ -248,16 +245,13 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Delete translation key',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
       },
     },
     async (request, reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       // Get key info before deletion for activity logging
       const key = await translationService.findKeyById(id);
@@ -303,7 +297,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/branches/:branchId/keys/bulk-delete - Bulk delete keys
    */
-  fastify.post(
+  app.post(
     '/api/branches/:branchId/keys/bulk-delete',
     {
       onRequest: [fastify.authenticate],
@@ -311,18 +305,18 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Bulk delete translation keys',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            branchId: { type: 'string' },
-          },
+        params: z.object({
+          branchId: z.string(),
+        }),
+        body: bulkDeleteKeysSchema,
+        response: {
+          200: bulkDeleteResponseSchema,
         },
-        ...bulkDeleteSchema,
       },
     },
     async (request, _reply) => {
-      const { branchId } = request.params as { branchId: string };
-      const { keyIds } = request.body as { keyIds: string[] };
+      const { branchId } = request.params;
+      const { keyIds } = request.body;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -368,7 +362,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * PUT /api/keys/:id/translations - Update all translations for a key
    */
-  fastify.put(
+  app.put(
     '/api/keys/:id/translations',
     {
       onRequest: [fastify.authenticate],
@@ -376,20 +370,18 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Update translations for a key',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
+        params: z.object({
+          id: z.string(),
+        }),
+        body: updateTranslationsSchema,
+        response: {
+          200: translationKeyResponseSchema,
         },
-        ...updateTranslationsSchema,
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const { translations } = request.body as {
-        translations: Record<string, string>;
-      };
+      const { id } = request.params;
+      const { translations } = request.body;
 
       const projectId = await translationService.getProjectIdByKeyId(id);
       if (!projectId) {
@@ -439,14 +431,14 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      return result;
+      return toTranslationKeyDto(result);
     }
   );
 
   /**
    * PUT /api/keys/:keyId/translations/:lang - Set single translation
    */
-  fastify.put(
+  app.put(
     '/api/keys/:keyId/translations/:lang',
     {
       onRequest: [fastify.authenticate],
@@ -454,19 +446,19 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Set translation for a specific language',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            keyId: { type: 'string' },
-            lang: { type: 'string' },
-          },
+        params: z.object({
+          keyId: z.string(),
+          lang: z.string(),
+        }),
+        body: setTranslationSchema,
+        response: {
+          200: translationValueSchema,
         },
-        ...setTranslationSchema,
       },
     },
     async (request, _reply) => {
-      const { keyId, lang } = request.params as { keyId: string; lang: string };
-      const { value } = request.body as { value: string };
+      const { keyId, lang } = request.params;
+      const { value } = request.body;
 
       const projectId = await translationService.getProjectIdByKeyId(keyId);
       if (!projectId) {
@@ -510,14 +502,26 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      return result;
+      return toTranslationValueDto(result);
     }
   );
+
+  // Response schema for branch translations (GET)
+  const branchTranslationsResponseSchema = z.object({
+    translations: z.record(z.string(), z.record(z.string(), z.string())),
+    languages: z.array(z.string()),
+  });
+
+  // Response schema for bulk update result
+  const bulkUpdateResultSchema = z.object({
+    updated: z.number(),
+    created: z.number(),
+  });
 
   /**
    * GET /api/branches/:branchId/translations - Get all translations (for CLI)
    */
-  fastify.get(
+  app.get(
     '/api/branches/:branchId/translations',
     {
       onRequest: [fastify.authenticate],
@@ -525,17 +529,16 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get all translations for a branch (CLI pull)',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            branchId: { type: 'string' },
-          },
+        params: z.object({
+          branchId: z.string(),
+        }),
+        response: {
+          200: branchTranslationsResponseSchema,
         },
-        ...branchTranslationsSchema,
       },
     },
     async (request, _reply) => {
-      const { branchId } = request.params as { branchId: string };
+      const { branchId } = request.params;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -557,7 +560,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * PUT /api/branches/:branchId/translations - Bulk update translations (CLI push)
    */
-  fastify.put(
+  app.put(
     '/api/branches/:branchId/translations',
     {
       onRequest: [fastify.authenticate],
@@ -565,20 +568,18 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Bulk update translations for a branch (CLI push)',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            branchId: { type: 'string' },
-          },
+        params: z.object({
+          branchId: z.string(),
+        }),
+        body: bulkUpdateTranslationsSchema,
+        response: {
+          200: bulkUpdateResultSchema,
         },
-        ...bulkUpdateTranslationsSchema,
       },
     },
     async (request, _reply) => {
-      const { branchId } = request.params as { branchId: string };
-      const { translations } = request.body as {
-        translations: Record<string, Record<string, string>>;
-      };
+      const { branchId } = request.params;
+      const { translations } = request.body;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {

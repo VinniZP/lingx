@@ -5,22 +5,27 @@
  * Per Design Doc: AC-WEB-012, AC-WEB-013, AC-WEB-014
  */
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
+import {
+  createBranchSchema,
+  branchListResponseSchema,
+  branchWithSpaceSchema,
+  branchDiffResponseSchema,
+  mergeRequestSchema,
+  mergeResponseSchema,
+} from '@localeflow/shared';
 import { BranchService } from '../services/branch.service.js';
 import { DiffService } from '../services/diff.service.js';
 import { MergeService } from '../services/merge.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { SpaceService } from '../services/space.service.js';
 import { ActivityService } from '../services/activity.service.js';
-import {
-  createBranchSchema,
-  branchListSchema,
-  branchDetailSchema,
-} from '../schemas/branch.schema.js';
-import { branchDiffSchema } from '../schemas/diff.schema.js';
-import { mergeEndpointSchema } from '../schemas/merge.schema.js';
+import { toBranchDtoList, toBranchWithSpaceDto } from '../dto/index.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const branchRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const branchService = new BranchService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
   const spaceService = new SpaceService(fastify.prisma);
@@ -29,7 +34,7 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/spaces/:spaceId/branches - List branches for a space
    */
-  fastify.get(
+  app.get(
     '/api/spaces/:spaceId/branches',
     {
       onRequest: [fastify.authenticate],
@@ -37,17 +42,16 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'List all branches for a space',
         tags: ['Branches'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            spaceId: { type: 'string' },
-          },
+        params: z.object({
+          spaceId: z.string(),
+        }),
+        response: {
+          200: branchListResponseSchema,
         },
-        ...branchListSchema,
       },
     },
     async (request, _reply) => {
-      const { spaceId } = request.params as { spaceId: string };
+      const { spaceId } = request.params;
 
       const projectId = await spaceService.getProjectIdBySpaceId(spaceId);
       if (!projectId) {
@@ -64,14 +68,14 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const branches = await branchService.findBySpaceId(spaceId);
-      return { branches };
+      return { branches: toBranchDtoList(branches) };
     }
   );
 
   /**
    * POST /api/spaces/:spaceId/branches - Create new branch (copy-on-write)
    */
-  fastify.post(
+  app.post(
     '/api/spaces/:spaceId/branches',
     {
       onRequest: [fastify.authenticate],
@@ -79,21 +83,18 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Create a new branch with copy-on-write from source branch',
         tags: ['Branches'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            spaceId: { type: 'string' },
-          },
+        params: z.object({
+          spaceId: z.string(),
+        }),
+        body: createBranchSchema,
+        response: {
+          201: branchWithSpaceSchema,
         },
-        ...createBranchSchema,
       },
     },
     async (request, reply) => {
-      const { spaceId } = request.params as { spaceId: string };
-      const { name, fromBranchId } = request.body as {
-        name: string;
-        fromBranchId: string;
-      };
+      const { spaceId } = request.params;
+      const { name, fromBranchId } = request.body;
 
       const projectId = await spaceService.getProjectIdBySpaceId(spaceId);
       if (!projectId) {
@@ -139,14 +140,16 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         ],
       });
 
-      return reply.status(201).send(branch);
+      // Fetch with space for response
+      const branchWithSpace = await branchService.findById(branch.id);
+      return reply.status(201).send(toBranchWithSpaceDto(branchWithSpace!));
     }
   );
 
   /**
    * GET /api/branches/:id - Get branch details
    */
-  fastify.get(
+  app.get(
     '/api/branches/:id',
     {
       onRequest: [fastify.authenticate],
@@ -154,19 +157,16 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get branch by ID with details',
         tags: ['Branches'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
-          200: branchDetailSchema,
+          200: branchWithSpaceSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const branch = await branchService.findById(id);
       if (!branch) {
@@ -182,14 +182,14 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return branch;
+      return toBranchWithSpaceDto(branch);
     }
   );
 
   /**
    * DELETE /api/branches/:id - Delete branch
    */
-  fastify.delete(
+  app.delete(
     '/api/branches/:id',
     {
       onRequest: [fastify.authenticate],
@@ -197,16 +197,13 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Delete branch (cannot delete default branch)',
         tags: ['Branches'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
       },
     },
     async (request, reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       // Get branch info before deletion for activity logging
       const branch = await branchService.findById(id);
@@ -258,7 +255,7 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
    * Per Design Doc: AC-WEB-014 - Diff shows added, modified, deleted keys
    * Returns categorized changes between source and target branches.
    */
-  fastify.get(
+  app.get(
     '/api/branches/:id/diff/:targetId',
     {
       onRequest: [fastify.authenticate],
@@ -266,14 +263,17 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Compare two branches and show differences',
         tags: ['Branches'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        ...branchDiffSchema,
+        params: z.object({
+          id: z.string(),
+          targetId: z.string(),
+        }),
+        response: {
+          200: branchDiffResponseSchema,
+        },
       },
     },
     async (request, _reply) => {
-      const { id: sourceBranchId, targetId: targetBranchId } = request.params as {
-        id: string;
-        targetId: string;
-      };
+      const { id: sourceBranchId, targetId: targetBranchId } = request.params;
 
       const diffService = new DiffService(fastify.prisma);
 
@@ -305,7 +305,7 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
    * Merges changes from source branch into target branch.
    * Returns conflicts if any exist and no resolutions are provided.
    */
-  fastify.post(
+  app.post(
     '/api/branches/:id/merge',
     {
       onRequest: [fastify.authenticate],
@@ -313,18 +313,18 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Merge source branch into target branch',
         tags: ['Branches'],
         security: [{ bearerAuth: [] }],
-        ...mergeEndpointSchema,
+        params: z.object({
+          id: z.string(),
+        }),
+        body: mergeRequestSchema,
+        response: {
+          200: mergeResponseSchema,
+        },
       },
     },
     async (request, _reply) => {
-      const { id: sourceBranchId } = request.params as { id: string };
-      const { targetBranchId, resolutions } = request.body as {
-        targetBranchId: string;
-        resolutions?: Array<{
-          key: string;
-          resolution: 'source' | 'target' | Record<string, string>;
-        }>;
-      };
+      const { id: sourceBranchId } = request.params;
+      const { targetBranchId, resolutions } = request.body;
 
       const mergeService = new MergeService(fastify.prisma);
 

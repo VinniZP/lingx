@@ -3,9 +3,10 @@
 import { useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { spaceApi, CreateSpaceInput, ApiError } from '@/lib/api';
+import { createSpaceSchema, type CreateSpaceInput } from '@localeflow/shared';
+import { spaceApi, ApiError } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,22 +30,6 @@ import {
 import { toast } from 'sonner';
 import { Layers, Loader2, Sparkles } from 'lucide-react';
 
-// Validation schema matching project forms
-const spaceSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Space name must be at least 2 characters')
-    .max(50, 'Space name must be less than 50 characters'),
-  slug: z
-    .string()
-    .min(2, 'Slug must be at least 2 characters')
-    .max(50, 'Slug must be less than 50 characters')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-});
-
-type SpaceFormData = z.infer<typeof spaceSchema>;
-
 interface CreateSpaceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -64,8 +49,8 @@ export function CreateSpaceDialog({
 }: CreateSpaceDialogProps) {
   const queryClient = useQueryClient();
 
-  const form = useForm<SpaceFormData>({
-    resolver: zodResolver(spaceSchema),
+  const form = useForm<CreateSpaceInput>({
+    resolver: zodResolver(createSpaceSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
@@ -92,9 +77,11 @@ export function CreateSpaceDialog({
       onOpenChange(false);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to create space', {
-        description: error.message,
-      });
+      if (!handleApiFieldErrors(error, form.setError)) {
+        toast.error('Failed to create space', {
+          description: error.message,
+        });
+      }
     },
   });
 
@@ -108,7 +95,7 @@ export function CreateSpaceDialog({
     form.setValue('slug', generatedSlug, { shouldValidate: true });
   };
 
-  const onSubmit = (data: SpaceFormData) => {
+  const onSubmit = (data: CreateSpaceInput) => {
     createMutation.mutate({
       name: data.name,
       slug: data.slug,

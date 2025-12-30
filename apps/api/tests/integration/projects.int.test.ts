@@ -349,14 +349,14 @@ describe('Project API Integration Tests', () => {
 
       expect(response.statusCode).toBe(204);
 
-      // Verify deletion
+      // Verify deletion - project no longer exists so we get 404
       const getResponse = await app.inject({
         method: 'GET',
         url: `/api/projects/${id}`,
         headers: { cookie: authCookie },
       });
 
-      expect(getResponse.statusCode).toBe(403); // Not a member anymore (project doesn't exist)
+      expect(getResponse.statusCode).toBe(404);
     });
   });
 
@@ -387,7 +387,8 @@ describe('Project API Integration Tests', () => {
       const body = JSON.parse(response.body);
       expect(body.id).toBe(id);
       expect(body.name).toBe('Stats Test Project');
-      expect(body.spaces).toBe(0);
+      // Projects auto-create a default space on creation
+      expect(body.spaces).toBe(1);
       expect(body.totalKeys).toBe(0);
       expect(body.translationsByLanguage).toBeDefined();
       expect(body.translationsByLanguage.en).toBeDefined();

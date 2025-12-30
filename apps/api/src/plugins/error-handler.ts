@@ -1,5 +1,6 @@
 import { FastifyPluginAsync, FastifyError } from 'fastify';
 import fp from 'fastify-plugin';
+import type { FieldError } from '@localeflow/shared';
 
 /**
  * Standard error response structure for consistent API error handling
@@ -9,6 +10,7 @@ interface ErrorResponse {
   error: string;
   message: string;
   code?: string;
+  fieldErrors?: FieldError[];
 }
 
 /**
@@ -82,6 +84,19 @@ export class ConflictError extends AppError {
 }
 
 /**
+ * Error thrown when field-level validation fails (e.g., unique constraint violations)
+ * Returns detailed field-level errors to the client for form display
+ */
+export class FieldValidationError extends AppError {
+  public readonly fieldErrors: FieldError[];
+
+  constructor(fieldErrors: FieldError[], message?: string) {
+    super(message || 'Validation failed', 409, 'FIELD_VALIDATION_ERROR');
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+/**
  * Error Handler Plugin
  *
  * Sets up global error handling for the Fastify application.
@@ -96,8 +111,33 @@ const errorHandlerPlugin: FastifyPluginAsync = async (fastify) => {
       message: 'An unexpected error occurred',
     };
 
+    // Handle FieldValidationError (field-level errors)
+    // Check both instanceof and duck-typing for fieldErrors property
+    const isFieldValidationError = error instanceof FieldValidationError ||
+      (error instanceof AppError && 'fieldErrors' in error && Array.isArray((error as FieldValidationError).fieldErrors));
+
+    if (isFieldValidationError) {
+      const fieldError = error as FieldValidationError;
+      response.statusCode = fieldError.statusCode;
+      response.error = fieldError.code;
+      response.message = fieldError.message;
+      response.code = fieldError.code;
+      response.fieldErrors = fieldError.fieldErrors;
+
+      fastify.log.info(
+        {
+          err: error,
+          fieldErrors: fieldError.fieldErrors,
+          request: {
+            method: request.method,
+            url: request.url,
+          },
+        },
+        'Field validation error'
+      );
+    }
     // Handle AppError (our custom errors)
-    if (error instanceof AppError) {
+    else if (error instanceof AppError) {
       response.statusCode = error.statusCode;
       response.error = error.code;
       response.message = error.message;

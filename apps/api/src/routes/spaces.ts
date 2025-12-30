@@ -5,26 +5,34 @@
  * Per Design Doc: AC-WEB-004, AC-WEB-005, AC-WEB-006
  */
 import { FastifyPluginAsync } from 'fastify';
-import { SpaceService } from '../services/space.service.js';
-import { ProjectService } from '../services/project.service.js';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import {
   createSpaceSchema,
   updateSpaceSchema,
-  spaceListSchema,
+  spaceListResponseSchema,
   spaceResponseSchema,
   spaceWithBranchesSchema,
-  spaceStatsSchema,
-} from '../schemas/space.schema.js';
+  spaceStatsResponseSchema,
+} from '@localeflow/shared';
+import { SpaceService } from '../services/space.service.js';
+import { ProjectService } from '../services/project.service.js';
+import {
+  toSpaceDto,
+  toSpaceDtoList,
+  toSpaceWithBranchesDto,
+} from '../dto/index.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const spaceRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
   const spaceService = new SpaceService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
 
   /**
    * GET /api/projects/:projectId/spaces - List spaces for a project
    */
-  fastify.get(
+  app.get(
     '/api/projects/:projectId/spaces',
     {
       onRequest: [fastify.authenticate],
@@ -32,17 +40,16 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'List all spaces for a project',
         tags: ['Spaces'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            projectId: { type: 'string' },
-          },
+        params: z.object({
+          projectId: z.string(),
+        }),
+        response: {
+          200: spaceListResponseSchema,
         },
-        ...spaceListSchema,
       },
     },
     async (request, _reply) => {
-      const { projectId } = request.params as { projectId: string };
+      const { projectId } = request.params;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(projectId);
@@ -60,14 +67,14 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const spaces = await spaceService.findByProjectId(project.id);
-      return { spaces };
+      return { spaces: toSpaceDtoList(spaces) };
     }
   );
 
   /**
    * POST /api/projects/:projectId/spaces - Create new space
    */
-  fastify.post(
+  app.post(
     '/api/projects/:projectId/spaces',
     {
       onRequest: [fastify.authenticate],
@@ -75,22 +82,18 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Create a new space in a project (auto-creates main branch)',
         tags: ['Spaces'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            projectId: { type: 'string' },
-          },
+        params: z.object({
+          projectId: z.string(),
+        }),
+        body: createSpaceSchema,
+        response: {
+          201: spaceResponseSchema,
         },
-        ...createSpaceSchema,
       },
     },
     async (request, reply) => {
-      const { projectId } = request.params as { projectId: string };
-      const { name, slug, description } = request.body as {
-        name: string;
-        slug: string;
-        description?: string;
-      };
+      const { projectId } = request.params;
+      const { name, slug, description } = request.body;
 
       // Look up project by ID or slug (flexible lookup)
       const project = await projectService.findByIdOrSlug(projectId);
@@ -114,14 +117,14 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         projectId: project.id,
       });
 
-      return reply.status(201).send(space);
+      return reply.status(201).send(toSpaceDto(space));
     }
   );
 
   /**
    * GET /api/spaces/:id - Get space details with branches
    */
-  fastify.get(
+  app.get(
     '/api/spaces/:id',
     {
       onRequest: [fastify.authenticate],
@@ -129,19 +132,16 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get space by ID with branches',
         tags: ['Spaces'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
           200: spaceWithBranchesSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const space = await spaceService.findById(id);
       if (!space) {
@@ -157,14 +157,14 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return space;
+      return toSpaceWithBranchesDto(space);
     }
   );
 
   /**
    * PUT /api/spaces/:id - Update space
    */
-  fastify.put(
+  app.put(
     '/api/spaces/:id',
     {
       onRequest: [fastify.authenticate],
@@ -172,24 +172,18 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Update space',
         tags: ['Spaces'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
-        ...updateSpaceSchema,
+        params: z.object({
+          id: z.string(),
+        }),
+        body: updateSpaceSchema,
         response: {
           200: spaceResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
-      const input = request.body as {
-        name?: string;
-        description?: string;
-      };
+      const { id } = request.params;
+      const input = request.body;
 
       const projectId = await spaceService.getProjectIdBySpaceId(id);
       if (!projectId) {
@@ -206,14 +200,14 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const space = await spaceService.update(id, input);
-      return space;
+      return toSpaceDto(space);
     }
   );
 
   /**
    * DELETE /api/spaces/:id - Delete space
    */
-  fastify.delete(
+  app.delete(
     '/api/spaces/:id',
     {
       onRequest: [fastify.authenticate],
@@ -221,16 +215,13 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Delete space',
         tags: ['Spaces'],
         security: [{ bearerAuth: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
       },
     },
     async (request, reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const projectId = await spaceService.getProjectIdBySpaceId(id);
       if (!projectId) {
@@ -254,7 +245,7 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * GET /api/spaces/:id/stats - Get space statistics
    */
-  fastify.get(
+  app.get(
     '/api/spaces/:id/stats',
     {
       onRequest: [fastify.authenticate],
@@ -262,19 +253,16 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         description: 'Get space statistics',
         tags: ['Spaces'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-        },
+        params: z.object({
+          id: z.string(),
+        }),
         response: {
-          200: spaceStatsSchema,
+          200: spaceStatsResponseSchema,
         },
       },
     },
     async (request, _reply) => {
-      const { id } = request.params as { id: string };
+      const { id } = request.params;
 
       const projectId = await spaceService.getProjectIdBySpaceId(id);
       if (!projectId) {
