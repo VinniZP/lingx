@@ -112,6 +112,13 @@
       }
     }
   },
+  "activity": {
+    "title": "Recent Activity",
+    "lastDay": "Last 24 hours",
+    "lastWeek": "Last 7 days",
+    "empty": "Activity will appear here as you work",
+    "viewAll": "View all changes"
+  },
   "projects": {
     "title": "Projects",
     "description": "Manage your localization projects",

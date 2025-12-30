@@ -24,6 +24,7 @@ model User {
 
   apiKeys        ApiKey[]
   projectMembers ProjectMember[]
+  activities     Activity[]
 
   @@index([email])
 }
@@ -56,18 +57,20 @@ model ApiKey {
 // ============================================
 
 model Project {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  description     String?
-  defaultLanguage String   @default("en")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique
+  description           String?
+  defaultLanguage       String   @default("en")
+  activityRetentionDays Int      @default(90)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   languages    ProjectLanguage[]
   members      ProjectMember[]
   spaces       Space[]
   environments Environment[]
+  activities   Activity[]
 
   @@index([slug])
 }
@@ -136,11 +139,12 @@ model Branch {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  space        Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  sourceBranch Branch?           @relation("BranchToSource", fields: [sourceBranchId], references: [id])
-  childBranches Branch[]         @relation("BranchToSource")
-  keys         TranslationKey[]
-  environments Environment[]
+  space         Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  sourceBranch  Branch?           @relation("BranchToSource", fields: [sourceBranchId], references: [id])
+  childBranches Branch[]          @relation("BranchToSource")
+  keys          TranslationKey[]
+  environments  Environment[]
+  activities    Activity[]
 
   @@unique([spaceId, slug])
   @@index([spaceId])
@@ -213,4 +217,70 @@ model Language {
   name String         // Display name
 
   @@index([code])
+}
+
+// ============================================
+// ACTIVITY TRACKING (per ADR-0005)
+// ============================================
+
+enum ActivityType {
+  // Groupable (sequential session-based)
+  translation
+  key_add
+  key_delete
+
+  // Non-groupable (single events)
+  branch_create
+  branch_delete
+  merge
+  import
+  export
+  project_settings
+  environment_create
+  environment_delete
+  environment_switch_branch
+  ai_translate
+}
+
+/// Grouped activity for feed display
+/// Uses sequential session-based grouping (15-min gap or type change breaks)
+model Activity {
+  id        String       @id @default(cuid())
+  projectId String
+  branchId  String?
+  userId    String
+  type      ActivityType
+  metadata  Json         // Summary + first 10 changes preview
+  count     Int          @default(1) // For grouped activities
+  groupKey  String       @unique // Enables upsert for grouping
+  createdAt DateTime     @default(now())
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch  Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  changes ActivityChange[]
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([type])
+  @@index([branchId])
+}
+
+/// Individual changes for full audit trail ("View all" link)
+model ActivityChange {
+  id         String   @id @default(cuid())
+  activityId String
+  entityType String   // 'translation', 'key', etc.
+  entityId   String   // keyId, translationId, etc.
+  keyName    String?  // Denormalized for display without joins
+  language   String?  // For translation changes
+  oldValue   String?  // null for creates
+  newValue   String?  // null for deletes
+  createdAt  DateTime @default(now())
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId])
+  @@index([entityId]) // Query: "Who changed this key?"
+  @@index([createdAt])
 }

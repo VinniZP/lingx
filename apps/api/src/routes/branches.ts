@@ -10,6 +10,7 @@ import { DiffService } from '../services/diff.service.js';
 import { MergeService } from '../services/merge.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { SpaceService } from '../services/space.service.js';
+import { ActivityService } from '../services/activity.service.js';
 import {
   createBranchSchema,
   branchListSchema,
@@ -23,6 +24,7 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
   const branchService = new BranchService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
   const spaceService = new SpaceService(fastify.prisma);
+  const activityService = new ActivityService(fastify.prisma);
 
   /**
    * GET /api/spaces/:spaceId/branches - List branches for a space
@@ -107,10 +109,34 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
+      // Get source branch name for activity metadata
+      const sourceBranch = await branchService.findById(fromBranchId);
+
       const branch = await branchService.create({
         name,
         spaceId,
         fromBranchId,
+      });
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'branch_create',
+        projectId,
+        branchId: branch.id,
+        userId: request.user.userId,
+        metadata: {
+          branchName: name,
+          branchId: branch.id,
+          sourceBranchName: sourceBranch?.name,
+          sourceBranchId: fromBranchId,
+        },
+        changes: [
+          {
+            entityType: 'branch',
+            entityId: branch.id,
+            newValue: name,
+          },
+        ],
       });
 
       return reply.status(201).send(branch);
@@ -182,6 +208,12 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { id } = request.params as { id: string };
 
+      // Get branch info before deletion for activity logging
+      const branch = await branchService.findById(id);
+      if (!branch) {
+        throw new NotFoundError('Branch');
+      }
+
       const projectId = await branchService.getProjectIdByBranchId(id);
       if (!projectId) {
         throw new NotFoundError('Branch');
@@ -197,6 +229,25 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       await branchService.delete(id);
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'branch_delete',
+        projectId,
+        userId: request.user.userId,
+        metadata: {
+          branchName: branch.name,
+          branchId: id,
+        },
+        changes: [
+          {
+            entityType: 'branch',
+            entityId: id,
+            oldValue: branch.name,
+          },
+        ],
+      });
+
       return reply.status(204).send();
     }
   );
@@ -294,10 +345,39 @@ const branchRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
+      // Get branch names for activity metadata
+      const [sourceBranch, targetBranch] = await Promise.all([
+        branchService.findById(sourceBranchId),
+        branchService.findById(targetBranchId),
+      ]);
+
       const result = await mergeService.merge(sourceBranchId, {
         targetBranchId,
         resolutions,
       });
+
+      // Log activity only if merge was successful (no conflicts returned)
+      if (result.success) {
+        activityService.log({
+          type: 'merge',
+          projectId,
+          branchId: targetBranchId,
+          userId: request.user.userId,
+          metadata: {
+            sourceBranchName: sourceBranch?.name,
+            sourceBranchId,
+            targetBranchName: targetBranch?.name,
+            targetBranchId,
+            conflictsResolved: resolutions?.length || 0,
+          },
+          changes: [
+            {
+              entityType: 'merge',
+              entityId: `${sourceBranchId}->${targetBranchId}`,
+            },
+          ],
+        });
+      }
 
       return result;
     }

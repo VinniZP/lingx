@@ -64,8 +64,8 @@
 ### Phase 7: Dashboard & Analytics 🚧
 - [x] Dashboard statistics API
 - [x] Project statistics on cards
-- [ ] Activity tracking system
-- [ ] Activity feed display
+- [x] Activity tracking infrastructure (Redis/BullMQ, schema, service, workers, API)
+- [x] Activity logging integration (add logging to translation/branch routes)
 - [ ] Field-level validation errors
 - [ ] **User profile settings** (name, email, avatar, preferences)
 - [ ] **Security settings** (password change, active sessions)
@@ -118,13 +118,13 @@
 |----------|-------------|--------|
 | High | Dashboard statistics API | ✅ Done |
 | High | Project statistics on cards | ✅ Done |
+| High | Activity tracking system | ✅ Done |
+| High | Activity feed display | ✅ Done |
 | High | User profile settings | 📋 Next |
 | High | Security settings | 📋 |
 | High | Two-factor authentication (TOTP) | 📋 |
 | High | Key approval status | 📋 |
 | Medium | Passkeys/WebAuthn | 📋 |
-| Medium | Activity tracking system | 📋 |
-| Medium | Activity feed display | 📋 |
 
 ---
 

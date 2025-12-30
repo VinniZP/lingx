@@ -11,12 +11,16 @@ import authPlugin from './plugins/auth.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
+import activityRoutes from './routes/activity.js';
 import projectRoutes from './routes/projects.js';
 import spaceRoutes from './routes/spaces.js';
 import branchRoutes from './routes/branches.js';
 import translationRoutes from './routes/translations.js';
 import environmentRoutes from './routes/environments.js';
 import sdkRoutes from './routes/sdk.js';
+import { startWorkers, stopWorkers } from './workers/index.js';
+import { closeQueues } from './lib/queues.js';
+import { closeRedis } from './lib/redis.js';
 
 /**
  * Application configuration options
@@ -121,12 +125,33 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(dashboardRoutes);
+  await fastify.register(activityRoutes);
   await fastify.register(projectRoutes);
   await fastify.register(spaceRoutes);
   await fastify.register(branchRoutes);
   await fastify.register(translationRoutes);
   await fastify.register(environmentRoutes);
   await fastify.register(sdkRoutes);
+
+  // Start background workers (skip in test mode)
+  const skipWorkers = process.env.NODE_ENV === 'test' || options.logger === false;
+  if (!skipWorkers) {
+    // Start workers after prisma is ready
+    fastify.addHook('onReady', async () => {
+      try {
+        await startWorkers(fastify.prisma);
+      } catch (err) {
+        fastify.log.warn({ err }, 'Failed to start workers (Redis may not be running)');
+      }
+    });
+
+    // Graceful shutdown
+    fastify.addHook('onClose', async () => {
+      await stopWorkers();
+      await closeQueues();
+      await closeRedis();
+    });
+  }
 
   return fastify;
 }

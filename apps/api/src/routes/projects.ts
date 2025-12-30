@@ -6,6 +6,7 @@
  */
 import { FastifyPluginAsync } from 'fastify';
 import { ProjectService } from '../services/project.service.js';
+import { ActivityService } from '../services/activity.service.js';
 import {
   createProjectSchema,
   updateProjectSchema,
@@ -17,6 +18,7 @@ import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 const projectRoutes: FastifyPluginAsync = async (fastify) => {
   const projectService = new ProjectService(fastify.prisma);
+  const activityService = new ActivityService(fastify.prisma);
 
   /**
    * GET /api/projects - List user's projects with stats
@@ -163,7 +165,34 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Requires manager or owner role');
       }
 
+      // Track which fields are being changed
+      const changedFields: string[] = [];
+      if (input.name !== undefined && input.name !== project.name) changedFields.push('name');
+      if (input.description !== undefined && input.description !== project.description) changedFields.push('description');
+      if (input.languageCodes !== undefined) changedFields.push('languageCodes');
+      if (input.defaultLanguage !== undefined && input.defaultLanguage !== project.defaultLanguage) changedFields.push('defaultLanguage');
+
       const updated = await projectService.update(project.id, input);
+
+      // Log activity (async, non-blocking)
+      if (changedFields.length > 0) {
+        activityService.log({
+          type: 'project_settings',
+          projectId: project.id,
+          userId: request.user.userId,
+          metadata: {
+            changedFields,
+          },
+          changes: changedFields.map((field) => ({
+            entityType: 'project',
+            entityId: project.id,
+            keyName: field,
+            oldValue: String((project as unknown as Record<string, unknown>)[field] ?? ''),
+            newValue: String((input as unknown as Record<string, unknown>)[field] ?? ''),
+          })),
+        });
+      }
+
       return updated;
     }
   );
@@ -378,6 +407,89 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
           })),
         })),
       };
+    }
+  );
+
+  /**
+   * GET /api/projects/:id/activity - Get project activity feed
+   *
+   * Returns recent activities for the project.
+   * Used by the project details page activity feed.
+   */
+  fastify.get(
+    '/api/projects/:id/activity',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Get project activity feed',
+        tags: ['Projects', 'Activity'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+          required: ['id'],
+        },
+        querystring: {
+          type: 'object',
+          properties: {
+            limit: { type: 'number', minimum: 1, maximum: 50, default: 10 },
+            cursor: { type: 'string', description: 'ISO date cursor for pagination' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              activities: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    projectId: { type: 'string' },
+                    projectName: { type: 'string' },
+                    branchId: { type: ['string', 'null'] },
+                    branchName: { type: 'string' },
+                    userId: { type: 'string' },
+                    userName: { type: 'string' },
+                    type: { type: 'string' },
+                    count: { type: 'number' },
+                    metadata: { type: 'object' },
+                    createdAt: { type: 'string' },
+                  },
+                },
+              },
+              nextCursor: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { id } = request.params as { id: string };
+      const { limit, cursor } = request.query as { limit?: number; cursor?: string };
+
+      // Look up project by ID or slug (flexible lookup)
+      const project = await projectService.findByIdOrSlug(id);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
+      // Check membership
+      const isMember = await projectService.checkMembership(
+        project.id,
+        request.user.userId
+      );
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      return await activityService.getProjectActivities(project.id, {
+        limit,
+        cursor,
+      });
     }
   );
 };

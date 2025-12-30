@@ -7,6 +7,8 @@
 import { FastifyPluginAsync } from 'fastify';
 import { EnvironmentService } from '../services/environment.service.js';
 import { ProjectService } from '../services/project.service.js';
+import { ActivityService } from '../services/activity.service.js';
+import { BranchService } from '../services/branch.service.js';
 import {
   createEnvironmentSchema,
   updateEnvironmentSchema,
@@ -19,6 +21,8 @@ import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 const environmentRoutes: FastifyPluginAsync = async (fastify) => {
   const environmentService = new EnvironmentService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
+  const activityService = new ActivityService(fastify.prisma);
+  const branchService = new BranchService(fastify.prisma);
 
   /**
    * GET /api/projects/:projectId/environments - List environments
@@ -110,6 +114,25 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         slug,
         projectId: project.id,
         branchId,
+      });
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'environment_create',
+        projectId: project.id,
+        branchId,
+        userId: request.user.userId,
+        metadata: {
+          environmentName: name,
+          environmentId: environment.id,
+        },
+        changes: [
+          {
+            entityType: 'environment',
+            entityId: environment.id,
+            newValue: name,
+          },
+        ],
       });
 
       return reply.status(201).send(environment);
@@ -244,7 +267,38 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Requires manager or owner role');
       }
 
-      return environmentService.switchBranch(id, branchId);
+      // Get old and new branch names for activity logging
+      const oldBranchId = environment.branchId;
+      const [oldBranch, newBranch] = await Promise.all([
+        oldBranchId ? branchService.findById(oldBranchId) : null,
+        branchService.findById(branchId),
+      ]);
+
+      const result = await environmentService.switchBranch(id, branchId);
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'environment_switch_branch',
+        projectId: environment.projectId,
+        branchId,
+        userId: request.user.userId,
+        metadata: {
+          environmentName: environment.name,
+          environmentId: id,
+          oldBranchName: oldBranch?.name,
+          newBranchName: newBranch?.name,
+        },
+        changes: [
+          {
+            entityType: 'environment',
+            entityId: id,
+            oldValue: oldBranch?.name,
+            newValue: newBranch?.name,
+          },
+        ],
+      });
+
+      return result;
     }
   );
 
@@ -285,6 +339,25 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       await environmentService.delete(id);
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'environment_delete',
+        projectId: environment.projectId,
+        userId: request.user.userId,
+        metadata: {
+          environmentName: environment.name,
+          environmentId: id,
+        },
+        changes: [
+          {
+            entityType: 'environment',
+            entityId: id,
+            oldValue: environment.name,
+          },
+        ],
+      });
+
       return reply.status(204).send();
     }
   );

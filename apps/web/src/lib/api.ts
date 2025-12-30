@@ -159,14 +159,39 @@ export interface ProjectTree {
 }
 
 // Dashboard API
-import type { DashboardStats } from '@localeflow/shared';
+import type { DashboardStats, Activity, ActivityChange } from '@localeflow/shared';
 
 export const dashboardApi = {
   getStats: () => fetchApi<DashboardStats>('/api/dashboard/stats'),
 };
 
 // Re-export for convenience
-export type { DashboardStats };
+export type { DashboardStats, Activity, ActivityChange };
+
+// Activity API
+export const activityApi = {
+  /** Get user activities across all projects (dashboard feed) */
+  getUserActivities: (params?: { limit?: number; cursor?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.cursor) query.set('cursor', params.cursor);
+    const queryString = query.toString();
+    return fetchApi<{ activities: Activity[]; nextCursor?: string }>(
+      `/api/activity${queryString ? `?${queryString}` : ''}`
+    );
+  },
+
+  /** Get full audit trail for an activity */
+  getActivityChanges: (activityId: string, params?: { limit?: number; cursor?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.cursor) query.set('cursor', params.cursor);
+    const queryString = query.toString();
+    return fetchApi<{ changes: ActivityChange[]; nextCursor?: string; total: number }>(
+      `/api/activity/${activityId}/changes${queryString ? `?${queryString}` : ''}`
+    );
+  },
+};
 
 // Project API
 export const projectApi = {
@@ -196,6 +221,17 @@ export const projectApi = {
 
   getTree: (id: string) =>
     fetchApi<ProjectTree>(`/api/projects/${id}/tree`),
+
+  /** Get project-specific activities */
+  getActivity: (id: string, params?: { limit?: number; cursor?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.cursor) query.set('cursor', params.cursor);
+    const queryString = query.toString();
+    return fetchApi<{ activities: Activity[]; nextCursor?: string }>(
+      `/api/projects/${id}/activity${queryString ? `?${queryString}` : ''}`
+    );
+  },
 };
 
 // Space types

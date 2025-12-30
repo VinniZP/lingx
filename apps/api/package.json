@@ -20,7 +20,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@localeflow/shared": "workspace:*",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/helmet": "^13.0.2",
@@ -28,12 +27,15 @@
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/swagger": "^9.6.1",
     "@fastify/swagger-ui": "^5.2.3",
+    "@localeflow/shared": "workspace:*",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.66.4",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
     "fastify-plugin": "^5.1.0",
+    "ioredis": "^5.8.2",
     "pg": "^8.16.3",
     "prisma": "^7.2.0"
   },

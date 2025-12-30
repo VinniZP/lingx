@@ -8,6 +8,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { BranchService } from '../services/branch.service.js';
+import { ActivityService } from '../services/activity.service.js';
 import {
   createKeySchema,
   updateKeySchema,
@@ -25,6 +26,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   const translationService = new TranslationService(fastify.prisma);
   const projectService = new ProjectService(fastify.prisma);
   const branchService = new BranchService(fastify.prisma);
+  const activityService = new ActivityService(fastify.prisma);
 
   /**
    * GET /api/branches/:branchId/keys - List keys with pagination and search
@@ -127,6 +129,22 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         name,
         description,
         branchId,
+      });
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'key_add',
+        projectId,
+        branchId,
+        userId: request.user.userId,
+        metadata: {},
+        changes: [
+          {
+            entityType: 'key',
+            entityId: key.id,
+            keyName: name,
+          },
+        ],
       });
 
       return reply.status(201).send(key);
@@ -241,6 +259,12 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { id } = request.params as { id: string };
 
+      // Get key info before deletion for activity logging
+      const key = await translationService.findKeyById(id);
+      if (!key) {
+        throw new NotFoundError('Translation key');
+      }
+
       const projectId = await translationService.getProjectIdByKeyId(id);
       if (!projectId) {
         throw new NotFoundError('Translation key');
@@ -255,6 +279,23 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       await translationService.deleteKey(id);
+
+      // Log activity (async, non-blocking)
+      activityService.log({
+        type: 'key_delete',
+        projectId,
+        branchId: key.branchId,
+        userId: request.user.userId,
+        metadata: {},
+        changes: [
+          {
+            entityType: 'key',
+            entityId: id,
+            keyName: key.name,
+          },
+        ],
+      });
+
       return reply.status(204).send();
     }
   );
@@ -296,7 +337,30 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
+      // Get key names before deletion for activity logging
+      const keysToDelete = await fastify.prisma.translationKey.findMany({
+        where: { id: { in: keyIds }, branchId },
+        select: { id: true, name: true },
+      });
+
       const deleted = await translationService.bulkDeleteKeys(branchId, keyIds);
+
+      // Log activity (async, non-blocking)
+      if (keysToDelete.length > 0) {
+        activityService.log({
+          type: 'key_delete',
+          projectId,
+          branchId,
+          userId: request.user.userId,
+          metadata: {},
+          changes: keysToDelete.map((key) => ({
+            entityType: 'key',
+            entityId: key.id,
+            keyName: key.name,
+          })),
+        });
+      }
+
       return { deleted };
     }
   );
@@ -340,7 +404,42 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return translationService.updateKeyTranslations(id, translations);
+      // Get key info and old translations for activity logging
+      const key = await translationService.findKeyById(id);
+      const oldTranslations: Record<string, string | undefined> = {};
+      if (key) {
+        for (const t of key.translations) {
+          oldTranslations[t.language] = t.value;
+        }
+      }
+
+      const result = await translationService.updateKeyTranslations(id, translations);
+
+      // Log activity (async, non-blocking)
+      const changedLanguages = Object.keys(translations).filter(
+        (lang) => translations[lang] !== oldTranslations[lang]
+      );
+      if (changedLanguages.length > 0 && key) {
+        activityService.log({
+          type: 'translation',
+          projectId,
+          branchId: key.branchId,
+          userId: request.user.userId,
+          metadata: {
+            languages: changedLanguages,
+          },
+          changes: changedLanguages.map((lang) => ({
+            entityType: 'translation',
+            entityId: id,
+            keyName: key.name,
+            language: lang,
+            oldValue: oldTranslations[lang],
+            newValue: translations[lang],
+          })),
+        });
+      }
+
+      return result;
     }
   );
 
@@ -382,7 +481,36 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return translationService.setTranslation(keyId, lang, value);
+      // Get key info and old value for activity logging
+      const key = await translationService.findKeyById(keyId);
+      const oldValue = key?.translations.find((t) => t.language === lang)?.value;
+
+      const result = await translationService.setTranslation(keyId, lang, value);
+
+      // Log activity (async, non-blocking)
+      if (key && value !== oldValue) {
+        activityService.log({
+          type: 'translation',
+          projectId,
+          branchId: key.branchId,
+          userId: request.user.userId,
+          metadata: {
+            languages: [lang],
+          },
+          changes: [
+            {
+              entityType: 'translation',
+              entityId: keyId,
+              keyName: key.name,
+              language: lang,
+              oldValue,
+              newValue: value,
+            },
+          ],
+        });
+      }
+
+      return result;
     }
   );
 
@@ -465,7 +593,44 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return translationService.bulkUpdateTranslations(branchId, translations);
+      const result = await translationService.bulkUpdateTranslations(branchId, translations);
+
+      // Log activity for CLI push operation
+      const keyCount = Object.keys(translations).length;
+      const languages = new Set<string>();
+      for (const keyTranslations of Object.values(translations)) {
+        for (const lang of Object.keys(keyTranslations)) {
+          languages.add(lang);
+        }
+      }
+
+      if (keyCount > 0) {
+        // Log as import activity (CLI push is conceptually an import)
+        activityService.log({
+          type: 'import',
+          projectId,
+          branchId,
+          userId: request.user.userId,
+          metadata: {
+            keyCount,
+            languages: Array.from(languages),
+            format: 'cli_push',
+          },
+          changes: Object.entries(translations)
+            .slice(0, 50) // Limit changes logged (full audit would be too large)
+            .flatMap(([keyName, keyTranslations]) =>
+              Object.entries(keyTranslations).map(([lang, value]) => ({
+                entityType: 'translation',
+                entityId: keyName,
+                keyName,
+                language: lang,
+                newValue: value,
+              }))
+            ),
+        });
+      }
+
+      return result;
     }
   );
 };
