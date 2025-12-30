@@ -3,3 +3,4 @@
  */
 
 export * from './dashboard.js';
+export * from './project.js';

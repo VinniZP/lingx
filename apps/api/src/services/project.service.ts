@@ -60,6 +60,14 @@ export interface ProjectWithLanguages extends Project {
   }>;
 }
 
+export interface ProjectWithLanguagesAndStats extends ProjectWithLanguages {
+  stats: {
+    totalKeys: number;
+    translatedKeys: number;
+    completionRate: number;
+  };
+}
+
 export interface ProjectStats {
   id: string;
   name: string;
@@ -227,6 +235,81 @@ export class ProjectService {
         languages: true,
       },
       orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  /**
+   * Find all projects for a user with embedded statistics.
+   * Uses efficient aggregation to avoid N+1 queries.
+   *
+   * @param userId - User ID
+   * @returns Array of projects with languages and stats
+   */
+  async findByUserIdWithStats(userId: string): Promise<ProjectWithLanguagesAndStats[]> {
+    // Get projects with languages and aggregate translation data
+    const projects = await this.prisma.project.findMany({
+      where: {
+        members: {
+          some: { userId },
+        },
+      },
+      include: {
+        languages: true,
+        spaces: {
+          include: {
+            branches: {
+              where: { isDefault: true },
+              include: {
+                _count: {
+                  select: { keys: true },
+                },
+                keys: {
+                  include: {
+                    _count: {
+                      select: { translations: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    // Calculate stats for each project
+    return projects.map((project) => {
+      let totalKeys = 0;
+      let totalTranslations = 0;
+
+      for (const space of project.spaces) {
+        for (const branch of space.branches) {
+          totalKeys += branch._count.keys;
+          for (const key of branch.keys) {
+            totalTranslations += key._count.translations;
+          }
+        }
+      }
+
+      const languageCount = project.languages.length;
+      const totalPossibleTranslations = totalKeys * languageCount;
+      const completionRate =
+        totalPossibleTranslations > 0
+          ? totalTranslations / totalPossibleTranslations
+          : 0;
+
+      // Return project without nested spaces data
+      const { spaces: _spaces, ...projectData } = project;
+
+      return {
+        ...projectData,
+        stats: {
+          totalKeys,
+          translatedKeys: totalTranslations,
+          completionRate,
+        },
+      };
     });
   }
 

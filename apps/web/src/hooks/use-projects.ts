@@ -1,14 +1,15 @@
 /**
- * Custom hook for fetching user's projects.
+ * Custom hook for fetching user's projects with embedded statistics.
  * Uses React Query for caching and automatic refetching.
  */
 import { useQuery } from '@tanstack/react-query';
 import { projectApi } from '@/lib/api';
 
 /**
- * Fetch all projects for the current user.
+ * Fetch all projects for the current user with stats.
+ * Each project includes: totalKeys, translatedKeys, completionRate.
  *
- * @returns React Query result with projects list
+ * @returns React Query result with projects list (includes stats)
  *
  * @example
  * ```tsx
@@ -18,7 +19,10 @@ import { projectApi } from '@/lib/api';
  *   if (isLoading) return <Skeleton />;
  *   if (error) return <Error message={error.message} />;
  *
- *   return <ProjectsGrid projects={data.projects} />;
+ *   return (
+ *     <ProjectsGrid projects={data.projects} />
+ *     // Each project has: project.stats.totalKeys, project.stats.completionRate
+ *   );
  * }
  * ```
  */

@@ -92,7 +92,20 @@ export interface Project {
   updatedAt: string;
 }
 
-export interface ProjectStats {
+/** Project stats embedded in project list response */
+export interface ProjectStatsEmbedded {
+  totalKeys: number;
+  translatedKeys: number;
+  completionRate: number;
+}
+
+/** Project with stats - returned by list endpoint */
+export interface ProjectWithStats extends Project {
+  stats: ProjectStatsEmbedded;
+}
+
+/** Legacy detailed stats - used by /api/projects/:id/stats */
+export interface ProjectStatsDetailed {
   id: string;
   name: string;
   spaces: number;
@@ -157,7 +170,7 @@ export type { DashboardStats };
 
 // Project API
 export const projectApi = {
-  list: () => fetchApi<{ projects: Project[] }>('/api/projects'),
+  list: () => fetchApi<{ projects: ProjectWithStats[] }>('/api/projects'),
 
   get: (id: string) => fetchApi<Project>(`/api/projects/${id}`),
 
@@ -179,7 +192,7 @@ export const projectApi = {
     }),
 
   getStats: (id: string) =>
-    fetchApi<ProjectStats>(`/api/projects/${id}/stats`),
+    fetchApi<ProjectStatsDetailed>(`/api/projects/${id}/stats`),
 
   getTree: (id: string) =>
     fetchApi<ProjectTree>(`/api/projects/${id}/tree`),

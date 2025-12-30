@@ -111,5 +111,29 @@
         "description": "Use CLI or API to pull translations"
       }
     }
+  },
+  "projects": {
+    "title": "Projects",
+    "description": "Manage your localization projects",
+    "stats": {
+      "totalKeys": "Total Keys"
+    },
+    "search": {
+      "placeholder": "Search projects...",
+      "noResults": "No projects found",
+      "noResultsHint": "Try adjusting your search query"
+    },
+    "filters": "Filters",
+    "newProject": "New Project",
+    "empty": {
+      "title": "No projects yet",
+      "description": "Create your first project to start managing translations with version control and collaboration.",
+      "cta": "Create your first project"
+    },
+    "card": {
+      "keys": "{count} keys",
+      "progress": "Progress",
+      "main": "main"
+    }
   }
 }

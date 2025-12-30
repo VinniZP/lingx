@@ -111,5 +111,29 @@
         "description": "Usa CLI o API para obtener traducciones"
       }
     }
+  },
+  "projects": {
+    "title": "Proyectos",
+    "description": "Gestiona tus proyectos de localización",
+    "stats": {
+      "totalKeys": "Claves Totales"
+    },
+    "search": {
+      "placeholder": "Buscar proyectos...",
+      "noResults": "No se encontraron proyectos",
+      "noResultsHint": "Intenta ajustar tu búsqueda"
+    },
+    "filters": "Filtros",
+    "newProject": "Nuevo Proyecto",
+    "empty": {
+      "title": "Aún no hay proyectos",
+      "description": "Crea tu primer proyecto para comenzar a gestionar traducciones con control de versiones y colaboración.",
+      "cta": "Crea tu primer proyecto"
+    },
+    "card": {
+      "keys": "{count} claves",
+      "progress": "Progreso",
+      "main": "main"
+    }
   }
 }

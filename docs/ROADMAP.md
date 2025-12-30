@@ -63,7 +63,7 @@
 
 ### Phase 7: Dashboard & Analytics 🚧
 - [x] Dashboard statistics API
-- [ ] Project statistics on cards
+- [x] Project statistics on cards
 - [ ] Activity tracking system
 - [ ] Activity feed display
 - [ ] Field-level validation errors
@@ -117,8 +117,8 @@
 | Priority | Deliverable | Status |
 |----------|-------------|--------|
 | High | Dashboard statistics API | ✅ Done |
-| High | Project statistics on cards | 📋 Next |
-| High | User profile settings | 📋 |
+| High | Project statistics on cards | ✅ Done |
+| High | User profile settings | 📋 Next |
 | High | Security settings | 📋 |
 | High | Two-factor authentication (TOTP) | 📋 |
 | High | Key approval status | 📋 |

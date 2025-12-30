@@ -19,21 +19,21 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
   const projectService = new ProjectService(fastify.prisma);
 
   /**
-   * GET /api/projects - List user's projects
+   * GET /api/projects - List user's projects with stats
    */
   fastify.get(
     '/api/projects',
     {
       onRequest: [fastify.authenticate],
       schema: {
-        description: 'List all projects for the authenticated user',
+        description: 'List all projects for the authenticated user with statistics',
         tags: ['Projects'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
         ...projectListSchema,
       },
     },
     async (request, _reply) => {
-      const projects = await projectService.findByUserId(request.user.userId);
+      const projects = await projectService.findByUserIdWithStats(request.user.userId);
       return { projects };
     }
   );

@@ -116,6 +116,41 @@ export const projectStatsSchema = {
   },
 };
 
+const projectStatsEmbeddedSchema = {
+  type: 'object',
+  properties: {
+    totalKeys: { type: 'number' },
+    translatedKeys: { type: 'number' },
+    completionRate: { type: 'number' },
+  },
+};
+
+const projectWithStatsSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    slug: { type: 'string' },
+    description: { type: 'string', nullable: true },
+    defaultLanguage: { type: 'string' },
+    languages: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          code: { type: 'string' },
+          name: { type: 'string' },
+          isDefault: { type: 'boolean' },
+        },
+      },
+    },
+    stats: projectStatsEmbeddedSchema,
+    createdAt: { type: 'string' },
+    updatedAt: { type: 'string' },
+  },
+};
+
 export const projectListSchema = {
   response: {
     200: {
@@ -123,7 +158,7 @@ export const projectListSchema = {
       properties: {
         projects: {
           type: 'array',
-          items: projectResponseSchema,
+          items: projectWithStatsSchema,
         },
       },
     },
