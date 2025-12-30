@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Security settings complete)
+> **Updated**: 2025-12-31 (Two-factor authentication complete)
 
 ---
 
@@ -70,7 +70,7 @@
 - [x] Zod validation with unified API/frontend types
 - [x] **User profile settings** (name, email change with verification, avatar upload, preferences UI)
 - [x] **Security settings** (password change, active sessions)
-- [ ] **Two-factor authentication** (TOTP with backup codes)
+- [x] **Two-factor authentication** (TOTP with backup codes, 30-day device trust)
 - [ ] **Passkeys/WebAuthn** (passwordless login)
 - [ ] **Key approval status** (pending/approved, auto-reset on change)
 
@@ -125,8 +125,8 @@
 | High | Zod validation & unified types | ✅ Done |
 | High | User profile settings | ✅ Done |
 | High | Security settings | ✅ Done |
-| High | Two-factor authentication (TOTP) | 📋 Next |
-| High | Key approval status | 📋 |
+| High | Two-factor authentication (TOTP) | ✅ Done |
+| High | Key approval status | 📋 Next |
 | Medium | Passkeys/WebAuthn | 📋 |
 
 ---

@@ -714,3 +714,81 @@ export const securityApi = {
       method: 'DELETE',
     }),
 };
+
+// TOTP Two-Factor Authentication types
+export interface TotpSetupResponse {
+  secret: string;
+  qrCodeUri: string;
+  backupCodes: string[];
+}
+
+export interface TotpStatus {
+  enabled: boolean;
+  enabledAt: string | null;
+  backupCodesRemaining: number;
+  trustedDevicesCount: number;
+}
+
+export interface TwoFactorRequiredResponse {
+  requiresTwoFactor: true;
+  tempToken: string;
+}
+
+// TOTP API
+export const totpApi = {
+  /** Initiate TOTP setup - returns secret and QR code URI */
+  initiateSetup: () =>
+    fetchApi<TotpSetupResponse>('/api/totp/setup', {
+      method: 'POST',
+    }),
+
+  /** Confirm TOTP setup with verification code */
+  confirmSetup: (token: string) =>
+    fetchApi<{ backupCodes: string[] }>('/api/totp/setup/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
+  /** Cancel pending TOTP setup */
+  cancelSetup: () =>
+    fetchApi<void>('/api/totp/setup', {
+      method: 'DELETE',
+    }),
+
+  /** Verify TOTP token during login */
+  verify: (data: { tempToken: string; token: string; trustDevice?: boolean }) =>
+    fetchApi<{ user: User }>('/api/totp/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Verify backup code during login */
+  verifyBackup: (data: { tempToken: string; code: string; trustDevice?: boolean }) =>
+    fetchApi<{ user: User; codesRemaining: number }>('/api/totp/verify/backup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Disable TOTP (requires password) */
+  disable: (password: string) =>
+    fetchApi<void>('/api/totp', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    }),
+
+  /** Regenerate backup codes (requires password) */
+  regenerateBackupCodes: (password: string) =>
+    fetchApi<{ backupCodes: string[] }>('/api/totp/backup-codes', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
+
+  /** Get TOTP status */
+  getStatus: () => fetchApi<TotpStatus>('/api/totp/status'),
+
+  /** Revoke device trust for a session */
+  revokeTrust: (sessionId: string) =>
+    fetchApi<void>(`/api/totp/trust/${sessionId}`, {
+      method: 'DELETE',
+    }),
+};

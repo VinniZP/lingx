@@ -13,6 +13,7 @@ export * from './environment.schema.js';
 export * from './translation.schema.js';
 export * from './profile.schema.js';
 export * from './security.schema.js';
+export * from './totp.schema.js';
 
 // Response schemas
 export * from './response.schema.js';

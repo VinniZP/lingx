@@ -16,6 +16,7 @@ import {
   createApiKeyResponseSchema,
   apiKeyListResponseSchema,
   messageResponseSchema,
+  twoFactorRequiredResponseSchema,
 } from '@localeflow/shared';
 import {
   toUserDto,
@@ -66,7 +67,8 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /api/auth/login
    *
    * Authenticate with email and password.
-   * Creates a session and returns JWT in HttpOnly cookie (24h expiry).
+   * If 2FA is enabled and device not trusted, returns tempToken for 2FA verification.
+   * Otherwise, creates a session and returns JWT in HttpOnly cookie (24h expiry).
    */
   app.post('/api/auth/login', {
     schema: {
@@ -74,7 +76,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       tags: ['Auth'],
       body: loginSchema,
       response: {
-        200: authResponseSchema,
+        200: z.union([authResponseSchema, twoFactorRequiredResponseSchema]),
       },
     },
   }, async (request, reply) => {
@@ -82,7 +84,31 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     const user = await fastify.authService.login({ email, password });
 
-    // Create session for this login
+    // Check if 2FA is enabled
+    if (user.totpEnabled) {
+      // Check for device trust via existing session cookie
+      let isDeviceTrusted = false;
+      try {
+        await request.jwtVerify();
+        if (request.user?.sessionId) {
+          isDeviceTrusted = await fastify.totpService.isDeviceTrusted(request.user.sessionId);
+        }
+      } catch {
+        // No valid session - device is not trusted
+      }
+
+      if (!isDeviceTrusted) {
+        // Return temp token for 2FA verification
+        const tempToken = fastify.jwt.sign(
+          { userId: user.id, purpose: '2fa' },
+          { expiresIn: '5m' }
+        );
+
+        return { requiresTwoFactor: true as const, tempToken };
+      }
+    }
+
+    // No 2FA or device is trusted - proceed with normal login
     const session = await fastify.securityService.createSession(user.id, request);
 
     // Generate JWT with userId and sessionId payload

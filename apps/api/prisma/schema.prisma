@@ -24,29 +24,51 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // TOTP Two-Factor Authentication
+  totpSecret         String?   // AES-256-GCM encrypted TOTP secret
+  totpSecretIv       String?   // Initialization vector for decryption
+  totpEnabled        Boolean   @default(false)
+  totpEnabledAt      DateTime?
+  totpFailedAttempts Int       @default(0)
+  totpLockedUntil    DateTime?
+
   apiKeys            ApiKey[]
   projectMembers     ProjectMember[]
   activities         Activity[]
   emailVerifications EmailVerification[]
   sessions           Session[]
+  backupCodes        BackupCode[]
 
   @@index([email])
 }
 
 model Session {
-  id         String   @id @default(cuid())
-  userId     String
-  deviceInfo String?  // Parsed browser/OS from user agent
-  userAgent  String?  // Raw user agent string
-  ipAddress  String?
-  lastActive DateTime @default(now())
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime // 24h from creation, matches JWT expiry
+  id           String    @id @default(cuid())
+  userId       String
+  deviceInfo   String?   // Parsed browser/OS from user agent
+  userAgent    String?   // Raw user agent string
+  ipAddress    String?
+  lastActive   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime  // 24h from creation, matches JWT expiry
+  trustedUntil DateTime? // 2FA device trust expiry (30 days)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model BackupCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String    // bcrypt hash of backup code
+  usedAt    DateTime? // null if unused
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model EmailVerification {

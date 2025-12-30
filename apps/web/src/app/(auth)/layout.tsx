@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
-import { Languages, Globe, GitBranch, Users } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Languages, Globe, GitBranch, Users, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 export default function AuthLayout({
   children,
@@ -13,7 +14,26 @@ export default function AuthLayout({
   const [panelMounted, setPanelMounted] = useState(false);
   const [formMounted, setFormMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const isInitialMount = useRef(true);
+  const { user, isLoading, pendingTwoFactor } = useAuth();
+
+  // Redirect authenticated users away from auth pages
+  useEffect(() => {
+    if (isLoading) return;
+
+    // If user is authenticated and not pending 2FA, redirect to dashboard
+    if (user && !pendingTwoFactor) {
+      router.replace('/dashboard');
+      return;
+    }
+
+    // If on 2FA page but no pending 2FA, redirect to login
+    if (pathname === '/two-factor' && !pendingTwoFactor) {
+      router.replace('/login');
+      return;
+    }
+  }, [user, isLoading, pendingTwoFactor, pathname, router]);
 
   // Left panel - animate only on initial mount
   useEffect(() => {
@@ -34,6 +54,15 @@ export default function AuthLayout({
     const timer = setTimeout(() => setFormMounted(true), 50);
     return () => clearTimeout(timer);
   }, [pathname]);
+
+  // Show loading state while checking auth or if user is authenticated (will redirect)
+  if (isLoading || (user && !pendingTwoFactor)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex">

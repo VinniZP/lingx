@@ -31,8 +31,8 @@ declare module 'fastify' {
  */
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { userId: string; sessionId?: string };
-    user: { userId: string; sessionId?: string };
+    payload: { userId: string; sessionId?: string; purpose?: string };
+    user: { userId: string; sessionId?: string; purpose?: string };
   }
 }
 
