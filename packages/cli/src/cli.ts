@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { createAuthCommand } from './commands/auth/index.js';
+import { createInitCommand } from './commands/init.js';
 import { createPullCommand } from './commands/pull.js';
 import { createPushCommand } from './commands/push.js';
 import { createSyncCommand } from './commands/sync.js';
@@ -19,6 +20,7 @@ export function createCLI(): Command {
 
   // Register command groups
   program.addCommand(createAuthCommand());
+  program.addCommand(createInitCommand());
   program.addCommand(createPullCommand());
   program.addCommand(createPushCommand());
   program.addCommand(createSyncCommand());

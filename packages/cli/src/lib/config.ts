@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 
 export interface LocaleflowConfig {
@@ -34,7 +35,7 @@ export interface LocaleflowConfig {
   };
 }
 
-const DEFAULT_CONFIG: LocaleflowConfig = {
+export const DEFAULT_CONFIG: LocaleflowConfig = {
   api: {
     url: 'http://localhost:3001',
   },
@@ -64,6 +65,7 @@ const DEFAULT_CONFIG: LocaleflowConfig = {
 };
 
 const CONFIG_FILE_NAMES = [
+  'localeflow.config.ts',
   '.localeflow.yml',
   '.localeflow.yaml',
   'localeflow.config.yml',
@@ -74,9 +76,18 @@ export async function loadConfig(projectDir: string): Promise<LocaleflowConfig> 
   for (const fileName of CONFIG_FILE_NAMES) {
     const filePath = join(projectDir, fileName);
     if (existsSync(filePath)) {
-      const content = await readFile(filePath, 'utf-8');
-      const parsed = yaml.load(content) as Partial<LocaleflowConfig>;
-      return mergeConfig(DEFAULT_CONFIG, parsed);
+      if (fileName.endsWith('.ts')) {
+        // Load TypeScript config using dynamic import
+        const fileUrl = pathToFileURL(filePath).href;
+        const module = await import(fileUrl);
+        const parsed = (module.default ?? module.config) as Partial<LocaleflowConfig>;
+        return mergeConfig(DEFAULT_CONFIG, parsed);
+      } else {
+        // Load YAML config
+        const content = await readFile(filePath, 'utf-8');
+        const parsed = yaml.load(content) as Partial<LocaleflowConfig>;
+        return mergeConfig(DEFAULT_CONFIG, parsed);
+      }
     }
   }
   return DEFAULT_CONFIG;
