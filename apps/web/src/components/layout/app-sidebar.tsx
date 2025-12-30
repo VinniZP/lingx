@@ -14,7 +14,7 @@ import {
   Globe,
 } from 'lucide-react';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +55,7 @@ interface AppSidebarProps {
     id: string;
     email: string;
     name: string | null;
+    avatarUrl?: string | null;
     isManager: boolean;
   } | null;
   pathname: string;
@@ -164,6 +165,9 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                     data-testid="user-menu"
                   >
                     <Avatar className="size-8 rounded-lg shrink-0">
+                      {user?.avatarUrl && (
+                        <AvatarImage src={user.avatarUrl} alt={displayName} className="rounded-lg object-cover" />
+                      )}
                       <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
                         {userInitials}
                       </AvatarFallback>
@@ -184,6 +188,9 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                   <div className="px-3 py-3 mb-1">
                     <div className="flex items-center gap-3">
                       <Avatar className="size-10 rounded-xl ring-2 ring-primary/10">
+                        {user?.avatarUrl && (
+                          <AvatarImage src={user.avatarUrl} alt={displayName} className="rounded-xl object-cover" />
+                        )}
                         <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/20 to-warm/20 text-primary font-semibold">
                           {userInitials}
                         </AvatarFallback>

@@ -54,6 +54,7 @@ export default function DashboardLayout({
     id: user.id,
     email: user.email,
     name: user.name,
+    avatarUrl: user.avatarUrl,
     isManager: isManager,
   }
 

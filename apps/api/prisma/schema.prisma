@@ -14,19 +14,36 @@ datasource db {
 // ============================================
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String   // bcrypt hashed (cost factor 12)
-  name      String?
-  role      Role     @default(DEVELOPER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String   // bcrypt hashed (cost factor 12)
+  name        String?
+  role        Role     @default(DEVELOPER)
+  avatarUrl   String?  // Path to uploaded avatar file
+  preferences Json?    // {theme, language, notifications, defaultProjectId}
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  apiKeys        ApiKey[]
-  projectMembers ProjectMember[]
-  activities     Activity[]
+  apiKeys            ApiKey[]
+  projectMembers     ProjectMember[]
+  activities         Activity[]
+  emailVerifications EmailVerification[]
 
   @@index([email])
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  newEmail  String   // The new email being verified
+  token     String   @unique // Secure token for verification
+  expiresAt DateTime // 24-hour expiry
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }
 
 enum Role {

@@ -14,6 +14,7 @@ export function toUserDto(user: Omit<User, 'password'>): UserResponse {
     email: user.email,
     name: user.name,
     role: user.role,
+    avatarUrl: user.avatarUrl,
     createdAt: user.createdAt.toISOString(),
   };
 }

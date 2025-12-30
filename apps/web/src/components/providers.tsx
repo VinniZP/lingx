@@ -41,8 +41,8 @@ export function Providers({ children }: { children: ReactNode }) {
             staticData={undefined}
             // API fetching (tries first, falls back to localePath)
             apiUrl={API_URL}
-            project="localeflow-main"
-            space="web"
+            project="localeflow"
+            space="default"
             environment="production"
             // Fallback to local JSON files
             localePath="/locales"

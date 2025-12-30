@@ -36,6 +36,17 @@ services:
       timeout: 5s
       retries: 5
 
+  maildev:
+    image: maildev/maildev:2.1.0
+    container_name: localeflow-maildev
+    restart: unless-stopped
+    ports:
+      - "${MAILDEV_WEB_PORT:-1080}:1080"   # Web UI for viewing emails
+      - "${MAILDEV_SMTP_PORT:-1025}:1025"  # SMTP server
+    environment:
+      - MAILDEV_WEB_USER=${MAILDEV_WEB_USER:-}
+      - MAILDEV_WEB_PASS=${MAILDEV_WEB_PASS:-}
+
 volumes:
   postgres_data:
   redis_data:

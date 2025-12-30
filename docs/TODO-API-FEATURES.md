@@ -528,6 +528,103 @@ Existing endpoints that may need enhancement:
 
 ---
 
+## User Preferences Integration (Future)
+
+### 11. User Preferences - Make Them Functional
+**Status:** 🔮 Postponed - preferences UI is complete, integration can wait
+**UI Location:** Profile settings page - Preferences section
+**Current:** UI saves preferences to database, but they don't actually do anything
+**Needed:** Wire up preferences to affect the actual app behavior
+
+#### Theme Preference
+**Current State:** Stored in `user.preferences.theme` ('system' | 'light' | 'dark')
+**Integration:**
+- On login/app load, read user's theme preference from API
+- Apply to `next-themes` provider
+- When preference changes, update `next-themes` immediately
+
+```typescript
+// apps/web/src/lib/auth.tsx - Add theme sync
+import { useTheme } from 'next-themes';
+
+// In AuthProvider, after fetching user profile:
+useEffect(() => {
+  if (user?.preferences?.theme) {
+    setTheme(user.preferences.theme);
+  }
+}, [user?.preferences?.theme, setTheme]);
+```
+
+#### Language Preference (i18n)
+**Current State:** Stored in `user.preferences.language` ('en' | 'es' | 'fr' | 'de' | 'ja')
+**Future Integration:**
+- Requires setting up i18n (next-intl or similar)
+- On login, set app locale based on preference
+- Store translations in `messages/` folder
+- Low priority until LocaleFlow needs translation itself
+
+#### Default Project
+**Current State:** Stored in `user.preferences.defaultProjectId` (string | null)
+**Integration:**
+- On dashboard load, if `defaultProjectId` is set and valid, redirect to that project
+- Add redirect logic to dashboard page
+
+```typescript
+// apps/web/src/app/(dashboard)/dashboard/page.tsx
+useEffect(() => {
+  if (profile?.preferences?.defaultProjectId) {
+    const hasProject = projectsData?.projects?.some(
+      p => p.id === profile.preferences.defaultProjectId
+    );
+    if (hasProject) {
+      router.replace(`/projects/${profile.preferences.defaultProjectId}`);
+    }
+  }
+}, [profile?.preferences?.defaultProjectId, projectsData, router]);
+```
+
+#### Notification Preferences
+**Current State:** Stored in `user.preferences.notifications`:
+- `email`: boolean - Receive email notifications
+- `inApp`: boolean - Show in-app notifications
+- `digestFrequency`: 'never' | 'daily' | 'weekly'
+
+**Integration:**
+- **Email notifications:** When sending emails (activity digest, etc.), check `notifications.email` first
+- **In-app notifications:** Check `notifications.inApp` before showing toasts/badges
+- **Digest frequency:** Set up cron job to send activity digest based on preference
+
+```typescript
+// apps/api/src/services/email.service.ts - Check preferences
+async sendActivityDigest(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { preferences: true, email: true }
+  });
+
+  const prefs = user?.preferences as UserPreferences | null;
+  if (!prefs?.notifications?.email) return; // User disabled emails
+  if (prefs?.notifications?.digestFrequency === 'never') return;
+
+  // Send digest...
+}
+```
+
+**Implementation Priority:** (All postponed - can implement when needed)
+1. Theme preference sync (easiest, immediate UX impact)
+2. Default project redirect (useful workflow improvement)
+3. Email/in-app notification preferences (requires notification system)
+4. Language/i18n (requires translation setup)
+
+**Related Files:**
+- `apps/web/src/app/(dashboard)/settings/profile/page.tsx` - Preferences UI (done)
+- `apps/api/src/services/profile.service.ts` - Preferences storage (done)
+- `apps/web/src/lib/auth.tsx` - Add theme sync
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx` - Add default project redirect
+- `apps/api/src/services/email.service.ts` - Check notification preferences
+
+---
+
 ## Related Files
 
 ### Frontend

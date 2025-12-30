@@ -4,8 +4,8 @@ const config: LocaleflowConfig = {
   api: {
     url: 'http://localhost:3001',
   },
-  project: 'localeflow-main',
-  defaultSpace: 'web',
+  project: 'localeflow',
+  defaultSpace: 'default',
   defaultBranch: 'main',
   format: {
     type: 'json',

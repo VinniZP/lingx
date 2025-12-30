@@ -11,6 +11,7 @@ export * from './space.schema.js';
 export * from './branch.schema.js';
 export * from './environment.schema.js';
 export * from './translation.schema.js';
+export * from './profile.schema.js';
 
 // Response schemas
 export * from './response.schema.js';

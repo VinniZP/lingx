@@ -13,8 +13,10 @@ import {
 import prismaPlugin from './plugins/prisma.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
 import authPlugin from './plugins/auth.js';
+import profilePlugin from './plugins/profile.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
+import profileRoutes from './routes/profile.js';
 import dashboardRoutes from './routes/dashboard.js';
 import activityRoutes from './routes/activity.js';
 import projectRoutes from './routes/projects.js';
@@ -130,10 +132,12 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(errorHandlerPlugin);
   await fastify.register(prismaPlugin);
   await fastify.register(authPlugin);
+  await fastify.register(profilePlugin);
 
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
+  await fastify.register(profileRoutes);
   await fastify.register(dashboardRoutes);
   await fastify.register(activityRoutes);
   await fastify.register(projectRoutes);

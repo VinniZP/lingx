@@ -10,6 +10,7 @@ export const userResponseSchema = z.object({
   email: z.string(),
   name: z.string().nullable(),
   role: z.string(),
+  avatarUrl: z.string().nullable(),
   createdAt: z.string(),
 });
 

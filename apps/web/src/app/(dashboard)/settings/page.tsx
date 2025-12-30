@@ -152,8 +152,6 @@ export default function SettingsPage() {
                 iconColor="text-info"
                 title="Profile"
                 description="Update your name, email, and profile settings"
-                disabled
-                comingSoon
               />
             </div>
           </div>

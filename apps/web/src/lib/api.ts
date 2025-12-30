@@ -87,6 +87,7 @@ export interface User {
   email: string;
   name: string | null;
   role: 'DEVELOPER' | 'MANAGER' | 'ADMIN';
+  avatarUrl: string | null;
   createdAt?: string;
 }
 
@@ -556,6 +557,118 @@ export const apiKeyApi = {
 
   revoke: (id: string) =>
     fetchApi<void>(`/api/auth/api-keys/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
+// Profile types
+export interface UserPreferences {
+  theme: 'light' | 'dark' | 'system';
+  language: string;
+  notifications: {
+    email: boolean;
+    inApp: boolean;
+    digestFrequency: 'never' | 'daily' | 'weekly';
+  };
+  defaultProjectId: string | null;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string | null;
+  role: 'DEVELOPER' | 'MANAGER' | 'ADMIN';
+  avatarUrl: string | null;
+  preferences: UserPreferences;
+  pendingEmailChange: string | null;
+  createdAt: string;
+}
+
+export interface UpdateProfileInput {
+  name?: string;
+}
+
+export interface UpdatePreferencesInput {
+  theme?: 'light' | 'dark' | 'system';
+  language?: string;
+  notifications?: {
+    email?: boolean;
+    inApp?: boolean;
+    digestFrequency?: 'never' | 'daily' | 'weekly';
+  };
+  defaultProjectId?: string | null;
+}
+
+export interface ChangeEmailInput {
+  newEmail: string;
+  password: string;
+}
+
+// Profile API
+export const profileApi = {
+  /** Get current user profile with preferences */
+  get: () => fetchApi<UserProfile>('/api/profile'),
+
+  /** Update profile (name) */
+  update: (data: UpdateProfileInput) =>
+    fetchApi<UserProfile>('/api/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Upload avatar (FormData with 'avatar' field) */
+  uploadAvatar: async (file: File): Promise<{ avatarUrl: string }> => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${API_URL}/api/profile/avatar`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+      // Don't set Content-Type - browser will set multipart boundary
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        code: 'UNKNOWN_ERROR',
+        message: 'An unexpected error occurred',
+      }));
+      throw new ApiError(response.status, error.code, error.message, error.fieldErrors);
+    }
+
+    return response.json();
+  },
+
+  /** Remove avatar */
+  deleteAvatar: () =>
+    fetchApi<{ message: string }>('/api/profile/avatar', {
+      method: 'DELETE',
+    }),
+
+  /** Update user preferences */
+  updatePreferences: (data: UpdatePreferencesInput) =>
+    fetchApi<UserPreferences>('/api/profile/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Initiate email change (sends verification to new email) */
+  initiateEmailChange: (data: ChangeEmailInput) =>
+    fetchApi<{ message: string }>('/api/profile/email/change', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Verify email change with token */
+  verifyEmailChange: (token: string) =>
+    fetchApi<UserProfile>('/api/profile/email/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
+  /** Cancel pending email change */
+  cancelEmailChange: () =>
+    fetchApi<{ message: string }>('/api/profile/email/cancel', {
       method: 'DELETE',
     }),
 };
