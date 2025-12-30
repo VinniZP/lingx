@@ -145,6 +145,16 @@ export interface ProjectTree {
   spaces: ProjectTreeSpace[];
 }
 
+// Dashboard API
+import type { DashboardStats } from '@localeflow/shared';
+
+export const dashboardApi = {
+  getStats: () => fetchApi<DashboardStats>('/api/dashboard/stats'),
+};
+
+// Re-export for convenience
+export type { DashboardStats };
+
 // Project API
 export const projectApi = {
   list: () => fetchApi<{ projects: Project[] }>('/api/projects'),

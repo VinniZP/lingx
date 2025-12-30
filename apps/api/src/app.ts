@@ -10,6 +10,7 @@ import errorHandlerPlugin from './plugins/error-handler.js';
 import authPlugin from './plugins/auth.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
+import dashboardRoutes from './routes/dashboard.js';
 import projectRoutes from './routes/projects.js';
 import spaceRoutes from './routes/spaces.js';
 import branchRoutes from './routes/branches.js';
@@ -119,6 +120,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
+  await fastify.register(dashboardRoutes);
   await fastify.register(projectRoutes);
   await fastify.register(spaceRoutes);
   await fastify.register(branchRoutes);

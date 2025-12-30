@@ -22,35 +22,36 @@ RUN pnpm --filter=@localeflow/shared build
 RUN pnpm --filter=@localeflow/api db:generate
 RUN pnpm --filter=@localeflow/api build
 
-# Stage 2: Production
-FROM node:20-alpine AS runner
+# Stage 2: Deploy (use pnpm deploy to resolve workspace dependencies)
+FROM node:20-alpine AS deployer
 RUN corepack enable && corepack prepare pnpm@10.22.0 --activate
+WORKDIR /app
+
+COPY --from=builder /app ./
+
+# pnpm deploy creates a standalone package with workspace deps resolved
+RUN pnpm --filter=@localeflow/api deploy --prod --legacy /deploy
+
+# Stage 3: Production
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 localeflow
 
-# Copy built artifacts
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/package.json ./
+# Copy deployed package (includes node_modules with workspace deps resolved)
+COPY --from=deployer /deploy ./
 
-# Remove devDependencies from package.json (contains workspace:* protocol)
-RUN node -e "const p=require('./package.json'); delete p.devDependencies; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2));"
-
-# Copy Docker-specific Prisma config (simple JS, no imports)
+# Copy Docker-specific Prisma config
 COPY apps/api/prisma.config.docker.mjs ./prisma.config.mjs
 
 # Copy entrypoint
 COPY apps/api/docker-entrypoint.sh ./
 RUN chmod +x ./docker-entrypoint.sh
 
-# Install production dependencies with pnpm (shamefully-hoist creates flat structure)
-RUN pnpm install --prod --shamefully-hoist
-
 # Generate Prisma client in production node_modules
-RUN pnpm exec prisma generate
+RUN npx prisma generate
 
 # Set ownership
 RUN chown -R localeflow:nodejs /app
