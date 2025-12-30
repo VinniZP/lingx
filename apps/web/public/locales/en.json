@@ -117,7 +117,23 @@
     "lastDay": "Last 24 hours",
     "lastWeek": "Last 7 days",
     "empty": "Activity will appear here as you work",
-    "viewAll": "View all changes"
+    "noRecent": "No recent activity",
+    "viewAll": "View all changes",
+    "preview": {
+      "changes": "Changes",
+      "andMore": "and {count} more",
+      "noPreview": "No preview available"
+    },
+    "modal": {
+      "title": "Activity Details",
+      "changes": "Changes",
+      "showing": "Showing {shown} of {total}",
+      "loadMore": "Load more",
+      "noChanges": "No detailed changes recorded for this activity.",
+      "old": "Old",
+      "new": "New",
+      "empty": "Empty"
+    }
   },
   "projects": {
     "title": "Projects",

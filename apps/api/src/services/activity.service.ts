@@ -189,7 +189,7 @@ export class ActivityService {
    * Used for the "View all changes" modal.
    *
    * @param activityId - Activity ID
-   * @param options - Query options (limit, cursor)
+   * @param options - Query options (limit, cursor format: "timestamp|id")
    * @returns Changes with pagination info
    */
   async getActivityChanges(
@@ -198,10 +198,24 @@ export class ActivityService {
   ): Promise<{ changes: ActivityChange[]; nextCursor?: string; total: number }> {
     const limit = Math.min(options?.limit || 20, 100);
 
-    // Build cursor condition
-    const cursorCondition = options?.cursor
-      ? { createdAt: { lt: new Date(options.cursor) } }
-      : {};
+    // Build cursor condition using compound cursor (createdAt|id)
+    // This handles items with identical timestamps correctly
+    // Using | as delimiter since : appears in ISO timestamps
+    let cursorCondition = {};
+    if (options?.cursor) {
+      const delimiterIndex = options.cursor.lastIndexOf('|');
+      if (delimiterIndex > 0) {
+        const timestamp = options.cursor.substring(0, delimiterIndex);
+        const cursorId = options.cursor.substring(delimiterIndex + 1);
+        const cursorDate = new Date(timestamp);
+        cursorCondition = {
+          OR: [
+            { createdAt: { lt: cursorDate } },
+            { createdAt: cursorDate, id: { lt: cursorId } },
+          ],
+        };
+      }
+    }
 
     const [changes, total] = await Promise.all([
       this.prisma.activityChange.findMany({
@@ -209,7 +223,7 @@ export class ActivityService {
           activityId,
           ...cursorCondition,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         take: limit + 1,
       }),
       this.prisma.activityChange.count({
@@ -219,8 +233,9 @@ export class ActivityService {
 
     const hasMore = changes.length > limit;
     const results = hasMore ? changes.slice(0, limit) : changes;
+    const lastItem = results[results.length - 1];
     const nextCursor = hasMore
-      ? results[results.length - 1].createdAt.toISOString()
+      ? `${lastItem.createdAt.toISOString()}|${lastItem.id}`
       : undefined;
 
     return {

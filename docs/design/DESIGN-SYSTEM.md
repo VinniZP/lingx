@@ -398,6 +398,40 @@ Future consideration: Custom accent color picker
 
 ---
 
+## Developer-Familiar Patterns
+
+LocaleFlow is built for developers. Where appropriate, leverage familiar UI patterns from common developer tools to reduce cognitive load:
+
+| Pattern | Source | Use In LocaleFlow |
+|---------|--------|-------------------|
+| **Diff View** | GitHub, GitLab | Activity changes, merge conflicts, translation history |
+| **Tree View** | VS Code, file explorers | Namespace/key hierarchy, project structure |
+| **Command Palette** | VS Code, Raycast | Quick search, keyboard shortcuts (⌘K) |
+| **Toast Notifications** | Modern dev tools | Action confirmations, errors |
+| **Breadcrumbs** | IDEs, file systems | Navigation path in nested views |
+| **Monospace Code** | All dev tools | Translation keys, API responses, code snippets |
+| **Keyboard Shortcuts** | All dev tools | Power user efficiency |
+
+### When to Use Developer Patterns
+
+- **Do use** when the pattern genuinely improves UX for our audience
+- **Do use** for technical data display (diffs, code, logs, JSON)
+- **Don't force** patterns where a simpler UI would work better
+- **Balance** developer familiarity with design system aesthetics
+
+### Example: GitHub-Style Diff
+
+```
+┌─────────────────────────────────────┐
+│ auth.login                       EN │  ← Header with key + language
+├─────────────────────────────────────┤
+│ − Log in                            │  ← Red bg, old value
+│ + Sign in                           │  ← Green bg, new value
+└─────────────────────────────────────┘
+```
+
+---
+
 ## Future Considerations
 
 - [ ] Custom accent color picker per user/project

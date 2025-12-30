@@ -1,111 +1,23 @@
 'use client';
 
-import {
-  FileText,
-  GitBranch,
-  CheckCircle2,
-  Upload,
-  Activity,
-  Plus,
-  Trash2,
-  GitMerge,
-  Settings,
-  Layers,
-  Sparkles,
-  Download,
-} from 'lucide-react';
-import { useUserActivities, type Activity as ActivityType } from '@/hooks';
+import { Activity } from 'lucide-react';
+import { useUserActivities } from '@/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ActivityItem } from '@/components/activity';
 import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface ActivityFeedProps {
   hasProjects: boolean;
 }
 
-const getActivityIcon = (type: string) => {
-  switch (type) {
-    case 'translation':
-      return FileText;
-    case 'key_add':
-      return Plus;
-    case 'key_delete':
-      return Trash2;
-    case 'branch_create':
-      return GitBranch;
-    case 'branch_delete':
-      return Trash2;
-    case 'merge':
-      return GitMerge;
-    case 'import':
-      return Upload;
-    case 'export':
-      return Download;
-    case 'project_settings':
-      return Settings;
-    case 'environment_create':
-    case 'environment_delete':
-    case 'environment_switch_branch':
-      return Layers;
-    case 'ai_translate':
-      return Sparkles;
-    default:
-      return Activity;
-  }
-};
-
-const formatRelativeTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays === 1) return 'Yesterday';
-  return `${diffDays} days ago`;
-};
-
-const getActivityDescription = (activity: ActivityType): string => {
-  const { type, count, metadata } = activity;
-  const languages = metadata?.languages?.join(', ') || '';
-
-  switch (type) {
-    case 'translation':
-      return count === 1
-        ? `Updated translation${languages ? ` in ${languages.toUpperCase()}` : ''}`
-        : `Updated ${count} translations${languages ? ` in ${languages.toUpperCase()}` : ''}`;
-    case 'key_add':
-      return count === 1 ? 'Added translation key' : `Added ${count} translation keys`;
-    case 'key_delete':
-      return count === 1 ? 'Deleted translation key' : `Deleted ${count} translation keys`;
-    case 'branch_create':
-      return `Created branch "${metadata?.branchName || 'new branch'}"`;
-    case 'branch_delete':
-      return `Deleted branch "${metadata?.branchName || ''}"`;
-    case 'merge':
-      return `Merged "${metadata?.sourceBranchName}" into "${metadata?.targetBranchName}"`;
-    case 'import':
-      return `Imported ${metadata?.keyCount || count} keys${metadata?.fileName ? ` from ${metadata.fileName}` : ''}`;
-    case 'export':
-      return `Exported translations${metadata?.fileName ? ` to ${metadata.fileName}` : ''}`;
-    case 'project_settings':
-      return 'Updated project settings';
-    case 'environment_create':
-      return `Created environment "${metadata?.environmentName}"`;
-    case 'environment_delete':
-      return `Deleted environment "${metadata?.environmentName}"`;
-    case 'environment_switch_branch':
-      return `Switched environment to branch "${metadata?.newBranchName}"`;
-    case 'ai_translate':
-      return `AI translated ${count} keys`;
-    default:
-      return 'Activity recorded';
-  }
-};
-
+/**
+ * Dashboard activity feed component.
+ *
+ * Shows recent activities across all user's projects with:
+ * - Hover preview (first 10 changes)
+ * - Click to view full audit trail
+ * - Project name shown for each activity
+ */
 export function ActivityFeed({ hasProjects }: ActivityFeedProps) {
   const { t } = useTranslation();
   const { data, isLoading } = useUserActivities(10);
@@ -142,22 +54,13 @@ export function ActivityFeed({ hasProjects }: ActivityFeedProps) {
             </p>
           </div>
         ) : (
-          activities.map((item) => {
-            const Icon = getActivityIcon(item.type);
-            return (
-              <div key={item.id} className="p-4 flex items-start gap-3">
-                <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                  <Icon className="size-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">{getActivityDescription(item)}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {item.projectName} · {formatRelativeTime(item.createdAt)}
-                  </p>
-                </div>
-              </div>
-            );
-          })
+          activities.map((item) => (
+            <ActivityItem
+              key={item.id}
+              activity={item}
+              showProjectName
+            />
+          ))
         )}
       </div>
     </div>

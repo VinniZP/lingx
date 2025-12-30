@@ -4,6 +4,7 @@ import { use, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { projectApi, ProjectTreeBranch } from '@/lib/api';
+import { useProjectActivities } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -13,7 +14,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Settings,
-  Globe,
   Key,
   ChevronRight,
   GitBranch,
@@ -26,25 +26,16 @@ import {
   CheckCircle2,
   Edit,
   Zap,
-  FileText,
-  Upload,
   Activity,
 } from 'lucide-react';
 import { CreateSpaceDialog, CreateBranchDialog, MergeBranchDialog } from '@/components/dialogs';
+import { ActivityItem } from '@/components/activity';
 import { cn } from '@/lib/utils';
 import type { ProjectTreeSpace } from '@/lib/api';
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
 }
-
-// Placeholder activity data until API is implemented
-const placeholderActivity = [
-  { id: '1', type: 'translation', description: 'Updated 12 keys in Spanish', userName: 'You', createdAt: new Date(Date.now() - 120000).toISOString() },
-  { id: '2', type: 'branch', description: 'Created branch "feature/checkout"', userName: 'You', createdAt: new Date(Date.now() - 3600000).toISOString() },
-  { id: '3', type: 'key_add', description: 'Added 5 new translation keys', userName: 'You', createdAt: new Date(Date.now() - 10800000).toISOString() },
-  { id: '4', type: 'import', description: 'Imported translations from JSON', userName: 'You', createdAt: new Date(Date.now() - 86400000).toISOString() },
-];
 
 /**
  * ProjectDetailPage - Premium redesigned project hub
@@ -80,6 +71,9 @@ export default function ProjectDetailPage({ params }: PageProps) {
     queryKey: ['project-tree', projectId],
     queryFn: () => projectApi.getTree(projectId),
   });
+
+  const { data: activityData, isLoading: activityLoading } = useProjectActivities(projectId, 5);
+  const activities = activityData?.activities || [];
 
   // Find default branch for quick access
   const defaultBranch = tree?.spaces
@@ -389,9 +383,32 @@ export default function ProjectDetailPage({ params }: PageProps) {
             </div>
 
             <div className="island divide-y divide-border">
-              {placeholderActivity.map((item) => (
-                <ActivityItem key={item.id} activity={item} />
-              ))}
+              {activityLoading ? (
+                <div className="p-4 space-y-3">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton className="size-8 rounded-full shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="p-8 text-center">
+                  <div className="size-10 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Activity className="size-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    No recent activity
+                  </p>
+                </div>
+              ) : (
+                activities.map((item) => (
+                  <ActivityItem key={item.id} activity={item} />
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -481,63 +498,6 @@ function QuickActionCard({
       </div>
     </Link>
   );
-}
-
-/**
- * ActivityItem - Single activity entry
- */
-function ActivityItem({
-  activity,
-}: {
-  activity: {
-    id: string;
-    type: string;
-    description: string;
-    userName: string;
-    createdAt: string;
-  };
-}) {
-  const Icon = getActivityIcon(activity.type);
-
-  return (
-    <div className="p-4 flex items-start gap-3">
-      <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="size-4 text-muted-foreground" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm">{activity.description}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {activity.userName} · {formatRelativeTime(activity.createdAt)}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function getActivityIcon(type: string) {
-  const icons: Record<string, React.ComponentType<{ className?: string }>> = {
-    translation: FileText,
-    key_add: Plus,
-    branch: GitBranch,
-    merge: GitMerge,
-    import: Upload,
-  };
-  return icons[type] || Activity;
-}
-
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays === 1) return 'Yesterday';
-  return `${diffDays} days ago`;
 }
 
 /**
