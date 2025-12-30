@@ -68,7 +68,7 @@ async function login(options: LoginOptions): Promise<void> {
 
   try {
     const client = new ApiClient({ apiUrl: apiUrl!, apiKey: apiKey! });
-    const user = await client.get<{ id: string; email: string; name: string }>(
+    const response = await client.get<{ user: { id: string; email: string; name: string } }>(
       '/api/auth/me'
     );
 
@@ -76,15 +76,15 @@ async function login(options: LoginOptions): Promise<void> {
     credentialStore.saveCredentials(options.profile ?? 'default', {
       apiUrl: apiUrl!,
       apiKey: apiKey!,
-      userId: user.id,
-      email: user.email,
+      userId: response.user.id,
+      email: response.user.email,
     });
 
     if (options.profile && options.profile !== 'default') {
       credentialStore.setDefaultProfile(options.profile);
     }
 
-    spinner.succeed(`Logged in as ${user.email}`);
+    spinner.succeed(`Logged in as ${response.user.email}`);
     logger.info(`Credentials saved to profile "${options.profile ?? 'default'}"`);
   } catch (error) {
     spinner.fail('Authentication failed');

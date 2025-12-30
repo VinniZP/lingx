@@ -1,8 +1,8 @@
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
+import { createJiti } from 'jiti';
 
 export interface LocaleflowConfig {
   api: {
@@ -77,10 +77,10 @@ export async function loadConfig(projectDir: string): Promise<LocaleflowConfig> 
     const filePath = join(projectDir, fileName);
     if (existsSync(filePath)) {
       if (fileName.endsWith('.ts')) {
-        // Load TypeScript config using dynamic import
-        const fileUrl = pathToFileURL(filePath).href;
-        const module = await import(fileUrl);
-        const parsed = (module.default ?? module.config) as Partial<LocaleflowConfig>;
+        // Load TypeScript config using jiti
+        const jiti = createJiti(import.meta.url);
+        const module = await jiti.import(filePath);
+        const parsed = ((module as Record<string, unknown>).default ?? (module as Record<string, unknown>).config) as Partial<LocaleflowConfig>;
         return mergeConfig(DEFAULT_CONFIG, parsed);
       } else {
         // Load YAML config

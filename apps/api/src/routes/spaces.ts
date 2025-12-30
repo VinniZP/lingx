@@ -42,18 +42,24 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { projectId } = request.params as { projectId: string };
+      const { projectId: projectSlug } = request.params as { projectId: string };
 
-      // Check membership
+      // Look up project by slug
+      const project = await projectService.findBySlug(projectSlug);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
+      // Check membership using internal ID
       const isMember = await projectService.checkMembership(
-        projectId,
+        project.id,
         request.user.userId
       );
       if (!isMember) {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      const spaces = await spaceService.findByProjectId(projectId);
+      const spaces = await spaceService.findByProjectId(project.id);
       return { spaces };
     }
   );
@@ -79,16 +85,22 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { projectId } = request.params as { projectId: string };
+      const { projectId: projectSlug } = request.params as { projectId: string };
       const { name, slug, description } = request.body as {
         name: string;
         slug: string;
         description?: string;
       };
 
-      // Check membership
+      // Look up project by slug
+      const project = await projectService.findBySlug(projectSlug);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
+      // Check membership using internal ID
       const isMember = await projectService.checkMembership(
-        projectId,
+        project.id,
         request.user.userId
       );
       if (!isMember) {
@@ -99,7 +111,7 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
         name,
         slug,
         description,
-        projectId,
+        projectId: project.id,
       });
 
       return reply.status(201).send(space);

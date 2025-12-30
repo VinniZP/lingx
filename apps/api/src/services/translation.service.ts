@@ -31,6 +31,7 @@ export interface KeyListResult {
 
 export interface BranchTranslations {
   translations: Record<string, Record<string, string>>;
+  languages: string[];
 }
 
 export interface BulkUpdateResult {
@@ -362,7 +363,10 @@ export class TranslationService {
       }
     }
 
-    return { translations };
+    // Extract unique languages
+    const languages = Object.keys(translations);
+
+    return { translations, languages };
   }
 
   /**

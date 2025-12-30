@@ -139,6 +139,10 @@ export const branchTranslationsSchema = {
             additionalProperties: { type: 'string' },
           },
         },
+        languages: {
+          type: 'array',
+          items: { type: 'string' },
+        },
       },
     },
   },
