@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Phase 8 - Extended quality checks complete)
+> **Updated**: 2025-12-31 (Phase 8 - Interactive conflict resolution complete)
 
 ---
 
@@ -106,9 +106,11 @@
   - [x] CLI `--quality` flag for batch checking
   - [x] Real-time quality feedback in Web UI
   - [x] API batch quality check endpoint
-- [ ] **Dry run mode** (`--dry-run` for push/import/sync)
-- [ ] **Dead key detection** (`lf check --dead`)
-- [ ] **Import with merge conflicts** (interactive resolution)
+- [x] **Interactive conflict resolution**
+  - [x] Shared conflict resolver utility
+  - [x] `lf sync` interactive conflict resolution
+  - [x] `--force-local` / `--force-remote` flags for sync
+  - [x] Unified UX across push and sync commands
 - [ ] **Translation length prediction** (overflow warnings)
 
 ### Phase 9: AI & Context 📋
@@ -151,10 +153,8 @@
 | High | Machine translation (DeepL, Google) | ✅ Complete |
 | High | Glossary/termbase management | ✅ Complete |
 | Medium | Extended quality checks | ✅ Complete |
-| Medium | Dry run mode (`--dry-run`) | 📋 Next |
-| Medium | Dead key detection (`lf check --dead`) | 📋 Planned |
-| Low | Import with merge conflicts | 📋 Planned |
-| Low | Translation length prediction | 📋 Planned |
+| Medium | Interactive conflict resolution | ✅ Complete |
+| Low | Translation length prediction | 📋 Next |
 
 ---
 

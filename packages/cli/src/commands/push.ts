@@ -1,12 +1,11 @@
 import { Command } from 'commander';
 import { join } from 'path';
-import { select } from '@inquirer/prompts';
-import chalk from 'chalk';
 import type { CliTranslationsResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
 import { readTranslationFiles, computeTranslationDiff } from '../lib/translation-io.js';
+import { resolveConflicts, type TranslationConflict } from '../utils/conflict-resolver.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 
@@ -18,13 +17,6 @@ interface PushOptions {
   format?: 'json' | 'yaml';
   languages?: string;
   force?: boolean;
-}
-
-interface Conflict {
-  lang: string;
-  key: string;
-  localValue: string;
-  remoteValue: string;
 }
 
 export function createPushCommand(): Command {
@@ -45,78 +37,6 @@ export function createPushCommand(): Command {
         process.exit(1);
       }
     });
-}
-
-/**
- * Resolve conflicts interactively with user prompts.
- * Returns approved and skipped conflicts.
- */
-async function resolveConflicts(
-  conflicts: Conflict[],
-  force: boolean
-): Promise<{ approved: Conflict[]; skipped: Conflict[] }> {
-  if (force || conflicts.length === 0) {
-    return { approved: conflicts, skipped: [] };
-  }
-
-  const approved: Conflict[] = [];
-  const skipped: Conflict[] = [];
-  let yesToAll = false;
-  let skipAll = false;
-
-  console.log();
-  console.log(chalk.bold(`Found ${conflicts.length} conflict(s):`));
-  console.log(chalk.gray('For each conflict, choose whether to update the server value.'));
-  console.log();
-
-  for (let i = 0; i < conflicts.length; i++) {
-    const conflict = conflicts[i];
-
-    if (skipAll) {
-      skipped.push(conflict);
-      continue;
-    }
-    if (yesToAll) {
-      approved.push(conflict);
-      continue;
-    }
-
-    console.log(chalk.cyan(`[${i + 1}/${conflicts.length}] ${conflict.key}`));
-    console.log(chalk.gray(`  [${conflict.lang}]`));
-    console.log(`    ${chalk.yellow('Server:')} ${conflict.remoteValue}`);
-    console.log(`    ${chalk.green('Local:')}  ${conflict.localValue}`);
-
-    const action = await select({
-      message: 'Update server with local value?',
-      choices: [
-        { name: 'Yes - update this key', value: 'yes' },
-        { name: 'No - keep server value', value: 'no' },
-        { name: 'Yes to all remaining', value: 'yes-all' },
-        { name: 'Skip all remaining', value: 'skip-all' },
-      ],
-    });
-
-    switch (action) {
-      case 'yes':
-        approved.push(conflict);
-        break;
-      case 'no':
-        skipped.push(conflict);
-        break;
-      case 'yes-all':
-        yesToAll = true;
-        approved.push(conflict);
-        break;
-      case 'skip-all':
-        skipAll = true;
-        skipped.push(conflict);
-        break;
-    }
-
-    console.log();
-  }
-
-  return { approved, skipped };
 }
 
 async function push(options: PushOptions): Promise<void> {
@@ -222,27 +142,24 @@ async function push(options: PushOptions): Promise<void> {
     let newCount = diff.localOnly.length;
 
     if (diff.conflicts.length > 0) {
-      if (force) {
-        spinner.stop();
-        logger.warn(`Force mode: overriding ${diff.conflicts.length} conflict(s)`);
-        updatedCount = diff.conflicts.length;
-        spinner.start();
-      } else {
-        spinner.stop();
+      spinner.stop();
 
-        const { approved, skipped } = await resolveConflicts(diff.conflicts, force);
+      // Resolve conflicts interactively (or with force flag)
+      const { useLocal, useRemote } = await resolveConflicts(
+        diff.conflicts as TranslationConflict[],
+        { mode: 'push', forceLocal: force }
+      );
 
-        // Remove skipped conflicts from payload
-        for (const skip of skipped) {
-          if (pushPayload[skip.lang]) {
-            delete pushPayload[skip.lang][skip.key];
-          }
+      // Remove skipped conflicts (useRemote = keep server value = skip from push)
+      for (const skip of useRemote) {
+        if (pushPayload[skip.lang]) {
+          delete pushPayload[skip.lang][skip.key];
         }
-
-        skippedCount = skipped.length;
-        updatedCount = approved.length;
-        spinner.start();
       }
+
+      skippedCount = useRemote.length;
+      updatedCount = useLocal.length;
+      spinner.start();
     }
 
     // Check if there's anything to push
