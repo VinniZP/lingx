@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Settings,
   Languages,
+  BookOpen,
   Users,
   Shield,
   Loader2,
@@ -37,6 +38,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
   // Determine active section from pathname
   const isGeneralActive = pathname === `/projects/${projectId}/settings`;
   const isIntegrationsActive = pathname === `/projects/${projectId}/settings/integrations`;
+  const isGlossaryActive = pathname === `/projects/${projectId}/settings/glossary`;
 
   if (isLoading) {
     return (
@@ -64,6 +66,14 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       label: 'General',
       description: 'Project details & languages',
       isActive: isGeneralActive,
+      badge: null,
+    },
+    {
+      href: `/projects/${projectId}/settings/glossary`,
+      icon: BookOpen,
+      label: 'Glossary',
+      description: 'Terminology management',
+      isActive: isGlossaryActive,
       badge: null,
     },
     {

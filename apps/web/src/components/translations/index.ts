@@ -5,5 +5,6 @@ export { TranslationRow } from './translation-row';
 export { LanguageToggle } from './language-toggle';
 export { BranchHeader } from './branch-header';
 export { TranslationMemoryPanel } from './translation-memory-panel';
+export { GlossaryPanel } from './glossary-panel';
 export { InlineSuggestion } from './inline-suggestion';
 export { TranslationCommandPalette } from './translation-command-palette';
