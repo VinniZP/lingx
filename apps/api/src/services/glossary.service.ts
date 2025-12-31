@@ -949,18 +949,24 @@ export class GlossaryService {
     const result: ImportResult = { imported: 0, skipped: 0, errors: [] };
 
     try {
-      // Simple TBX parsing (for production, use a proper XML parser)
-      // This is a basic implementation that handles common TBX structures
-      const conceptEntries = tbxContent.match(/<conceptEntry[^>]*>[\s\S]*?<\/conceptEntry>/gi) || [];
+      // Simple TBX parsing that supports both TBX 2.0 (termEntry/langSet) and TBX 3.0 (conceptEntry/langSec)
+      // For production, consider using a proper XML parser like fast-xml-parser
 
-      for (const conceptEntry of conceptEntries) {
+      // Match both termEntry (TBX 2.0) and conceptEntry (TBX 3.0)
+      const termEntries = tbxContent.match(/<termEntry[^>]*>[\s\S]*?<\/termEntry>/gi) || [];
+      const conceptEntries = tbxContent.match(/<conceptEntry[^>]*>[\s\S]*?<\/conceptEntry>/gi) || [];
+      const allEntries = [...termEntries, ...conceptEntries];
+
+      for (const entry of allEntries) {
         try {
           // Extract subject field (domain)
-          const domainMatch = conceptEntry.match(/<descrip[^>]*type="subjectField"[^>]*>([^<]+)<\/descrip>/i);
+          const domainMatch = entry.match(/<descrip[^>]*type="subjectField"[^>]*>([^<]+)<\/descrip>/i);
           const domain = domainMatch ? domainMatch[1].trim() : null;
 
-          // Extract language sections
-          const langSections = conceptEntry.match(/<langSec[^>]*>[\s\S]*?<\/langSec>/gi) || [];
+          // Extract language sections - support both langSet (TBX 2.0) and langSec (TBX 3.0)
+          const langSets = entry.match(/<langSet[^>]*>[\s\S]*?<\/langSet>/gi) || [];
+          const langSecs = entry.match(/<langSec[^>]*>[\s\S]*?<\/langSec>/gi) || [];
+          const langSections = [...langSets, ...langSecs];
 
           let sourceTerm: string | null = null;
           let sourceLanguage: string | null = null;
@@ -972,7 +978,7 @@ export class GlossaryService {
             const lang = langMatch ? langMatch[1].trim() : null;
             if (!lang) continue;
 
-            // Extract term
+            // Extract term - can be directly in langSet/langSec or inside tig/ntig/termSec
             const termMatch = langSec.match(/<term>([^<]+)<\/term>/i);
             const term = termMatch ? termMatch[1].trim() : null;
             if (!term) continue;

@@ -24,9 +24,9 @@ export class ApiError extends Error {
 }
 
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  // Only set Content-Type for requests with a body
+  // Only set Content-Type for requests with a body, and only if not already set
   const headers: HeadersInit = { ...options.headers };
-  if (options.body) {
+  if (options.body && !(headers as Record<string, string>)['Content-Type']) {
     (headers as Record<string, string>)['Content-Type'] = 'application/json';
   }
 

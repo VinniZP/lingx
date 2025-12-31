@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Phase 8 - Translation Editor UX complete)
+> **Updated**: 2025-12-31 (Phase 8 - Glossary management complete)
 
 ---
 
@@ -92,7 +92,13 @@
   - [x] Multi-language MT batch endpoint
   - [x] Premium Kbd component with Command icon
 - [x] **Machine translation** (DeepL, Google Translate with provider config, usage tracking, caching)
-- [ ] Glossary/termbase management
+- [x] **Glossary/termbase management**
+  - [x] Per-project glossary with rich terminology (context, notes, part of speech, domain, tags)
+  - [x] Fuzzy term matching in translation editor sidebar
+  - [x] CSV and TBX (ISO 30042) import/export
+  - [x] MT provider sync (DeepL/Google glossaries)
+  - [x] Usage tracking and statistics
+  - [x] Premium settings UI with tag management
 - [ ] Extended quality checks
 - [ ] **Dry run mode** (`--dry-run` for push/import/sync)
 - [ ] **Dead key detection** (`lf check --dead`)
@@ -137,8 +143,8 @@
 | High | Server-side filtering | ✅ Complete |
 | High | Translation editor UX redesign | ✅ Complete |
 | High | Machine translation (DeepL, Google) | ✅ Complete |
-| Medium | Glossary/termbase management | 📋 Next |
-| Medium | Extended quality checks | 📋 Planned |
+| High | Glossary/termbase management | ✅ Complete |
+| Medium | Extended quality checks | 📋 Next |
 | Medium | Dry run mode (`--dry-run`) | 📋 Planned |
 | Medium | Dead key detection (`lf check --dead`) | 📋 Planned |
 | Low | Import with merge conflicts | 📋 Planned |

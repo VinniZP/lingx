@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE martif SYSTEM "TBXcoreStructV02.dtd">
+<martif type="TBX" xml:lang="en">
+  <martifHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>LocaleFlow Sample Glossary</title>
+      </titleStmt>
+      <sourceDesc>
+        <p>Sample terminology for software localization</p>
+      </sourceDesc>
+    </fileDesc>
+  </martifHeader>
+  <text>
+    <body>
+      <!-- Technical Terms -->
+      <termEntry id="entry-001">
+        <descrip type="subjectField">technology</descrip>
+        <descrip type="definition">Application Programming Interface - a set of protocols for building software</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>API</term>
+            <termNote type="partOfSpeech">noun</termNote>
+            <termNote type="caseSensitive">true</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>API</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>API</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <termEntry id="entry-002">
+        <descrip type="subjectField">technology</descrip>
+        <descrip type="definition">A central control panel for managing application features</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Dashboard</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Dashboard</term>
+            <note>Keep English term, commonly used in German software</note>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Tableau de bord</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Panel de control</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <termEntry id="entry-003">
+        <descrip type="subjectField">technology</descrip>
+        <descrip type="definition">Application configuration options</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Settings</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Einstellungen</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Paramètres</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Configuración</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <!-- UI Terms -->
+      <termEntry id="entry-004">
+        <descrip type="subjectField">user interface</descrip>
+        <descrip type="definition">A clickable element that performs an action</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Button</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Schaltfläche</term>
+            <note>Alternative: Button (anglicism)</note>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Bouton</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Botón</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <termEntry id="entry-005">
+        <descrip type="subjectField">user interface</descrip>
+        <descrip type="definition">A popup window for user interaction</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Dialog</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Dialogfeld</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Boîte de dialogue</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Cuadro de diálogo</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <!-- Action Terms -->
+      <termEntry id="entry-006">
+        <descrip type="subjectField">actions</descrip>
+        <descrip type="definition">To store data permanently</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Save</term>
+            <termNote type="partOfSpeech">verb</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Speichern</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Enregistrer</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Guardar</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <termEntry id="entry-007">
+        <descrip type="subjectField">actions</descrip>
+        <descrip type="definition">To abort the current operation</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Cancel</term>
+            <termNote type="partOfSpeech">verb</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Abbrechen</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Annuler</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Cancelar</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <termEntry id="entry-008">
+        <descrip type="subjectField">actions</descrip>
+        <descrip type="definition">To permanently remove data</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Delete</term>
+            <termNote type="partOfSpeech">verb</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Löschen</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Supprimer</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Eliminar</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <!-- Localization Specific -->
+      <termEntry id="entry-009">
+        <descrip type="subjectField">localization</descrip>
+        <descrip type="definition">A text string that needs translation</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Translation key</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Übersetzungsschlüssel</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Clé de traduction</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Clave de traducción</term>
+          </tig>
+        </langSet>
+      </termEntry>
+
+      <termEntry id="entry-010">
+        <descrip type="subjectField">localization</descrip>
+        <descrip type="definition">A code representing a language (e.g., en, de, fr)</descrip>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Locale</term>
+            <termNote type="partOfSpeech">noun</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term>Gebietsschema</term>
+            <note>Technical term, often "Locale" is used as-is</note>
+          </tig>
+        </langSet>
+        <langSet xml:lang="fr">
+          <tig>
+            <term>Paramètres régionaux</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="es">
+          <tig>
+            <term>Configuración regional</term>
+          </tig>
+        </langSet>
+      </termEntry>
+    </body>
+  </text>
+</martif>

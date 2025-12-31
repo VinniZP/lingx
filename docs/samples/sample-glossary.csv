@@ -1,0 +1,30 @@
+source_term,source_language,target_term,target_language,context,notes,part_of_speech,domain,case_sensitive
+API,en,API,de,Application Programming Interface,Keep as-is in German,NOUN,technology,true
+API,en,API,fr,Application Programming Interface,,NOUN,technology,true
+Dashboard,en,Dashboard,de,Central control panel,Keep English term - commonly used in German software,NOUN,technology,false
+Dashboard,en,Tableau de bord,fr,Central control panel,,NOUN,technology,false
+Dashboard,en,Panel de control,es,Central control panel,,NOUN,technology,false
+Settings,en,Einstellungen,de,Application configuration options,,NOUN,technology,false
+Settings,en,Paramètres,fr,Application configuration options,,NOUN,technology,false
+Settings,en,Configuración,es,Application configuration options,,NOUN,technology,false
+Button,en,Schaltfläche,de,A clickable UI element,Alternative: Button (anglicism),NOUN,user interface,false
+Button,en,Bouton,fr,A clickable UI element,,NOUN,user interface,false
+Button,en,Botón,es,A clickable UI element,,NOUN,user interface,false
+Dialog,en,Dialogfeld,de,A popup window for user interaction,,NOUN,user interface,false
+Dialog,en,Boîte de dialogue,fr,A popup window for user interaction,,NOUN,user interface,false
+Dialog,en,Cuadro de diálogo,es,A popup window for user interaction,,NOUN,user interface,false
+Save,en,Speichern,de,To store data permanently,,VERB,actions,false
+Save,en,Enregistrer,fr,To store data permanently,,VERB,actions,false
+Save,en,Guardar,es,To store data permanently,,VERB,actions,false
+Cancel,en,Abbrechen,de,To abort the current operation,,VERB,actions,false
+Cancel,en,Annuler,fr,To abort the current operation,,VERB,actions,false
+Cancel,en,Cancelar,es,To abort the current operation,,VERB,actions,false
+Delete,en,Löschen,de,To permanently remove data,,VERB,actions,false
+Delete,en,Supprimer,fr,To permanently remove data,,VERB,actions,false
+Delete,en,Eliminar,es,To permanently remove data,,VERB,actions,false
+Translation key,en,Übersetzungsschlüssel,de,A text string that needs translation,,NOUN,localization,false
+Translation key,en,Clé de traduction,fr,A text string that needs translation,,NOUN,localization,false
+Translation key,en,Clave de traducción,es,A text string that needs translation,,NOUN,localization,false
+Locale,en,Gebietsschema,de,A code representing a language,"Technical term, often Locale is used as-is",NOUN,localization,false
+Locale,en,Paramètres régionaux,fr,A code representing a language,,NOUN,localization,false
+Locale,en,Configuración regional,es,A code representing a language,,NOUN,localization,false

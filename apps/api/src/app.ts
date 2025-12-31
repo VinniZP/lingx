@@ -71,6 +71,17 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   fastify.setValidatorCompiler(validatorCompiler);
   fastify.setSerializerCompiler(serializerCompiler);
 
+  // Register content type parsers for plain text and XML (used by glossary import)
+  fastify.addContentTypeParser('text/plain', { parseAs: 'string' }, (_req, body, done) => {
+    done(null, body);
+  });
+  fastify.addContentTypeParser('text/xml', { parseAs: 'string' }, (_req, body, done) => {
+    done(null, body);
+  });
+  fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (_req, body, done) => {
+    done(null, body);
+  });
+
   // Register security plugins
   await fastify.register(helmet, {
     contentSecurityPolicy: {
