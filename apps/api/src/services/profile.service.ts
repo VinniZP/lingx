@@ -282,6 +282,11 @@ export class ProfileService {
       throw new NotFoundError('User');
     }
 
+    // Check if user has a password (passwordless users can't change email with password)
+    if (!user.password) {
+      throw new ValidationError('Passwordless users cannot change email with password verification');
+    }
+
     // Verify password
     const validPassword = await bcrypt.compare(input.password, user.password);
     if (!validPassword) {

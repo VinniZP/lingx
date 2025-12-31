@@ -15,10 +15,12 @@ import errorHandlerPlugin from './plugins/error-handler.js';
 import authPlugin from './plugins/auth.js';
 import profilePlugin from './plugins/profile.js';
 import totpPlugin from './plugins/totp.js';
+import webauthnPlugin from './plugins/webauthn.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
 import securityRoutes from './routes/security.js';
 import totpRoutes from './routes/totp.js';
+import webauthnRoutes from './routes/webauthn.js';
 import profileRoutes from './routes/profile.js';
 import dashboardRoutes from './routes/dashboard.js';
 import activityRoutes from './routes/activity.js';
@@ -137,12 +139,14 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(authPlugin);
   await fastify.register(profilePlugin);
   await fastify.register(totpPlugin);
+  await fastify.register(webauthnPlugin);
 
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(securityRoutes);
   await fastify.register(totpRoutes);
+  await fastify.register(webauthnRoutes);
   await fastify.register(profileRoutes);
   await fastify.register(dashboardRoutes);
   await fastify.register(activityRoutes);

@@ -228,6 +228,11 @@ export class SecurityService {
       throw new UnauthorizedError('User not found');
     }
 
+    // Check if user is passwordless
+    if (!user.password) {
+      throw new BadRequestError('You are passwordless and cannot change your password. Add a password first.');
+    }
+
     // Validate current password
     const isValid = await bcrypt.compare(input.currentPassword, user.password);
     if (!isValid) {

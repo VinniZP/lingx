@@ -792,3 +792,78 @@ export const totpApi = {
       method: 'DELETE',
     }),
 };
+
+// WebAuthn / Passkey types
+import type {
+  WebAuthnCredential,
+  WebAuthnStatusResponse,
+} from '@localeflow/shared';
+
+export interface WebAuthnRegisterOptionsResponse {
+  options: PublicKeyCredentialCreationOptions;
+  challengeToken: string;
+}
+
+export interface WebAuthnAuthOptionsResponse {
+  options: PublicKeyCredentialRequestOptions;
+  challengeToken: string;
+}
+
+// Alias for convenience
+export type WebAuthnStatus = WebAuthnStatusResponse;
+
+// Re-export for convenience
+export type { WebAuthnCredential };
+
+// WebAuthn / Passkey API
+export const webauthnApi = {
+  /** Generate registration options (for adding a new passkey) */
+  getRegistrationOptions: () =>
+    fetchApi<WebAuthnRegisterOptionsResponse>('/api/webauthn/register/options', {
+      method: 'POST',
+    }),
+
+  /** Verify registration and store the new passkey */
+  verifyRegistration: (data: {
+    name: string;
+    challengeToken: string;
+    response: unknown;
+  }) =>
+    fetchApi<{ credential: WebAuthnCredential }>('/api/webauthn/register/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Generate authentication options (for logging in with passkey) */
+  getAuthOptions: (email?: string) =>
+    fetchApi<WebAuthnAuthOptionsResponse>('/api/webauthn/authenticate/options', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  /** Verify authentication and login */
+  verifyAuth: (data: { challengeToken: string; response: unknown }) =>
+    fetchApi<{ user: User }>('/api/webauthn/authenticate/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** List user's registered passkeys */
+  listCredentials: () =>
+    fetchApi<{ credentials: WebAuthnCredential[] }>('/api/webauthn/credentials'),
+
+  /** Delete a passkey */
+  deleteCredential: (id: string) =>
+    fetchApi<{ message: string; remainingCount: number }>(`/api/webauthn/credentials/${id}`, {
+      method: 'DELETE',
+    }),
+
+  /** Get WebAuthn status (hasPasskeys, canGoPasswordless, etc.) */
+  getStatus: () => fetchApi<WebAuthnStatusResponse>('/api/webauthn/status'),
+
+  /** Go passwordless (remove password, requires 2+ passkeys) */
+  goPasswordless: () =>
+    fetchApi<{ message: string }>('/api/webauthn/go-passwordless', {
+      method: 'POST',
+    }),
+};

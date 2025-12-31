@@ -19,12 +19,34 @@ import {
 import { ApiError } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
 import { toast } from 'sonner';
-import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react';
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const { login } = useAuth();
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const { login, loginWithPasskey } = useAuth();
+
+  // Check for WebAuthn support on client
+  const supportsPasskey = typeof window !== 'undefined' && browserSupportsWebAuthn();
+
+  const handlePasskeyLogin = async () => {
+    setPasskeyLoading(true);
+    try {
+      await loginWithPasskey();
+      toast.success('Welcome back!', {
+        description: 'You signed in with your passkey.',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Passkey authentication failed';
+      toast.error('Passkey sign in failed', {
+        description: message,
+      });
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -68,6 +90,43 @@ export default function LoginPage() {
           Enter your credentials to access your projects
         </p>
       </div>
+
+      {/* Passkey login button */}
+      {supportsPasskey && (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePasskeyLogin}
+            disabled={passkeyLoading}
+            className="w-full h-12 rounded-xl border-border/60 bg-card hover:bg-accent text-foreground font-medium text-[15px] transition-all duration-200 touch-manipulation hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0"
+          >
+            {passkeyLoading ? (
+              <>
+                <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
+                Authenticating...
+              </>
+            ) : (
+              <>
+                <Fingerprint className="mr-2 h-[18px] w-[18px]" />
+                Sign in with passkey
+              </>
+            )}
+          </Button>
+
+          {/* Divider */}
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
+                or continue with email
+              </span>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Form */}
       <Form {...form}>

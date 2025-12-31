@@ -344,6 +344,11 @@ export class TotpService {
       throw new BadRequestError('Two-factor authentication is not enabled');
     }
 
+    // Check if user has a password (passwordless users can't verify with password)
+    if (!user.password) {
+      throw new BadRequestError('Passwordless users cannot disable 2FA with password verification');
+    }
+
     // Verify password
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
@@ -393,6 +398,11 @@ export class TotpService {
 
     if (!user.totpEnabled) {
       throw new BadRequestError('Two-factor authentication is not enabled');
+    }
+
+    // Check if user has a password (passwordless users can't verify with password)
+    if (!user.password) {
+      throw new BadRequestError('Passwordless users cannot regenerate backup codes with password verification');
     }
 
     // Verify password

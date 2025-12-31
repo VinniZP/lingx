@@ -89,6 +89,11 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email or password');
     }
 
+    // Check if user is passwordless
+    if (!user.password) {
+      throw new UnauthorizedError('Please sign in with your passkey');
+    }
+
     // Verify password
     const validPassword = await bcrypt.compare(input.password, user.password);
 

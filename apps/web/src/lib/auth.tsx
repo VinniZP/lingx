@@ -2,12 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi, totpApi, User, TwoFactorRequiredResponse } from './api';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { authApi, totpApi, webauthnApi, User, TwoFactorRequiredResponse } from './api';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithPasskey: (email?: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -73,6 +75,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user);
       router.push('/dashboard');
     }
+  };
+
+  const loginWithPasskey = async (email?: string) => {
+    // Get authentication options from server
+    const { options, challengeToken } = await webauthnApi.getAuthOptions(email);
+
+    // Start browser WebAuthn authentication
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const authResponse = await startAuthentication({ optionsJSON: options as any });
+
+    // Verify with server and get JWT
+    const { user: loggedInUser } = await webauthnApi.verifyAuth({
+      challengeToken,
+      response: authResponse,
+    });
+
+    // Passkey login bypasses 2FA - set user and redirect
+    setUser(loggedInUser);
+    router.push('/dashboard');
   };
 
   const register = async (email: string, password: string, name?: string) => {
@@ -145,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         login,
+        loginWithPasskey,
         register,
         logout,
         refreshUser,

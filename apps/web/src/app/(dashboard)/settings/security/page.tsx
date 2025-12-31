@@ -6,7 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/lib/auth';
-import { securityApi, totpApi, type Session, type TotpStatus } from '@/lib/api';
+import { securityApi, totpApi, webauthnApi, type Session, type WebAuthnCredential } from '@/lib/api';
+import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { handleApiFieldErrors } from '@/lib/form-errors';
 import { TwoFactorSetup } from '@/components/security/two-factor-setup';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Shield,
   Lock,
   Loader2,
@@ -51,6 +60,12 @@ import {
   RefreshCw,
   Download,
   Trash2,
+  Plus,
+  Key,
+  ShieldOff,
+  Sparkles,
+  Activity,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -80,11 +95,44 @@ const changePasswordFormSchema = z
 type ChangePasswordFormData = z.infer<typeof changePasswordFormSchema>;
 
 // ============================================
+// Security Score Calculator
+// ============================================
+
+function useSecurityScore() {
+  const supportsPasskey = typeof window !== 'undefined' && browserSupportsWebAuthn();
+
+  const { data: totpStatus } = useQuery({
+    queryKey: ['totp-status'],
+    queryFn: () => totpApi.getStatus(),
+  });
+
+  const { data: webauthnStatus } = useQuery({
+    queryKey: ['webauthn-status'],
+    queryFn: () => webauthnApi.getStatus(),
+    enabled: supportsPasskey,
+  });
+
+  // Calculate security score out of 100
+  let score = 40; // Base score for having a password
+  let maxScore = 100;
+
+  if (totpStatus?.enabled) score += 30;
+  if (webauthnStatus?.hasPasskeys) score += 20;
+  if (webauthnStatus?.isPasswordless) score += 10;
+
+  const percentage = Math.round((score / maxScore) * 100);
+  const level = percentage >= 90 ? 'Excellent' : percentage >= 70 ? 'Strong' : percentage >= 50 ? 'Moderate' : 'Needs Improvement';
+  const color = percentage >= 90 ? 'text-success' : percentage >= 70 ? 'text-primary' : percentage >= 50 ? 'text-warning' : 'text-destructive';
+
+  return { score, maxScore, percentage, level, color };
+}
+
+// ============================================
 // Main Security Page
 // ============================================
 
 export default function SecuritySettingsPage() {
-  const { user, isManager, isLoading: authLoading } = useAuth();
+  const { isManager, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -102,85 +150,96 @@ export default function SecuritySettingsPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] pb-12">
-      {/* Atmospheric gradient backdrop */}
+    <div className="min-h-[calc(100vh-8rem)] pb-16">
+      {/* Premium atmospheric backdrop */}
       <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-gradient-to-bl from-primary/[0.06] via-primary/[0.03] to-transparent rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-gradient-to-tr from-warm/[0.04] via-transparent to-transparent rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
-          backgroundImage: `linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)`,
-          backgroundSize: '64px 64px'
+        {/* Primary gradient orb */}
+        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-gradient-to-bl from-primary/[0.08] via-primary/[0.04] to-transparent rounded-full blur-3xl translate-x-1/3 -translate-y-1/3 animate-pulse" style={{ animationDuration: '8s' }} />
+        {/* Warm accent orb */}
+        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-gradient-to-tr from-warm/[0.06] via-warm/[0.02] to-transparent rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
+        {/* Floating accent orb */}
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-r from-success/[0.04] to-primary/[0.04] rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '12s' }} />
+        {/* Refined grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)`,
+          backgroundSize: '48px 48px'
         }} />
       </div>
 
-      {/* Back navigation */}
+      {/* Back navigation - refined with better hover state */}
       <Link
         href="/settings"
-        className="inline-flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors group mb-10 animate-fade-in-up"
+        className="inline-flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-all duration-300 group mb-12 animate-fade-in-up"
       >
-        <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center group-hover:bg-muted transition-colors">
-          <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+        <div className="size-9 rounded-xl bg-card border border-border/50 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all duration-300 shadow-sm">
+          <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
         </div>
-        <span className="font-medium">Back to Settings</span>
+        <span className="font-medium tracking-tight">Back to Settings</span>
       </Link>
 
-      {/* Page Header */}
-      <div className="relative mb-10 animate-fade-in-up stagger-1">
-        <div className="island overflow-hidden">
-          {/* Header gradient band */}
-          <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-warm" />
+      {/* Premium Page Header with Security Score */}
+      <div className="relative mb-12 animate-fade-in-up stagger-1">
+        <div className="island overflow-hidden border-0 shadow-lg shadow-primary/[0.03]">
+          {/* Gradient accent band */}
+          <div className="h-1.5 bg-gradient-to-r from-primary via-primary/70 to-warm" />
 
-          <div className="p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-              {/* Icon with glow */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
-                <div className="relative size-16 sm:size-20 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center border border-primary/20">
-                  <Shield className="size-8 sm:size-10 text-primary" />
+          <div className="p-8 lg:p-10">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+              {/* Icon with premium glow effect */}
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-primary/25 rounded-3xl blur-2xl scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-warm/20 rounded-3xl blur-xl" />
+                <div className="relative size-20 lg:size-24 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-warm/5 flex items-center justify-center border border-primary/20 backdrop-blur-sm">
+                  <Shield className="size-10 lg:size-12 text-primary" />
+                  <Sparkles className="absolute -top-1 -right-1 size-5 text-primary animate-pulse" />
                 </div>
               </div>
 
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3 mb-3">
+                  <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
                     Security Settings
                   </h1>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-success/10 text-success border border-success/20">
-                    <ShieldCheck className="size-3.5" />
-                    Account Protected
-                  </span>
                 </div>
-                <p className="text-muted-foreground max-w-lg">
-                  Manage your password, enable two-factor authentication, and monitor device sessions to keep your account secure.
+                <p className="text-muted-foreground text-base lg:text-lg max-w-xl leading-relaxed">
+                  Protect your account with multi-layered security. Manage authentication methods, monitor active sessions, and maintain control.
                 </p>
               </div>
+
+              {/* Security Score Widget */}
+              <SecurityScoreWidget />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid gap-8 lg:grid-cols-5">
+      {/* Main Content Grid */}
+      <div className="grid gap-8 lg:gap-10 lg:grid-cols-12">
         {/* Left Column - Main Security Features */}
-        <div className="lg:col-span-3 space-y-8">
+        <div className="lg:col-span-7 xl:col-span-8 space-y-8">
           {/* Two-Factor Authentication Card */}
           <section className="animate-fade-in-up stagger-2">
             <TwoFactorCard />
           </section>
 
-          {/* Password Change Card */}
+          {/* Passkeys Card */}
           <section className="animate-fade-in-up stagger-3">
-            <div className="island overflow-hidden">
-              {/* Section header */}
-              <div className="px-6 py-5 border-b border-border/50 bg-gradient-to-r from-muted/30 to-transparent">
-                <div className="flex items-center gap-4">
-                  <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center">
+            <PasskeyCard />
+          </section>
+
+          {/* Password Change Card */}
+          <section className="animate-fade-in-up stagger-4">
+            <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+              {/* Section header with subtle gradient */}
+              <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+                <div className="flex items-center gap-5">
+                  <div className="size-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10">
                     <Lock className="size-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold">Change Password</h2>
-                    <p className="text-sm text-muted-foreground">Update your account password</p>
+                    <h2 className="text-xl font-semibold tracking-tight">Change Password</h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">Update your account password regularly</p>
                   </div>
                 </div>
               </div>
@@ -189,27 +248,88 @@ export default function SecuritySettingsPage() {
           </section>
         </div>
 
-        {/* Right Column - Sessions & Tips */}
-        <div className="lg:col-span-2 space-y-8">
+        {/* Right Column - Sessions & Status */}
+        <div className="lg:col-span-5 xl:col-span-4 space-y-8">
           {/* Active Sessions */}
-          <section className="animate-fade-in-up stagger-4">
-            <div className="flex items-center justify-between mb-4 px-1">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Monitor className="size-4 text-muted-foreground" />
+          <section className="animate-fade-in-up stagger-5">
+            <div className="flex items-center justify-between mb-5 px-1">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                <div className="size-6 rounded-lg bg-muted/50 flex items-center justify-center">
+                  <Activity className="size-3.5 text-muted-foreground" />
+                </div>
                 Active Sessions
               </h3>
             </div>
             <SessionsList />
           </section>
 
-          {/* Security Recommendations */}
-          <section className="animate-fade-in-up stagger-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4 px-1 flex items-center gap-2">
-              <ShieldCheck className="size-4 text-muted-foreground" />
-              Security Checklist
-            </h3>
+          {/* Security Checklist */}
+          <section className="animate-fade-in-up stagger-6">
+            <div className="flex items-center justify-between mb-5 px-1">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                <div className="size-6 rounded-lg bg-success/10 flex items-center justify-center">
+                  <ShieldCheck className="size-3.5 text-success" />
+                </div>
+                Security Checklist
+              </h3>
+            </div>
             <SecurityChecklist />
           </section>
+
+          {/* Security Tips */}
+          <section className="animate-fade-in-up stagger-6">
+            <SecurityTips />
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// Security Score Widget
+// ============================================
+
+function SecurityScoreWidget() {
+  const { percentage, level, color } = useSecurityScore();
+
+  return (
+    <div className="shrink-0 p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50 min-w-[180px]">
+      <div className="text-center">
+        <div className="relative inline-flex">
+          {/* Circular progress background */}
+          <svg className="size-20 -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="42"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="8"
+              className="text-muted/30"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="42"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeLinecap="round"
+              className={color}
+              strokeDasharray={`${percentage * 2.64} 264`}
+              style={{ transition: 'stroke-dasharray 1s ease-out' }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={cn('text-xl font-bold tabular-nums', color)}>
+              {percentage}
+            </span>
+          </div>
+        </div>
+        <div className="mt-3">
+          <p className={cn('text-sm font-semibold', color)}>{level}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Security Score</p>
         </div>
       </div>
     </div>
@@ -303,12 +423,12 @@ Keep these codes in a safe place!
 
   if (isLoading) {
     return (
-      <div className="island p-8">
-        <div className="flex items-center gap-4 animate-pulse">
-          <div className="size-14 rounded-2xl bg-muted" />
+      <div className="island p-10 border-0 shadow-lg shadow-black/[0.02]">
+        <div className="flex items-center gap-5 animate-pulse">
+          <div className="size-16 rounded-2xl bg-muted" />
           <div className="flex-1 space-y-3">
-            <div className="h-5 w-40 bg-muted rounded-lg" />
-            <div className="h-4 w-64 bg-muted rounded-lg" />
+            <div className="h-6 w-48 bg-muted rounded-lg" />
+            <div className="h-4 w-72 bg-muted rounded-lg" />
           </div>
         </div>
       </div>
@@ -317,32 +437,34 @@ Keep these codes in a safe place!
 
   return (
     <>
-      <div className="island overflow-hidden">
-        {/* Status banner */}
+      <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+        {/* Status banner with gradient */}
         <div className={cn(
-          'px-6 py-4 flex items-center gap-4 border-b',
+          'px-8 py-5 flex items-center gap-5 border-b',
           status?.enabled
-            ? 'bg-gradient-to-r from-success/10 via-success/5 to-transparent border-success/20'
-            : 'bg-gradient-to-r from-warning/10 via-warning/5 to-transparent border-warning/20'
+            ? 'bg-gradient-to-r from-success/12 via-success/6 to-transparent border-success/20'
+            : 'bg-gradient-to-r from-warning/12 via-warning/6 to-transparent border-warning/20'
         )}>
           <div className={cn(
-            'size-12 rounded-2xl flex items-center justify-center',
-            status?.enabled ? 'bg-success/15' : 'bg-warning/15'
+            'size-14 rounded-2xl flex items-center justify-center shadow-sm',
+            status?.enabled
+              ? 'bg-gradient-to-br from-success/20 to-success/5 border border-success/20'
+              : 'bg-gradient-to-br from-warning/20 to-warning/5 border border-warning/20'
           )}>
             {status?.enabled ? (
-              <ShieldCheck className="size-6 text-success" />
+              <ShieldCheck className="size-7 text-success" />
             ) : (
-              <ShieldAlert className="size-6 text-warning" />
+              <ShieldAlert className="size-7 text-warning" />
             )}
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-semibold text-lg">Two-Factor Authentication</span>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="font-semibold text-xl tracking-tight">Two-Factor Authentication</span>
               <span className={cn(
-                'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                'text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full',
                 status?.enabled
-                  ? 'bg-success/20 text-success'
-                  : 'bg-warning/20 text-warning'
+                  ? 'bg-success/15 text-success border border-success/20'
+                  : 'bg-warning/15 text-warning border border-warning/20'
               )}>
                 {status?.enabled ? 'Active' : 'Inactive'}
               </span>
@@ -355,19 +477,19 @@ Keep these codes in a safe place!
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-8">
           {status?.enabled ? (
             <div className="space-y-6">
-              {/* Status metrics */}
+              {/* Status metrics with premium styling */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/20 border border-border/40">
+                  <div className="flex items-center gap-2 mb-3">
                     <KeyRound className="size-4 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Backup Codes</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Backup Codes</span>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className={cn(
-                      'text-2xl font-bold tabular-nums',
+                      'text-3xl font-bold tabular-nums tracking-tight',
                       status.backupCodesRemaining <= 2 ? 'text-warning' : 'text-foreground'
                     )}>
                       {status.backupCodesRemaining}
@@ -375,20 +497,20 @@ Keep these codes in a safe place!
                     <span className="text-sm text-muted-foreground">remaining</span>
                   </div>
                   {status.backupCodesRemaining <= 2 && (
-                    <p className="text-xs text-warning mt-2 flex items-center gap-1">
-                      <AlertTriangle className="size-3" />
+                    <p className="text-xs text-warning mt-3 flex items-center gap-1.5 font-medium">
+                      <AlertTriangle className="size-3.5" />
                       Consider regenerating
                     </p>
                   )}
                 </div>
 
-                <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/20 border border-border/40">
+                  <div className="flex items-center gap-2 mb-3">
                     <Monitor className="size-4 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Trusted Devices</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trusted Devices</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold tabular-nums">
+                    <span className="text-3xl font-bold tabular-nums tracking-tight">
                       {status.trustedDevicesCount}
                     </span>
                     <span className="text-sm text-muted-foreground">devices</span>
@@ -396,12 +518,12 @@ Keep these codes in a safe place!
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              {/* Actions with refined styling */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button
                   variant="outline"
                   onClick={() => setRegenerateDialogOpen(true)}
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-2.5 h-12 rounded-xl border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
                 >
                   <RefreshCw className="size-4" />
                   Regenerate Backup Codes
@@ -409,7 +531,7 @@ Keep these codes in a safe place!
                 <Button
                   variant="ghost"
                   onClick={() => setDisableDialogOpen(true)}
-                  className="flex-1 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="flex-1 gap-2.5 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-300"
                 >
                   <Trash2 className="size-4" />
                   Disable 2FA
@@ -417,24 +539,27 @@ Keep these codes in a safe place!
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Benefits list */}
-              <div className="grid gap-3">
+            <div className="space-y-8">
+              {/* Benefits list with icons */}
+              <div className="grid gap-4">
                 {[
-                  { icon: Smartphone, text: 'Use any TOTP authenticator app' },
-                  { icon: KeyRound, text: '10 backup codes for account recovery' },
-                  { icon: Monitor, text: 'Option to trust devices for 30 days' },
+                  { icon: Smartphone, text: 'Use any TOTP authenticator app', color: 'text-primary' },
+                  { icon: KeyRound, text: '10 backup codes for account recovery', color: 'text-success' },
+                  { icon: Monitor, text: 'Option to trust devices for 30 days', color: 'text-info' },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm">
-                    <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <item.icon className="size-4 text-primary" />
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 border border-border/30 hover:border-border/50 transition-colors">
+                    <div className={cn('size-10 rounded-xl bg-gradient-to-br from-primary/10 to-transparent flex items-center justify-center border border-primary/10')}>
+                      <item.icon className={cn('size-5', item.color)} />
                     </div>
-                    <span className="text-muted-foreground">{item.text}</span>
+                    <span className="text-sm font-medium text-foreground/80">{item.text}</span>
                   </div>
                 ))}
               </div>
 
-              <Button onClick={() => setSetupOpen(true)} className="w-full gap-2 h-12">
+              <Button
+                onClick={() => setSetupOpen(true)}
+                className="w-full gap-3 h-14 text-base rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all duration-300"
+              >
                 <Fingerprint className="size-5" />
                 Enable Two-Factor Authentication
               </Button>
@@ -452,45 +577,45 @@ Keep these codes in a safe place!
 
       {/* Disable 2FA Dialog */}
       <AlertDialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
-        <AlertDialogContent>
-          <div className="flex items-center gap-4 mb-2">
-            <div className="size-12 rounded-2xl bg-destructive/10 flex items-center justify-center">
-              <AlertTriangle className="size-6 text-destructive" />
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center border border-destructive/20">
+              <AlertTriangle className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle>Disable Two-Factor Authentication</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-xl">Disable Two-Factor Authentication</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
                 This will remove the extra security layer from your account.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <div className="py-4">
-            <label className="text-sm font-medium mb-2 block">Confirm your password</label>
+            <label className="text-sm font-medium mb-2.5 block">Confirm your password</label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-10"
+                className="pr-12 h-12 rounded-xl"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setPassword(''); setShowPassword(false); }}>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel onClick={() => { setPassword(''); setShowPassword(false); }} className="rounded-xl">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => disableMutation.mutate(password)}
               disabled={!password || disableMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               {disableMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
               Disable 2FA
@@ -501,44 +626,45 @@ Keep these codes in a safe place!
 
       {/* Regenerate Backup Codes Dialog */}
       <AlertDialog open={regenerateDialogOpen} onOpenChange={setRegenerateDialogOpen}>
-        <AlertDialogContent>
-          <div className="flex items-center gap-4 mb-2">
-            <div className="size-12 rounded-2xl bg-warning/10 flex items-center justify-center">
-              <RefreshCw className="size-6 text-warning" />
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-warning/10 flex items-center justify-center border border-warning/20">
+              <RefreshCw className="size-7 text-warning" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle>Regenerate Backup Codes</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-xl">Regenerate Backup Codes</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
                 This will invalidate all existing backup codes and generate new ones.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <div className="py-4">
-            <label className="text-sm font-medium mb-2 block">Confirm your password</label>
+            <label className="text-sm font-medium mb-2.5 block">Confirm your password</label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-10"
+                className="pr-12 h-12 rounded-xl"
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setPassword(''); setShowPassword(false); }}>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel onClick={() => { setPassword(''); setShowPassword(false); }} className="rounded-xl">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => regenerateMutation.mutate(password)}
               disabled={!password || regenerateMutation.isPending}
+              className="rounded-xl"
             >
               {regenerateMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
               Regenerate Codes
@@ -549,23 +675,23 @@ Keep these codes in a safe place!
 
       {/* New Backup Codes Dialog */}
       <AlertDialog open={showBackupCodes} onOpenChange={setShowBackupCodes}>
-        <AlertDialogContent className="sm:max-w-md">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="size-12 rounded-2xl bg-success/10 flex items-center justify-center">
-              <CheckCircle2 className="size-6 text-success" />
+        <AlertDialogContent className="sm:max-w-lg border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-success/10 flex items-center justify-center border border-success/20">
+              <CheckCircle2 className="size-7 text-success" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle>New Backup Codes Generated</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-xl">New Backup Codes Generated</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
                 Save these codes in a safe place. Each code can only be used once.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <div className="py-4">
-            <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="bg-muted/30 rounded-2xl p-5 border border-border/40">
+              <div className="grid grid-cols-2 gap-3">
                 {newBackupCodes?.map((code, i) => (
-                  <code key={i} className="bg-card px-3 py-2.5 rounded-lg font-mono text-sm text-center border border-border/50 tracking-wider">
+                  <code key={i} className="bg-card px-4 py-3 rounded-xl font-mono text-sm text-center border border-border/50 tracking-widest font-medium">
                     {code}
                   </code>
                 ))}
@@ -574,17 +700,20 @@ Keep these codes in a safe place!
             <Button
               variant="outline"
               onClick={downloadBackupCodes}
-              className="w-full mt-4 gap-2"
+              className="w-full mt-5 gap-2.5 h-12 rounded-xl"
             >
               <Download className="size-4" />
               Download as Text File
             </Button>
           </div>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => {
-              setShowBackupCodes(false);
-              setNewBackupCodes(null);
-            }}>
+            <AlertDialogAction
+              onClick={() => {
+                setShowBackupCodes(false);
+                setNewBackupCodes(null);
+              }}
+              className="rounded-xl"
+            >
               I've Saved My Codes
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -592,6 +721,479 @@ Keep these codes in a safe place!
       </AlertDialog>
     </>
   );
+}
+
+// ============================================
+// Passkeys Card
+// ============================================
+
+function PasskeyCard() {
+  const queryClient = useQueryClient();
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteCredentialId, setDeleteCredentialId] = useState<string | null>(null);
+  const [goPasswordlessDialogOpen, setGoPasswordlessDialogOpen] = useState(false);
+  const [passkeyName, setPasskeyName] = useState('');
+
+  const supportsPasskey = typeof window !== 'undefined' && browserSupportsWebAuthn();
+
+  const { data: status, isLoading: statusLoading } = useQuery({
+    queryKey: ['webauthn-status'],
+    queryFn: () => webauthnApi.getStatus(),
+    enabled: supportsPasskey,
+  });
+
+  const { data: credentialsData, isLoading: credentialsLoading } = useQuery({
+    queryKey: ['webauthn-credentials'],
+    queryFn: () => webauthnApi.listCredentials(),
+    enabled: supportsPasskey,
+  });
+
+  const credentials = credentialsData?.credentials || [];
+
+  const registerMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { options, challengeToken } = await webauthnApi.getRegistrationOptions();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const regResponse = await startRegistration({ optionsJSON: options as any });
+      return webauthnApi.verifyRegistration({
+        name,
+        challengeToken,
+        response: regResponse,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['webauthn-credentials'] });
+      queryClient.invalidateQueries({ queryKey: ['webauthn-status'] });
+      toast.success('Passkey added successfully');
+      setAddDialogOpen(false);
+      setPasskeyName('');
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Failed to add passkey';
+      toast.error(message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: webauthnApi.deleteCredential,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['webauthn-credentials'] });
+      queryClient.invalidateQueries({ queryKey: ['webauthn-status'] });
+      toast.success('Passkey deleted');
+      setDeleteCredentialId(null);
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Failed to delete passkey';
+      toast.error(message);
+    },
+  });
+
+  const goPasswordlessMutation = useMutation({
+    mutationFn: webauthnApi.goPasswordless,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['webauthn-status'] });
+      toast.success('You are now passwordless!', {
+        description: 'Use your passkeys to sign in from now on.',
+      });
+      setGoPasswordlessDialogOpen(false);
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Failed to go passwordless';
+      toast.error(message);
+    },
+  });
+
+  const handleAddPasskey = () => {
+    if (!passkeyName.trim()) {
+      toast.error('Please enter a name for your passkey');
+      return;
+    }
+    registerMutation.mutate(passkeyName.trim());
+  };
+
+  if (!supportsPasskey) {
+    return (
+      <div className="island p-10 text-center border-0 shadow-lg shadow-black/[0.02]">
+        <div className="size-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-5 border border-border/50">
+          <Fingerprint className="size-8 text-muted-foreground/50" />
+        </div>
+        <h3 className="font-semibold text-lg mb-2">Passkeys Not Supported</h3>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+          Your browser doesn't support passkeys. Try using a modern browser like Chrome, Safari, or Edge.
+        </p>
+      </div>
+    );
+  }
+
+  if (statusLoading || credentialsLoading) {
+    return (
+      <div className="island p-10 border-0 shadow-lg shadow-black/[0.02]">
+        <div className="flex items-center gap-5 animate-pulse">
+          <div className="size-16 rounded-2xl bg-muted" />
+          <div className="flex-1 space-y-3">
+            <div className="h-6 w-40 bg-muted rounded-lg" />
+            <div className="h-4 w-64 bg-muted rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+        {/* Header */}
+        <div className={cn(
+          'px-8 py-5 flex items-center gap-5 border-b',
+          status?.hasPasskeys
+            ? 'bg-gradient-to-r from-primary/12 via-primary/6 to-transparent border-primary/20'
+            : 'bg-gradient-to-r from-muted/40 to-transparent border-border/40'
+        )}>
+          <div className={cn(
+            'size-14 rounded-2xl flex items-center justify-center shadow-sm',
+            status?.hasPasskeys
+              ? 'bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20'
+              : 'bg-muted/50 border border-border/50'
+          )}>
+            <Fingerprint className={cn(
+              'size-7',
+              status?.hasPasskeys ? 'text-primary' : 'text-muted-foreground'
+            )} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="font-semibold text-xl tracking-tight">Passkeys</span>
+              {status?.isPasswordless && (
+                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-success/15 text-success border border-success/20">
+                  Passwordless
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {status?.hasPasskeys
+                ? `${status.credentialsCount} passkey${status.credentialsCount !== 1 ? 's' : ''} registered`
+                : 'Sign in without passwords using biometrics or security keys'}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 space-y-6">
+          {/* Passkey list */}
+          {credentials.length > 0 && (
+            <div className="space-y-3">
+              {credentials.map((credential) => (
+                <div
+                  key={credential.id}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-muted/20 border border-border/40 hover:border-border/60 transition-all duration-200 group"
+                >
+                  <div className="size-12 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10 shrink-0">
+                    <Key className="size-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-medium truncate">{credential.name}</span>
+                      {credential.backedUp && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
+                          Synced
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2.5 text-xs text-muted-foreground mt-1">
+                      <span>Added {formatDate(credential.createdAt)}</span>
+                      {credential.lastUsedAt && (
+                        <>
+                          <span className="text-border/60">•</span>
+                          <span>Last used {formatDate(credential.lastUsedAt)}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDeleteCredentialId(credential.id)}
+                    className="size-10 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 rounded-xl opacity-60 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="size-4" />
+                    <span className="sr-only">Delete passkey</span>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => setAddDialogOpen(true)}
+              className="flex-1 gap-2.5 h-12 rounded-xl shadow-lg shadow-primary/15"
+            >
+              <Plus className="size-4" />
+              Add Passkey
+            </Button>
+
+            {status?.canGoPasswordless && !status.isPasswordless && (
+              <Button
+                variant="outline"
+                onClick={() => setGoPasswordlessDialogOpen(true)}
+                className="flex-1 gap-2.5 h-12 rounded-xl border-border/60 hover:border-primary/40"
+              >
+                <ShieldOff className="size-4" />
+                Go Passwordless
+              </Button>
+            )}
+          </div>
+
+          {/* Info text for empty state */}
+          {!status?.hasPasskeys && (
+            <div className="grid gap-4 pt-2">
+              {[
+                { icon: Fingerprint, text: 'Use biometrics or security keys to sign in', color: 'text-primary' },
+                { icon: ShieldCheck, text: 'Phishing-resistant and more secure than passwords', color: 'text-success' },
+                { icon: Monitor, text: 'Synced across devices with iCloud, Google, or Microsoft', color: 'text-info' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 border border-border/30">
+                  <div className="size-10 rounded-xl bg-gradient-to-br from-primary/10 to-transparent flex items-center justify-center border border-primary/10">
+                    <item.icon className={cn('size-5', item.color)} />
+                  </div>
+                  <span className="text-sm font-medium text-foreground/80">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {status?.isPasswordless && (
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-success/5 border border-success/20">
+              <div className="size-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="size-5 text-success" />
+              </div>
+              <div>
+                <p className="font-medium text-success mb-1">Passwordless Enabled</p>
+                <p className="text-sm text-muted-foreground">
+                  Your account is secured with passkeys only. You can sign in using biometrics or security keys.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add Passkey Dialog - Premium Design */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="border-0 shadow-2xl sm:max-w-[440px] p-0 overflow-hidden gap-0">
+          {/* Decorative gradient header */}
+          <div className="relative h-32 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent overflow-hidden">
+            {/* Animated gradient orbs */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-primary/30 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-warm/20 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+
+            {/* Subtle pattern overlay */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
+              backgroundSize: '24px 24px'
+            }} />
+
+            {/* Centered icon with glow */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/40 rounded-3xl blur-xl scale-150" />
+                <div className="relative size-20 rounded-3xl bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 flex items-center justify-center border border-primary/30 backdrop-blur-sm shadow-lg shadow-primary/20">
+                  <Fingerprint className="size-10 text-primary" strokeWidth={1.5} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-8 pb-8 pt-6">
+            {/* Title & description */}
+            <div className="text-center mb-8">
+              <DialogHeader className="space-y-2">
+                <DialogTitle className="text-2xl font-semibold tracking-tight">
+                  Add a Passkey
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
+                  Give your passkey a memorable name to identify it across your devices
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+
+            {/* Input section */}
+            <div className="space-y-3 mb-8">
+              <label className="text-sm font-medium text-foreground/80 flex items-center gap-2">
+                <Key className="size-3.5 text-muted-foreground" />
+                Passkey Name
+              </label>
+              <div className="relative group">
+                <Input
+                  placeholder="e.g., MacBook Pro, iPhone 15, YubiKey"
+                  value={passkeyName}
+                  onChange={(e) => setPasskeyName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddPasskey()}
+                  autoFocus
+                  className="h-14 rounded-2xl pl-5 pr-12 text-base bg-muted/30 border-border/50 focus:border-primary/50 focus:bg-card transition-all duration-200 placeholder:text-muted-foreground/50"
+                />
+                {/* Device icon hint */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary/60 transition-colors">
+                  <Monitor className="size-5" />
+                </div>
+              </div>
+
+              {/* Suggestion chips */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {['MacBook Pro', 'iPhone', 'Security Key'].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setPasskeyName(suggestion)}
+                    className={cn(
+                      'px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200',
+                      passkeyName === suggestion
+                        ? 'bg-primary/10 border-primary/30 text-primary'
+                        : 'bg-muted/30 border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                    )}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Info callout */}
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-muted/40 to-muted/20 border border-border/40 mb-8">
+              <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                <ShieldCheck className="size-4 text-primary" />
+              </div>
+              <div className="text-xs text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground/80">Secure & Private</span>
+                <br />
+                Your passkey is stored securely on your device and never leaves it.
+              </div>
+            </div>
+
+            {/* Actions */}
+            <DialogFooter className="flex-col sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAddDialogOpen(false);
+                  setPasskeyName('');
+                }}
+                className="flex-1 h-12 rounded-xl border-border/60 hover:bg-muted/50 font-medium"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddPasskey}
+                disabled={!passkeyName.trim() || registerMutation.isPending}
+                className="flex-1 h-12 rounded-xl font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 gap-2"
+              >
+                {registerMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <Fingerprint className="size-4" />
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Passkey Dialog */}
+      <AlertDialog open={!!deleteCredentialId} onOpenChange={() => setDeleteCredentialId(null)}>
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center border border-destructive/20">
+              <Trash2 className="size-7 text-destructive" />
+            </div>
+            <AlertDialogHeader className="flex-1 p-0">
+              <AlertDialogTitle className="text-xl">Delete Passkey</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
+                This passkey will be removed from your account. You won't be able to use it to sign in anymore.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteCredentialId && deleteMutation.mutate(deleteCredentialId)}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+            >
+              {deleteMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
+              Delete Passkey
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Go Passwordless Dialog */}
+      <AlertDialog open={goPasswordlessDialogOpen} onOpenChange={setGoPasswordlessDialogOpen}>
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-warning/10 flex items-center justify-center border border-warning/20">
+              <ShieldOff className="size-7 text-warning" />
+            </div>
+            <AlertDialogHeader className="flex-1 p-0">
+              <AlertDialogTitle className="text-xl">Go Passwordless</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
+                Your password will be removed. You'll only be able to sign in using your passkeys.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+          <div className="py-4 space-y-3">
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-success/5 border border-success/20">
+              <CheckCircle2 className="size-5 text-success shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">
+                You have <span className="font-medium text-foreground">{status?.credentialsCount} passkeys</span> registered, which is enough for passwordless.
+              </p>
+            </div>
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-warning/5 border border-warning/20">
+              <AlertTriangle className="size-5 text-warning shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">
+                Make sure you have access to your passkeys on multiple devices before proceeding.
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => goPasswordlessMutation.mutate()}
+              disabled={goPasswordlessMutation.isPending}
+              className="rounded-xl"
+            >
+              {goPasswordlessMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
+              Remove Password
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+// Helper function for date formatting
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  });
 }
 
 // ============================================
@@ -640,15 +1242,15 @@ function PasswordChangeForm() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-8">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="currentPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current Password</FormLabel>
+                <FormLabel className="text-sm font-medium">Current Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -656,11 +1258,11 @@ function PasswordChangeForm() {
                       type={showPasswords.current ? 'text' : 'password'}
                       placeholder="Enter your current password"
                       autoComplete="current-password"
-                      className="pr-10"
+                      className="pr-12 h-12 rounded-xl"
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-1"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-1"
                       onClick={() => togglePassword('current')}
                     >
                       {showPasswords.current ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -672,12 +1274,12 @@ function PasswordChangeForm() {
             )}
           />
 
-          <div className="relative py-3">
+          <div className="relative py-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/50" />
+              <div className="w-full border-t border-border/40" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-card px-3 text-xs text-muted-foreground uppercase tracking-wider">
+              <span className="bg-card px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 New Password
               </span>
             </div>
@@ -688,7 +1290,7 @@ function PasswordChangeForm() {
             name="newPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel className="text-sm font-medium">New Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -696,11 +1298,11 @@ function PasswordChangeForm() {
                       type={showPasswords.new ? 'text' : 'password'}
                       placeholder="Create a strong password"
                       autoComplete="new-password"
-                      className="pr-10"
+                      className="pr-12 h-12 rounded-xl"
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-1"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-1"
                       onClick={() => togglePassword('new')}
                     >
                       {showPasswords.new ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -717,7 +1319,7 @@ function PasswordChangeForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel className="text-sm font-medium">Confirm Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -725,11 +1327,11 @@ function PasswordChangeForm() {
                       type={showPasswords.confirm ? 'text' : 'password'}
                       placeholder="Confirm your new password"
                       autoComplete="new-password"
-                      className="pr-10"
+                      className="pr-12 h-12 rounded-xl"
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-1"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-foreground transition-colors p-1"
                       onClick={() => togglePassword('confirm')}
                     >
                       {showPasswords.confirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -745,7 +1347,7 @@ function PasswordChangeForm() {
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="sm:w-auto w-full gap-2"
+              className="sm:w-auto w-full gap-2.5 h-12 rounded-xl shadow-lg shadow-primary/15"
             >
               {mutation.isPending ? (
                 <>
@@ -759,8 +1361,8 @@ function PasswordChangeForm() {
                 </>
               )}
             </Button>
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <AlertTriangle className="size-3.5 text-warning shrink-0" />
+            <p className="text-xs text-muted-foreground flex items-center gap-2 sm:ml-2">
+              <AlertTriangle className="size-4 text-warning shrink-0" />
               This will sign out all other devices
             </p>
           </div>
@@ -815,14 +1417,14 @@ function SessionsList() {
 
   if (isLoading) {
     return (
-      <div className="island p-5">
+      <div className="island p-6 border-0 shadow-lg shadow-black/[0.02]">
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="flex items-center gap-3 animate-pulse">
-              <div className="size-10 rounded-xl bg-muted" />
+            <div key={i} className="flex items-center gap-4 animate-pulse">
+              <div className="size-12 rounded-xl bg-muted" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-32 bg-muted rounded" />
-                <div className="h-3 w-24 bg-muted rounded" />
+                <div className="h-4 w-36 bg-muted rounded" />
+                <div className="h-3 w-28 bg-muted rounded" />
               </div>
             </div>
           ))}
@@ -833,22 +1435,22 @@ function SessionsList() {
 
   if (error) {
     return (
-      <div className="island p-8 text-center">
-        <div className="size-12 rounded-xl bg-destructive/10 flex items-center justify-center mx-auto mb-3">
-          <XCircle className="size-6 text-destructive" />
+      <div className="island p-10 text-center border-0 shadow-lg shadow-black/[0.02]">
+        <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4 border border-destructive/20">
+          <XCircle className="size-7 text-destructive" />
         </div>
-        <p className="text-sm font-medium mb-1">Failed to load sessions</p>
-        <p className="text-xs text-muted-foreground">Please try again later</p>
+        <p className="font-medium mb-1">Failed to load sessions</p>
+        <p className="text-sm text-muted-foreground">Please try again later</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="island overflow-hidden">
+      <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
         {/* Current Session */}
         {currentSession && (
-          <div className="p-4 bg-gradient-to-r from-success/5 to-transparent border-b border-border/50">
+          <div className="p-5 bg-gradient-to-r from-success/5 to-transparent border-b border-border/40">
             <SessionRow
               session={currentSession}
               onRevoke={() => {}}
@@ -861,8 +1463,8 @@ function SessionsList() {
         {/* Other Sessions */}
         {otherSessions.length > 0 && (
           <>
-            <div className="px-4 py-2.5 flex items-center justify-between bg-muted/30 border-b border-border/50">
-              <span className="text-xs font-medium text-muted-foreground">
+            <div className="px-5 py-3 flex items-center justify-between bg-muted/20 border-b border-border/40">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {otherSessions.length} other session{otherSessions.length !== 1 && 's'}
               </span>
               <Button
@@ -870,19 +1472,19 @@ function SessionsList() {
                 size="sm"
                 onClick={() => setRevokeAllDialogOpen(true)}
                 disabled={revokeAllMutation.isPending}
-                className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="h-8 px-3 text-xs font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
               >
                 {revokeAllMutation.isPending ? (
-                  <Loader2 className="size-3 animate-spin mr-1" />
+                  <Loader2 className="size-3 animate-spin mr-1.5" />
                 ) : (
-                  <LogOut className="size-3 mr-1" />
+                  <LogOut className="size-3 mr-1.5" />
                 )}
                 Revoke All
               </Button>
             </div>
-            <div className="divide-y divide-border/50">
+            <div className="divide-y divide-border/40">
               {otherSessions.map((session) => (
-                <div key={session.id} className="p-4 hover:bg-muted/20 transition-colors">
+                <div key={session.id} className="p-5 hover:bg-muted/10 transition-colors">
                   <SessionRow
                     session={session}
                     onRevoke={() => setRevokeSessionId(session.id)}
@@ -895,41 +1497,41 @@ function SessionsList() {
         )}
 
         {otherSessions.length === 0 && currentSession && (
-          <div className="p-6 text-center">
+          <div className="p-8 text-center">
             <p className="text-sm text-muted-foreground">No other active sessions</p>
           </div>
         )}
 
         {sessions.length === 0 && (
-          <div className="p-10 text-center">
-            <div className="size-12 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
-              <Monitor className="size-6 text-muted-foreground/50" />
+          <div className="p-12 text-center">
+            <div className="size-14 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4 border border-border/50">
+              <Monitor className="size-7 text-muted-foreground/50" />
             </div>
-            <p className="text-sm font-medium mb-1">No active sessions</p>
-            <p className="text-xs text-muted-foreground">Sessions will appear here</p>
+            <p className="font-medium mb-1">No active sessions</p>
+            <p className="text-sm text-muted-foreground">Sessions will appear here</p>
           </div>
         )}
       </div>
 
       {/* Revoke single session dialog */}
       <AlertDialog open={!!revokeSessionId} onOpenChange={() => setRevokeSessionId(null)}>
-        <AlertDialogContent>
-          <div className="flex items-center gap-4 mb-2">
-            <div className="size-12 rounded-2xl bg-destructive/10 flex items-center justify-center">
-              <LogOut className="size-6 text-destructive" />
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center border border-destructive/20">
+              <LogOut className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle>Revoke Session</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-xl">Revoke Session</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
                 This will sign out the device. They'll need to log in again to access the account.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => revokeSessionId && revokeSessionMutation.mutate(revokeSessionId)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               Revoke Session
             </AlertDialogAction>
@@ -939,23 +1541,23 @@ function SessionsList() {
 
       {/* Revoke all sessions dialog */}
       <AlertDialog open={revokeAllDialogOpen} onOpenChange={setRevokeAllDialogOpen}>
-        <AlertDialogContent>
-          <div className="flex items-center gap-4 mb-2">
-            <div className="size-12 rounded-2xl bg-destructive/10 flex items-center justify-center">
-              <LogOut className="size-6 text-destructive" />
+        <AlertDialogContent className="border-0 shadow-2xl">
+          <div className="flex items-center gap-5 mb-4">
+            <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center border border-destructive/20">
+              <LogOut className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle>Revoke All Other Sessions</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-xl">Revoke All Other Sessions</AlertDialogTitle>
+              <AlertDialogDescription className="mt-1">
                 This will sign out all {otherSessions.length} other device{otherSessions.length !== 1 && 's'} from your account.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => revokeAllMutation.mutate()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               Revoke All Sessions
             </AlertDialogAction>
@@ -989,19 +1591,21 @@ function SessionRow({
   const lastActive = getRelativeTime(new Date(session.lastActive));
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <div className={cn(
-        'size-10 rounded-xl flex items-center justify-center shrink-0',
-        isCurrent ? 'bg-success/10' : 'bg-muted/50'
+        'size-12 rounded-xl flex items-center justify-center shrink-0 border',
+        isCurrent
+          ? 'bg-success/10 border-success/20'
+          : 'bg-muted/30 border-border/40'
       )}>
         <DeviceIcon className={cn(
-          'size-4',
+          'size-5',
           isCurrent ? 'text-success' : 'text-muted-foreground'
         )} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
+        <div className="flex items-center gap-2.5 mb-1">
           <span className={cn(
             'font-medium text-sm truncate',
             isCurrent && 'text-success'
@@ -1009,7 +1613,7 @@ function SessionRow({
             {session.deviceInfo || 'Unknown Device'}
           </span>
           {isCurrent && (
-            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-success/15 text-success">
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
               Current
             </span>
           )}
@@ -1019,7 +1623,7 @@ function SessionRow({
             <>
               <Globe className="size-3" />
               <span>{session.ipAddress}</span>
-              <span className="text-border">•</span>
+              <span className="text-border/60">•</span>
             </>
           )}
           <Clock className="size-3" />
@@ -1033,7 +1637,7 @@ function SessionRow({
           size="sm"
           onClick={onRevoke}
           disabled={isRevoking}
-          className="size-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+          className="size-10 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 rounded-xl"
         >
           {isRevoking ? (
             <Loader2 className="size-4 animate-spin" />
@@ -1052,51 +1656,129 @@ function SessionRow({
 // ============================================
 
 function SecurityChecklist() {
+  const supportsPasskey = typeof window !== 'undefined' && browserSupportsWebAuthn();
+
   const { data: totpStatus } = useQuery({
     queryKey: ['totp-status'],
     queryFn: () => totpApi.getStatus(),
   });
 
+  const { data: webauthnStatus } = useQuery({
+    queryKey: ['webauthn-status'],
+    queryFn: () => webauthnApi.getStatus(),
+    enabled: supportsPasskey,
+  });
+
   const checks = [
+    {
+      label: 'Passkeys registered',
+      done: webauthnStatus?.hasPasskeys ?? false,
+      tip: 'Phishing-resistant login method',
+      icon: Fingerprint,
+    },
     {
       label: 'Two-factor authentication',
       done: totpStatus?.enabled ?? false,
       tip: 'Adds an extra layer of security',
+      icon: Shield,
     },
     {
       label: 'Strong password',
-      done: true, // We assume if they're logged in, they have a password
+      done: true,
       tip: '8+ characters with mixed case',
+      icon: Lock,
     },
     {
       label: 'Review active sessions',
       done: true,
       tip: 'Check for unfamiliar devices',
+      icon: Monitor,
+    },
+  ];
+
+  const completedCount = checks.filter(c => c.done).length;
+
+  return (
+    <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+      {/* Progress header */}
+      <div className="px-5 py-4 bg-gradient-to-r from-muted/30 to-transparent border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {completedCount} of {checks.length} complete
+          </span>
+          <div className="w-24 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-success rounded-full transition-all duration-500"
+              style={{ width: `${(completedCount / checks.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="divide-y divide-border/40">
+        {checks.map((check, i) => (
+          <div key={i} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
+            <div className={cn(
+              'size-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border',
+              check.done
+                ? 'bg-success/10 border-success/20'
+                : 'bg-warning/10 border-warning/20'
+            )}>
+              {check.done ? (
+                <CheckCircle2 className="size-4 text-success" />
+              ) : (
+                <AlertTriangle className="size-4 text-warning" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={cn(
+                'font-medium',
+                check.done ? 'text-foreground' : 'text-warning'
+              )}>
+                {check.label}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">{check.tip}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// Security Tips
+// ============================================
+
+function SecurityTips() {
+  const tips = [
+    {
+      icon: Zap,
+      title: 'Quick Tip',
+      text: 'Enable both 2FA and passkeys for maximum security. They work together seamlessly.',
+      color: 'text-primary',
+      bg: 'from-primary/10 to-primary/5',
     },
   ];
 
   return (
-    <div className="island overflow-hidden divide-y divide-border/50">
-      {checks.map((check, i) => (
-        <div key={i} className="p-4 flex items-start gap-3">
-          <div className={cn(
-            'size-6 rounded-full flex items-center justify-center shrink-0 mt-0.5',
-            check.done ? 'bg-success/10' : 'bg-warning/10'
-          )}>
-            {check.done ? (
-              <CheckCircle2 className="size-3.5 text-success" />
-            ) : (
-              <AlertTriangle className="size-3.5 text-warning" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={cn(
-              'text-sm font-medium',
-              check.done ? 'text-foreground' : 'text-warning'
-            )}>
-              {check.label}
-            </p>
-            <p className="text-xs text-muted-foreground">{check.tip}</p>
+    <div className="space-y-4">
+      {tips.map((tip, i) => (
+        <div
+          key={i}
+          className={cn(
+            'p-5 rounded-2xl border border-border/40 bg-gradient-to-br',
+            tip.bg
+          )}
+        >
+          <div className="flex items-start gap-4">
+            <div className={cn('size-10 rounded-xl bg-card/80 flex items-center justify-center border border-border/40 shrink-0')}>
+              <tip.icon className={cn('size-5', tip.color)} />
+            </div>
+            <div>
+              <p className="font-semibold text-sm mb-1">{tip.title}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{tip.text}</p>
+            </div>
           </div>
         </div>
       ))}
@@ -1110,15 +1792,19 @@ function SecurityChecklist() {
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="flex flex-col items-center gap-4">
+    <div className="flex items-center justify-center h-[60vh]">
+      <div className="flex flex-col items-center gap-6">
         <div className="relative">
-          <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Shield className="size-7 text-primary animate-pulse" />
+          <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl scale-125" />
+          <div className="relative size-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+            <Shield className="size-10 text-primary animate-pulse" />
           </div>
-          <div className="absolute inset-0 rounded-2xl border-2 border-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
+          <div className="absolute inset-0 rounded-3xl border-2 border-primary/30 animate-ping" style={{ animationDuration: '2s' }} />
         </div>
-        <p className="text-sm text-muted-foreground">Loading security settings...</p>
+        <div className="text-center">
+          <p className="font-medium text-foreground mb-1">Loading security settings</p>
+          <p className="text-sm text-muted-foreground">Please wait...</p>
+        </div>
       </div>
     </div>
   );

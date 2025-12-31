@@ -16,7 +16,7 @@ datasource db {
 model User {
   id          String   @id @default(cuid())
   email       String   @unique
-  password    String   // bcrypt hashed (cost factor 12)
+  password    String?  // bcrypt hashed (cost factor 12), null for passwordless users
   name        String?
   role        Role     @default(DEVELOPER)
   avatarUrl   String?  // Path to uploaded avatar file
@@ -32,12 +32,16 @@ model User {
   totpFailedAttempts Int       @default(0)
   totpLockedUntil    DateTime?
 
-  apiKeys            ApiKey[]
-  projectMembers     ProjectMember[]
-  activities         Activity[]
-  emailVerifications EmailVerification[]
-  sessions           Session[]
-  backupCodes        BackupCode[]
+  // Passwordless / WebAuthn
+  passwordlessAt DateTime? // When user went passwordless
+
+  apiKeys             ApiKey[]
+  projectMembers      ProjectMember[]
+  activities          Activity[]
+  emailVerifications  EmailVerification[]
+  sessions            Session[]
+  backupCodes         BackupCode[]
+  webauthnCredentials WebAuthnCredential[]
 
   @@index([email])
 }
@@ -65,6 +69,31 @@ model BackupCode {
   codeHash  String    // bcrypt hash of backup code
   usedAt    DateTime? // null if unused
   createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model WebAuthnCredential {
+  id           String   @id @default(cuid())
+  userId       String
+
+  // WebAuthn spec fields
+  credentialId String   @unique // Base64URL encoded credential ID
+  publicKey    String            // Base64URL encoded COSE public key
+  counter      BigInt   @default(0) // Sign count for replay protection
+  transports   String[] // ["internal", "usb", "ble", "nfc", "hybrid"]
+
+  // Metadata from attestation
+  deviceType String  @default("singleDevice") // singleDevice | multiDevice
+  backedUp   Boolean @default(false)
+  aaguid     String? // Authenticator AAGUID
+
+  // User-friendly info
+  name       String    // User-given name: "MacBook Pro", "iPhone 15"
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

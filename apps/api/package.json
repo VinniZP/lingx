@@ -34,6 +34,7 @@
     "@localeflow/shared": "workspace:*",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "@simplewebauthn/server": "^13.2.2",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.4",
     "dotenv": "^17.2.3",
