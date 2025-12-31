@@ -22,8 +22,11 @@ export const glossaryKeys = {
   all: ['glossary'] as const,
   search: (projectId: string, params: GlossarySearchParams | null) =>
     [...glossaryKeys.all, 'search', projectId, params] as const,
+  // For list: omit undefined params so invalidation with just projectId works as prefix match
   list: (projectId: string, params?: GlossaryListParams) =>
-    [...glossaryKeys.all, 'list', projectId, params] as const,
+    params
+      ? ([...glossaryKeys.all, 'list', projectId, params] as const)
+      : ([...glossaryKeys.all, 'list', projectId] as const),
   entry: (projectId: string, entryId: string) =>
     [...glossaryKeys.all, 'entry', projectId, entryId] as const,
   tags: (projectId: string) => [...glossaryKeys.all, 'tags', projectId] as const,

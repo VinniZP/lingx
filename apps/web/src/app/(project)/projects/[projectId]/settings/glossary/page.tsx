@@ -67,6 +67,7 @@ import {
   BarChart3,
   Globe,
   FileText,
+  FileCode,
   Check,
   X,
   AlertCircle,
@@ -555,7 +556,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
               placeholder="Search terms..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="pl-10 h-10 bg-card border-border/50"
+              className="pl-10 h-11 bg-card border-border/50"
             />
           </div>
 
@@ -1001,27 +1002,182 @@ export default function GlossarySettingsPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Entry Dialog */}
+      {/* Entry Dialog - Premium Design */}
       <Dialog open={isEntryDialogOpen} onOpenChange={setIsEntryDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingEntry ? 'Edit Term' : 'Add New Term'}</DialogTitle>
-            <DialogDescription>
-              {editingEntry ? 'Update the glossary entry details' : 'Add a new term to your glossary'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto p-0 gap-0">
+          {/* Premium Header with Gradient */}
+          <div className="relative px-7 pt-7 pb-5 border-b border-border/40 bg-gradient-to-br from-primary/[0.04] via-transparent to-transparent">
+            {/* Decorative background element */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/[0.06] to-transparent rounded-bl-full" />
+
+            <div className="relative flex items-start gap-4">
+              <div className={cn(
+                "size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+                editingEntry
+                  ? "bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/20"
+                  : "bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20"
+              )}>
+                {editingEntry ? (
+                  <Pencil className="size-5 text-amber-500" />
+                ) : (
+                  <BookOpen className="size-5 text-primary" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-xl font-semibold tracking-tight">
+                  {editingEntry ? 'Edit Term' : 'Add New Term'}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground mt-1">
+                  {editingEntry
+                    ? 'Update the glossary entry details and translations'
+                    : 'Add a new term to your project glossary for consistent translations'}
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
 
           <Form {...entryForm}>
-            <form onSubmit={entryForm.handleSubmit(handleEntrySubmit)} className="space-y-5">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <form onSubmit={entryForm.handleSubmit(handleEntrySubmit)} className="px-7 py-6 space-y-6">
+              {/* Primary Fields Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="size-1.5 rounded-full bg-primary" />
+                  Term Information
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={entryForm.control}
+                    name="sourceTerm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Source Term</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g. API, Dashboard, Settings"
+                            className="h-11 bg-muted/30 border-border/60 focus:bg-background"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={entryForm.control}
+                    name="sourceLanguage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Source Language</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={!!editingEntry}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 bg-muted/30 border-border/60">
+                              <SelectValue placeholder="Select language" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {languages.map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>
+                                <span className="flex items-center gap-2">
+                                  <span className="font-mono text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                    {lang.code}
+                                  </span>
+                                  {lang.name}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Classification Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="size-1.5 rounded-full bg-amber-500" />
+                  Classification
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={entryForm.control}
+                    name="partOfSpeech"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Part of Speech</FormLabel>
+                        <Select value={field.value || '__none__'} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 bg-muted/30 border-border/60">
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="__none__">
+                              <span className="text-muted-foreground">None specified</span>
+                            </SelectItem>
+                            {PART_OF_SPEECH_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={entryForm.control}
+                    name="domain"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Domain</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
+                            <Input
+                              placeholder="e.g. technical, legal, medical"
+                              className="h-11 pl-10 bg-muted/30 border-border/60 focus:bg-background"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Context & Notes Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="size-1.5 rounded-full bg-blue-500" />
+                  Additional Details
+                </div>
+
                 <FormField
                   control={entryForm.control}
-                  name="sourceTerm"
+                  name="context"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Source Term</FormLabel>
+                      <FormLabel className="text-sm font-medium">Usage Context</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. API" {...field} />
+                        <Textarea
+                          placeholder="Provide an example sentence or describe where this term is used..."
+                          className="resize-none min-h-[80px] bg-muted/30 border-border/60 focus:bg-background"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1030,127 +1186,39 @@ export default function GlossarySettingsPage({ params }: PageProps) {
 
                 <FormField
                   control={entryForm.control}
-                  name="sourceLanguage"
+                  name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Source Language</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!!editingEntry}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select language" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {languages.map((lang) => (
-                            <SelectItem key={lang.code} value={lang.code}>
-                              {lang.name} ({lang.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FormField
-                  control={entryForm.control}
-                  name="partOfSpeech"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Part of Speech</FormLabel>
-                      <Select value={field.value || '__none__'} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Optional" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="__none__">None</SelectItem>
-                          {PART_OF_SPEECH_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={entryForm.control}
-                  name="domain"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Domain</FormLabel>
+                      <FormLabel className="text-sm font-medium">Translator Notes</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. technical, legal" {...field} />
+                        <Textarea
+                          placeholder="Add guidance or special instructions for translators..."
+                          className="resize-none min-h-[80px] bg-muted/30 border-border/60 focus:bg-background"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription className="text-[11px]">
-                        Subject area or field
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <FormField
-                control={entryForm.control}
-                name="context"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Context</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Usage context or example sentence"
-                        className="resize-none"
-                        rows={2}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={entryForm.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Additional notes for translators"
-                        className="resize-none"
-                        rows={2}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+              {/* Settings Section */}
               <FormField
                 control={entryForm.control}
                 name="caseSensitive"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm font-medium">Case Sensitive</FormLabel>
-                      <FormDescription className="text-[11px]">
-                        Match exact letter casing
-                      </FormDescription>
+                  <FormItem className="flex items-center justify-between rounded-xl border border-border/50 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="size-9 rounded-lg bg-muted/60 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-muted-foreground">Aa</span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-sm font-medium cursor-pointer">Case Sensitive Matching</FormLabel>
+                        <FormDescription className="text-xs">
+                          Require exact letter casing when matching this term
+                        </FormDescription>
+                      </div>
                     </div>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -1159,15 +1227,20 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 )}
               />
 
-              {/* Tags */}
+              {/* Tags Section */}
               {tags.length > 0 && (
                 <FormField
                   control={entryForm.control}
                   name="tagIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tags</FormLabel>
-                      <div className="flex flex-wrap gap-2 pt-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <FormLabel className="text-sm font-medium">Tags</FormLabel>
+                        <span className="text-xs text-muted-foreground">
+                          {field.value.length} selected
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                         {tags.map((tag) => {
                           const isSelected = field.value.includes(tag.id);
                           return (
@@ -1182,20 +1255,23 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                                 }
                               }}
                               className={cn(
-                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-sm transition-colors",
+                                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200",
                                 isSelected
-                                  ? "border-primary bg-primary/10 text-primary"
-                                  : "border-border hover:border-primary/50"
+                                  ? "bg-primary/15 text-primary border-2 border-primary/30 shadow-sm"
+                                  : "bg-muted/40 text-muted-foreground border-2 border-transparent hover:bg-muted/60 hover:text-foreground"
                               )}
                             >
                               {tag.color && (
                                 <div
-                                  className="size-2.5 rounded-full"
-                                  style={{ backgroundColor: tag.color }}
+                                  className="size-3 rounded-full shadow-sm"
+                                  style={{
+                                    backgroundColor: tag.color,
+                                    boxShadow: isSelected ? `0 0 0 2px var(--background), 0 0 0 3px ${tag.color}50` : undefined
+                                  }}
                                 />
                               )}
                               {tag.name}
-                              {isSelected && <Check className="size-3" />}
+                              {isSelected && <Check className="size-3.5 ml-0.5" />}
                             </button>
                           );
                         })}
@@ -1205,20 +1281,49 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                   )}
                 />
               )}
-
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsEntryDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createEntry.isPending || updateEntry.isPending}>
-                  {(createEntry.isPending || updateEntry.isPending) && (
-                    <Loader2 className="size-4 animate-spin mr-1.5" />
-                  )}
-                  {editingEntry ? 'Update' : 'Create'}
-                </Button>
-              </DialogFooter>
             </form>
           </Form>
+
+          {/* Premium Footer */}
+          <div className="px-7 py-5 border-t border-border/40 bg-muted/20 flex items-center justify-between">
+            <div className="text-xs text-muted-foreground">
+              {editingEntry ? (
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="size-3.5" />
+                  Changes will apply to all translations
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="size-3.5" />
+                  Term will be available for matching
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-10 px-4"
+                onClick={() => setIsEntryDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={entryForm.handleSubmit(handleEntrySubmit)}
+                disabled={createEntry.isPending || updateEntry.isPending}
+                className="h-10 px-5 gap-2"
+              >
+                {(createEntry.isPending || updateEntry.isPending) ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : editingEntry ? (
+                  <Check className="size-4" />
+                ) : (
+                  <Plus className="size-4" />
+                )}
+                {editingEntry ? 'Save Changes' : 'Add Term'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1292,38 +1397,161 @@ export default function GlossarySettingsPage({ params }: PageProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Import Dialog */}
+      {/* Import Dialog - Premium Design */}
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Import Glossary</DialogTitle>
-            <DialogDescription>
-              Import terms from a CSV or TBX file
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden">
+          {/* Premium Header */}
+          <div className="relative px-7 pt-7 pb-5 border-b border-border/40 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-transparent">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-emerald-500/[0.06] to-transparent rounded-bl-full" />
+            <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-emerald-500/[0.03] to-transparent rounded-tr-full" />
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Format</label>
-              <Select value={importFormat} onValueChange={(v: 'csv' | 'tbx') => setImportFormat(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="csv">CSV (Comma-separated)</SelectItem>
-                  <SelectItem value="tbx">TBX (TermBase eXchange)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="relative flex items-start gap-4">
+              <div className="size-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-sm">
+                <Upload className="size-5 text-emerald-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-xl font-semibold tracking-tight">
+                  Import Glossary
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground mt-1">
+                  Import terminology from industry-standard file formats
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-7 py-6 space-y-5">
+            {/* Format Selection */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="size-1.5 rounded-full bg-emerald-500" />
+                File Format
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setImportFormat('csv')}
+                  className={cn(
+                    "relative flex flex-col items-start gap-2 p-4 rounded-xl border-2 transition-all duration-200 text-left",
+                    importFormat === 'csv'
+                      ? "border-emerald-500/40 bg-emerald-500/5"
+                      : "border-border/60 hover:border-border hover:bg-muted/30"
+                  )}
+                >
+                  {importFormat === 'csv' && (
+                    <div className="absolute top-3 right-3 size-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                      <Check className="size-3 text-white" />
+                    </div>
+                  )}
+                  <div className={cn(
+                    "size-10 rounded-xl flex items-center justify-center",
+                    importFormat === 'csv'
+                      ? "bg-emerald-500/15"
+                      : "bg-muted/60"
+                  )}>
+                    <FileText className={cn(
+                      "size-5",
+                      importFormat === 'csv' ? "text-emerald-500" : "text-muted-foreground"
+                    )} />
+                  </div>
+                  <div>
+                    <div className={cn(
+                      "font-semibold text-sm",
+                      importFormat === 'csv' ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"
+                    )}>
+                      CSV
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      Comma-separated values
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setImportFormat('tbx')}
+                  className={cn(
+                    "relative flex flex-col items-start gap-2 p-4 rounded-xl border-2 transition-all duration-200 text-left",
+                    importFormat === 'tbx'
+                      ? "border-emerald-500/40 bg-emerald-500/5"
+                      : "border-border/60 hover:border-border hover:bg-muted/30"
+                  )}
+                >
+                  {importFormat === 'tbx' && (
+                    <div className="absolute top-3 right-3 size-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                      <Check className="size-3 text-white" />
+                    </div>
+                  )}
+                  <div className={cn(
+                    "size-10 rounded-xl flex items-center justify-center",
+                    importFormat === 'tbx'
+                      ? "bg-emerald-500/15"
+                      : "bg-muted/60"
+                  )}>
+                    <FileCode className={cn(
+                      "size-5",
+                      importFormat === 'tbx' ? "text-emerald-500" : "text-muted-foreground"
+                    )} />
+                  </div>
+                  <div>
+                    <div className={cn(
+                      "font-semibold text-sm",
+                      importFormat === 'tbx' ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"
+                    )}>
+                      TBX
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      TermBase eXchange (ISO)
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 p-4">
-              <div className="space-y-0.5">
-                <label className="text-sm font-medium">Overwrite Existing</label>
-                <p className="text-[11px] text-muted-foreground">
-                  Update terms that already exist
-                </p>
+            {/* Options */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="size-1.5 rounded-full bg-amber-500" />
+                Import Options
               </div>
-              <Switch checked={importOverwrite} onCheckedChange={setImportOverwrite} />
+
+              <div className="flex items-center justify-between rounded-xl border border-border/50 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent p-4">
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-lg bg-amber-500/15 flex items-center justify-center">
+                    <RefreshCw className="size-4 text-amber-500" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <label className="text-sm font-medium cursor-pointer">Overwrite Existing Terms</label>
+                    <p className="text-xs text-muted-foreground">
+                      Update terms that already exist in your glossary
+                    </p>
+                  </div>
+                </div>
+                <Switch checked={importOverwrite} onCheckedChange={setImportOverwrite} />
+              </div>
+            </div>
+
+            {/* Drop Zone */}
+            <div
+              className={cn(
+                "relative rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200",
+                "border-border/60 hover:border-emerald-500/40 hover:bg-emerald-500/[0.02]",
+                "cursor-pointer group"
+              )}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="size-14 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 flex items-center justify-center mx-auto mb-4 group-hover:from-emerald-500/15 group-hover:to-emerald-500/5 transition-colors">
+                <Upload className="size-6 text-muted-foreground group-hover:text-emerald-500 transition-colors" />
+              </div>
+              <p className="text-sm font-medium mb-1">
+                Click to select file
+              </p>
+              <p className="text-xs text-muted-foreground">
+                or drag and drop your {importFormat === 'csv' ? '.csv' : '.tbx'} file here
+              </p>
             </div>
 
             <input
@@ -1338,19 +1566,35 @@ export default function GlossarySettingsPage({ params }: PageProps) {
             />
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsImportDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importGlossary.isPending}
-            >
-              {importGlossary.isPending && <Loader2 className="size-4 animate-spin mr-1.5" />}
-              <Upload className="size-4 mr-1.5" />
-              Select File
-            </Button>
-          </DialogFooter>
+          {/* Premium Footer */}
+          <div className="px-7 py-5 border-t border-border/40 bg-muted/20 flex items-center justify-between">
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <FileText className="size-3.5" />
+              Accepts {importFormat === 'csv' ? 'CSV' : 'TBX'} files
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-10 px-4"
+                onClick={() => setIsImportDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importGlossary.isPending}
+                className="h-10 px-5 gap-2 bg-emerald-600 hover:bg-emerald-700"
+              >
+                {importGlossary.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Upload className="size-4" />
+                )}
+                Select File
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
