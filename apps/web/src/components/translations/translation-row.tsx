@@ -39,6 +39,8 @@ interface TranslationRowProps {
   selectable?: boolean;
   selected?: boolean;
   onSelectionChange?: (keyId: string, selected: boolean) => void;
+  // TM focus tracking
+  onTranslationFocus?: (keyId: string, language: string) => void;
 }
 
 export function TranslationRow({
@@ -57,6 +59,7 @@ export function TranslationRow({
   selectable = false,
   selected = false,
   onSelectionChange,
+  onTranslationFocus,
 }: TranslationRowProps) {
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
@@ -104,6 +107,7 @@ export function TranslationRow({
 
   const handleClick = (langCode: string) => {
     setEditingLang(langCode);
+    onTranslationFocus?.(translationKey.id, langCode);
     setTimeout(() => textareaRefs.current[langCode]?.focus(), 0);
   };
 

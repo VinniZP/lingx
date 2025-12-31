@@ -367,6 +367,7 @@ export const branchApi = {
 
 // Translation types
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type KeyFilter = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
 
 export interface Translation {
   id: string;
@@ -410,13 +411,13 @@ export interface UpdateKeyInput {
 export const translationApi = {
   listKeys: (
     branchId: string,
-    params?: { search?: string; page?: number; limit?: number; status?: ApprovalStatus }
+    params?: { search?: string; page?: number; limit?: number; filter?: KeyFilter }
   ) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
-    if (params?.status) query.set('status', params.status);
+    if (params?.filter && params.filter !== 'all') query.set('filter', params.filter);
     const queryString = query.toString();
     return fetchApi<KeyListResult>(
       `/api/branches/${branchId}/keys${queryString ? `?${queryString}` : ''}`
@@ -883,6 +884,71 @@ export const webauthnApi = {
   /** Go passwordless (remove password, requires 2+ passkeys) */
   goPasswordless: () =>
     fetchApi<{ message: string }>('/api/webauthn/go-passwordless', {
+      method: 'POST',
+    }),
+};
+
+// Translation Memory types
+export interface TMMatch {
+  id: string;
+  sourceText: string;
+  targetText: string;
+  similarity: number;
+  matchType: 'exact' | 'fuzzy';
+  usageCount: number;
+  lastUsedAt: string;
+}
+
+export interface TMSearchParams {
+  sourceText: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  minSimilarity?: number;
+  limit?: number;
+}
+
+export interface TMStats {
+  totalEntries: number;
+  languagePairs: Array<{
+    sourceLanguage: string;
+    targetLanguage: string;
+    count: number;
+  }>;
+}
+
+// Translation Memory API
+export const translationMemoryApi = {
+  /** Search for similar translations */
+  search: (projectId: string, params: TMSearchParams) => {
+    const query = new URLSearchParams();
+    query.set('sourceText', params.sourceText);
+    query.set('sourceLanguage', params.sourceLanguage);
+    query.set('targetLanguage', params.targetLanguage);
+    if (params.minSimilarity !== undefined) {
+      query.set('minSimilarity', String(params.minSimilarity));
+    }
+    if (params.limit !== undefined) {
+      query.set('limit', String(params.limit));
+    }
+    return fetchApi<{ matches: TMMatch[] }>(
+      `/api/projects/${projectId}/tm/search?${query.toString()}`
+    );
+  },
+
+  /** Record when a TM suggestion is applied */
+  recordUsage: (projectId: string, entryId: string) =>
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/tm/record-usage`, {
+      method: 'POST',
+      body: JSON.stringify({ entryId }),
+    }),
+
+  /** Get TM statistics */
+  getStats: (projectId: string) =>
+    fetchApi<TMStats>(`/api/projects/${projectId}/tm/stats`),
+
+  /** Trigger TM reindex (MANAGER/OWNER only) */
+  reindex: (projectId: string) =>
+    fetchApi<{ message: string; jobId?: string }>(`/api/projects/${projectId}/tm/reindex`, {
       method: 'POST',
     }),
 };

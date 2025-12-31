@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import type { ProjectLanguage } from '@localeflow/shared';
 import { TranslationKey } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { Edit, Save, Loader2, GitBranch, Clock, Sparkles } from 'lucide-react';
+import { Edit, Save, Loader2 } from 'lucide-react';
+import { TranslationMemoryPanel } from './translation-memory-panel';
 
 // Language flags mapping
 const LANGUAGE_FLAGS: Record<string, string> = {
@@ -28,6 +30,7 @@ const LANGUAGE_FLAGS: Record<string, string> = {
 interface TranslationEditorProps {
   translationKey: TranslationKey | null;
   languages: ProjectLanguage[];
+  projectId: string;
   getTranslationValue: (key: TranslationKey, lang: string) => string;
   onTranslationChange: (keyId: string, lang: string, value: string) => void;
   onSave: (keyId: string) => void;
@@ -39,6 +42,7 @@ interface TranslationEditorProps {
 export function TranslationEditor({
   translationKey,
   languages,
+  projectId,
   getTranslationValue,
   onTranslationChange,
   onSave,
@@ -46,6 +50,18 @@ export function TranslationEditor({
   hasUnsavedChanges,
   isSaving,
 }: TranslationEditorProps) {
+  const [focusedLanguage, setFocusedLanguage] = useState<string | null>(null);
+
+  // Get default language for TM source
+  const defaultLanguage = languages.find((l) => l.isDefault);
+
+  // Handle applying TM match to focused language
+  const handleApplyTMMatch = (targetText: string, _matchId: string) => {
+    if (translationKey && focusedLanguage) {
+      onTranslationChange(translationKey.id, focusedLanguage, targetText);
+    }
+  };
+
   if (!translationKey) {
     return (
       <div className="island p-6 h-full flex items-center justify-center">
@@ -133,6 +149,7 @@ export function TranslationEditor({
                 onChange={(e) =>
                   onTranslationChange(translationKey.id, lang.code, e.target.value)
                 }
+                onFocus={() => setFocusedLanguage(lang.code)}
                 placeholder={`Enter ${lang.name} translation...`}
                 className={cn(
                   'min-h-[80px] resize-none',
@@ -144,24 +161,17 @@ export function TranslationEditor({
         })}
       </div>
 
-      {/* Translation Sources Placeholder */}
-      <div className="p-4 border-t border-border/50 bg-muted/20">
-        <div className="flex items-center gap-2 mb-3">
-          <GitBranch className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">From Other Branches</span>
-        </div>
-        <div className="rounded-lg border border-dashed border-border p-4 text-center">
-          <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
-            <Sparkles className="size-5 text-muted-foreground" />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Cross-branch translation references
-          </p>
-          <p className="text-xs text-muted-foreground/70 mt-1">
-            Coming soon
-          </p>
-        </div>
-      </div>
+      {/* Translation Memory Panel */}
+      {defaultLanguage && focusedLanguage && focusedLanguage !== defaultLanguage.code && (
+        <TranslationMemoryPanel
+          projectId={projectId}
+          sourceText={getTranslationValue(translationKey, defaultLanguage.code)}
+          sourceLanguage={defaultLanguage.code}
+          targetLanguage={focusedLanguage}
+          onApplyMatch={handleApplyTMMatch}
+          isVisible={true}
+        />
+      )}
     </div>
   );
 }

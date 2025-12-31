@@ -152,11 +152,12 @@ model Project {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  languages    ProjectLanguage[]
-  members      ProjectMember[]
-  spaces       Space[]
-  environments Environment[]
-  activities   Activity[]
+  languages         ProjectLanguage[]
+  members           ProjectMember[]
+  spaces            Space[]
+  environments      Environment[]
+  activities        Activity[]
+  translationMemory TranslationMemory[]
 
   @@index([slug])
 }
@@ -384,4 +385,31 @@ model ActivityChange {
   @@index([activityId])
   @@index([entityId]) // Query: "Who changed this key?"
   @@index([createdAt])
+}
+
+// ============================================
+// TRANSLATION MEMORY
+// ============================================
+
+/// Stores previously translated text for reuse suggestions
+/// Uses pg_trgm for fuzzy similarity matching
+model TranslationMemory {
+  id             String   @id @default(cuid())
+  projectId      String
+  sourceLanguage String   // Default language code (source)
+  targetLanguage String   // Target language code
+  sourceText     String   // Original text (indexed for similarity search)
+  targetText     String   // Translated text
+  usageCount     Int      @default(1) // Times this suggestion was applied
+  lastUsedAt     DateTime @default(now())
+  sourceKeyId    String?  // Origin key ID for audit trail
+  sourceBranchId String?  // Origin branch ID
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // One entry per unique source text per language pair per project
+  @@unique([projectId, sourceLanguage, targetLanguage, sourceText])
+  @@index([projectId, sourceLanguage, targetLanguage])
 }

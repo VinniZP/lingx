@@ -12,3 +12,11 @@ export {
   type Activity,
   type ActivityChange,
 } from './use-activity';
+export {
+  useTranslationMemorySearch,
+  useRecordTMUsage,
+  useTMStats,
+  useTMReindex,
+  type TMMatch,
+  type TMSearchParams,
+} from './use-translation-memory';

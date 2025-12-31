@@ -15,17 +15,19 @@ import {
   bulkDeleteKeysSchema,
   bulkUpdateTranslationsSchema,
   keyListResponseSchema,
+  keyListQuerySchema,
   translationKeyResponseSchema,
   translationValueSchema,
   bulkDeleteResponseSchema,
   setApprovalStatusSchema,
   batchApprovalSchema,
-  approvalStatusSchema,
 } from '@localeflow/shared';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { BranchService } from '../services/branch.service.js';
 import { ActivityService } from '../services/activity.service.js';
+import { translationMemoryQueue } from '../lib/queues.js';
+import type { TMJobData } from '../workers/translation-memory.worker.js';
 import {
   toTranslationKeyDto,
   toKeyListResultDto,
@@ -41,25 +43,20 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   const activityService = new ActivityService(fastify.prisma);
 
   /**
-   * GET /api/branches/:branchId/keys - List keys with pagination, search, and status filter
+   * GET /api/branches/:branchId/keys - List keys with pagination, search, and filter
    */
   app.get(
     '/api/branches/:branchId/keys',
     {
       onRequest: [fastify.authenticate],
       schema: {
-        description: 'List translation keys with pagination, search, and approval status filter',
+        description: 'List translation keys with pagination, search, and filter',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
         params: z.object({
           branchId: z.string(),
         }),
-        querystring: z.object({
-          search: z.string().optional(),
-          page: z.coerce.number().default(1),
-          limit: z.coerce.number().max(100).default(50),
-          status: approvalStatusSchema.optional(),
-        }),
+        querystring: keyListQuerySchema,
         response: {
           200: keyListResponseSchema,
         },
@@ -67,7 +64,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, _reply) => {
       const { branchId } = request.params;
-      const { search, page, limit, status } = request.query;
+      const { search, page, limit, filter } = request.query;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -86,7 +83,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         search,
         page,
         limit,
-        status,
+        filter,
       });
       return toKeyListResultDto(result);
     }
@@ -718,6 +715,18 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
             },
           ],
         });
+
+        // Queue translation memory indexing for approved translations
+        if (status === 'APPROVED') {
+          const tmJob: TMJobData = {
+            type: 'index-approved',
+            projectId,
+            translationId: id,
+          };
+          translationMemoryQueue.add('index-approved', tmJob).catch((err) => {
+            console.error('[TM] Failed to queue indexing job:', err);
+          });
+        }
       }
 
       return toTranslationValueDto(result);
@@ -793,6 +802,21 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         },
         changes: [], // We could expand this to include all changed translations
       });
+
+      // Queue translation memory indexing for batch approved translations
+      if (status === 'APPROVED' && translationIds.length > 0) {
+        const tmJobs = translationIds.map((translationId) => ({
+          name: 'index-approved',
+          data: {
+            type: 'index-approved' as const,
+            projectId,
+            translationId,
+          },
+        }));
+        translationMemoryQueue.addBulk(tmJobs).catch((err) => {
+          console.error('[TM] Failed to queue batch indexing jobs:', err);
+        });
+      }
 
       return { updated };
     }

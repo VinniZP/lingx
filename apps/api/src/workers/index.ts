@@ -12,6 +12,7 @@ import {
   createRetentionWorker,
   registerRetentionJob,
 } from './retention.worker.js';
+import { createTranslationMemoryWorker } from './translation-memory.worker.js';
 
 /**
  * Active workers registry
@@ -35,6 +36,11 @@ export async function startWorkers(prisma: PrismaClient): Promise<void> {
   const retentionWorker = createRetentionWorker(prisma);
   workers.push(retentionWorker);
   console.log('[Workers] Retention worker started');
+
+  // Create translation memory worker
+  const tmWorker = createTranslationMemoryWorker(prisma);
+  workers.push(tmWorker);
+  console.log('[Workers] Translation memory worker started');
 
   // Register scheduled jobs
   await registerRetentionJob();

@@ -118,14 +118,40 @@ export class TranslationService {
       search?: string;
       page?: number;
       limit?: number;
-      status?: ApprovalStatus;
+      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
     } = {}
   ): Promise<KeyListResult> {
     const page = options.page || 1;
     const limit = options.limit || 50;
     const skip = (page - 1) * limit;
 
-    // Build the where clause
+    // For 'missing' and 'complete' filters, we need to know the language count
+    // Get the project's language count first
+    const branch = await this.prisma.branch.findUnique({
+      where: { id: branchId },
+      select: {
+        space: {
+          select: {
+            project: {
+              select: {
+                languages: {
+                  select: { code: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const languageCount = branch?.space.project.languages.length || 0;
+
+    // For 'missing' and 'complete' filters, use raw SQL for efficiency
+    if (options.filter === 'missing' || options.filter === 'complete') {
+      return this.findKeysByCompletionFilter(branchId, options, languageCount);
+    }
+
+    // Build the where clause for other filters
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { branchId };
 
@@ -136,11 +162,17 @@ export class TranslationService {
       ];
     }
 
-    // Filter by translation status - keys that have at least one translation with this status
-    if (options.status) {
+    // Filter by approval status - keys that have at least one translation with this status
+    if (options.filter === 'pending' || options.filter === 'approved' || options.filter === 'rejected') {
+      const statusMap = {
+        pending: 'PENDING',
+        approved: 'APPROVED',
+        rejected: 'REJECTED',
+      } as const;
       where.translations = {
         some: {
-          status: options.status,
+          status: statusMap[options.filter],
+          value: { not: '' }, // Only consider translations with actual values
         },
       };
     }
@@ -159,6 +191,110 @@ export class TranslationService {
       }),
       this.prisma.translationKey.count({ where }),
     ]);
+
+    return {
+      keys,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Find keys by completion filter (missing or complete)
+   * Uses raw SQL for efficiency with aggregation
+   */
+  private async findKeysByCompletionFilter(
+    branchId: string,
+    options: {
+      search?: string;
+      page?: number;
+      limit?: number;
+      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
+    },
+    languageCount: number
+  ): Promise<KeyListResult> {
+    const page = options.page || 1;
+    const limit = options.limit || 50;
+    const offset = (page - 1) * limit;
+
+    // For 'missing': keys where translation count < language count
+    // For 'complete': keys where non-empty translation count >= language count
+    const comparison = options.filter === 'missing' ? '<' : '>=';
+
+    // Build query with search if provided
+    let keyIdsQuery: string;
+    let countQuery: string;
+    let params: (string | number)[];
+
+    if (options.search) {
+      keyIdsQuery = `
+        SELECT tk.id
+        FROM "TranslationKey" tk
+        LEFT JOIN "Translation" t ON t."keyId" = tk.id
+        WHERE tk."branchId" = $1
+          AND (tk.name ILIKE '%' || $2 || '%' OR tk.description ILIKE '%' || $2 || '%')
+        GROUP BY tk.id
+        HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $3
+        ORDER BY tk.name ASC
+        LIMIT $4 OFFSET $5
+      `;
+      countQuery = `
+        SELECT COUNT(*)::int as count FROM (
+          SELECT tk.id
+          FROM "TranslationKey" tk
+          LEFT JOIN "Translation" t ON t."keyId" = tk.id
+          WHERE tk."branchId" = $1
+            AND (tk.name ILIKE '%' || $2 || '%' OR tk.description ILIKE '%' || $2 || '%')
+          GROUP BY tk.id
+          HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $3
+        ) subquery
+      `;
+      params = [branchId, options.search, languageCount, limit, offset];
+    } else {
+      keyIdsQuery = `
+        SELECT tk.id
+        FROM "TranslationKey" tk
+        LEFT JOIN "Translation" t ON t."keyId" = tk.id
+        WHERE tk."branchId" = $1
+        GROUP BY tk.id
+        HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $2
+        ORDER BY tk.name ASC
+        LIMIT $3 OFFSET $4
+      `;
+      countQuery = `
+        SELECT COUNT(*)::int as count FROM (
+          SELECT tk.id
+          FROM "TranslationKey" tk
+          LEFT JOIN "Translation" t ON t."keyId" = tk.id
+          WHERE tk."branchId" = $1
+          GROUP BY tk.id
+          HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $2
+        ) subquery
+      `;
+      params = [branchId, languageCount, limit, offset];
+    }
+
+    const [keyIdResults, countResult] = await Promise.all([
+      this.prisma.$queryRawUnsafe<Array<{ id: string }>>(keyIdsQuery, ...params),
+      this.prisma.$queryRawUnsafe<Array<{ count: number }>>(countQuery, ...params.slice(0, options.search ? 3 : 2)),
+    ]);
+
+    const keyIds = keyIdResults.map((r) => r.id);
+    const total = countResult[0]?.count || 0;
+
+    // Fetch full keys with translations
+    const keys = keyIds.length > 0
+      ? await this.prisma.translationKey.findMany({
+          where: { id: { in: keyIds } },
+          include: {
+            translations: {
+              orderBy: { language: 'asc' },
+            },
+          },
+          orderBy: { name: 'asc' },
+        })
+      : [];
 
     return {
       keys,

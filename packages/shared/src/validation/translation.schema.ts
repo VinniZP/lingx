@@ -106,13 +106,26 @@ export const batchApprovalSchema = z.object({
 export type BatchApprovalInput = z.infer<typeof batchApprovalSchema>;
 
 /**
- * Key list query with optional approval status filter
+ * Key filter type - combines completion and approval status filters
+ */
+export const keyFilterSchema = z.enum([
+  'all',      // No filter
+  'missing',  // Keys with at least one missing translation
+  'complete', // Keys with all translations filled
+  'pending',  // Keys with at least one PENDING translation
+  'approved', // Keys with at least one APPROVED translation
+  'rejected', // Keys with at least one REJECTED translation
+]);
+export type KeyFilter = z.infer<typeof keyFilterSchema>;
+
+/**
+ * Key list query with optional filter
  */
 export const keyListQuerySchema = z.object({
   search: z.string().optional(),
   page: z.coerce.number().default(1),
   limit: z.coerce.number().max(100).default(50),
-  status: approvalStatusSchema.optional(),
+  filter: keyFilterSchema.optional(),
 });
 
 export type KeyListQuery = z.infer<typeof keyListQuerySchema>;

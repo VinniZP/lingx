@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (WebAuthn passkeys complete)
+> **Updated**: 2025-12-31 (Phase 8 in progress)
 
 ---
 
@@ -59,9 +59,9 @@
 
 ---
 
-## Current Development
+## Completed Phases
 
-### Phase 7: Dashboard & Analytics 🚧
+### Phase 7: Dashboard & Analytics ✅
 - [x] Dashboard statistics API
 - [x] Project statistics on cards
 - [x] Activity tracking infrastructure (Redis/BullMQ, schema, service, workers, API)
@@ -72,10 +72,15 @@
 - [x] **Security settings** (password change, active sessions)
 - [x] **Two-factor authentication** (TOTP with backup codes, 30-day device trust)
 - [x] **Passkeys/WebAuthn** (passwordless login, security score)
-- [ ] **Key approval status** (pending/approved, auto-reset on change)
+- [x] **Key approval status** (pending/approved, auto-reset on change)
 
-### Phase 8: Translation Productivity 📋
-- [ ] Translation memory
+---
+
+## Current Development
+
+### Phase 8: Translation Productivity 🚧
+- [x] **Translation memory** (pg_trgm fuzzy matching, auto-index approved translations, sidebar panel with TM/AI/MT placeholders)
+- [x] **Server-side filtering** (all/missing/complete/pending/approved/rejected with proper pagination)
 - [ ] Machine translation (DeepL, Google)
 - [ ] Glossary/termbase management
 - [ ] Extended quality checks
@@ -114,20 +119,19 @@
 
 ## Current Focus
 
-**Phase 7: Dashboard & Analytics**
+**Phase 8: Translation Productivity**
 
 | Priority | Deliverable | Status |
 |----------|-------------|--------|
-| High | Dashboard statistics API | ✅ Done |
-| High | Project statistics on cards | ✅ Done |
-| High | Activity tracking system | ✅ Done |
-| High | Activity feed UI with diff preview | ✅ Done |
-| High | Zod validation & unified types | ✅ Done |
-| High | User profile settings | ✅ Done |
-| High | Security settings | ✅ Done |
-| High | Two-factor authentication (TOTP) | ✅ Done |
-| High | Passkeys/WebAuthn | ✅ Done |
-| High | Key approval status | 📋 Next |
+| High | Translation memory | ✅ Complete |
+| High | Server-side filtering | ✅ Complete |
+| High | Machine translation (DeepL, Google) | 📋 Planned |
+| Medium | Glossary/termbase management | 📋 Planned |
+| Medium | Extended quality checks | 📋 Planned |
+| Medium | Dry run mode (`--dry-run`) | 📋 Planned |
+| Medium | Dead key detection (`lf check --dead`) | 📋 Planned |
+| Low | Import with merge conflicts | 📋 Planned |
+| Low | Translation length prediction | 📋 Planned |
 
 ---
 

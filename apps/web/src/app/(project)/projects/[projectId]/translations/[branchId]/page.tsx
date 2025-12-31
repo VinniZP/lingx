@@ -26,6 +26,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   X,
+  Sparkles,
+  Globe,
+  Database,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { KeyFormDialog } from '@/components/key-form-dialog';
@@ -33,6 +36,7 @@ import { MergeBranchDialog } from '@/components/dialogs';
 import {
   TranslationRow,
   BranchHeader,
+  TranslationMemoryPanel,
 } from '@/components/translations';
 import {
   Select,
@@ -43,6 +47,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useRecordTMUsage } from '@/hooks/use-translation-memory';
 import { cn } from '@/lib/utils';
 
 interface PageProps {
@@ -76,8 +81,17 @@ export default function TranslationsPage({ params }: PageProps) {
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [isBatchApproving, setIsBatchApproving] = useState(false);
 
+  // TM focused translation state - tracks which key/language is being edited
+  const [focusedTranslation, setFocusedTranslation] = useState<{
+    keyId: string;
+    language: string;
+  } | null>(null);
+
   // Auto-save debounce refs
   const saveTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Translation Memory usage tracking
+  const recordTMUsage = useRecordTMUsage(projectId);
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -107,8 +121,8 @@ export default function TranslationsPage({ params }: PageProps) {
   }, [allBranchesData?.branches]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['keys', branchId, search, page],
-    queryFn: () => translationApi.listKeys(branchId, { search, page, limit: 50 }),
+    queryKey: ['keys', branchId, search, page, filter],
+    queryFn: () => translationApi.listKeys(branchId, { search, page, limit: 50, filter }),
   });
 
   const currentBranch: ProjectTreeBranch | null = useMemo(() => {
@@ -209,6 +223,28 @@ export default function TranslationsPage({ params }: PageProps) {
 
   const languages = project?.languages || [];
   const keys = data?.keys || [];
+  const defaultLanguage = languages.find((l) => l.isDefault);
+
+  // Handle applying TM match to the focused translation
+  const handleApplyTMMatch = useCallback(
+    (targetText: string, matchId: string) => {
+      if (!focusedTranslation) return;
+      const { keyId, language } = focusedTranslation;
+
+      // Update the translation
+      setEditingTranslations((prev) => ({
+        ...prev,
+        [keyId]: {
+          ...prev[keyId],
+          [language]: targetText,
+        },
+      }));
+
+      // Record TM usage
+      recordTMUsage.mutate(matchId);
+    },
+    [focusedTranslation, recordTMUsage]
+  );
 
   // Initialize visible languages when data loads (show all by default)
   useEffect(() => {
@@ -235,34 +271,8 @@ export default function TranslationsPage({ params }: PageProps) {
     };
   }, [keys, languages]);
 
-  // Filter keys
-  const filteredKeys = useMemo(() => {
-    let result = [...keys];
-
-    if (filter === 'missing') {
-      result = result.filter((key) =>
-        languages.some((lang) => {
-          const value = key.translations.find((t) => t.language === lang.code)?.value;
-          return !value;
-        })
-      );
-    } else if (filter === 'complete') {
-      result = result.filter((key) =>
-        languages.every((lang) => {
-          const value = key.translations.find((t) => t.language === lang.code)?.value;
-          return !!value;
-        })
-      );
-    } else if (filter === 'pending' || filter === 'approved' || filter === 'rejected') {
-      // Filter by approval status - keys that have at least one translation with this status
-      const statusFilter = filter.toUpperCase() as ApprovalStatus;
-      result = result.filter((key) =>
-        key.translations.some((t) => t.status === statusFilter && t.value)
-      );
-    }
-
-    return result;
-  }, [keys, filter, languages]);
+  // Keys are now filtered server-side via the API
+  // No client-side filtering needed
 
   // Selection handlers for batch operations
   const handleSelectionChange = useCallback((keyId: string, selected: boolean) => {
@@ -279,17 +289,17 @@ export default function TranslationsPage({ params }: PageProps) {
 
   const handleSelectAll = useCallback((checked: boolean) => {
     if (checked) {
-      setSelectedKeys(new Set(filteredKeys.map((k) => k.id)));
+      setSelectedKeys(new Set(keys.map((k) => k.id)));
     } else {
       setSelectedKeys(new Set());
     }
-  }, [filteredKeys]);
+  }, [keys]);
 
   const clearSelection = useCallback(() => {
     setSelectedKeys(new Set());
   }, []);
 
-  // Batch approval handler
+  // Batch approval handler - chunks requests to stay under 100 per batch limit
   const handleBatchApprove = useCallback(async (status: 'APPROVED' | 'REJECTED') => {
     if (selectedKeys.size === 0) return;
 
@@ -313,7 +323,18 @@ export default function TranslationsPage({ params }: PageProps) {
 
     setIsBatchApproving(true);
     try {
-      await translationApi.batchApprove(branchId, translationIds, status);
+      // Chunk into batches of 100 (API limit)
+      const BATCH_SIZE = 100;
+      const chunks: string[][] = [];
+      for (let i = 0; i < translationIds.length; i += BATCH_SIZE) {
+        chunks.push(translationIds.slice(i, i + BATCH_SIZE));
+      }
+
+      // Process all chunks
+      await Promise.all(
+        chunks.map((chunk) => translationApi.batchApprove(branchId, chunk, status))
+      );
+
       toast.success(`${translationIds.length} translations ${status.toLowerCase()}`);
       queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
       clearSelection();
@@ -488,13 +509,13 @@ export default function TranslationsPage({ params }: PageProps) {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="size-6 animate-spin text-primary" />
             </div>
-          ) : filteredKeys.length === 0 ? (
+          ) : keys.length === 0 ? (
             <div className="text-center py-12 px-4">
               <p className="text-muted-foreground">No translation keys found.</p>
             </div>
           ) : (
             <div className="divide-y divide-border/40">
-              {filteredKeys.map((key) => (
+              {keys.map((key) => (
                 <TranslationRow
                   key={key.id}
                   translationKey={key}
@@ -531,9 +552,9 @@ export default function TranslationsPage({ params }: PageProps) {
     );
   }
 
-  // Desktop Layout - Unified List Design
+  // Desktop Layout - Two column with sidebar
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in-up">
         <div>
@@ -569,8 +590,10 @@ export default function TranslationsPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Main Card */}
-      <div className="island overflow-hidden animate-fade-in-up stagger-1">
+      {/* Two-column layout */}
+      <div className="flex gap-6 items-start">
+        {/* Main translations card */}
+        <div className="flex-1 min-w-0 island overflow-hidden animate-fade-in-up stagger-1">
         {/* Card Header - Branch info & Language visibility toggles */}
         <div className="px-5 py-4 border-b border-border/40 bg-muted/20">
           <div className="flex items-center justify-between gap-4">
@@ -602,9 +625,9 @@ export default function TranslationsPage({ params }: PageProps) {
         {/* Search & Filter bar */}
         <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3">
           {/* Select all checkbox - only show if user can approve */}
-          {canApprove && filteredKeys.length > 0 && (
+          {canApprove && keys.length > 0 && (
             <Checkbox
-              checked={selectedKeys.size === filteredKeys.length && filteredKeys.length > 0}
+              checked={selectedKeys.size === keys.length && keys.length > 0}
               onCheckedChange={handleSelectAll}
               className="shrink-0"
             />
@@ -623,7 +646,7 @@ export default function TranslationsPage({ params }: PageProps) {
             />
           </div>
 
-          <Select value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
+          <Select value={filter} onValueChange={(v) => { setFilter(v as FilterType); setPage(1); }}>
             <SelectTrigger className="w-[150px] h-9 border-0 bg-muted/50">
               <Filter className="h-3.5 w-3.5 mr-2" />
               <SelectValue />
@@ -639,7 +662,7 @@ export default function TranslationsPage({ params }: PageProps) {
           </Select>
 
           <div className="text-sm text-muted-foreground">
-            {filteredKeys.length} keys
+            {data?.total ?? 0} keys
           </div>
         </div>
 
@@ -722,13 +745,13 @@ export default function TranslationsPage({ params }: PageProps) {
               Create First Key
             </Button>
           </div>
-        ) : filteredKeys.length === 0 ? (
+        ) : keys.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             No keys match the current filter.
           </div>
         ) : (
           <div className="divide-y divide-border/40">
-            {filteredKeys.map((key) => (
+            {keys.map((key) => (
               <TranslationRow
                 key={key.id}
                 translationKey={key}
@@ -746,6 +769,9 @@ export default function TranslationsPage({ params }: PageProps) {
                 selectable={canApprove}
                 selected={selectedKeys.has(key.id)}
                 onSelectionChange={handleSelectionChange}
+                onTranslationFocus={(keyId, language) =>
+                  setFocusedTranslation({ keyId, language })
+                }
               />
             ))}
           </div>
@@ -775,6 +801,104 @@ export default function TranslationsPage({ params }: PageProps) {
             </Button>
           </div>
         )}
+        </div>
+
+        {/* Right Sidebar - Translation Assistance */}
+        <div className="w-80 shrink-0 space-y-4 animate-fade-in-up stagger-2">
+          {/* Translation Memory Panel */}
+          <div className="island p-0 overflow-hidden">
+            {(() => {
+              const focusedKey = focusedTranslation
+                ? keys.find((k) => k.id === focusedTranslation.keyId)
+                : null;
+
+              // Show TM panel when editing a non-default language
+              const showTMContent =
+                focusedTranslation &&
+                defaultLanguage &&
+                focusedKey &&
+                focusedTranslation.language !== defaultLanguage.code;
+
+              if (showTMContent) {
+                return (
+                  <TranslationMemoryPanel
+                    projectId={projectId}
+                    sourceText={getTranslationValue(focusedKey, defaultLanguage.code)}
+                    sourceLanguage={defaultLanguage.code}
+                    targetLanguage={focusedTranslation.language}
+                    onApplyMatch={handleApplyTMMatch}
+                    isVisible={true}
+                  />
+                );
+              }
+
+              // Default empty state
+              return (
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Database className="size-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Translation Memory</span>
+                  </div>
+                  <div className="rounded-lg border border-dashed border-border p-4 text-center">
+                    <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
+                      <Database className="size-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Click on a translation to see suggestions
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      from previously translated text
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* AI Translation - Coming Soon */}
+          <div className="island p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">AI Translation</span>
+              <span className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                Coming Soon
+              </span>
+            </div>
+            <div className="rounded-lg border border-dashed border-border p-4 text-center">
+              <div className="size-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-2">
+                <Sparkles className="size-5 text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                AI-powered translations
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Smart context-aware suggestions
+              </p>
+            </div>
+          </div>
+
+          {/* Machine Translation - Coming Soon */}
+          <div className="island p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Globe className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Machine Translation</span>
+              <span className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                Coming Soon
+              </span>
+            </div>
+            <div className="rounded-lg border border-dashed border-border p-4 text-center">
+              <div className="size-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center mx-auto mb-2">
+                <Globe className="size-5 text-blue-500" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Google, DeepL & more
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Integrate with translation engines
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Dialogs */}
