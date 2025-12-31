@@ -13,6 +13,7 @@ export * from './environment.schema.js';
 export * from './translation.schema.js';
 export * from './translation-memory.schema.js';
 export * from './machine-translation.schema.js';
+export * from './glossary.schema.js';
 export * from './profile.schema.js';
 export * from './security.schema.js';
 export * from './totp.schema.js';

@@ -715,4 +715,84 @@ export class MTService {
     }
     return Buffer.from(keyHex, 'hex');
   }
+
+  // ============================================
+  // GLOSSARY MANAGEMENT
+  // ============================================
+
+  /**
+   * Create a glossary on the MT provider
+   *
+   * @param projectId - Project ID
+   * @param provider - MT provider type
+   * @param name - Glossary name
+   * @param sourceLanguage - Source language code
+   * @param targetLanguage - Target language code
+   * @param entries - Glossary entries (source/target pairs)
+   * @returns External glossary ID from provider
+   */
+  async createGlossary(
+    projectId: string,
+    provider: MTProviderType,
+    name: string,
+    sourceLanguage: string,
+    targetLanguage: string,
+    entries: Array<{ source: string; target: string }>
+  ): Promise<string> {
+    const mtProvider = await this.getInitializedProvider(projectId, provider);
+
+    if (!mtProvider.createGlossary) {
+      throw new BadRequestError(`Provider ${provider} does not support glossaries`);
+    }
+
+    return mtProvider.createGlossary(name, sourceLanguage, targetLanguage, entries);
+  }
+
+  /**
+   * Delete a glossary from the MT provider
+   *
+   * @param projectId - Project ID
+   * @param provider - MT provider type
+   * @param glossaryId - External glossary ID
+   */
+  async deleteGlossary(
+    projectId: string,
+    provider: MTProviderType,
+    glossaryId: string
+  ): Promise<void> {
+    const mtProvider = await this.getInitializedProvider(projectId, provider);
+
+    if (!mtProvider.deleteGlossary) {
+      throw new BadRequestError(`Provider ${provider} does not support glossaries`);
+    }
+
+    await mtProvider.deleteGlossary(glossaryId);
+  }
+
+  /**
+   * List glossaries from the MT provider
+   *
+   * @param projectId - Project ID
+   * @param provider - MT provider type
+   */
+  async listGlossaries(
+    projectId: string,
+    provider: MTProviderType
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      sourceLanguage: string;
+      targetLanguage: string;
+      entryCount: number;
+    }>
+  > {
+    const mtProvider = await this.getInitializedProvider(projectId, provider);
+
+    if (!mtProvider.listGlossaries) {
+      throw new BadRequestError(`Provider ${provider} does not support glossaries`);
+    }
+
+    return mtProvider.listGlossaries();
+  }
 }

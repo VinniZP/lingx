@@ -14,6 +14,7 @@ import {
 } from './retention.worker.js';
 import { createTranslationMemoryWorker } from './translation-memory.worker.js';
 import { createMTBatchWorker } from './mt-batch.worker.js';
+import { createGlossaryWorker } from './glossary.worker.js';
 
 /**
  * Active workers registry
@@ -47,6 +48,11 @@ export async function startWorkers(prisma: PrismaClient): Promise<void> {
   const mtBatchWorker = createMTBatchWorker(prisma);
   workers.push(mtBatchWorker);
   console.log('[Workers] MT batch worker started');
+
+  // Create glossary worker
+  const glossaryWorker = createGlossaryWorker(prisma);
+  workers.push(glossaryWorker);
+  console.log('[Workers] Glossary worker started');
 
   // Register scheduled jobs
   await registerRetentionJob();

@@ -1082,3 +1082,351 @@ export const machineTranslationApi = {
   getUsage: (projectId: string) =>
     fetchApi<{ providers: MTUsageStats[] }>(`/api/projects/${projectId}/mt/usage`),
 };
+
+// ============================================
+// GLOSSARY API
+// ============================================
+
+export type PartOfSpeech =
+  | 'NOUN'
+  | 'VERB'
+  | 'ADJECTIVE'
+  | 'ADVERB'
+  | 'PRONOUN'
+  | 'PREPOSITION'
+  | 'CONJUNCTION'
+  | 'INTERJECTION'
+  | 'DETERMINER'
+  | 'OTHER';
+
+export interface GlossaryTranslation {
+  id: string;
+  targetLanguage: string;
+  targetTerm: string;
+  notes: string | null;
+}
+
+export interface GlossaryTag {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+export interface GlossaryEntry {
+  id: string;
+  sourceTerm: string;
+  sourceLanguage: string;
+  context: string | null;
+  notes: string | null;
+  partOfSpeech: PartOfSpeech | null;
+  caseSensitive: boolean;
+  domain: string | null;
+  usageCount: number;
+  lastUsedAt: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  translations: GlossaryTranslation[];
+  tags: GlossaryTag[];
+}
+
+export interface GlossaryMatch {
+  id: string;
+  sourceTerm: string;
+  targetTerm: string;
+  context: string | null;
+  notes: string | null;
+  partOfSpeech: PartOfSpeech | null;
+  caseSensitive: boolean;
+  domain: string | null;
+  matchType: 'exact' | 'partial';
+  usageCount: number;
+}
+
+export interface GlossarySearchParams {
+  sourceText: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  caseSensitive?: boolean;
+  limit?: number;
+}
+
+export interface GlossaryListParams {
+  search?: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  partOfSpeech?: PartOfSpeech;
+  domain?: string;
+  tagId?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GlossaryStats {
+  totalEntries: number;
+  totalTranslations: number;
+  languagePairs: Array<{
+    sourceLanguage: string;
+    targetLanguage: string;
+    count: number;
+  }>;
+  topDomains: Array<{
+    domain: string;
+    count: number;
+  }>;
+  topTags: Array<{
+    id: string;
+    name: string;
+    count: number;
+  }>;
+}
+
+export interface GlossarySyncStatus {
+  provider: MTProvider;
+  sourceLanguage: string;
+  targetLanguage: string;
+  externalGlossaryId: string;
+  entriesCount: number;
+  lastSyncedAt: string;
+  syncStatus: 'synced' | 'pending' | 'error';
+  syncError: string | null;
+}
+
+export interface CreateGlossaryEntryInput {
+  sourceTerm: string;
+  sourceLanguage: string;
+  context?: string;
+  notes?: string;
+  partOfSpeech?: PartOfSpeech;
+  caseSensitive?: boolean;
+  domain?: string;
+  translations?: Array<{
+    targetLanguage: string;
+    targetTerm: string;
+    notes?: string;
+  }>;
+  tagIds?: string[];
+}
+
+export interface UpdateGlossaryEntryInput {
+  sourceTerm?: string;
+  context?: string | null;
+  notes?: string | null;
+  partOfSpeech?: PartOfSpeech | null;
+  caseSensitive?: boolean;
+  domain?: string | null;
+  tagIds?: string[];
+}
+
+// Glossary API
+export const glossaryApi = {
+  /** Search for glossary terms in source text */
+  search: (projectId: string, params: GlossarySearchParams) => {
+    const query = new URLSearchParams();
+    query.set('sourceText', params.sourceText);
+    query.set('sourceLanguage', params.sourceLanguage);
+    query.set('targetLanguage', params.targetLanguage);
+    if (params.caseSensitive !== undefined) {
+      query.set('caseSensitive', String(params.caseSensitive));
+    }
+    if (params.limit !== undefined) {
+      query.set('limit', String(params.limit));
+    }
+    return fetchApi<{ matches: GlossaryMatch[] }>(
+      `/api/projects/${projectId}/glossary/search?${query.toString()}`
+    );
+  },
+
+  /** List glossary entries */
+  list: (projectId: string, params?: GlossaryListParams) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.set('search', params.search);
+    if (params?.sourceLanguage) query.set('sourceLanguage', params.sourceLanguage);
+    if (params?.targetLanguage) query.set('targetLanguage', params.targetLanguage);
+    if (params?.partOfSpeech) query.set('partOfSpeech', params.partOfSpeech);
+    if (params?.domain) query.set('domain', params.domain);
+    if (params?.tagId) query.set('tagId', params.tagId);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    return fetchApi<{
+      entries: GlossaryEntry[];
+      total: number;
+      page: number;
+      limit: number;
+    }>(`/api/projects/${projectId}/glossary?${query.toString()}`);
+  },
+
+  /** Get a single glossary entry */
+  get: (projectId: string, entryId: string) =>
+    fetchApi<GlossaryEntry>(`/api/projects/${projectId}/glossary/${entryId}`),
+
+  /** Create a glossary entry */
+  create: (projectId: string, data: CreateGlossaryEntryInput) =>
+    fetchApi<GlossaryEntry>(`/api/projects/${projectId}/glossary`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Update a glossary entry */
+  update: (projectId: string, entryId: string, data: UpdateGlossaryEntryInput) =>
+    fetchApi<GlossaryEntry>(`/api/projects/${projectId}/glossary/${entryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Delete a glossary entry */
+  delete: (projectId: string, entryId: string) =>
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/glossary/${entryId}`, {
+      method: 'DELETE',
+    }),
+
+  /** Add a translation to an entry */
+  addTranslation: (
+    projectId: string,
+    entryId: string,
+    data: { targetLanguage: string; targetTerm: string; notes?: string }
+  ) =>
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/glossary/${entryId}/translations`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Update a translation */
+  updateTranslation: (
+    projectId: string,
+    entryId: string,
+    lang: string,
+    data: { targetTerm: string; notes?: string | null }
+  ) =>
+    fetchApi<{ success: boolean }>(
+      `/api/projects/${projectId}/glossary/${entryId}/translations/${lang}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    ),
+
+  /** Delete a translation */
+  deleteTranslation: (projectId: string, entryId: string, lang: string) =>
+    fetchApi<{ success: boolean }>(
+      `/api/projects/${projectId}/glossary/${entryId}/translations/${lang}`,
+      {
+        method: 'DELETE',
+      }
+    ),
+
+  /** Record usage when a glossary term is applied */
+  recordUsage: (projectId: string, entryId: string) =>
+    fetchApi<{ success: boolean }>(
+      `/api/projects/${projectId}/glossary/${entryId}/record-usage`,
+      {
+        method: 'POST',
+      }
+    ),
+
+  /** List glossary tags */
+  getTags: (projectId: string) =>
+    fetchApi<{
+      tags: Array<GlossaryTag & { entryCount: number }>;
+    }>(`/api/projects/${projectId}/glossary/tags`),
+
+  /** Create a glossary tag */
+  createTag: (projectId: string, data: { name: string; color?: string }) =>
+    fetchApi<GlossaryTag>(`/api/projects/${projectId}/glossary/tags`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Update a glossary tag */
+  updateTag: (projectId: string, tagId: string, data: { name?: string; color?: string | null }) =>
+    fetchApi<GlossaryTag>(`/api/projects/${projectId}/glossary/tags/${tagId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Delete a glossary tag */
+  deleteTag: (projectId: string, tagId: string) =>
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/glossary/tags/${tagId}`, {
+      method: 'DELETE',
+    }),
+
+  /** Get glossary statistics */
+  getStats: (projectId: string) =>
+    fetchApi<GlossaryStats>(`/api/projects/${projectId}/glossary/stats`),
+
+  /** Import glossary from CSV or TBX */
+  import: (
+    projectId: string,
+    file: File,
+    format: 'csv' | 'tbx',
+    overwrite?: boolean
+  ): Promise<{ imported: number; skipped: number; errors: string[] }> => {
+    return file.text().then((content) =>
+      fetchApi<{ imported: number; skipped: number; errors: string[] }>(
+        `/api/projects/${projectId}/glossary/import?format=${format}&overwrite=${overwrite ?? false}`,
+        {
+          method: 'POST',
+          body: content,
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+        }
+      )
+    );
+  },
+
+  /** Export glossary to CSV or TBX */
+  export: (
+    projectId: string,
+    format: 'csv' | 'tbx',
+    options?: {
+      sourceLanguage?: string;
+      targetLanguages?: string[];
+      tagIds?: string[];
+      domain?: string;
+    }
+  ): Promise<Blob> => {
+    const query = new URLSearchParams();
+    query.set('format', format);
+    if (options?.sourceLanguage) query.set('sourceLanguage', options.sourceLanguage);
+    if (options?.targetLanguages?.length)
+      query.set('targetLanguages', options.targetLanguages.join(','));
+    if (options?.tagIds?.length) query.set('tagIds', options.tagIds.join(','));
+    if (options?.domain) query.set('domain', options.domain);
+
+    return fetch(`${API_URL}/api/projects/${projectId}/glossary/export?${query.toString()}`, {
+      credentials: 'include',
+    }).then((res) => {
+      if (!res.ok) throw new Error('Export failed');
+      return res.blob();
+    });
+  },
+
+  /** Sync glossary to MT provider */
+  syncToProvider: (
+    projectId: string,
+    data: { provider: MTProvider; sourceLanguage: string; targetLanguage: string }
+  ) =>
+    fetchApi<{ message: string; jobId?: string }>(`/api/projects/${projectId}/glossary/sync`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Get sync status for all providers */
+  getSyncStatus: (projectId: string) =>
+    fetchApi<{ syncs: GlossarySyncStatus[] }>(`/api/projects/${projectId}/glossary/sync/status`),
+
+  /** Delete synced glossary from provider */
+  deleteSyncedGlossary: (
+    projectId: string,
+    provider: MTProvider,
+    sourceLanguage: string,
+    targetLanguage: string
+  ) =>
+    fetchApi<{ success: boolean }>(
+      `/api/projects/${projectId}/glossary/sync/${provider}?sourceLanguage=${sourceLanguage}&targetLanguage=${targetLanguage}`,
+      {
+        method: 'DELETE',
+      }
+    ),
+};

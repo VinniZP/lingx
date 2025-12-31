@@ -159,6 +159,9 @@ model Project {
   activities        Activity[]
   translationMemory TranslationMemory[]
   mtConfigs         MachineTranslationConfig[]
+  glossaryEntries   GlossaryEntry[]
+  glossaryTags      GlossaryTag[]
+  glossarySyncs     GlossaryProviderSync[]
 
   @@index([slug])
 }
@@ -480,4 +483,116 @@ model MachineTranslationUsage {
   // One record per project per provider per month
   @@unique([projectId, provider, yearMonth])
   @@index([projectId, yearMonth])
+}
+
+// ============================================
+// GLOSSARY / TERMBASE
+// ============================================
+
+enum PartOfSpeech {
+  NOUN
+  VERB
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  PREPOSITION
+  CONJUNCTION
+  INTERJECTION
+  DETERMINER
+  OTHER
+}
+
+/// Stores glossary/terminology entries for consistent translation
+/// Per-project scope with rich metadata for professional terminology management
+model GlossaryEntry {
+  id             String        @id @default(cuid())
+  projectId      String
+  sourceTerm     String        // Term in source language
+  sourceLanguage String        // ISO 639-1 code
+  context        String?       // Usage context description
+  notes          String?       // Additional notes for translators
+  partOfSpeech   PartOfSpeech?
+  caseSensitive  Boolean       @default(false)
+  domain         String?       // Subject domain (legal, medical, tech, etc.)
+  usageCount     Int           @default(0) // Times this term was applied
+  lastUsedAt     DateTime?
+  createdBy      String?       // userId who created
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  project      Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  translations GlossaryTranslation[]
+  tags         GlossaryEntryTag[]
+
+  // One term per source language per project (case handled in code)
+  @@unique([projectId, sourceLanguage, sourceTerm])
+  @@index([projectId, sourceLanguage])
+  @@index([projectId])
+}
+
+/// Stores translations for each glossary entry
+model GlossaryTranslation {
+  id             String   @id @default(cuid())
+  entryId        String
+  targetLanguage String   // ISO 639-1 code
+  targetTerm     String   // Translated term
+  notes          String?  // Language-specific notes
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  entry GlossaryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  // One translation per language per entry
+  @@unique([entryId, targetLanguage])
+  @@index([entryId])
+}
+
+/// Tags for organizing glossary entries
+model GlossaryTag {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  color     String?  // Hex color for UI display
+  createdAt DateTime @default(now())
+
+  project Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  entries GlossaryEntryTag[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+}
+
+/// Many-to-many relation between entries and tags
+model GlossaryEntryTag {
+  entryId String
+  tagId   String
+
+  entry GlossaryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tag   GlossaryTag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, tagId])
+  @@index([entryId])
+  @@index([tagId])
+}
+
+/// Stores synced glossaries with MT providers
+/// Tracks external glossary IDs for DeepL/Google APIs
+model GlossaryProviderSync {
+  id                 String     @id @default(cuid())
+  projectId          String
+  provider           MTProvider // DEEPL or GOOGLE_TRANSLATE
+  externalGlossaryId String     // Provider's glossary ID
+  sourceLanguage     String
+  targetLanguage     String
+  entriesCount       Int        @default(0)
+  lastSyncedAt       DateTime
+  syncStatus         String     @default("synced") // synced, pending, error
+  syncError          String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, provider, sourceLanguage, targetLanguage])
+  @@index([projectId, provider])
 }

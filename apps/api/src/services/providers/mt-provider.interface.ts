@@ -141,4 +141,44 @@ export interface MTProvider {
    * Get supported target languages
    */
   getSupportedTargetLanguages(): string[];
+
+  // ============================================
+  // GLOSSARY METHODS (optional)
+  // ============================================
+
+  /**
+   * Create or update a glossary on the provider
+   *
+   * @param name - Glossary name
+   * @param sourceLanguage - Source language code
+   * @param targetLanguage - Target language code
+   * @param entries - Glossary entries (source/target term pairs)
+   * @returns External glossary ID from provider
+   */
+  createGlossary?(
+    name: string,
+    sourceLanguage: string,
+    targetLanguage: string,
+    entries: Array<{ source: string; target: string }>
+  ): Promise<string>;
+
+  /**
+   * Delete a glossary from the provider
+   *
+   * @param glossaryId - External glossary ID
+   */
+  deleteGlossary?(glossaryId: string): Promise<void>;
+
+  /**
+   * List available glossaries
+   */
+  listGlossaries?(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      sourceLanguage: string;
+      targetLanguage: string;
+      entryCount: number;
+    }>
+  >;
 }

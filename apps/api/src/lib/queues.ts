@@ -85,6 +85,25 @@ export const mtBatchQueue = new Queue('mt-batch', {
 });
 
 /**
+ * Glossary Queue
+ *
+ * Handles async glossary operations: import, MT sync, usage tracking.
+ * Rate-limited due to external API calls for provider sync.
+ */
+export const glossaryQueue = new Queue('glossary', {
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 500,
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000,
+    },
+  },
+});
+
+/**
  * Close all queue connections gracefully
  */
 export async function closeQueues(): Promise<void> {
@@ -93,5 +112,6 @@ export async function closeQueues(): Promise<void> {
     translationMemoryQueue.close(),
     retentionQueue.close(),
     mtBatchQueue.close(),
+    glossaryQueue.close(),
   ]);
 }

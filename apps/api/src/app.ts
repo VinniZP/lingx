@@ -30,6 +30,7 @@ import branchRoutes from './routes/branches.js';
 import translationRoutes from './routes/translations.js';
 import translationMemoryRoutes from './routes/translation-memory.js';
 import machineTranslationRoutes from './routes/machine-translation.js';
+import glossaryRoutes from './routes/glossary.js';
 import environmentRoutes from './routes/environments.js';
 import sdkRoutes from './routes/sdk.js';
 import { startWorkers, stopWorkers } from './workers/index.js';
@@ -159,6 +160,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(translationRoutes);
   await fastify.register(translationMemoryRoutes);
   await fastify.register(machineTranslationRoutes);
+  await fastify.register(glossaryRoutes);
   await fastify.register(environmentRoutes);
   await fastify.register(sdkRoutes);
 
