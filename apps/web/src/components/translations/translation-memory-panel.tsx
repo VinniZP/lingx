@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslationMemorySearch, useRecordTMUsage, type TMMatch } from '@/hooks';
+import { useMTConfigs, useMTTranslate, getProviderDisplayName } from '@/hooks/use-machine-translation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Database, Loader2, Copy, CheckCircle2, Sparkles } from 'lucide-react';
+import { Database, Loader2, Copy, CheckCircle2, Sparkles, Languages, Zap } from 'lucide-react';
+import type { MTProvider } from '@/lib/api';
 
 interface TranslationMemoryPanelProps {
   projectId: string;
@@ -16,7 +18,7 @@ interface TranslationMemoryPanelProps {
 }
 
 /**
- * Sidebar panel showing Translation Memory matches.
+ * Sidebar panel showing Translation Memory matches and Machine Translation.
  * Suggests previously translated text with similarity scores.
  */
 export function TranslationMemoryPanel({
@@ -29,6 +31,8 @@ export function TranslationMemoryPanel({
 }: TranslationMemoryPanelProps) {
   const [debouncedSourceText, setDebouncedSourceText] = useState(sourceText);
   const [appliedId, setAppliedId] = useState<string | null>(null);
+  const [mtResult, setMtResult] = useState<{ text: string; provider: MTProvider; cached: boolean } | null>(null);
+  const [mtApplied, setMtApplied] = useState(false);
 
   // Debounce source text changes (500ms)
   useEffect(() => {
@@ -37,6 +41,12 @@ export function TranslationMemoryPanel({
     }, 500);
     return () => clearTimeout(timer);
   }, [sourceText]);
+
+  // Reset MT result when source text changes
+  useEffect(() => {
+    setMtResult(null);
+    setMtApplied(false);
+  }, [debouncedSourceText, targetLanguage]);
 
   // Don't search if source and target language are the same
   const shouldSearch = sourceLanguage !== targetLanguage && debouncedSourceText.length >= 3;
@@ -55,6 +65,14 @@ export function TranslationMemoryPanel({
     { enabled: isVisible && shouldSearch }
   );
 
+  // Check if MT is configured
+  const { data: mtConfigsData } = useMTConfigs(projectId);
+  const mtConfigs = mtConfigsData?.configs?.filter(c => c.isActive) || [];
+  const hasMT = mtConfigs.length > 0;
+
+  // MT translate mutation
+  const mtTranslate = useMTTranslate(projectId);
+
   const recordUsage = useRecordTMUsage(projectId);
 
   const handleApply = (match: TMMatch) => {
@@ -63,6 +81,33 @@ export function TranslationMemoryPanel({
     setAppliedId(match.id);
     // Clear the applied indicator after 2 seconds
     setTimeout(() => setAppliedId(null), 2000);
+  };
+
+  const handleMTTranslate = async () => {
+    if (!debouncedSourceText || debouncedSourceText.length < 1) return;
+
+    try {
+      const result = await mtTranslate.mutateAsync({
+        text: debouncedSourceText,
+        sourceLanguage,
+        targetLanguage,
+      });
+      setMtResult({
+        text: result.translatedText,
+        provider: result.provider,
+        cached: result.cached,
+      });
+    } catch {
+      // Error handling done by mutation
+    }
+  };
+
+  const handleApplyMT = () => {
+    if (mtResult) {
+      onApplyMatch(mtResult.text, `mt-${mtResult.provider}`);
+      setMtApplied(true);
+      setTimeout(() => setMtApplied(false), 2000);
+    }
   };
 
   // If source and target are the same, show nothing
@@ -160,6 +205,71 @@ export function TranslationMemoryPanel({
                   isApplied={appliedId === match.id}
                 />
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Machine Translation Section */}
+      {hasMT && shouldSearch && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2 mb-3">
+            <Languages className="size-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Machine Translation</span>
+          </div>
+
+          {!mtResult ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2"
+              onClick={handleMTTranslate}
+              disabled={mtTranslate.isPending}
+            >
+              {mtTranslate.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Zap className="size-4" />
+              )}
+              {mtTranslate.isPending ? 'Translating...' : 'Get Translation'}
+            </Button>
+          ) : (
+            <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+              {/* Provider badge */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                  {getProviderDisplayName(mtResult.provider)}
+                </span>
+                {mtResult.cached && (
+                  <span className="text-xs text-muted-foreground">
+                    cached
+                  </span>
+                )}
+              </div>
+
+              {/* Translated text */}
+              <div className="text-sm font-medium">{mtResult.text}</div>
+
+              {/* Apply button */}
+              <Button
+                size="sm"
+                variant={mtApplied ? 'outline' : 'default'}
+                className="w-full gap-2"
+                onClick={handleApplyMT}
+                disabled={mtApplied}
+              >
+                {mtApplied ? (
+                  <>
+                    <CheckCircle2 className="size-4 text-success" />
+                    Applied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-4" />
+                    Apply
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>

@@ -66,6 +66,25 @@ export const retentionQueue = new Queue('retention', {
 });
 
 /**
+ * Machine Translation Batch Queue
+ *
+ * Handles batch translation jobs and pre-translation.
+ * Rate-limited to respect provider API limits.
+ */
+export const mtBatchQueue = new Queue('mt-batch', {
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 500,
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000, // Start with 2s for rate limiting
+    },
+  },
+});
+
+/**
  * Close all queue connections gracefully
  */
 export async function closeQueues(): Promise<void> {
@@ -73,5 +92,6 @@ export async function closeQueues(): Promise<void> {
     activityQueue.close(),
     translationMemoryQueue.close(),
     retentionQueue.close(),
+    mtBatchQueue.close(),
   ]);
 }

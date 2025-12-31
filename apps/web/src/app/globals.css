@@ -222,6 +222,28 @@
   code, .font-mono {
     font-family: var(--font-geist-mono), monospace;
   }
+
+  /* JetBrains Mono for keyboard shortcuts */
+  .font-kbd {
+    font-family: var(--font-jetbrains-mono), monospace;
+  }
+
+  /* Remove cmdk input focus outline */
+  [cmdk-input] {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  [cmdk-input]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  [cmdk-input]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
 }
 
 @layer utilities {

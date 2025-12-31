@@ -8,6 +8,7 @@ interface UseKeyboardNavigationOptions {
   expandedKeyId: string | null;
   onExpandKey: (keyId: string | null) => void;
   getKeyIdByIndex: (index: number) => string | undefined;
+  onOpenCommandPalette?: () => void;
   enabled?: boolean;
 }
 
@@ -31,6 +32,7 @@ export function useKeyboardNavigation({
   expandedKeyId,
   onExpandKey,
   getKeyIdByIndex,
+  onOpenCommandPalette,
   enabled = true,
 }: UseKeyboardNavigationOptions) {
   const [focusedKeyIndex, setFocusedKeyIndex] = useState<number | null>(null);
@@ -54,24 +56,28 @@ export function useKeyboardNavigation({
       case 'up':
         // Move to previous key
         if (focusedKeyIndex > 0) {
+          setFocusedLanguage(null); // Reset to let card pick first language
           navigateToKey(focusedKeyIndex - 1);
         }
         break;
       case 'down':
         // Move to next key
         if (focusedKeyIndex < keyCount - 1) {
+          setFocusedLanguage(null); // Reset to let card pick first language
           navigateToKey(focusedKeyIndex + 1);
         }
         break;
       case 'next':
         // Move to next key and focus first language
         if (focusedKeyIndex < keyCount - 1) {
+          setFocusedLanguage(null); // Reset to let card pick first language
           navigateToKey(focusedKeyIndex + 1);
         }
         break;
       case 'prev':
         // Move to previous key and focus last language
         if (focusedKeyIndex > 0) {
+          setFocusedLanguage(null); // Reset to let card pick first language
           navigateToKey(focusedKeyIndex - 1);
         }
         break;
@@ -104,7 +110,7 @@ export function useKeyboardNavigation({
       // Command palette
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        // Command palette will be handled separately
+        onOpenCommandPalette?.();
         return;
       }
 
@@ -165,6 +171,7 @@ export function useKeyboardNavigation({
     keyCount,
     onExpandKey,
     getKeyIdByIndex,
+    onOpenCommandPalette,
   ]);
 
   // Update focused key index when expanded key changes

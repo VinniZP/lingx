@@ -13,6 +13,7 @@ import {
 } from '@/components/layout/project-sidebar';
 import { Languages, Sun, Moon, Search, Bell } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { Kbd } from '@/components/ui/kbd';
 
 /**
  * ProjectLayout - Layout wrapper for project-specific pages
@@ -118,9 +119,7 @@ export default function ProjectLayout({
               <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                 <Search className="size-4" />
                 <span className="hidden lg:inline">Search...</span>
-                <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
-                  <span className="text-xs">⌘</span>K
-                </kbd>
+                <span className="hidden lg:inline-flex"><Kbd variant="pill">K</Kbd></span>
               </Button>
             </div>
             <div className="flex items-center gap-1">

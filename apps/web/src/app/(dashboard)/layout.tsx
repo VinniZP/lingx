@@ -13,6 +13,7 @@ import {
 } from '@/components/layout/app-sidebar'
 import { Languages, Bell, Search, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { Kbd } from '@/components/ui/kbd'
 
 export default function DashboardLayout({
   children,
@@ -92,9 +93,7 @@ export default function DashboardLayout({
               <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                 <Search className="size-4" />
                 <span className="hidden lg:inline">Search...</span>
-                <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
-                  ⌘K
-                </kbd>
+                <span className="hidden lg:inline-flex"><Kbd variant="pill">K</Kbd></span>
               </Button>
             </div>
             <div className="flex items-center gap-1">

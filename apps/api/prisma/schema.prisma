@@ -158,6 +158,7 @@ model Project {
   environments      Environment[]
   activities        Activity[]
   translationMemory TranslationMemory[]
+  mtConfigs         MachineTranslationConfig[]
 
   @@index([slug])
 }
@@ -412,4 +413,71 @@ model TranslationMemory {
   // One entry per unique source text per language pair per project
   @@unique([projectId, sourceLanguage, targetLanguage, sourceText])
   @@index([projectId, sourceLanguage, targetLanguage])
+}
+
+// ============================================
+// MACHINE TRANSLATION
+// ============================================
+
+enum MTProvider {
+  DEEPL
+  GOOGLE_TRANSLATE
+}
+
+/// Per-project MT provider configuration
+/// API keys are AES-256-GCM encrypted (same pattern as TOTP)
+model MachineTranslationConfig {
+  id        String     @id @default(cuid())
+  projectId String
+  provider  MTProvider
+  apiKey    String     // AES-256-GCM encrypted API key
+  apiKeyIv  String     // Initialization vector for decryption
+  isActive  Boolean    @default(true)
+  priority  Int        @default(0) // Lower = higher priority for auto-selection
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // One config per provider per project
+  @@unique([projectId, provider])
+  @@index([projectId])
+}
+
+/// Cache MT results to avoid duplicate API calls
+/// Indexed by source text hash for fast lookups
+model MachineTranslationCache {
+  id             String     @id @default(cuid())
+  projectId      String
+  provider       MTProvider
+  sourceLanguage String
+  targetLanguage String
+  sourceTextHash String     // SHA-256 hash of source text (for indexing)
+  sourceText     String     // Original text
+  translatedText String     // MT result
+  characterCount Int        // For usage tracking
+  createdAt      DateTime   @default(now())
+  expiresAt      DateTime   // 30-day TTL
+
+  // One cached result per unique source per language pair per provider
+  @@unique([projectId, provider, sourceLanguage, targetLanguage, sourceTextHash])
+  @@index([projectId, provider, sourceLanguage, targetLanguage])
+  @@index([expiresAt]) // For cleanup job
+}
+
+/// Track MT usage per project per month for cost estimation
+model MachineTranslationUsage {
+  id             String     @id @default(cuid())
+  projectId      String
+  provider       MTProvider
+  yearMonth      String     // "2025-01" format for monthly aggregation
+  characterCount BigInt     @default(0)
+  requestCount   Int        @default(0)
+  cachedCount    Int        @default(0) // Requests served from cache
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // One record per project per provider per month
+  @@unique([projectId, provider, yearMonth])
+  @@index([projectId, yearMonth])
 }

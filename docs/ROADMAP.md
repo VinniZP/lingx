@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Phase 8 in progress)
+> **Updated**: 2025-12-31 (Phase 8 - Translation Editor UX complete)
 
 ---
 
@@ -81,7 +81,17 @@
 ### Phase 8: Translation Productivity 🚧
 - [x] **Translation memory** (pg_trgm fuzzy matching, auto-index approved translations, sidebar panel with TM/AI/MT placeholders)
 - [x] **Server-side filtering** (all/missing/complete/pending/approved/rejected with proper pagination)
-- [ ] Machine translation (DeepL, Google)
+- [x] **Translation editor UX redesign**
+  - [x] Expandable key cards (click-to-expand pattern)
+  - [x] Inline TM/MT suggestions below inputs
+  - [x] Full keyboard navigation (↑↓ keys, Tab fields, Esc collapse)
+  - [x] Command palette (Cmd+K) with quick actions
+  - [x] Approve/reject entire key from command palette
+  - [x] Editable source language
+  - [x] Source text preview in collapsed key view
+  - [x] Multi-language MT batch endpoint
+  - [x] Premium Kbd component with Command icon
+- [x] **Machine translation** (DeepL, Google Translate with provider config, usage tracking, caching)
 - [ ] Glossary/termbase management
 - [ ] Extended quality checks
 - [ ] **Dry run mode** (`--dry-run` for push/import/sync)
@@ -125,8 +135,9 @@
 |----------|-------------|--------|
 | High | Translation memory | ✅ Complete |
 | High | Server-side filtering | ✅ Complete |
-| High | Machine translation (DeepL, Google) | 📋 Planned |
-| Medium | Glossary/termbase management | 📋 Planned |
+| High | Translation editor UX redesign | ✅ Complete |
+| High | Machine translation (DeepL, Google) | ✅ Complete |
+| Medium | Glossary/termbase management | 📋 Next |
 | Medium | Extended quality checks | 📋 Planned |
 | Medium | Dry run mode (`--dry-run`) | 📋 Planned |
 | Medium | Dead key detection (`lf check --dead`) | 📋 Planned |

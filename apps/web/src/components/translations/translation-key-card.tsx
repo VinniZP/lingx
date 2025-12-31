@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { InlineSuggestion } from './inline-suggestion';
+import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
 
 const approvalStatusConfig: Record<
@@ -115,15 +116,23 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
     return translation?.id ?? null;
   };
 
-  // Focus input when language is focused
+  // Focus input when language is focused or when key expands
   useEffect(() => {
-    if (isExpanded && focusedLanguage) {
-      const textarea = inputRefs.current.get(focusedLanguage);
-      if (textarea) {
-        textarea.focus();
+    if (isExpanded) {
+      // If no language focused yet, focus the first non-source language
+      if (!focusedLanguage) {
+        const firstTarget = languages.find((l) => !l.isDefault);
+        if (firstTarget) {
+          onFocusLanguage(firstTarget.code);
+        }
+      } else {
+        const textarea = inputRefs.current.get(focusedLanguage);
+        if (textarea) {
+          textarea.focus();
+        }
       }
     }
-  }, [isExpanded, focusedLanguage]);
+  }, [isExpanded, focusedLanguage, languages, onFocusLanguage]);
 
   // Keyboard navigation within the card
   const handleKeyDown = useCallback(
@@ -269,13 +278,21 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
           {/* Expand indicator */}
           <ChevronRight className="size-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
 
-          {/* Key name */}
+          {/* Key name and source preview */}
           <div className="flex-1 min-w-0">
             <span className="font-mono text-sm text-foreground/90 truncate block">
               {translationKey.name}
             </span>
+            {/* Source text preview */}
+            {defaultLanguage && (
+              <span className="text-sm text-muted-foreground truncate block mt-0.5">
+                {getTranslationValue(translationKey, defaultLanguage.code) || (
+                  <span className="italic text-muted-foreground/50">No source text</span>
+                )}
+              </span>
+            )}
             {translationKey.description && (
-              <span className="text-xs text-muted-foreground truncate block mt-0.5">
+              <span className="text-xs text-muted-foreground/70 truncate block mt-0.5">
                 {translationKey.description}
               </span>
             )}
@@ -427,9 +444,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                           </TooltipTrigger>
                           <TooltipContent side="top">
                             Copy from source
-                            <kbd className="ml-2 px-1.5 py-0.5 text-[10px] rounded bg-muted">
-                              ⌘D
-                            </kbd>
+                            <span className="ml-2"><Kbd variant="pill">D</Kbd></span>
                           </TooltipContent>
                         </Tooltip>
                       )}
@@ -458,9 +473,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           Machine translate
-                          <kbd className="ml-2 px-1.5 py-0.5 text-[10px] rounded bg-muted">
-                            ⌘M
-                          </kbd>
+                          <span className="ml-2"><Kbd variant="pill">M</Kbd></span>
                         </TooltipContent>
                       </Tooltip>
                     </div>
@@ -536,7 +549,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
               </div>
 
               {/* Input */}
-              <div className="relative">
+              <div className="relative flex items-center">
                 <textarea
                   ref={(el) => {
                     if (el) inputRefs.current.set(lang.code, el);
@@ -545,15 +558,14 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   onChange={(e) => handleTextareaChange(e, lang.code)}
                   onFocus={() => onFocusLanguage(lang.code)}
                   onKeyDown={(e) => handleKeyDown(e, lang.code)}
-                  placeholder={isEmpty ? `Enter ${lang.name} translation...` : undefined}
-                  readOnly={isSource}
+                  placeholder={isEmpty ? `Enter ${isSource ? 'source' : lang.name} text...` : undefined}
                   className={cn(
                     'w-full px-3 py-2.5 rounded-xl text-sm leading-relaxed resize-none',
                     'bg-background border transition-all duration-200',
                     'placeholder:text-muted-foreground/50',
                     'focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary',
-                    isSource && 'bg-muted/30 cursor-default',
-                    isFocused && !isSource && 'ring-2 ring-primary/50 border-primary',
+                    isSource && 'bg-primary/5 border-primary/20',
+                    isFocused && 'ring-2 ring-primary/50 border-primary',
                     hasUnsaved && 'border-warning/50',
                     isEmpty && !isSource && 'border-dashed'
                   )}
@@ -566,8 +578,8 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   <button
                     onClick={() => onFetchMT(lang.code)}
                     className={cn(
-                      'absolute right-2 top-1/2 -translate-y-1/2',
-                      'px-2.5 py-1.5 rounded-lg',
+                      'absolute right-3 inset-y-0 my-auto h-7',
+                      'px-2.5 rounded-lg',
                       'bg-primary/10 text-primary text-xs font-medium',
                       'hover:bg-primary/20 transition-colors',
                       'flex items-center gap-1.5'
@@ -576,6 +588,14 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                     <Zap className="size-3.5" />
                     Translate
                   </button>
+                )}
+
+                {/* Loading state for MT */}
+                {isEmpty && !isSource && isFetching && (
+                  <div className="absolute right-3 inset-y-0 my-auto h-7 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Translating...</span>
+                  </div>
                 )}
               </div>
 
@@ -593,15 +613,18 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
       </div>
 
       {/* Keyboard hints footer */}
-      <div className="px-4 py-2 border-t border-border/40 bg-muted/20 flex items-center gap-4 text-[10px] text-muted-foreground">
-        <span>
-          <kbd className="px-1 py-0.5 rounded bg-muted font-mono">Tab</kbd> next field
+      <div className="px-4 py-2 border-t border-border/40 bg-muted/20 flex items-center gap-5 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted font-kbd text-[11px]">Tab</kbd>
+          <span>next field</span>
         </span>
-        <span>
-          <kbd className="px-1 py-0.5 rounded bg-muted font-mono">⌘↵</kbd> apply suggestion
+        <span className="flex items-center gap-1.5">
+          <Kbd variant="pill">↵</Kbd>
+          <span>apply suggestion</span>
         </span>
-        <span>
-          <kbd className="px-1 py-0.5 rounded bg-muted font-mono">Esc</kbd> collapse
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted font-kbd text-[11px]">Esc</kbd>
+          <span>collapse</span>
         </span>
       </div>
     </div>

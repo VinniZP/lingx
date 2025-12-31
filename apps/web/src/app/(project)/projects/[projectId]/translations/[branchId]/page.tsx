@@ -35,6 +35,7 @@ import { MergeBranchDialog } from '@/components/dialogs';
 import {
   TranslationKeyCard,
   BranchHeader,
+  TranslationCommandPalette,
 } from '@/components/translations';
 import {
   Select,
@@ -52,6 +53,7 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useKeySuggestions, useKeyboardNavigation, useRecordTMUsage, useTranslationMemorySearch } from '@/hooks';
 import { cn } from '@/lib/utils';
+import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
 
 interface PageProps {
@@ -87,7 +89,9 @@ export default function TranslationsPage({ params }: PageProps) {
 
   // Expanded key state (new UX)
   const [expandedKeyId, setExpandedKeyId] = useState<string | null>(null);
-  const [focusedLanguage, setFocusedLanguage] = useState<string | null>(null);
+
+  // Command palette state
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   // Auto-save refs
   const saveTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -150,6 +154,7 @@ export default function TranslationsPage({ params }: PageProps) {
   const {
     focusedKeyIndex,
     setFocusedKeyIndex,
+    focusedLanguage,
     focusLanguage,
     handleKeyboardNavigate,
     isKeyIdFocused,
@@ -159,6 +164,7 @@ export default function TranslationsPage({ params }: PageProps) {
     expandedKeyId,
     onExpandKey: setExpandedKeyId,
     getKeyIdByIndex: useCallback((index: number) => keys[index]?.id, [keys]),
+    onOpenCommandPalette: useCallback(() => setCommandPaletteOpen(true), []),
     enabled: !isMobile,
   });
 
@@ -169,36 +175,52 @@ export default function TranslationsPage({ params }: PageProps) {
     : '';
 
   // TM search for all target languages when key is expanded
-  const targetLanguages = languages.filter(l => !l.isDefault).map(l => l.code);
+  const targetLanguages = useMemo(
+    () => languages.filter(l => !l.isDefault).map(l => l.code),
+    [languages]
+  );
 
-  // Fetch TM for each target language
+  // Track which keys we've already fetched TM for to avoid duplicate requests
+  const fetchedTMKeysRef = useRef<Set<string>>(new Set());
+
+  // Fetch TM for each target language (only once per key)
   useEffect(() => {
     if (!expandedKeyId || !sourceText || sourceText.length < 3 || !defaultLanguage) return;
 
-    targetLanguages.forEach(async (targetLang) => {
-      try {
-        const result = await translationMemoryApi.search(projectId, {
-          sourceText,
-          sourceLanguage: defaultLanguage.code,
-          targetLanguage: targetLang,
-          minSimilarity: 0.6,
-          limit: 5,
-        });
+    // Skip if we've already fetched for this key
+    if (fetchedTMKeysRef.current.has(expandedKeyId)) return;
+    fetchedTMKeysRef.current.add(expandedKeyId);
 
-        if (result.matches && result.matches.length > 0) {
-          const suggestions: UnifiedSuggestion[] = result.matches.map(match => ({
-            id: match.id,
-            type: 'tm' as const,
-            text: match.targetText,
-            confidence: Math.round(match.similarity * 100),
-            source: match.sourceText.substring(0, 30) + (match.sourceText.length > 30 ? '...' : ''),
-          }));
-          setSuggestion(expandedKeyId, targetLang, suggestions);
+    // Fetch TM for all target languages with a small delay between each to avoid rate limits
+    const fetchTM = async () => {
+      for (const targetLang of targetLanguages) {
+        try {
+          const result = await translationMemoryApi.search(projectId, {
+            sourceText,
+            sourceLanguage: defaultLanguage.code,
+            targetLanguage: targetLang,
+            minSimilarity: 0.6,
+            limit: 5,
+          });
+
+          if (result.matches && result.matches.length > 0) {
+            const suggestions: UnifiedSuggestion[] = result.matches.map(match => ({
+              id: match.id,
+              type: 'tm' as const,
+              text: match.targetText,
+              confidence: Math.round(match.similarity * 100),
+              source: match.sourceText.substring(0, 30) + (match.sourceText.length > 30 ? '...' : ''),
+            }));
+            setSuggestion(expandedKeyId, targetLang, suggestions);
+          }
+        } catch (error) {
+          // Silent fail for TM search
+          console.error('[TM] Search failed:', error);
         }
-      } catch (error) {
-        // Silent fail for TM search
       }
-    });
+    };
+
+    fetchTM();
   }, [expandedKeyId, sourceText, defaultLanguage, targetLanguages, projectId, setSuggestion]);
 
   // Mutations
@@ -486,7 +508,7 @@ export default function TranslationsPage({ params }: PageProps) {
                   onFetchMT={(lang) => handleFetchMT(key.id, lang)}
                   isFetchingMT={getFetchingMTSet(key.id)}
                   focusedLanguage={expandedKeyId === key.id ? focusedLanguage : null}
-                  onFocusLanguage={setFocusedLanguage}
+                  onFocusLanguage={focusLanguage}
                   isFocusedKey={isKeyIdFocused(key.id)}
                   onKeyboardNavigate={handleKeyboardNavigate}
                 />
@@ -530,12 +552,12 @@ export default function TranslationsPage({ params }: PageProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-xs">
-              <div className="space-y-1 text-xs">
-                <div><kbd className="font-mono bg-muted px-1 rounded">↑↓</kbd> Navigate keys</div>
-                <div><kbd className="font-mono bg-muted px-1 rounded">Tab</kbd> Switch fields</div>
-                <div><kbd className="font-mono bg-muted px-1 rounded">⌘↵</kbd> Apply suggestion</div>
-                <div><kbd className="font-mono bg-muted px-1 rounded">⌘M</kbd> Machine translate</div>
-                <div><kbd className="font-mono bg-muted px-1 rounded">Esc</kbd> Collapse</div>
+              <div className="space-y-1.5 text-xs">
+                <div><kbd className="font-kbd text-[11px] bg-background/20 text-inherit px-1.5 py-0.5 rounded tracking-wide">↑↓</kbd> Navigate keys</div>
+                <div><kbd className="font-kbd text-[11px] bg-background/20 text-inherit px-1.5 py-0.5 rounded">Tab</kbd> Switch fields</div>
+                <div><Kbd variant="pill">↵</Kbd> Apply suggestion</div>
+                <div><Kbd variant="pill">M</Kbd> Machine translate</div>
+                <div><kbd className="font-kbd text-[11px] bg-background/20 text-inherit px-1.5 py-0.5 rounded">Esc</kbd> Collapse</div>
               </div>
             </TooltipContent>
           </Tooltip>
@@ -698,7 +720,7 @@ export default function TranslationsPage({ params }: PageProps) {
                 onFetchMT={(lang) => handleFetchMT(key.id, lang)}
                 isFetchingMT={getFetchingMTSet(key.id)}
                 focusedLanguage={expandedKeyId === key.id ? focusedLanguage : null}
-                onFocusLanguage={setFocusedLanguage}
+                onFocusLanguage={focusLanguage}
                 isFocusedKey={isKeyIdFocused(key.id)}
                 onKeyboardNavigate={handleKeyboardNavigate}
               />
@@ -746,6 +768,70 @@ export default function TranslationsPage({ params }: PageProps) {
         projectId={projectId}
         sourceBranch={currentBranch}
         allBranches={allBranches}
+      />
+
+      {/* Command Palette */}
+      <TranslationCommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        keys={keys}
+        expandedKeyId={expandedKeyId}
+        focusedLanguage={focusedLanguage}
+        sourceLanguage={defaultLanguage?.code ?? null}
+        onSelectKey={(keyId) => {
+          setExpandedKeyId(keyId);
+          focusLanguage(null); // Reset to let card pick first language
+        }}
+        onFetchMT={(lang) => {
+          if (expandedKeyId) {
+            handleFetchMT(expandedKeyId, lang);
+          }
+        }}
+        onFetchMTAll={() => {
+          if (expandedKeyId) {
+            targetLanguages.forEach((lang) => handleFetchMT(expandedKeyId, lang));
+          }
+        }}
+        onCopyFromSource={(lang) => {
+          if (expandedKeyId && defaultLanguage) {
+            const key = keys.find(k => k.id === expandedKeyId);
+            if (key) {
+              const sourceText = getTranslationValue(key, defaultLanguage.code);
+              if (sourceText) {
+                setEditingTranslations((prev) => ({
+                  ...prev,
+                  [expandedKeyId]: {
+                    ...prev[expandedKeyId],
+                    [lang]: sourceText,
+                  },
+                }));
+              }
+            }
+          }
+        }}
+        onApprove={(translationId) => handleApprove(translationId, 'APPROVED')}
+        onReject={(translationId) => handleApprove(translationId, 'REJECTED')}
+        onApproveKey={async (translationIds) => {
+          if (translationIds.length === 0) return;
+          try {
+            await translationApi.batchApprove(branchId, translationIds, 'APPROVED');
+            toast.success(`${translationIds.length} translations approved`);
+            queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
+          } catch (error) {
+            toast.error('Failed to approve translations', { description: (error as ApiError).message });
+          }
+        }}
+        onRejectKey={async (translationIds) => {
+          if (translationIds.length === 0) return;
+          try {
+            await translationApi.batchApprove(branchId, translationIds, 'REJECTED');
+            toast.success(`${translationIds.length} translations rejected`);
+            queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
+          } catch (error) {
+            toast.error('Failed to reject translations', { description: (error as ApiError).message });
+          }
+        }}
+        hasMT={hasMT}
       />
     </div>
   );

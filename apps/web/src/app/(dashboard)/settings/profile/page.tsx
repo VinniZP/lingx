@@ -796,7 +796,7 @@ function AccountInfoCard({ profile }: { profile: UserProfile }) {
 
 function QuickTipsCard() {
   const tips = [
-    { title: 'Keyboard shortcuts', description: 'Press ⌘K for quick actions' },
+    { title: 'Keyboard shortcuts', description: 'Press Cmd+K for quick actions' },
     { title: 'API access', description: 'Generate keys in Settings' },
   ];
 

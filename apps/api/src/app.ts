@@ -29,6 +29,7 @@ import spaceRoutes from './routes/spaces.js';
 import branchRoutes from './routes/branches.js';
 import translationRoutes from './routes/translations.js';
 import translationMemoryRoutes from './routes/translation-memory.js';
+import machineTranslationRoutes from './routes/machine-translation.js';
 import environmentRoutes from './routes/environments.js';
 import sdkRoutes from './routes/sdk.js';
 import { startWorkers, stopWorkers } from './workers/index.js';
@@ -88,9 +89,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   // Disable rate limiting in test mode to prevent test failures
+  // 500/min allows for heavy translation editor usage (TM searches, MT requests)
   const isTestMode = process.env.NODE_ENV === 'test' || options.logger === false;
   await fastify.register(rateLimit, {
-    max: isTestMode ? 10000 : 100,
+    max: isTestMode ? 10000 : 500,
     timeWindow: '1 minute',
   });
 
@@ -156,6 +158,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(branchRoutes);
   await fastify.register(translationRoutes);
   await fastify.register(translationMemoryRoutes);
+  await fastify.register(machineTranslationRoutes);
   await fastify.register(environmentRoutes);
   await fastify.register(sdkRoutes);
 

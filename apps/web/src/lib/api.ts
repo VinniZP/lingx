@@ -952,3 +952,133 @@ export const translationMemoryApi = {
       method: 'POST',
     }),
 };
+
+// Machine Translation Types
+export type MTProvider = 'DEEPL' | 'GOOGLE_TRANSLATE';
+
+export interface MTConfig {
+  id: string;
+  provider: MTProvider;
+  keyPrefix: string;
+  isActive: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MTTranslateResult {
+  translatedText: string;
+  provider: MTProvider;
+  cached: boolean;
+  characterCount: number;
+}
+
+export interface MTUsageStats {
+  provider: MTProvider;
+  currentMonth: {
+    characterCount: number;
+    requestCount: number;
+    cachedCount: number;
+    estimatedCost: number;
+  };
+  allTime: {
+    characterCount: number;
+    requestCount: number;
+  };
+}
+
+// Machine Translation API
+export const machineTranslationApi = {
+  /** Get MT configurations for a project */
+  getConfigs: (projectId: string) =>
+    fetchApi<{ configs: MTConfig[] }>(`/api/projects/${projectId}/mt/config`),
+
+  /** Save MT provider configuration */
+  saveConfig: (projectId: string, data: {
+    provider: MTProvider;
+    apiKey: string;
+    isActive?: boolean;
+    priority?: number;
+  }) =>
+    fetchApi<MTConfig>(`/api/projects/${projectId}/mt/config`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Delete MT provider configuration */
+  deleteConfig: (projectId: string, provider: MTProvider) =>
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/mt/config/${provider}`, {
+      method: 'DELETE',
+    }),
+
+  /** Test MT provider connection */
+  testConnection: (projectId: string, provider: MTProvider) =>
+    fetchApi<{ success: boolean; error?: string }>(`/api/projects/${projectId}/mt/test/${provider}`, {
+      method: 'POST',
+    }),
+
+  /** Translate a single text */
+  translate: (projectId: string, data: {
+    text: string;
+    sourceLanguage: string;
+    targetLanguage: string;
+    provider?: MTProvider;
+  }) =>
+    fetchApi<MTTranslateResult>(`/api/projects/${projectId}/mt/translate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Translate a single text to multiple languages at once */
+  translateMulti: (projectId: string, data: {
+    text: string;
+    sourceLanguage: string;
+    targetLanguages: string[];
+    provider?: MTProvider;
+  }) =>
+    fetchApi<{
+      translations: Record<string, MTTranslateResult>;
+      totalCharacters: number;
+    }>(`/api/projects/${projectId}/mt/translate/multi`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Queue batch translation for multiple keys */
+  translateBatch: (projectId: string, data: {
+    keyIds: string[];
+    targetLanguage: string;
+    provider?: MTProvider;
+    overwriteExisting?: boolean;
+  }) =>
+    fetchApi<{
+      message: string;
+      jobId?: string;
+      totalKeys: number;
+      estimatedCharacters: number;
+    }>(`/api/projects/${projectId}/mt/translate/batch`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Pre-translate missing translations for a branch */
+  preTranslate: (projectId: string, data: {
+    branchId: string;
+    targetLanguages: string[];
+    provider?: MTProvider;
+  }) =>
+    fetchApi<{
+      message: string;
+      jobId: string;
+      totalKeys: number;
+      targetLanguages: string[];
+      estimatedCharacters: number;
+    }>(`/api/projects/${projectId}/mt/pre-translate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Get MT usage statistics */
+  getUsage: (projectId: string) =>
+    fetchApi<{ providers: MTUsageStats[] }>(`/api/projects/${projectId}/mt/usage`),
+};
