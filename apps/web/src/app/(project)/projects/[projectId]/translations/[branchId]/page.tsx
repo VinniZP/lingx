@@ -10,6 +10,7 @@ import {
   TranslationKey,
   ApiError,
   ProjectTreeBranch,
+  type ApprovalStatus,
 } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,9 @@ import {
   Key,
   ChevronLeft,
   ChevronRight,
+  ThumbsUp,
+  ThumbsDown,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { KeyFormDialog } from '@/components/key-form-dialog';
@@ -37,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +49,7 @@ interface PageProps {
   params: Promise<{ projectId: string; branchId: string }>;
 }
 
-type FilterType = 'all' | 'missing' | 'complete';
+type FilterType = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
 
 export default function TranslationsPage({ params }: PageProps) {
   const { projectId, branchId } = use(params);
@@ -65,6 +70,11 @@ export default function TranslationsPage({ params }: PageProps) {
   const [visibleLanguages, setVisibleLanguages] = useState<Set<string>>(new Set());
   const [savingKeys, setSavingKeys] = useState<Map<string, Set<string>>>(new Map());
   const [savedKeys, setSavedKeys] = useState<Map<string, Set<string>>>(new Map());
+  const [approvingTranslations, setApprovingTranslations] = useState<Set<string>>(new Set());
+
+  // Batch selection state
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [isBatchApproving, setIsBatchApproving] = useState(false);
 
   // Auto-save debounce refs
   const saveTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -162,6 +172,41 @@ export default function TranslationsPage({ params }: PageProps) {
     },
   });
 
+  const approvalMutation = useMutation({
+    mutationFn: ({
+      translationId,
+      status,
+    }: {
+      translationId: string;
+      status: 'APPROVED' | 'REJECTED';
+    }) => translationApi.setApprovalStatus(translationId, status),
+    onMutate: ({ translationId }) => {
+      setApprovingTranslations((prev) => new Set(prev).add(translationId));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
+    },
+    onError: (error: ApiError) => {
+      toast.error('Failed to update approval status', {
+        description: error.message,
+      });
+    },
+    onSettled: (_, __, { translationId }) => {
+      setApprovingTranslations((prev) => {
+        const next = new Set(prev);
+        next.delete(translationId);
+        return next;
+      });
+    },
+  });
+
+  const handleApprove = useCallback(async (translationId: string, status: 'APPROVED' | 'REJECTED') => {
+    await approvalMutation.mutateAsync({ translationId, status });
+  }, [approvalMutation]);
+
+  // Determine if user can approve (MANAGER or OWNER)
+  const canApprove = project?.myRole === 'MANAGER' || project?.myRole === 'OWNER';
+
   const languages = project?.languages || [];
   const keys = data?.keys || [];
 
@@ -208,10 +253,78 @@ export default function TranslationsPage({ params }: PageProps) {
           return !!value;
         })
       );
+    } else if (filter === 'pending' || filter === 'approved' || filter === 'rejected') {
+      // Filter by approval status - keys that have at least one translation with this status
+      const statusFilter = filter.toUpperCase() as ApprovalStatus;
+      result = result.filter((key) =>
+        key.translations.some((t) => t.status === statusFilter && t.value)
+      );
     }
 
     return result;
   }, [keys, filter, languages]);
+
+  // Selection handlers for batch operations
+  const handleSelectionChange = useCallback((keyId: string, selected: boolean) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(keyId);
+      } else {
+        next.delete(keyId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
+      setSelectedKeys(new Set(filteredKeys.map((k) => k.id)));
+    } else {
+      setSelectedKeys(new Set());
+    }
+  }, [filteredKeys]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedKeys(new Set());
+  }, []);
+
+  // Batch approval handler
+  const handleBatchApprove = useCallback(async (status: 'APPROVED' | 'REJECTED') => {
+    if (selectedKeys.size === 0) return;
+
+    // Get all translation IDs from selected keys
+    const translationIds: string[] = [];
+    for (const keyId of selectedKeys) {
+      const key = keys.find((k) => k.id === keyId);
+      if (key) {
+        for (const translation of key.translations) {
+          if (translation.value && translation.status !== status) {
+            translationIds.push(translation.id);
+          }
+        }
+      }
+    }
+
+    if (translationIds.length === 0) {
+      toast.info('No translations to update');
+      return;
+    }
+
+    setIsBatchApproving(true);
+    try {
+      await translationApi.batchApprove(branchId, translationIds, status);
+      toast.success(`${translationIds.length} translations ${status.toLowerCase()}`);
+      queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
+      clearSelection();
+    } catch (error) {
+      toast.error('Failed to update translations', {
+        description: (error as ApiError).message,
+      });
+    } finally {
+      setIsBatchApproving(false);
+    }
+  }, [selectedKeys, keys, branchId, queryClient, clearSelection]);
 
   const toggleLanguageVisibility = (langCode: string) => {
     setVisibleLanguages((prev) => {
@@ -393,6 +506,12 @@ export default function TranslationsPage({ params }: PageProps) {
                   hasUnsavedChanges={hasUnsavedChanges}
                   savingLanguages={savingKeys.get(key.id) || new Set()}
                   savedLanguages={savedKeys.get(key.id) || new Set()}
+                  canApprove={canApprove}
+                  onApprove={handleApprove}
+                  approvingTranslations={approvingTranslations}
+                  selectable={canApprove}
+                  selected={selectedKeys.has(key.id)}
+                  onSelectionChange={handleSelectionChange}
                 />
               ))}
             </div>
@@ -482,6 +601,15 @@ export default function TranslationsPage({ params }: PageProps) {
 
         {/* Search & Filter bar */}
         <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3">
+          {/* Select all checkbox - only show if user can approve */}
+          {canApprove && filteredKeys.length > 0 && (
+            <Checkbox
+              checked={selectedKeys.size === filteredKeys.length && filteredKeys.length > 0}
+              onCheckedChange={handleSelectAll}
+              className="shrink-0"
+            />
+          )}
+
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -504,6 +632,9 @@ export default function TranslationsPage({ params }: PageProps) {
               <SelectItem value="all">All Keys</SelectItem>
               <SelectItem value="missing">Missing</SelectItem>
               <SelectItem value="complete">Complete</SelectItem>
+              <SelectItem value="pending">Pending Review</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
 
@@ -511,6 +642,65 @@ export default function TranslationsPage({ params }: PageProps) {
             {filteredKeys.length} keys
           </div>
         </div>
+
+        {/* Batch actions toolbar - shows when items are selected */}
+        {selectedKeys.size > 0 && canApprove && (
+          <div className="px-5 py-3 border-b border-border/40 bg-primary/5 flex items-center gap-3 animate-slide-down overflow-hidden">
+            {/* Selection count with badge styling */}
+            <div className="flex items-center gap-2">
+              <span
+                key={selectedKeys.size}
+                className="inline-flex items-center justify-center min-w-[1.75rem] h-7 px-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold tabular-nums animate-count-pulse"
+              >
+                {selectedKeys.size}
+              </span>
+              <span className="text-sm font-medium text-foreground">
+                key{selectedKeys.size !== 1 ? 's' : ''} selected
+              </span>
+            </div>
+
+            {/* Action buttons with staggered animation */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-success border-success/30 hover:bg-success/10 hover:border-success/50 transition-all animate-slide-in-right stagger-1"
+                onClick={() => handleBatchApprove('APPROVED')}
+                disabled={isBatchApproving}
+              >
+                {isBatchApproving ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ThumbsUp className="size-4" />
+                )}
+                Approve All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive/50 transition-all animate-slide-in-right stagger-2"
+                onClick={() => handleBatchApprove('REJECTED')}
+                disabled={isBatchApproving}
+              >
+                {isBatchApproving ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ThumbsDown className="size-4" />
+                )}
+                Reject All
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="animate-slide-in-right stagger-3 hover:bg-muted"
+                onClick={clearSelection}
+                disabled={isBatchApproving}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Translation rows */}
         {isLoading ? (
@@ -550,6 +740,12 @@ export default function TranslationsPage({ params }: PageProps) {
                 hasUnsavedChanges={hasUnsavedChanges}
                 savingLanguages={savingKeys.get(key.id) || new Set()}
                 savedLanguages={savedKeys.get(key.id) || new Set()}
+                canApprove={canApprove}
+                onApprove={handleApprove}
+                approvingTranslations={approvingTranslations}
+                selectable={canApprove}
+                selected={selectedKeys.has(key.id)}
+                onSelectionChange={handleSelectionChange}
               />
             ))}
           </div>

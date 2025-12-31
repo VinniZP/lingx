@@ -41,6 +41,7 @@ export class DashboardService {
         completionRate: 0,
         translatedKeys: 0,
         totalTranslations: 0,
+        pendingApprovalCount: 0,
       };
     }
 
@@ -63,7 +64,7 @@ export class DashboardService {
     ]);
 
     const totalLanguages = languageStats.length;
-    const { totalKeys, totalTranslations, translatedKeys } = keyStats;
+    const { totalKeys, totalTranslations, translatedKeys, pendingApprovalCount } = keyStats;
 
     // Calculate completion rate
     // Completion = total translations / (total keys * total languages)
@@ -77,6 +78,7 @@ export class DashboardService {
       completionRate,
       translatedKeys,
       totalTranslations,
+      pendingApprovalCount,
     };
   }
 
@@ -90,6 +92,7 @@ export class DashboardService {
     totalKeys: number;
     totalTranslations: number;
     translatedKeys: number;
+    pendingApprovalCount: number;
   }> {
     // Get all branches for these projects (we count keys from all branches)
     // For simplicity, we'll count from the default branches
@@ -101,7 +104,7 @@ export class DashboardService {
     const spaceIds = spaces.map((s) => s.id);
 
     if (spaceIds.length === 0) {
-      return { totalKeys: 0, totalTranslations: 0, translatedKeys: 0 };
+      return { totalKeys: 0, totalTranslations: 0, translatedKeys: 0, pendingApprovalCount: 0 };
     }
 
     // Get branches for these spaces
@@ -113,38 +116,52 @@ export class DashboardService {
     const branchIds = branches.map((b) => b.id);
 
     if (branchIds.length === 0) {
-      return { totalKeys: 0, totalTranslations: 0, translatedKeys: 0 };
+      return { totalKeys: 0, totalTranslations: 0, translatedKeys: 0, pendingApprovalCount: 0 };
     }
 
-    // Count total keys
-    const totalKeys = await this.prisma.translationKey.count({
-      where: { branchId: { in: branchIds } },
-    });
+    // Run all counts in parallel for efficiency
+    const [totalKeys, totalTranslations, keysWithTranslations, pendingApprovalCount] =
+      await Promise.all([
+        // Count total keys
+        this.prisma.translationKey.count({
+          where: { branchId: { in: branchIds } },
+        }),
 
-    // Count total non-empty translations
-    const totalTranslations = await this.prisma.translation.count({
-      where: {
-        key: { branchId: { in: branchIds } },
-        value: { not: '' },
-      },
-    });
-
-    // Count keys that have at least one translation
-    const keysWithTranslations = await this.prisma.translationKey.count({
-      where: {
-        branchId: { in: branchIds },
-        translations: {
-          some: {
+        // Count total non-empty translations
+        this.prisma.translation.count({
+          where: {
+            key: { branchId: { in: branchIds } },
             value: { not: '' },
           },
-        },
-      },
-    });
+        }),
+
+        // Count keys that have at least one translation
+        this.prisma.translationKey.count({
+          where: {
+            branchId: { in: branchIds },
+            translations: {
+              some: {
+                value: { not: '' },
+              },
+            },
+          },
+        }),
+
+        // Count pending approval translations (non-empty translations with PENDING status)
+        this.prisma.translation.count({
+          where: {
+            key: { branchId: { in: branchIds } },
+            status: 'PENDING',
+            value: { not: '' },
+          },
+        }),
+      ]);
 
     return {
       totalKeys,
       totalTranslations,
       translatedKeys: keysWithTranslations,
+      pendingApprovalCount,
     };
   }
 }

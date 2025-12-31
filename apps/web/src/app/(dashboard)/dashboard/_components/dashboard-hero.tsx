@@ -64,6 +64,18 @@ export function DashboardHero({ displayName, stats, isLoading }: DashboardHeroPr
             suffix="%"
             className="text-success"
           />
+          {(stats?.pendingApprovalCount ?? 0) > 0 && (
+            <>
+              <div className="w-px h-10 bg-border hidden sm:block" />
+              <StatItem
+                label={t('dashboard.stats.pending', { defaultValue: 'Pending' })}
+                value={stats?.pendingApprovalCount ?? 0}
+                isLoading={isLoading}
+                format="number"
+                className="text-warning"
+              />
+            </>
+          )}
         </div>
       </div>
 

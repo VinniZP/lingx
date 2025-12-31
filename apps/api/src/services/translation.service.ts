@@ -4,7 +4,7 @@
  * Handles translation key and value CRUD operations.
  * Per Design Doc: AC-WEB-007 through AC-WEB-011
  */
-import { PrismaClient, TranslationKey, Translation } from '@prisma/client';
+import { PrismaClient, TranslationKey, Translation, ApprovalStatus } from '@prisma/client';
 import { FieldValidationError, NotFoundError } from '../plugins/error-handler.js';
 import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
 
@@ -106,10 +106,10 @@ export class TranslationService {
   }
 
   /**
-   * Find keys by branch ID with pagination and search
+   * Find keys by branch ID with pagination, search, and status filter
    *
    * @param branchId - Branch ID
-   * @param options - Pagination and search options
+   * @param options - Pagination, search, and status filter options
    * @returns Paginated list of keys with translations
    */
   async findKeysByBranchId(
@@ -118,22 +118,31 @@ export class TranslationService {
       search?: string;
       page?: number;
       limit?: number;
+      status?: ApprovalStatus;
     } = {}
   ): Promise<KeyListResult> {
     const page = options.page || 1;
     const limit = options.limit || 50;
     const skip = (page - 1) * limit;
 
-    const where: {
-      branchId: string;
-      OR?: Array<{ name?: { contains: string; mode: 'insensitive' }; description?: { contains: string; mode: 'insensitive' } }>;
-    } = { branchId };
+    // Build the where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { branchId };
 
     if (options.search) {
       where.OR = [
         { name: { contains: options.search, mode: 'insensitive' } },
         { description: { contains: options.search, mode: 'insensitive' } },
       ];
+    }
+
+    // Filter by translation status - keys that have at least one translation with this status
+    if (options.status) {
+      where.translations = {
+        some: {
+          status: options.status,
+        },
+      };
     }
 
     const [keys, total] = await Promise.all([
@@ -267,6 +276,7 @@ export class TranslationService {
 
   /**
    * Set translation for a key in a specific language
+   * Auto-resets approval status to PENDING when value changes
    *
    * @param keyId - Key ID
    * @param language - Language code
@@ -287,6 +297,13 @@ export class TranslationService {
       throw new NotFoundError('Translation key');
     }
 
+    // Check if translation exists and if value is changing
+    const existing = await this.prisma.translation.findUnique({
+      where: { keyId_language: { keyId, language } },
+    });
+
+    const valueChanged = existing && existing.value !== value;
+
     return this.prisma.translation.upsert({
       where: {
         keyId_language: {
@@ -294,11 +311,20 @@ export class TranslationService {
           language,
         },
       },
-      update: { value },
+      update: {
+        value,
+        // Reset approval status if value changed
+        ...(valueChanged && {
+          status: 'PENDING' as ApprovalStatus,
+          statusUpdatedAt: null,
+          statusUpdatedBy: null,
+        }),
+      },
       create: {
         keyId,
         language,
         value,
+        status: 'PENDING' as ApprovalStatus,
       },
     });
   }
@@ -322,6 +348,7 @@ export class TranslationService {
 
   /**
    * Update all translations for a key at once
+   * Auto-resets approval status to PENDING when value changes
    *
    * @param keyId - Key ID
    * @param translations - Map of language code to translation value
@@ -334,20 +361,42 @@ export class TranslationService {
   ): Promise<KeyWithTranslations> {
     const key = await this.prisma.translationKey.findUnique({
       where: { id: keyId },
+      include: { translations: true },
     });
 
     if (!key) {
       throw new NotFoundError('Translation key');
     }
 
-    // Upsert all translations
+    // Build a map of existing translations for comparison
+    const existingMap = new Map(
+      key.translations.map((t) => [t.language, t.value])
+    );
+
+    // Upsert all translations with status reset on change
     for (const [language, value] of Object.entries(translations)) {
+      const existingValue = existingMap.get(language);
+      const valueChanged = existingValue !== undefined && existingValue !== value;
+
       await this.prisma.translation.upsert({
         where: {
           keyId_language: { keyId, language },
         },
-        update: { value },
-        create: { keyId, language, value },
+        update: {
+          value,
+          // Reset approval status if value changed
+          ...(valueChanged && {
+            status: 'PENDING' as ApprovalStatus,
+            statusUpdatedAt: null,
+            statusUpdatedBy: null,
+          }),
+        },
+        create: {
+          keyId,
+          language,
+          value,
+          status: 'PENDING' as ApprovalStatus,
+        },
       });
     }
 
@@ -391,6 +440,7 @@ export class TranslationService {
   /**
    * Bulk update translations for a branch
    * Used for CLI push operations
+   * Auto-resets approval status to PENDING when value changes
    *
    * @param branchId - Branch ID
    * @param translations - Translations grouped by language then key name
@@ -420,7 +470,7 @@ export class TranslationService {
             created++;
           }
 
-          // Upsert translation
+          // Upsert translation with status reset on change
           const existing = await tx.translation.findUnique({
             where: {
               keyId_language: { keyId: key.id, language },
@@ -428,14 +478,28 @@ export class TranslationService {
           });
 
           if (existing) {
+            const valueChanged = existing.value !== value;
             await tx.translation.update({
               where: { id: existing.id },
-              data: { value },
+              data: {
+                value,
+                // Reset approval status if value changed
+                ...(valueChanged && {
+                  status: 'PENDING' as ApprovalStatus,
+                  statusUpdatedAt: null,
+                  statusUpdatedBy: null,
+                }),
+              },
             });
             updated++;
           } else {
             await tx.translation.create({
-              data: { keyId: key.id, language, value },
+              data: {
+                keyId: key.id,
+                language,
+                value,
+                status: 'PENDING' as ApprovalStatus,
+              },
             });
             created++;
           }
@@ -480,5 +544,161 @@ export class TranslationService {
       },
     });
     return key?.branch?.space?.projectId || null;
+  }
+
+  // ============================================
+  // APPROVAL WORKFLOW
+  // ============================================
+
+  /**
+   * Find translation by ID
+   *
+   * @param id - Translation ID
+   * @returns Translation or null
+   */
+  async findTranslationById(id: string): Promise<Translation | null> {
+    return this.prisma.translation.findUnique({
+      where: { id },
+    });
+  }
+
+  /**
+   * Get project ID by translation ID (for authorization)
+   *
+   * @param translationId - Translation ID
+   * @returns Project ID or null if translation doesn't exist
+   */
+  async getProjectIdByTranslationId(translationId: string): Promise<string | null> {
+    const translation = await this.prisma.translation.findUnique({
+      where: { id: translationId },
+      select: {
+        key: {
+          select: {
+            branch: {
+              select: {
+                space: {
+                  select: { projectId: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    return translation?.key?.branch?.space?.projectId || null;
+  }
+
+  /**
+   * Set approval status for a single translation
+   *
+   * @param translationId - Translation ID
+   * @param status - Approval status (APPROVED or REJECTED)
+   * @param userId - User ID who is setting the status
+   * @returns Updated translation
+   * @throws NotFoundError if translation doesn't exist
+   */
+  async setApprovalStatus(
+    translationId: string,
+    status: 'APPROVED' | 'REJECTED',
+    userId: string
+  ): Promise<Translation> {
+    const translation = await this.prisma.translation.findUnique({
+      where: { id: translationId },
+    });
+
+    if (!translation) {
+      throw new NotFoundError('Translation');
+    }
+
+    return this.prisma.translation.update({
+      where: { id: translationId },
+      data: {
+        status: status as ApprovalStatus,
+        statusUpdatedAt: new Date(),
+        statusUpdatedBy: userId,
+      },
+    });
+  }
+
+  /**
+   * Batch set approval status for multiple translations
+   *
+   * @param translationIds - Array of translation IDs
+   * @param status - Approval status (APPROVED or REJECTED)
+   * @param userId - User ID who is setting the status
+   * @returns Number of updated translations
+   */
+  async batchSetApprovalStatus(
+    translationIds: string[],
+    status: 'APPROVED' | 'REJECTED',
+    userId: string
+  ): Promise<number> {
+    const result = await this.prisma.translation.updateMany({
+      where: { id: { in: translationIds } },
+      data: {
+        status: status as ApprovalStatus,
+        statusUpdatedAt: new Date(),
+        statusUpdatedBy: userId,
+      },
+    });
+    return result.count;
+  }
+
+  /**
+   * Get pending approval count for a set of branch IDs
+   * Only counts non-empty translations
+   *
+   * @param branchIds - Array of branch IDs
+   * @returns Count of pending translations
+   */
+  async getPendingApprovalCount(branchIds: string[]): Promise<number> {
+    return this.prisma.translation.count({
+      where: {
+        key: { branchId: { in: branchIds } },
+        status: 'PENDING',
+        value: { not: '' },
+      },
+    });
+  }
+
+  /**
+   * Verify that all translation IDs belong to the same project
+   *
+   * @param translationIds - Array of translation IDs
+   * @returns Project ID if all translations belong to the same project, null otherwise
+   */
+  async verifyTranslationsBelongToSameProject(
+    translationIds: string[]
+  ): Promise<string | null> {
+    const translations = await this.prisma.translation.findMany({
+      where: { id: { in: translationIds } },
+      select: {
+        key: {
+          select: {
+            branch: {
+              select: {
+                space: {
+                  select: { projectId: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (translations.length !== translationIds.length) {
+      return null; // Some translations not found
+    }
+
+    const projectIds = new Set(
+      translations.map((t) => t.key.branch.space.projectId)
+    );
+
+    if (projectIds.size !== 1) {
+      return null; // Translations belong to different projects
+    }
+
+    return [...projectIds][0];
   }
 }

@@ -18,6 +18,9 @@ import {
   translationKeyResponseSchema,
   translationValueSchema,
   bulkDeleteResponseSchema,
+  setApprovalStatusSchema,
+  batchApprovalSchema,
+  approvalStatusSchema,
 } from '@localeflow/shared';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
@@ -38,14 +41,14 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   const activityService = new ActivityService(fastify.prisma);
 
   /**
-   * GET /api/branches/:branchId/keys - List keys with pagination and search
+   * GET /api/branches/:branchId/keys - List keys with pagination, search, and status filter
    */
   app.get(
     '/api/branches/:branchId/keys',
     {
       onRequest: [fastify.authenticate],
       schema: {
-        description: 'List translation keys with pagination and search',
+        description: 'List translation keys with pagination, search, and approval status filter',
         tags: ['Translations'],
         security: [{ bearerAuth: [] }, { apiKey: [] }],
         params: z.object({
@@ -55,6 +58,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
           search: z.string().optional(),
           page: z.coerce.number().default(1),
           limit: z.coerce.number().max(100).default(50),
+          status: approvalStatusSchema.optional(),
         }),
         response: {
           200: keyListResponseSchema,
@@ -63,7 +67,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, _reply) => {
       const { branchId } = request.params;
-      const { search, page, limit } = request.query;
+      const { search, page, limit, status } = request.query;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -82,6 +86,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         search,
         page,
         limit,
+        status,
       });
       return toKeyListResultDto(result);
     }
@@ -632,6 +637,164 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       return result;
+    }
+  );
+
+  // ============================================
+  // APPROVAL WORKFLOW ROUTES
+  // ============================================
+
+  /**
+   * PUT /api/translations/:id/status - Set approval status for a single translation
+   * Only MANAGER or OWNER role can approve/reject
+   */
+  app.put(
+    '/api/translations/:id/status',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Set approval status for a translation (MANAGER/OWNER only)',
+        tags: ['Translations'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          id: z.string(),
+        }),
+        body: setApprovalStatusSchema,
+        response: {
+          200: translationValueSchema,
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { id } = request.params;
+      const { status } = request.body;
+
+      // Get project ID for authorization
+      const projectId = await translationService.getProjectIdByTranslationId(id);
+      if (!projectId) {
+        throw new NotFoundError('Translation');
+      }
+
+      // Check membership and role
+      const memberRole = await projectService.getMemberRole(
+        projectId,
+        request.user.userId
+      );
+      if (!memberRole) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+      if (memberRole === 'DEVELOPER') {
+        throw new ForbiddenError('Only MANAGER or OWNER can approve/reject translations');
+      }
+
+      // Get translation info for activity logging
+      const translation = await translationService.findTranslationById(id);
+      const keyInfo = translation
+        ? await translationService.findKeyById(translation.keyId)
+        : null;
+
+      const result = await translationService.setApprovalStatus(
+        id,
+        status,
+        request.user.userId
+      );
+
+      // Log activity
+      if (keyInfo) {
+        activityService.log({
+          type: status === 'APPROVED' ? 'translation_approve' : 'translation_reject',
+          projectId,
+          branchId: keyInfo.branchId,
+          userId: request.user.userId,
+          metadata: {
+            languages: [result.language],
+          },
+          changes: [
+            {
+              entityType: 'translation',
+              entityId: id,
+              keyName: keyInfo.name,
+              language: result.language,
+            },
+          ],
+        });
+      }
+
+      return toTranslationValueDto(result);
+    }
+  );
+
+  /**
+   * POST /api/branches/:branchId/translations/batch-approve - Batch approve/reject translations
+   * Only MANAGER or OWNER role can approve/reject
+   */
+  app.post(
+    '/api/branches/:branchId/translations/batch-approve',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Batch approve/reject multiple translations (MANAGER/OWNER only)',
+        tags: ['Translations'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          branchId: z.string(),
+        }),
+        body: batchApprovalSchema,
+        response: {
+          200: z.object({
+            updated: z.number(),
+          }),
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { branchId } = request.params;
+      const { translationIds, status } = request.body;
+
+      // Get project ID from branch
+      const projectId = await branchService.getProjectIdByBranchId(branchId);
+      if (!projectId) {
+        throw new NotFoundError('Branch');
+      }
+
+      // Check membership and role
+      const memberRole = await projectService.getMemberRole(
+        projectId,
+        request.user.userId
+      );
+      if (!memberRole) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+      if (memberRole === 'DEVELOPER') {
+        throw new ForbiddenError('Only MANAGER or OWNER can approve/reject translations');
+      }
+
+      // Verify all translations belong to the same project
+      const translationProjectId =
+        await translationService.verifyTranslationsBelongToSameProject(translationIds);
+      if (!translationProjectId || translationProjectId !== projectId) {
+        throw new ForbiddenError('Some translations do not belong to this project');
+      }
+
+      const updated = await translationService.batchSetApprovalStatus(
+        translationIds,
+        status,
+        request.user.userId
+      );
+
+      // Log activity
+      activityService.log({
+        type: status === 'APPROVED' ? 'translation_approve' : 'translation_reject',
+        projectId,
+        branchId,
+        userId: request.user.userId,
+        metadata: {
+          keyCount: updated,
+        },
+        changes: [], // We could expand this to include all changed translations
+      });
+
+      return { updated };
     }
   );
 };

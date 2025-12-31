@@ -81,7 +81,8 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         userId: request.user.userId,
       });
 
-      return reply.status(201).send(toProjectDto(project));
+      // Creator is always the owner
+      return reply.status(201).send(toProjectDto(project, 'OWNER'));
     }
   );
 
@@ -113,16 +114,16 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         throw new NotFoundError('Project');
       }
 
-      // Check membership
-      const isMember = await projectService.checkMembership(
+      // Check membership and get role
+      const role = await projectService.getMemberRole(
         project.id,
         request.user.userId
       );
-      if (!isMember) {
+      if (!role) {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      return toProjectDto(project);
+      return toProjectDto(project, role);
     }
   );
 
@@ -190,7 +191,7 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      return toProjectDto(updated);
+      return toProjectDto(updated, role);
     }
   );
 

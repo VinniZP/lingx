@@ -33,7 +33,9 @@ export type ActivityType =
   | 'environment_create'
   | 'environment_delete'
   | 'environment_switch_branch'
-  | 'ai_translate';
+  | 'ai_translate'
+  | 'translation_approve'
+  | 'translation_reject';
 
 /**
  * Activity types that can be grouped when consecutive

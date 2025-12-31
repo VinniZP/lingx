@@ -2,19 +2,25 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { ProjectLanguage } from '@localeflow/shared';
-import { TranslationKey } from '@/lib/api';
+import { TranslationKey, type ApprovalStatus } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Clock, CheckCircle, XCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type TranslationStatus = 'translated' | 'modified' | 'missing';
 
-interface LanguageTranslation {
-  language: ProjectLanguage;
-  value: string;
-  status: TranslationStatus;
-  hasUnsavedChanges: boolean;
-  isSaving: boolean;
-}
+const approvalStatusConfig: Record<ApprovalStatus, { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }> = {
+  PENDING: { label: 'Pending', variant: 'secondary', icon: Clock },
+  APPROVED: { label: 'Approved', variant: 'success', icon: CheckCircle },
+  REJECTED: { label: 'Rejected', variant: 'destructive', icon: XCircle },
+};
 
 interface TranslationRowProps {
   translationKey: TranslationKey;
@@ -26,6 +32,13 @@ interface TranslationRowProps {
   hasUnsavedChanges: (keyId: string, lang: string) => boolean;
   savingLanguages: Set<string>;
   savedLanguages: Set<string>;
+  canApprove?: boolean;
+  onApprove?: (translationId: string, status: 'APPROVED' | 'REJECTED') => Promise<void>;
+  approvingTranslations?: Set<string>;
+  // Selection for batch operations
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectionChange?: (keyId: string, selected: boolean) => void;
 }
 
 export function TranslationRow({
@@ -38,6 +51,12 @@ export function TranslationRow({
   hasUnsavedChanges,
   savingLanguages,
   savedLanguages,
+  canApprove = false,
+  onApprove,
+  approvingTranslations = new Set(),
+  selectable = false,
+  selected = false,
+  onSelectionChange,
 }: TranslationRowProps) {
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
@@ -59,6 +78,18 @@ export function TranslationRow({
   // Get original saved value from translation key
   const getOriginalValue = (lang: string): string => {
     return translationKey.translations.find((t) => t.language === lang)?.value || '';
+  };
+
+  // Get approval status from translation key
+  const getApprovalStatus = (lang: string): ApprovalStatus | null => {
+    const translation = translationKey.translations.find((t) => t.language === lang);
+    return translation?.status ?? null;
+  };
+
+  // Get translation ID for approval actions
+  const getTranslationId = (lang: string): string | null => {
+    const translation = translationKey.translations.find((t) => t.language === lang);
+    return translation?.id ?? null;
   };
 
   const getStatus = (lang: string): TranslationStatus => {
@@ -86,10 +117,22 @@ export function TranslationRow({
   };
 
   return (
-    <div className="group relative px-5 py-4 border-b border-border/40 transition-colors hover:bg-muted/20">
-      {/* Key name */}
-      <div className="font-mono text-xs text-muted-foreground mb-3 tracking-wide">
-        {translationKey.name}
+    <div className={cn(
+      "group relative px-5 py-4 border-b border-border/40 transition-colors hover:bg-muted/20",
+      selected && "bg-primary/5"
+    )}>
+      {/* Key name with optional checkbox */}
+      <div className="flex items-center gap-3 mb-3">
+        {selectable && (
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(checked) => onSelectionChange?.(translationKey.id, checked === true)}
+            className="shrink-0"
+          />
+        )}
+        <div className="font-mono text-xs text-muted-foreground tracking-wide">
+          {translationKey.name}
+        </div>
       </div>
 
       {/* Language translations */}
@@ -97,9 +140,12 @@ export function TranslationRow({
         {visibleLangs.map((lang) => {
           const value = getTranslationValue(translationKey, lang.code);
           const status = getStatus(lang.code);
+          const approvalStatus = getApprovalStatus(lang.code);
           const isEditing = editingLang === lang.code;
           const isSaving = savingLanguages.has(lang.code);
           const justSaved = savedLanguages.has(lang.code);
+          const translationId = getTranslationId(lang.code);
+          const isApproving = translationId ? approvingTranslations.has(translationId) : false;
 
           return (
             <div key={lang.code} className="flex items-start gap-3">
@@ -156,8 +202,66 @@ export function TranslationRow({
                 )}
               </div>
 
-              {/* Save status */}
-              <div className="w-20 shrink-0 flex items-center justify-end">
+              {/* Status badges and actions */}
+              <div className="shrink-0 flex items-center gap-2 justify-end">
+                {/* Approve/Reject buttons - show on hover or when pending, if user can approve */}
+                {canApprove && onApprove && value && translationId && (
+                  <div className={cn(
+                    'flex items-center gap-1 transition-opacity',
+                    approvalStatus === 'PENDING' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  )}>
+                    {isApproving ? (
+                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-success hover:text-success hover:bg-success/10"
+                              onClick={() => onApprove(translationId, 'APPROVED')}
+                              disabled={approvalStatus === 'APPROVED'}
+                            >
+                              <ThumbsUp className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Approve</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => onApprove(translationId, 'REJECTED')}
+                              disabled={approvalStatus === 'REJECTED'}
+                            >
+                              <ThumbsDown className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Reject</TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Approval status badge - only show if translation exists and has a value */}
+                {approvalStatus && value && (
+                  <Badge
+                    variant={approvalStatusConfig[approvalStatus].variant}
+                    className="h-5 text-[10px] gap-1"
+                  >
+                    {(() => {
+                      const Icon = approvalStatusConfig[approvalStatus].icon;
+                      return <Icon className="size-3" />;
+                    })()}
+                    {approvalStatusConfig[approvalStatus].label}
+                  </Badge>
+                )}
+
+                {/* Save status */}
                 {isSaving && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground animate-fade-in">
                     <Loader2 className="size-3 animate-spin" />

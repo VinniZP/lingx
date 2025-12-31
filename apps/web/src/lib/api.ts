@@ -366,10 +366,15 @@ export const branchApi = {
 };
 
 // Translation types
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 export interface Translation {
   id: string;
   language: string;
   value: string;
+  status: ApprovalStatus;
+  statusUpdatedAt: string | null;
+  statusUpdatedBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -405,12 +410,13 @@ export interface UpdateKeyInput {
 export const translationApi = {
   listKeys: (
     branchId: string,
-    params?: { search?: string; page?: number; limit?: number }
+    params?: { search?: string; page?: number; limit?: number; status?: ApprovalStatus }
   ) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.status) query.set('status', params.status);
     const queryString = query.toString();
     return fetchApi<KeyListResult>(
       `/api/branches/${branchId}/keys${queryString ? `?${queryString}` : ''}`
@@ -455,6 +461,19 @@ export const translationApi = {
     fetchApi<Translation>(`/api/keys/${keyId}/translations/${lang}`, {
       method: 'PUT',
       body: JSON.stringify({ value }),
+    }),
+
+  // Approval workflow
+  setApprovalStatus: (translationId: string, status: 'APPROVED' | 'REJECTED') =>
+    fetchApi<Translation>(`/api/translations/${translationId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+
+  batchApprove: (branchId: string, translationIds: string[], status: 'APPROVED' | 'REJECTED') =>
+    fetchApi<{ updated: number }>(`/api/branches/${branchId}/translations/batch-approve`, {
+      method: 'POST',
+      body: JSON.stringify({ translationIds, status }),
     }),
 };
 

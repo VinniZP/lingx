@@ -35,13 +35,14 @@ model User {
   // Passwordless / WebAuthn
   passwordlessAt DateTime? // When user went passwordless
 
-  apiKeys             ApiKey[]
-  projectMembers      ProjectMember[]
-  activities          Activity[]
-  emailVerifications  EmailVerification[]
-  sessions            Session[]
-  backupCodes         BackupCode[]
-  webauthnCredentials WebAuthnCredential[]
+  apiKeys              ApiKey[]
+  projectMembers       ProjectMember[]
+  activities           Activity[]
+  emailVerifications   EmailVerification[]
+  sessions             Session[]
+  backupCodes          BackupCode[]
+  webauthnCredentials  WebAuthnCredential[]
+  translationApprovals Translation[] @relation("TranslationApprovals")
 
   @@index([email])
 }
@@ -240,6 +241,12 @@ model Branch {
 // TRANSLATIONS (Copy-on-Write per ADR-0002)
 // ============================================
 
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model TranslationKey {
   id          String   @id @default(cuid())
   branchId    String
@@ -264,11 +271,18 @@ model Translation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  key TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  // Approval workflow
+  status          ApprovalStatus @default(PENDING)
+  statusUpdatedAt DateTime?
+  statusUpdatedBy String?        // userId who approved/rejected
+
+  key        TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  statusUser User?          @relation("TranslationApprovals", fields: [statusUpdatedBy], references: [id])
 
   @@unique([keyId, language])
   @@index([keyId])
   @@index([language])
+  @@index([status])
 }
 
 // ============================================
@@ -325,6 +339,8 @@ enum ActivityType {
   environment_delete
   environment_switch_branch
   ai_translate
+  translation_approve
+  translation_reject
 }
 
 /// Grouped activity for feed display

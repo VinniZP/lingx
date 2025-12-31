@@ -72,3 +72,47 @@ export const bulkUpdateTranslationsSchema = z.object({
 export type BulkUpdateTranslationsInput = z.infer<
   typeof bulkUpdateTranslationsSchema
 >;
+
+// ============================================
+// APPROVAL WORKFLOW SCHEMAS
+// ============================================
+
+/**
+ * Approval status enum - matches Prisma enum
+ */
+export const approvalStatusSchema = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+export type ApprovalStatus = z.infer<typeof approvalStatusSchema>;
+
+/**
+ * Set approval status for a translation
+ */
+export const setApprovalStatusSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+});
+
+export type SetApprovalStatusInput = z.infer<typeof setApprovalStatusSchema>;
+
+/**
+ * Batch approval - approve/reject multiple translations at once
+ */
+export const batchApprovalSchema = z.object({
+  translationIds: z
+    .array(z.string())
+    .min(1, 'Select at least one translation')
+    .max(100, 'Maximum 100 translations per batch'),
+  status: z.enum(['APPROVED', 'REJECTED']),
+});
+
+export type BatchApprovalInput = z.infer<typeof batchApprovalSchema>;
+
+/**
+ * Key list query with optional approval status filter
+ */
+export const keyListQuerySchema = z.object({
+  search: z.string().optional(),
+  page: z.coerce.number().default(1),
+  limit: z.coerce.number().max(100).default(50),
+  status: approvalStatusSchema.optional(),
+});
+
+export type KeyListQuery = z.infer<typeof keyListQuerySchema>;

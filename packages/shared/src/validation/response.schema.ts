@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { approvalStatusSchema } from './translation.schema.js';
 
 // ============================================
 // Common Response Schemas
@@ -79,6 +80,10 @@ export const projectLanguageSchema = z.object({
 
 export type ProjectLanguage = z.infer<typeof projectLanguageSchema>;
 
+/** Member role in a project */
+export const memberRoleSchema = z.enum(['OWNER', 'MANAGER', 'DEVELOPER']);
+export type MemberRole = z.infer<typeof memberRoleSchema>;
+
 /** Project response */
 export const projectResponseSchema = z.object({
   id: z.string(),
@@ -87,6 +92,7 @@ export const projectResponseSchema = z.object({
   description: z.string().nullable().optional(),
   defaultLanguage: z.string(),
   languages: z.array(projectLanguageSchema),
+  myRole: memberRoleSchema, // Current user's role in this project
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -380,6 +386,9 @@ export const translationValueSchema = z.object({
   id: z.string(),
   language: z.string(),
   value: z.string(),
+  status: approvalStatusSchema,
+  statusUpdatedAt: z.string().nullable(),
+  statusUpdatedBy: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -427,6 +436,7 @@ export const dashboardStatsResponseSchema = z.object({
   completionRate: z.number(),
   translatedKeys: z.number(),
   totalTranslations: z.number(),
+  pendingApprovalCount: z.number(),
 });
 
 export type DashboardStatsResponse = z.infer<typeof dashboardStatsResponseSchema>;

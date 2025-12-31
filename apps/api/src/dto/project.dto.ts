@@ -10,6 +10,7 @@ import type {
   ProjectLanguage,
   ProjectWithStats,
   ProjectTreeResponse,
+  MemberRole,
 } from '@localeflow/shared';
 
 /**
@@ -27,8 +28,10 @@ function toLanguageDto(lang: { id: string; code: string; name: string; isDefault
 /**
  * Transform Prisma Project to ProjectResponse
  * Converts Dates to ISO strings
+ * @param project - The project data
+ * @param myRole - The current user's role in this project
  */
-export function toProjectDto(project: ProjectWithLanguages): ProjectResponse {
+export function toProjectDto(project: ProjectWithLanguages, myRole: MemberRole): ProjectResponse {
   return {
     id: project.id,
     name: project.name,
@@ -36,6 +39,7 @@ export function toProjectDto(project: ProjectWithLanguages): ProjectResponse {
     description: project.description,
     defaultLanguage: project.defaultLanguage,
     languages: project.languages.map(toLanguageDto),
+    myRole,
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString(),
   };
@@ -45,28 +49,31 @@ export function toProjectDto(project: ProjectWithLanguages): ProjectResponse {
  * Transform Prisma Project with stats to ProjectWithStats
  */
 export function toProjectWithStatsDto(
-  project: ProjectWithLanguagesAndStats
+  project: ProjectWithLanguagesAndStats,
+  myRole: MemberRole
 ): ProjectWithStats {
   return {
-    ...toProjectDto(project),
+    ...toProjectDto(project, myRole),
     stats: project.stats,
   };
 }
 
 /**
- * Transform array of projects
+ * Transform array of projects with roles
  */
-export function toProjectDtoList(projects: ProjectWithLanguages[]): ProjectResponse[] {
-  return projects.map(toProjectDto);
+export function toProjectDtoList(
+  projectsWithRoles: Array<{ project: ProjectWithLanguages; role: MemberRole }>
+): ProjectResponse[] {
+  return projectsWithRoles.map(({ project, role }) => toProjectDto(project, role));
 }
 
 /**
- * Transform array of projects with stats
+ * Transform array of projects with stats and roles
  */
 export function toProjectWithStatsDtoList(
-  projects: ProjectWithLanguagesAndStats[]
+  projectsWithRoles: Array<{ project: ProjectWithLanguagesAndStats; role: MemberRole }>
 ): ProjectWithStats[] {
-  return projects.map(toProjectWithStatsDto);
+  return projectsWithRoles.map(({ project, role }) => toProjectWithStatsDto(project, role));
 }
 
 /**

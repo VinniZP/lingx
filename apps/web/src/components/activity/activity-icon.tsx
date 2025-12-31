@@ -16,6 +16,8 @@ import {
   Layers,
   Sparkles,
   Activity,
+  CheckCircle,
+  XCircle,
   type LucideIcon,
 } from 'lucide-react';
 import type { ActivityType } from '@localeflow/shared';
@@ -34,6 +36,8 @@ const activityIcons: Record<ActivityType, LucideIcon> = {
   environment_delete: Layers,
   environment_switch_branch: Layers,
   ai_translate: Sparkles,
+  translation_approve: CheckCircle,
+  translation_reject: XCircle,
 };
 
 /**

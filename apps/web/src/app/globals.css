@@ -299,6 +299,19 @@
     opacity: 0;
   }
 
+  .animate-slide-down {
+    animation: slideDown 0.35s var(--ease-out-expo) forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s var(--ease-out-expo) forwards;
+    opacity: 0;
+  }
+
+  .animate-count-pulse {
+    animation: countPulse 0.3s var(--ease-out-expo);
+  }
+
   /* Stagger delays - exponential curve for natural feel */
   .stagger-1 { animation-delay: 0s; }
   .stagger-2 { animation-delay: 0.06s; }
@@ -390,6 +403,37 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes countPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
   }
 }
 

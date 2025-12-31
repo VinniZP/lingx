@@ -69,6 +69,11 @@ export interface ProjectWithLanguagesAndStats extends ProjectWithLanguages {
   };
 }
 
+export interface ProjectWithStatsAndRole {
+  project: ProjectWithLanguagesAndStats;
+  role: ProjectRole;
+}
+
 export interface ProjectStats {
   id: string;
   name: string;
@@ -249,14 +254,14 @@ export class ProjectService {
   }
 
   /**
-   * Find all projects for a user with embedded statistics.
+   * Find all projects for a user with embedded statistics and roles.
    * Uses efficient aggregation to avoid N+1 queries.
    *
    * @param userId - User ID
-   * @returns Array of projects with languages and stats
+   * @returns Array of projects with languages, stats, and user's role
    */
-  async findByUserIdWithStats(userId: string): Promise<ProjectWithLanguagesAndStats[]> {
-    // Get projects with languages and aggregate translation data
+  async findByUserIdWithStats(userId: string): Promise<ProjectWithStatsAndRole[]> {
+    // Get projects with languages, aggregate translation data, and user's membership
     const projects = await this.prisma.project.findMany({
       where: {
         members: {
@@ -265,6 +270,10 @@ export class ProjectService {
       },
       include: {
         languages: true,
+        members: {
+          where: { userId },
+          select: { role: true },
+        },
         spaces: {
           include: {
             branches: {
@@ -309,16 +318,20 @@ export class ProjectService {
           ? totalTranslations / totalPossibleTranslations
           : 0;
 
-      // Return project without nested spaces data
-      const { spaces: _spaces, ...projectData } = project;
+      // Return project without nested spaces/members data
+      const { spaces: _spaces, members, ...projectData } = project;
+      const role = members[0]?.role ?? 'DEVELOPER';
 
       return {
-        ...projectData,
-        stats: {
-          totalKeys,
-          translatedKeys: totalTranslations,
-          completionRate,
+        project: {
+          ...projectData,
+          stats: {
+            totalKeys,
+            translatedKeys: totalTranslations,
+            completionRate,
+          },
         },
+        role,
       };
     });
   }

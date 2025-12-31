@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Two-factor authentication complete)
+> **Updated**: 2025-12-31 (WebAuthn passkeys complete)
 
 ---
 
@@ -71,7 +71,7 @@
 - [x] **User profile settings** (name, email change with verification, avatar upload, preferences UI)
 - [x] **Security settings** (password change, active sessions)
 - [x] **Two-factor authentication** (TOTP with backup codes, 30-day device trust)
-- [ ] **Passkeys/WebAuthn** (passwordless login)
+- [x] **Passkeys/WebAuthn** (passwordless login, security score)
 - [ ] **Key approval status** (pending/approved, auto-reset on change)
 
 ### Phase 8: Translation Productivity 📋
@@ -126,8 +126,8 @@
 | High | User profile settings | ✅ Done |
 | High | Security settings | ✅ Done |
 | High | Two-factor authentication (TOTP) | ✅ Done |
+| High | Passkeys/WebAuthn | ✅ Done |
 | High | Key approval status | 📋 Next |
-| Medium | Passkeys/WebAuthn | 📋 |
 
 ---
 

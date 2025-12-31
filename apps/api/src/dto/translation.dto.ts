@@ -21,6 +21,9 @@ export function toTranslationValueDto(translation: Translation): TranslationValu
     id: translation.id,
     language: translation.language,
     value: translation.value,
+    status: translation.status,
+    statusUpdatedAt: translation.statusUpdatedAt?.toISOString() ?? null,
+    statusUpdatedBy: translation.statusUpdatedBy,
     createdAt: translation.createdAt.toISOString(),
     updatedAt: translation.updatedAt.toISOString(),
   };
