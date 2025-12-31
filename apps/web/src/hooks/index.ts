@@ -20,3 +20,9 @@ export {
   type TMMatch,
   type TMSearchParams,
 } from './use-translation-memory';
+export {
+  useSuggestions,
+  useKeySuggestions,
+  type UnifiedSuggestion,
+} from './use-suggestions';
+export { useKeyboardNavigation } from './use-keyboard-navigation';
