@@ -8,3 +8,4 @@ export { TranslationMemoryPanel } from './translation-memory-panel';
 export { GlossaryPanel } from './glossary-panel';
 export { InlineSuggestion } from './inline-suggestion';
 export { TranslationCommandPalette } from './translation-command-palette';
+export { QualityIssues, QualityBadge } from './quality-issues';

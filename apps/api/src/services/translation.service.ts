@@ -6,7 +6,13 @@
  */
 import { PrismaClient, TranslationKey, Translation, ApprovalStatus } from '@prisma/client';
 import { FieldValidationError, NotFoundError } from '../plugins/error-handler.js';
-import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
+import {
+  UNIQUE_VIOLATION_CODES,
+  runQualityChecks,
+  runBatchQualityChecks,
+  type QualityIssue,
+  type BatchQualityResult,
+} from '@localeflow/shared';
 
 export interface CreateKeyInput {
   name: string;
@@ -836,5 +842,113 @@ export class TranslationService {
     }
 
     return [...projectIds][0];
+  }
+
+  // ============================================
+  // QUALITY CHECKS
+  // ============================================
+
+  /**
+   * Set translation with quality check
+   *
+   * @param keyId - Key ID
+   * @param language - Language code
+   * @param value - Translation value
+   * @param sourceLanguage - Source language code for comparison
+   * @returns Translation with quality issues (if any)
+   */
+  async setTranslationWithQuality(
+    keyId: string,
+    language: string,
+    value: string,
+    sourceLanguage: string
+  ): Promise<{ translation: Translation; qualityIssues: QualityIssue[] }> {
+    // Get key with translations to find source text
+    const key = await this.prisma.translationKey.findUnique({
+      where: { id: keyId },
+      include: { translations: true },
+    });
+
+    if (!key) {
+      throw new NotFoundError('Translation key');
+    }
+
+    // Run quality checks if this is not the source language
+    let qualityIssues: QualityIssue[] = [];
+    if (language !== sourceLanguage && value.trim()) {
+      const sourceTranslation = key.translations.find(
+        (t) => t.language === sourceLanguage
+      );
+      const sourceText = sourceTranslation?.value || '';
+
+      if (sourceText.trim()) {
+        const result = runQualityChecks({
+          source: sourceText,
+          target: value,
+          sourceLanguage,
+          targetLanguage: language,
+        });
+        qualityIssues = result.issues;
+      }
+    }
+
+    // Save the translation (quality issues are warnings, not blocking)
+    const translation = await this.setTranslation(keyId, language, value);
+
+    return { translation, qualityIssues };
+  }
+
+  /**
+   * Run quality checks on all translations in a branch
+   *
+   * @param branchId - Branch ID
+   * @param sourceLanguage - Source language code
+   * @param keyIds - Optional array of specific key IDs to check
+   * @returns Quality check results
+   */
+  async checkBranchQuality(
+    branchId: string,
+    sourceLanguage: string,
+    keyIds?: string[]
+  ): Promise<{
+    totalKeys: number;
+    keysWithIssues: number;
+    results: BatchQualityResult[];
+  }> {
+    // Get keys with translations
+    const keys = await this.prisma.translationKey.findMany({
+      where: {
+        branchId,
+        ...(keyIds?.length ? { id: { in: keyIds } } : {}),
+      },
+      include: { translations: true },
+    });
+
+    // Build batch input
+    const batchInput = keys.map((key) => {
+      const sourceTranslation = key.translations.find(
+        (t) => t.language === sourceLanguage
+      );
+      return {
+        keyName: key.name,
+        keyId: key.id,
+        sourceText: sourceTranslation?.value || '',
+        translations: Object.fromEntries(
+          key.translations.map((t) => [t.language, t.value])
+        ),
+      };
+    });
+
+    // Run batch quality checks
+    const results = runBatchQualityChecks(batchInput, sourceLanguage);
+
+    // Count unique keys with issues
+    const keysWithIssues = new Set(results.map((r) => r.keyId)).size;
+
+    return {
+      totalKeys: keys.length,
+      keysWithIssues,
+      results,
+    };
   }
 }

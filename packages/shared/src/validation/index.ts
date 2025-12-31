@@ -21,3 +21,7 @@ export * from './webauthn.schema.js';
 
 // Response schemas
 export * from './response.schema.js';
+
+// Quality checks
+export * from './quality-checks/index.js';
+export * from './quality-checks.schema.js';

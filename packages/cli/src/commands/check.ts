@@ -9,6 +9,7 @@ import {
   validateTranslations,
   summarizeValidation,
 } from '../lib/validator/icu-validator.js';
+import { runBatchQualityChecks, type BatchTranslationEntry } from '@localeflow/shared';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 import chalk from 'chalk';
@@ -21,6 +22,7 @@ interface CheckOptions {
   missing?: boolean;
   unused?: boolean;
   validateIcu?: boolean;
+  quality?: boolean;
 }
 
 interface TranslationResponse {
@@ -41,6 +43,7 @@ export function createCheckCommand(): Command {
     .option('--missing', 'Show keys in code but not in platform')
     .option('--unused', 'Show keys in platform but not in code')
     .option('--validate-icu', 'Validate ICU MessageFormat syntax')
+    .option('--quality', 'Check translation quality (placeholders, whitespace, punctuation)')
     .action(async (options: CheckOptions) => {
       try {
         const exitCode = await check(options);
@@ -69,10 +72,11 @@ async function check(options: CheckOptions): Promise<number> {
   const sourceDir = options.source ?? config.paths.source;
 
   // Default behavior: check everything if no specific option is provided
-  const noOptionsProvided = !options.missing && !options.unused && !options.validateIcu;
+  const noOptionsProvided = !options.missing && !options.unused && !options.validateIcu && !options.quality;
   const checkMissing = options.missing ?? noOptionsProvided;
   const checkUnused = options.unused ?? noOptionsProvided;
   const checkIcu = options.validateIcu ?? false;
+  const checkQuality = options.quality ?? false;
 
   if (!project) {
     throw new Error('Project is required. Use --project or set in config file.');
@@ -234,6 +238,99 @@ async function check(options: CheckOptions): Promise<number> {
       if (totalErrors === 0) {
         console.log();
         console.log(chalk.green('All ICU MessageFormat syntax is valid'));
+      }
+    }
+
+    // Quality checks (placeholders, whitespace, punctuation)
+    if (checkQuality) {
+      console.log(chalk.bold('Quality Checks'));
+      console.log();
+
+      // Determine source language (first language or 'en' if available)
+      const sourceLanguage = response.languages.includes('en') ? 'en' : response.languages[0];
+
+      if (!sourceLanguage) {
+        console.log(chalk.yellow('No source language available for quality checks'));
+        console.log();
+      } else {
+        // Build batch translation entries - group by key
+        const sourceTranslations = response.translations[sourceLanguage] ?? {};
+
+        // Get all unique keys
+        const allKeys = new Set<string>();
+        for (const translations of Object.values(response.translations)) {
+          for (const key of Object.keys(translations)) {
+            allKeys.add(key);
+          }
+        }
+
+        const batchEntries: BatchTranslationEntry[] = [];
+        for (const keyName of allKeys) {
+          const sourceText = sourceTranslations[keyName];
+          if (!sourceText) continue; // Skip keys without source text
+
+          // Collect translations for this key
+          const translations: Record<string, string> = {};
+          for (const [lang, langTranslations] of Object.entries(response.translations)) {
+            if (langTranslations[keyName]) {
+              translations[lang] = langTranslations[keyName];
+            }
+          }
+
+          batchEntries.push({
+            keyName,
+            sourceText,
+            translations,
+          });
+        }
+
+        // Run quality checks
+        const qualityResults = runBatchQualityChecks(batchEntries, sourceLanguage);
+
+        // Filter to only entries with issues
+        const issuesFound = qualityResults.filter(r => r.result.issues.length > 0);
+
+        if (issuesFound.length > 0) {
+          // Group by key for cleaner output
+          const byKey = new Map<string, typeof issuesFound>();
+          for (const entry of issuesFound) {
+            const existing = byKey.get(entry.keyName) ?? [];
+            existing.push(entry);
+            byKey.set(entry.keyName, existing);
+          }
+
+          let errorCount = 0;
+          let warningCount = 0;
+
+          for (const [key, entries] of byKey) {
+            console.log(`  ${chalk.cyan(key)}`);
+            for (const entry of entries) {
+              for (const issue of entry.result.issues) {
+                const icon = issue.severity === 'error' ? chalk.red('✗') : chalk.yellow('~');
+                const severity = issue.severity === 'error' ? chalk.red : chalk.yellow;
+                console.log(`    ${icon} ${chalk.gray(`[${entry.language}]`)} ${severity(issue.message)}`);
+
+                if (issue.severity === 'error') errorCount++;
+                else warningCount++;
+              }
+            }
+          }
+
+          console.log();
+
+          const parts = [];
+          if (errorCount > 0) parts.push(chalk.red(`${errorCount} error(s)`));
+          if (warningCount > 0) parts.push(chalk.yellow(`${warningCount} warning(s)`));
+          console.log(`Found ${parts.join(', ')} in ${byKey.size} key(s)`);
+          console.log();
+
+          if (errorCount > 0) {
+            hasErrors = true;
+          }
+        } else {
+          console.log(chalk.green('All translations passed quality checks'));
+          console.log();
+        }
       }
     }
 

@@ -21,6 +21,8 @@ import {
   bulkDeleteResponseSchema,
   setApprovalStatusSchema,
   batchApprovalSchema,
+  batchQualityCheckResponseSchema,
+  qualityIssueSchema,
 } from '@localeflow/shared';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
@@ -819,6 +821,140 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       return { updated };
+    }
+  );
+
+  // ============================================
+  // QUALITY CHECKS
+  // ============================================
+
+  /**
+   * POST /api/branches/:branchId/quality-check - Run quality checks on translations
+   */
+  app.post(
+    '/api/branches/:branchId/quality-check',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Run quality checks on branch translations',
+        tags: ['Translations', 'Quality'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          branchId: z.string(),
+        }),
+        querystring: z.object({
+          keyIds: z.string().optional().describe('Comma-separated key IDs to check'),
+        }),
+        response: {
+          200: batchQualityCheckResponseSchema,
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { branchId } = request.params;
+      const { keyIds: keyIdsStr } = request.query;
+
+      // Verify branch exists and get project
+      const projectId = await branchService.getProjectIdByBranchId(branchId);
+      if (!projectId) {
+        throw new NotFoundError('Branch');
+      }
+
+      // Check project membership
+      const isMember = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      // Get project's default language
+      const project = await projectService.findById(projectId);
+      const sourceLanguage = project?.defaultLanguage || 'en';
+
+      // Parse key IDs if provided
+      const keyIds = keyIdsStr ? keyIdsStr.split(',').filter(Boolean) : undefined;
+
+      // Run quality checks
+      const result = await translationService.checkBranchQuality(
+        branchId,
+        sourceLanguage,
+        keyIds
+      );
+
+      return {
+        totalKeys: result.totalKeys,
+        keysWithIssues: result.keysWithIssues,
+        results: result.results.map((r) => ({
+          keyName: r.keyName,
+          keyId: r.keyId,
+          language: r.language,
+          result: r.result,
+        })),
+      };
+    }
+  );
+
+  /**
+   * PUT /api/keys/:keyId/translations/:lang with quality check response
+   * Modified to return quality issues in response
+   */
+  app.put(
+    '/api/keys/:keyId/translations/:lang/check',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Set translation with quality check feedback',
+        tags: ['Translations', 'Quality'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          keyId: z.string(),
+          lang: z.string(),
+        }),
+        body: setTranslationSchema,
+        response: {
+          200: translationValueSchema.extend({
+            qualityIssues: z.array(qualityIssueSchema).optional(),
+          }),
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { keyId, lang } = request.params;
+      const { value } = request.body;
+
+      // Verify key exists and get project
+      const projectId = await translationService.getProjectIdByKeyId(keyId);
+      if (!projectId) {
+        throw new NotFoundError('Translation key');
+      }
+
+      // Check project membership
+      const isMember = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      // Get project's default language
+      const project = await projectService.findById(projectId);
+      const sourceLanguage = project?.defaultLanguage || 'en';
+
+      // Set translation with quality check
+      const { translation, qualityIssues } = await translationService.setTranslationWithQuality(
+        keyId,
+        lang,
+        value,
+        sourceLanguage
+      );
+
+      return {
+        ...toTranslationValueDto(translation),
+        qualityIssues: qualityIssues.length > 0 ? qualityIssues : undefined,
+      };
     }
   );
 };

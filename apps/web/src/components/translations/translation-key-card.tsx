@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import type { ProjectLanguage } from '@localeflow/shared';
+import { runQualityChecks } from '@localeflow/shared';
 import { TranslationKey, type ApprovalStatus } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import {
@@ -25,6 +26,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { InlineSuggestion } from './inline-suggestion';
+import { QualityIssues } from './quality-issues';
 import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
 
@@ -598,6 +600,22 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   </div>
                 )}
               </div>
+
+              {/* Quality issues */}
+              {!isSource && defaultLanguage && value && (() => {
+                const sourceText = getTranslationValue(translationKey, defaultLanguage.code);
+                if (!sourceText) return null;
+                const qualityResult = runQualityChecks({ source: sourceText, target: value });
+                if (qualityResult.issues.length === 0) return null;
+                return (
+                  <div className="flex items-center gap-2 text-xs">
+                    <QualityIssues issues={qualityResult.issues} />
+                    <span className="text-muted-foreground">
+                      {qualityResult.hasErrors ? 'Quality issues found' : 'Quality warnings'}
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* Inline suggestions */}
               {!isSource && langSuggestions.length > 0 && (
