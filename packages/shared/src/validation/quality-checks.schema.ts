@@ -22,6 +22,8 @@ export const qualityCheckTypeSchema = z.enum([
   'whitespace_double',
   'whitespace_tab',
   'punctuation_mismatch',
+  'length_too_long',
+  'length_critical',
 ]);
 
 /**

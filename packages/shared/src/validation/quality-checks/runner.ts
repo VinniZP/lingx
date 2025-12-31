@@ -14,6 +14,7 @@ import type {
 import { placeholderChecker } from './placeholder-check.js';
 import { whitespaceChecker } from './whitespace-check.js';
 import { punctuationChecker } from './punctuation-check.js';
+import { lengthChecker, createLengthChecker } from './length-check.js';
 
 /**
  * Default configuration - all checks enabled
@@ -22,6 +23,7 @@ const DEFAULT_CONFIG: QualityCheckConfig = {
   placeholders: true,
   whitespace: true,
   punctuation: true,
+  length: true,
 };
 
 /**
@@ -31,6 +33,7 @@ const CHECKERS: Record<string, QualityChecker> = {
   placeholders: placeholderChecker,
   whitespace: whitespaceChecker,
   punctuation: punctuationChecker,
+  length: lengthChecker,
 };
 
 /**
@@ -67,7 +70,16 @@ export function runQualityChecks(
   for (const [key, checker] of Object.entries(CHECKERS)) {
     const configKey = key as keyof QualityCheckConfig;
     if (config[configKey] !== false) {
-      const checkerIssues = checker.check(input);
+      // Special handling for length checker with custom thresholds
+      let activeChecker = checker;
+      if (key === 'length' && (config.lengthWarningThreshold || config.lengthErrorThreshold)) {
+        activeChecker = createLengthChecker({
+          warningThreshold: config.lengthWarningThreshold,
+          errorThreshold: config.lengthErrorThreshold,
+        });
+      }
+
+      const checkerIssues = activeChecker.check(input);
 
       // Apply severity overrides if configured
       if (config.severityOverrides) {

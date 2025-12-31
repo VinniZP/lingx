@@ -19,7 +19,9 @@ export type QualityCheckType =
   | 'whitespace_trailing'
   | 'whitespace_double'
   | 'whitespace_tab'
-  | 'punctuation_mismatch';
+  | 'punctuation_mismatch'
+  | 'length_too_long'
+  | 'length_critical';
 
 /**
  * A single quality issue found in a translation
@@ -80,6 +82,12 @@ export interface QualityCheckConfig {
   whitespace?: boolean;
   /** Enable punctuation check (default: true) */
   punctuation?: boolean;
+  /** Enable length check (default: true) */
+  length?: boolean;
+  /** Length warning threshold as ratio of expected (default: 1.5 = 150%) */
+  lengthWarningThreshold?: number;
+  /** Length error threshold as ratio of expected (default: 2.0 = 200%) */
+  lengthErrorThreshold?: number;
   /** Custom severity overrides by check type */
   severityOverrides?: Partial<Record<QualityCheckType, QualityIssueSeverity>>;
 }

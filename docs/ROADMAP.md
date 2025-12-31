@@ -1,6 +1,6 @@
 # LocaleFlow Roadmap
 
-> **Updated**: 2025-12-31 (Phase 8 - Interactive conflict resolution complete)
+> **Updated**: 2025-12-31 (Phase 8 complete - Moving to Phase 9)
 
 ---
 
@@ -111,7 +111,11 @@
   - [x] `lf sync` interactive conflict resolution
   - [x] `--force-local` / `--force-remote` flags for sync
   - [x] Unified UX across push and sync commands
-- [ ] **Translation length prediction** (overflow warnings)
+- [x] **Translation length prediction**
+  - [x] Language-specific expansion ratios (30+ languages)
+  - [x] Warning at 150%, error at 200% of expected length
+  - [x] ICU placeholder-aware length calculation
+  - [x] Configurable thresholds via QualityCheckConfig
 
 ### Phase 9: AI & Context 📋
 - [ ] **AI-powered translation with context** (near-keys, glossary, domain)
@@ -154,7 +158,7 @@
 | High | Glossary/termbase management | ✅ Complete |
 | Medium | Extended quality checks | ✅ Complete |
 | Medium | Interactive conflict resolution | ✅ Complete |
-| Low | Translation length prediction | 📋 Next |
+| Low | Translation length prediction | ✅ Complete |
 
 ---
 
