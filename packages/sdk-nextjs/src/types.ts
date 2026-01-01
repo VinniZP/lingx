@@ -28,6 +28,27 @@ export interface TranslationResources {
 }
 
 /**
+ * Namespace-specific translation keys for type augmentation.
+ *
+ * When you run `localeflow types`, the generated .d.ts file merges with
+ * this interface to provide type-safe namespaced keys.
+ *
+ * @example Generated types:
+ * ```typescript
+ * // In localeflow.d.ts (generated)
+ * declare module '@localeflow/sdk-nextjs' {
+ *   interface NamespaceKeys {
+ *     glossary: 'tags.title' | 'tags.addTag' | 'dialog.title';
+ *     auth: 'login.title' | 'login.submit';
+ *   }
+ * }
+ * ```
+ */
+export interface NamespaceKeys {
+  // When empty, namespace-specific typing is disabled
+}
+
+/**
  * All available translation keys.
  *
  * When TranslationResources.keys is defined (via type generation),
@@ -39,6 +60,25 @@ export type TranslationKeys = TranslationResources extends { keys: infer K }
     ? K
     : string
   : string;
+
+/**
+ * Get keys for a specific namespace.
+ * Returns the namespace's keys if defined, otherwise string.
+ */
+export type NamespaceTranslationKeys<NS extends string> =
+  NS extends keyof NamespaceKeys
+    ? NamespaceKeys[NS] extends string
+      ? NamespaceKeys[NS]
+      : string
+    : string;
+
+/**
+ * Get keys for useTranslation - either root keys or namespace keys.
+ */
+export type TranslationKeysFor<NS extends string | undefined> =
+  NS extends string
+    ? NamespaceTranslationKeys<NS>
+    : TranslationKeys;
 
 /**
  * ICU parameter types for translation keys that require parameters.
@@ -89,6 +129,25 @@ export type TranslationKey<T extends string = string> = T & {
 export type TKey = TranslationKey<TranslationKeys>;
 
 /**
+ * Convenience type alias for namespaced TranslationKey.
+ *
+ * Use this for typing translation keys that belong to a specific namespace.
+ *
+ * @example
+ * ```typescript
+ * interface GlossaryOption {
+ *   value: string;
+ *   labelKey: TNsKey<'glossary'>; // Only accepts glossary namespace keys
+ * }
+ *
+ * const options: GlossaryOption[] = [
+ *   { value: 'noun', labelKey: tKey('partOfSpeech.noun', 'glossary') },
+ * ];
+ * ```
+ */
+export type TNsKey<NS extends keyof NamespaceKeys> = TranslationKey<NamespaceKeys[NS] & string>;
+
+/**
  * Marks a string as a type-safe translation key for static extraction.
  *
  * When type generation is enabled (`localeflow types`), this function
@@ -96,23 +155,27 @@ export type TKey = TranslationKey<TranslationKeys>;
  *
  * @example
  * ```typescript
- * // Define extractable keys in arrays/objects
- * const navItems = [
- *   { path: '/', labelKey: tKey('nav.home') },
- *   { path: '/about', labelKey: tKey('nav.about') },
- * ];
+ * // Root keys (no namespace)
+ * tKey('nav.home');           // ✓ Validates against TranslationKeys
+ * tKey('invalid.key');        // ✗ TypeScript error
  *
- * // TypeScript will error if the key doesn't exist
- * tKey('invalid.key'); // Error: Argument of type '"invalid.key"' is not assignable
+ * // Namespaced keys (second argument)
+ * tKey('tags.title', 'glossary');  // ✓ Validates against NamespaceKeys['glossary']
+ * tKey('invalid', 'glossary');     // ✗ TypeScript error
  *
- * // Use td() for dynamic usage - extractor won't error
- * navItems.map(item => (
- *   <Link to={item.path}>{td(item.labelKey)}</Link>
- * ));
+ * // Use td() for dynamic usage
+ * const items = [{ labelKey: tKey('tags.title', 'glossary') }];
+ * items.map(item => td(item.labelKey));
  * ```
  */
-export const tKey = <K extends TranslationKeys>(key: K): TranslationKey<K> =>
-  key as TranslationKey<K>;
+export function tKey<K extends TranslationKeys>(key: K): TranslationKey<K>;
+export function tKey<
+  NS extends keyof NamespaceKeys & string,
+  K extends NamespaceKeys[NS] & string = NamespaceKeys[NS] & string
+>(key: K, namespace: NS): TranslationKey<K>;
+export function tKey(key: string, _namespace?: string): TranslationKey<string> {
+  return key as TranslationKey<string>;
+}
 
 /**
  * Escape hatch for dynamic translation keys.
@@ -129,12 +192,15 @@ export const tKey = <K extends TranslationKeys>(key: K): TranslationKey<K> =>
  * const section = getSectionFromRoute();
  * const key = tKeyUnsafe(`${section}.title`);
  *
+ * // Dynamic namespaced key
+ * const nsKey = tKeyUnsafe('dynamic.key', 'glossary');
+ *
  * // Keys from external sources
  * const apiKey = response.translationKey;
  * td(tKeyUnsafe(apiKey));
  * ```
  */
-export const tKeyUnsafe = (key: string): TranslationKey<string> =>
+export const tKeyUnsafe = (key: string, _namespace?: string): TranslationKey<string> =>
   key as TranslationKey<string>;
 
 /**
@@ -273,6 +339,28 @@ export type TranslationFunction = <K extends TranslationKeys>(
  * ```
  */
 export type DynamicTranslationFunction = <K extends TranslationKeys>(
+  key: TranslationKey<K>,
+  ...args: K extends keyof TranslationParams
+    ? [params: TranslationParams[K]]
+    : [params?: TranslationValues]
+) => string;
+
+/**
+ * Namespace-aware translation function.
+ * Only accepts keys valid for the specified namespace.
+ */
+export type NamespacedTranslationFunction<AllowedKeys extends string> = <K extends AllowedKeys>(
+  key: K,
+  ...args: K extends keyof TranslationParams
+    ? [params: TranslationParams[K]]
+    : [params?: TranslationValues]
+) => string;
+
+/**
+ * Namespace-aware dynamic translation function.
+ * Only accepts TranslationKey for keys valid in the specified namespace.
+ */
+export type NamespacedDynamicTranslationFunction<AllowedKeys extends string> = <K extends AllowedKeys>(
   key: TranslationKey<K>,
   ...args: K extends keyof TranslationParams
     ? [params: TranslationParams[K]]

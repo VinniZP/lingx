@@ -1,6 +1,7 @@
-import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
+import { readFile, writeFile, readdir, mkdir, stat } from 'fs/promises';
 import { join, basename, extname, dirname } from 'path';
 import { existsSync } from 'fs';
+import { combineKey } from '@localeflow/shared';
 import type { Formatter } from './formatter/index.js';
 
 /**
@@ -93,6 +94,92 @@ export async function readTranslationFiles(
 }
 
 /**
+ * Read all translation files from a directory and its namespace subdirectories.
+ * Returns translations with namespace delimiter format for namespaced keys.
+ *
+ * File structure:
+ * - directory/[lang].json - root keys (no namespace)
+ * - directory/[namespace]/[lang].json - namespaced keys
+ *
+ * Keys are combined as: namespace␟key for namespaced, or just key for root
+ */
+export async function readTranslationFilesWithNamespaces(
+  directory: string,
+  format: 'json' | 'yaml',
+  formatter: Formatter,
+  filePattern: string
+): Promise<Record<string, Record<string, string>>> {
+  if (!existsSync(directory)) {
+    return {};
+  }
+
+  const result: Record<string, Record<string, string>> = {};
+
+  // Helper to process a directory (root or namespace)
+  async function processDirectory(dir: string, namespace: string | null) {
+    if (!existsSync(dir)) {
+      return;
+    }
+
+    const files = await readdir(dir);
+
+    for (const file of files) {
+      const filePath = join(dir, file);
+      const fileStat = await stat(filePath);
+
+      // Skip directories at this level (we'll process namespaces separately)
+      if (fileStat.isDirectory()) {
+        continue;
+      }
+
+      const ext = extname(file).toLowerCase();
+
+      // Check if file extension matches the format
+      const isJsonFile = format === 'json' && ext === '.json';
+      const isYamlFile = format === 'yaml' && (ext === '.yaml' || ext === '.yml');
+
+      if (!isJsonFile && !isYamlFile) {
+        continue;
+      }
+
+      const content = await readFile(filePath, 'utf-8');
+      const translations = formatter.parse(content);
+
+      // Extract language from filename
+      const lang = extractLanguageFromFilename(file, filePattern);
+
+      // Initialize language object if needed
+      if (!result[lang]) {
+        result[lang] = {};
+      }
+
+      // Add translations with namespace prefix if applicable
+      for (const [key, value] of Object.entries(translations)) {
+        const combinedKey = combineKey(namespace, key);
+        result[lang][combinedKey] = value;
+      }
+    }
+  }
+
+  // Process root directory
+  await processDirectory(directory, null);
+
+  // Process namespace subdirectories
+  const entries = await readdir(directory);
+  for (const entry of entries) {
+    const entryPath = join(directory, entry);
+    const entryStat = await stat(entryPath);
+
+    // Process subdirectories as namespaces (exclude hidden directories)
+    if (entryStat.isDirectory() && !entry.startsWith('.')) {
+      await processDirectory(entryPath, entry);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Compute the diff between local and remote translations.
  */
 export interface TranslationDiff {
@@ -121,11 +208,15 @@ export function computeTranslationDiff(
       const localValue = localTrans[key];
       const remoteValue = remoteTrans[key];
 
-      if (localValue && !remoteValue) {
+      // Check for key existence (not truthiness - empty strings are valid values)
+      const hasLocal = localValue !== undefined;
+      const hasRemote = remoteValue !== undefined;
+
+      if (hasLocal && !hasRemote) {
         localOnly.push({ lang, key, value: localValue });
-      } else if (!localValue && remoteValue) {
+      } else if (!hasLocal && hasRemote) {
         remoteOnly.push({ lang, key, value: remoteValue });
-      } else if (localValue && remoteValue && localValue !== remoteValue) {
+      } else if (hasLocal && hasRemote && localValue !== remoteValue) {
         conflicts.push({ lang, key, localValue, remoteValue });
       }
     }

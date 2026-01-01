@@ -10,7 +10,7 @@ export { useLanguage } from './hooks/useLanguage';
 export { useNamespace } from './hooks/useNamespace';
 
 // Hook types
-export type { UseTranslationReturn } from './hooks/useTranslation';
+export type { UseTranslationReturn, UseNamespacedTranslationReturn } from './hooks/useTranslation';
 export type { UseLanguageReturn } from './hooks/useLanguage';
 export type { UseNamespaceReturn, UseNamespaceOptions } from './hooks/useNamespace';
 
@@ -21,6 +21,8 @@ export type {
   LocaleflowContextValue,
   TranslationFunction,
   DynamicTranslationFunction,
+  NamespacedTranslationFunction,
+  NamespacedDynamicTranslationFunction,
   TranslationValues,
   TranslationBundle,
   NestedTranslationValue,
@@ -31,9 +33,13 @@ export type {
   DetectionConfig,
   TranslationKey,
   TKey,
+  TNsKey,
   // Type-safe translation types (augmented by generated types)
   TranslationResources,
   TranslationKeys,
+  NamespaceKeys,
+  NamespaceTranslationKeys,
+  TranslationKeysFor,
   TranslationParams,
   TranslationParamsFor,
 } from './types';

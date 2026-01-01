@@ -15,15 +15,44 @@ const sdkTranslationsQuerySchema = z.object({
   space: z.string().describe('Space slug'),
   environment: z.string().describe('Environment slug'),
   lang: z.string().describe('Language code'),
-  namespace: z.string().optional().describe('Optional namespace filter'),
+  namespace: z.string().optional().describe('Optional namespace filter - returns only keys from this namespace without the namespace prefix'),
+  format: z.enum(['flat', 'nested']).default('nested').describe('Response format: nested (default, smaller payloads) or flat'),
 });
 
-/** SDK translations response schema */
+/** SDK translations response schema - supports both flat and nested formats */
 const sdkTranslationsResponseSchema = z.object({
   language: z.string(),
-  translations: z.record(z.string(), z.string()),
+  translations: z.union([
+    z.record(z.string(), z.string()),  // flat format
+    z.record(z.string(), z.unknown()), // nested format
+  ]),
   availableLanguages: z.array(z.string()),
 });
+
+/**
+ * Convert flat key-value translations to nested object structure.
+ * "common.greeting.hello" -> { common: { greeting: { hello: "..." } } }
+ */
+function flatToNested(flat: Record<string, string>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(flat)) {
+    const parts = key.split('.');
+    let current: Record<string, unknown> = result;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (!(part in current)) {
+        current[part] = {};
+      }
+      current = current[part] as Record<string, unknown>;
+    }
+
+    current[parts[parts.length - 1]] = value;
+  }
+
+  return result;
+}
 
 /** Error response schema */
 const errorResponseSchema = z.object({
@@ -64,7 +93,7 @@ const sdkRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { project, space, environment, lang, namespace } = request.query;
+      const { project, space, environment, lang, namespace, format } = request.query;
 
       // Find project by slug with languages
       const projectRecord = await prisma.project.findFirst({
@@ -108,12 +137,21 @@ const sdkRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // Build flat translations object
-      const translations: Record<string, string> = {};
+      const flatTranslations: Record<string, string> = {};
 
       for (const key of envRecord.branch.keys) {
-        // Filter by namespace if provided
-        if (namespace) {
-          if (!key.name.startsWith(`${namespace}:`) && !key.name.startsWith(`${namespace}.`)) {
+        // Filter by namespace:
+        // - If namespace param provided: return only keys from that namespace
+        // - If no namespace param: return only ROOT keys (namespace = null)
+        // This allows SDK to load root keys initially, then load namespaces on demand
+        if (namespace !== undefined) {
+          // Specific namespace requested
+          if (key.namespace !== namespace) {
+            continue;
+          }
+        } else {
+          // No namespace param = only root keys
+          if (key.namespace !== null) {
             continue;
           }
         }
@@ -123,7 +161,8 @@ const sdkRoutes: FastifyPluginAsync = async (fastify) => {
           (t: { language: string; value: string }) => t.language === lang
         );
         if (translation) {
-          translations[key.name] = translation.value;
+          // SDK uses dot notation for keys
+          flatTranslations[key.name] = translation.value;
         }
       }
 
@@ -134,6 +173,11 @@ const sdkRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Add cache headers for CDN
       reply.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+
+      // Convert to nested format if requested
+      const translations = format === 'nested'
+        ? flatToNested(flatTranslations)
+        : flatTranslations;
 
       return {
         language: lang,

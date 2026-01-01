@@ -10,18 +10,22 @@ import {
   UNIQUE_VIOLATION_CODES,
   runQualityChecks,
   runBatchQualityChecks,
+  combineKey,
+  parseNamespacedKey,
   type QualityIssue,
   type BatchQualityResult,
 } from '@localeflow/shared';
 
 export interface CreateKeyInput {
   name: string;
+  namespace?: string | null;
   description?: string;
   branchId: string;
 }
 
 export interface UpdateKeyInput {
   name?: string;
+  namespace?: string | null;
   description?: string;
 }
 
@@ -54,16 +58,18 @@ export class TranslationService {
    *
    * @param input - Key creation data
    * @returns Created key with translations
-   * @throws FieldValidationError if key name already exists in branch
+   * @throws FieldValidationError if key name already exists in branch+namespace
    */
   async createKey(input: CreateKeyInput): Promise<KeyWithTranslations> {
-    // Check for duplicate key name in branch
-    const existing = await this.prisma.translationKey.findUnique({
+    const namespace = input.namespace ?? null;
+
+    // Check for duplicate key name in branch+namespace
+    // Use findFirst because namespace can be null
+    const existing = await this.prisma.translationKey.findFirst({
       where: {
-        branchId_name: {
-          branchId: input.branchId,
-          name: input.name,
-        },
+        branchId: input.branchId,
+        namespace: namespace,
+        name: input.name,
       },
     });
 
@@ -72,17 +78,18 @@ export class TranslationService {
         [
           {
             field: 'name',
-            message: 'A key with this name already exists in this branch',
+            message: 'A key with this name already exists in this branch/namespace',
             code: UNIQUE_VIOLATION_CODES.TRANSLATION_KEY,
           },
         ],
-        'Key with this name already exists in the branch'
+        'Key with this name already exists in the branch/namespace'
       );
     }
 
     const key = await this.prisma.translationKey.create({
       data: {
         name: input.name,
+        namespace: namespace,
         description: input.description,
         branchId: input.branchId,
       },
@@ -115,7 +122,7 @@ export class TranslationService {
    * Find keys by branch ID with pagination, search, and status filter
    *
    * @param branchId - Branch ID
-   * @param options - Pagination, search, and status filter options
+   * @param options - Pagination, search, namespace, and status filter options
    * @returns Paginated list of keys with translations
    */
   async findKeysByBranchId(
@@ -125,6 +132,7 @@ export class TranslationService {
       page?: number;
       limit?: number;
       filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
+      namespace?: string; // Use "__root__" for keys without namespace
     } = {}
   ): Promise<KeyListResult> {
     const page = options.page || 1;
@@ -160,6 +168,11 @@ export class TranslationService {
     // Build the where clause for other filters
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { branchId };
+
+    // Filter by namespace (use "__root__" for keys without namespace)
+    if (options.namespace !== undefined) {
+      where.namespace = options.namespace === '__root__' ? null : options.namespace;
+    }
 
     if (options.search) {
       where.OR = [
@@ -317,7 +330,7 @@ export class TranslationService {
    * @param input - Update data
    * @returns Updated key with translations
    * @throws NotFoundError if key doesn't exist
-   * @throws FieldValidationError if new name already exists
+   * @throws FieldValidationError if new name/namespace combination already exists
    */
   async updateKey(id: string, input: UpdateKeyInput): Promise<KeyWithTranslations> {
     const existing = await this.prisma.translationKey.findUnique({
@@ -328,23 +341,27 @@ export class TranslationService {
       throw new NotFoundError('Translation key');
     }
 
-    // If renaming, check for conflicts
-    if (input.name && input.name !== existing.name) {
-      const conflict = await this.prisma.translationKey.findUnique({
+    // Determine final name and namespace
+    const newName = input.name ?? existing.name;
+    const newNamespace = input.namespace !== undefined ? (input.namespace ?? null) : existing.namespace;
+
+    // If name or namespace is changing, check for conflicts
+    if (newName !== existing.name || newNamespace !== existing.namespace) {
+      // Use findFirst because namespace can be null
+      const conflict = await this.prisma.translationKey.findFirst({
         where: {
-          branchId_name: {
-            branchId: existing.branchId,
-            name: input.name,
-          },
+          branchId: existing.branchId,
+          namespace: newNamespace,
+          name: newName,
         },
       });
 
-      if (conflict) {
+      if (conflict && conflict.id !== id) {
         throw new FieldValidationError(
           [
             {
               field: 'name',
-              message: 'A key with this name already exists in this branch',
+              message: 'A key with this name already exists in this branch/namespace',
               code: UNIQUE_VIOLATION_CODES.TRANSLATION_KEY,
             },
           ],
@@ -357,6 +374,7 @@ export class TranslationService {
       where: { id },
       data: {
         ...(input.name && { name: input.name }),
+        ...(input.namespace !== undefined && { namespace: input.namespace ?? null }),
         ...(input.description !== undefined && { description: input.description }),
       },
       include: {
@@ -551,9 +569,10 @@ export class TranslationService {
   /**
    * Get all translations for a branch in bulk format
    * Used for CLI pull operations
+   * Keys are returned in delimiter format: namespace␟key for namespaced keys
    *
    * @param branchId - Branch ID
-   * @returns Translations grouped by language then key name
+   * @returns Translations grouped by language then combined key
    */
   async getBranchTranslations(branchId: string): Promise<BranchTranslations> {
     const keys = await this.prisma.translationKey.findMany({
@@ -561,15 +580,17 @@ export class TranslationService {
       include: { translations: true },
     });
 
-    // Transform to { language: { key: value } } format
+    // Transform to { language: { combinedKey: value } } format
+    // combinedKey uses delimiter format: namespace␟key or just key for root
     const translations: Record<string, Record<string, string>> = {};
 
     for (const key of keys) {
+      const combinedKey = combineKey(key.namespace, key.name);
       for (const trans of key.translations) {
         if (!translations[trans.language]) {
           translations[trans.language] = {};
         }
-        translations[trans.language][key.name] = trans.value;
+        translations[trans.language][combinedKey] = trans.value;
       }
     }
 
@@ -580,12 +601,32 @@ export class TranslationService {
   }
 
   /**
+   * Get list of namespaces with key counts for a branch
+   *
+   * @param branchId - Branch ID
+   * @returns Array of namespaces with counts
+   */
+  async getNamespaces(branchId: string): Promise<Array<{ namespace: string | null; count: number }>> {
+    const results = await this.prisma.translationKey.groupBy({
+      by: ['namespace'],
+      where: { branchId },
+      _count: true,
+    });
+
+    return results.map((r) => ({
+      namespace: r.namespace,
+      count: r._count,
+    }));
+  }
+
+  /**
    * Bulk update translations for a branch
    * Used for CLI push operations
+   * Keys can be in delimiter format: namespace␟key for namespaced keys
    * Auto-resets approval status to PENDING when value changes
    *
    * @param branchId - Branch ID
-   * @param translations - Translations grouped by language then key name
+   * @param translations - Translations grouped by language then combined key
    * @returns Count of updated and created translations
    */
   async bulkUpdateTranslations(
@@ -597,17 +638,23 @@ export class TranslationService {
 
     await this.prisma.$transaction(async (tx) => {
       for (const [language, keyValues] of Object.entries(translations)) {
-        for (const [keyName, value] of Object.entries(keyValues)) {
+        for (const [combinedKey, value] of Object.entries(keyValues)) {
+          // Parse namespace and key from combined format
+          const { namespace, key: keyName } = parseNamespacedKey(combinedKey);
+
           // Find or create key
-          let key = await tx.translationKey.findUnique({
+          // Use findFirst because namespace can be null
+          let key = await tx.translationKey.findFirst({
             where: {
-              branchId_name: { branchId, name: keyName },
+              branchId,
+              namespace,
+              name: keyName,
             },
           });
 
           if (!key) {
             key = await tx.translationKey.create({
-              data: { branchId, name: keyName },
+              data: { branchId, namespace, name: keyName },
             });
             created++;
           }

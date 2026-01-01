@@ -36,6 +36,7 @@ export function toTranslationKeyDto(key: KeyWithTranslations): TranslationKeyRes
   return {
     id: key.id,
     name: key.name,
+    namespace: key.namespace,
     description: key.description,
     branchId: key.branchId,
     translations: key.translations.map(toTranslationValueDto),

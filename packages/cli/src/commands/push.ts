@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import { join } from 'path';
-import type { CliTranslationsResponse } from '@localeflow/shared';
+import { combineKey, type CliTranslationsResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
-import { readTranslationFiles, computeTranslationDiff } from '../lib/translation-io.js';
+import { readTranslationFilesWithNamespaces, computeTranslationDiff } from '../lib/translation-io.js';
 import { resolveConflicts, type TranslationConflict } from '../utils/conflict-resolver.js';
 import { regenerateTypesIfEnabled } from './types.js';
 import { logger } from '../utils/logger.js';
@@ -78,8 +78,8 @@ async function push(options: PushOptions): Promise<void> {
       indentation: config.format.indentation,
     });
 
-    // Read all translation files
-    let allTranslations = await readTranslationFiles(
+    // Read all translation files (including namespace subdirectories)
+    let allTranslations = await readTranslationFilesWithNamespaces(
       absSourceDir,
       format,
       formatter,
@@ -199,7 +199,7 @@ async function push(options: PushOptions): Promise<void> {
 
       // Fetch all keys from branch to get their IDs (paginated)
       interface KeyListResponse {
-        keys: { id: string; name: string }[];
+        keys: { id: string; name: string; namespace: string | null }[];
         total: number;
       }
 
@@ -213,8 +213,10 @@ async function push(options: PushOptions): Promise<void> {
         );
 
         for (const key of keyListResponse.keys) {
-          if (keysToDelete.has(key.name)) {
-            keyNameToId.set(key.name, key.id);
+          // Combine namespace and name to match the format used in keysToDelete
+          const combinedKey = combineKey(key.namespace, key.name);
+          if (keysToDelete.has(combinedKey)) {
+            keyNameToId.set(combinedKey, key.id);
           }
         }
 

@@ -8,6 +8,7 @@ import type {
 } from '../types';
 import { TranslationCache } from './cache';
 import { ICUFormatter, hasICUSyntax } from './icu-formatter';
+import { NS_DELIMITER } from '../constants';
 
 /**
  * Get a nested value from an object using dot notation
@@ -304,12 +305,23 @@ export class LocaleflowClient {
       this.currentLanguage,
       namespace
     );
-    // Merge namespace translations
+
+    // Prefix keys with namespace+delimiter before merging
+    // API returns: { "tags.title": "Tags" }
+    // We store as: { "glossary␟tags.title": "Tags" }
+    const prefixedTranslations: TranslationBundle = {};
+    for (const [key, value] of Object.entries(nsTranslations)) {
+      const prefixedKey = `${namespace}${NS_DELIMITER}${key}`;
+      prefixedTranslations[prefixedKey] = value;
+    }
+
+    // Merge namespace translations into global translations
     this.translations = {
       ...this.translations,
-      ...nsTranslations,
+      ...prefixedTranslations,
     };
-    return nsTranslations;
+
+    return prefixedTranslations;
   }
 
   /**

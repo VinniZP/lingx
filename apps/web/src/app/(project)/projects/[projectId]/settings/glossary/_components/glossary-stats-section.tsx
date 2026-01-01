@@ -18,7 +18,7 @@ interface GlossaryStatsSectionProps {
 }
 
 export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <section className="space-y-6 animate-fade-in-up">
@@ -28,10 +28,10 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
         </div>
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
-            {t('glossary.stats.title')}
+            {t('stats.title')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t('glossary.stats.description')}
+            {t('stats.description')}
           </p>
         </div>
       </div>
@@ -48,19 +48,19 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
               </div>
               <div className="flex items-center gap-1 text-xs text-success">
                 <TrendingUp className="size-3" />
-                <span className="font-medium">{t('glossary.stats.active')}</span>
+                <span className="font-medium">{t('stats.active')}</span>
               </div>
             </div>
 
             <div className="space-y-1">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                {t('glossary.stats.totalTerms')}
+                {t('stats.totalTerms')}
               </p>
               <div className="text-4xl font-bold tracking-tight tabular-nums">
                 {stats?.totalEntries ?? 0}
               </div>
               <p className="text-sm text-muted-foreground">
-                {t('glossary.stats.translationsAcross', { count: stats?.totalTranslations ?? 0 })}
+                {t('stats.translationsAcross', { count: stats?.totalTranslations ?? 0 })}
               </p>
             </div>
           </div>
@@ -77,19 +77,19 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
               </div>
               <div className="flex items-center gap-1 text-xs text-blue-500">
                 <Globe className="size-3" />
-                <span className="font-medium">{t('glossary.stats.pairs')}</span>
+                <span className="font-medium">{t('stats.pairs')}</span>
               </div>
             </div>
 
             <div className="space-y-1">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                {t('glossary.stats.languagePairs')}
+                {t('stats.languagePairs')}
               </p>
               <div className="text-4xl font-bold tracking-tight tabular-nums">
                 {stats?.languagePairs?.length ?? 0}
               </div>
               <p className="text-sm text-muted-foreground">
-                {t('glossary.stats.activeCombinations')}
+                {t('stats.activeCombinations')}
               </p>
             </div>
           </div>
@@ -106,19 +106,19 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
               </div>
               <div className="flex items-center gap-1 text-xs text-amber-500">
                 <Hash className="size-3" />
-                <span className="font-medium">{t('glossary.stats.categories')}</span>
+                <span className="font-medium">{t('stats.categories')}</span>
               </div>
             </div>
 
             <div className="space-y-1">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                {t('glossary.stats.tagsDefined')}
+                {t('stats.tagsDefined')}
               </p>
               <div className="text-4xl font-bold tracking-tight tabular-nums">
                 {tagsCount}
               </div>
               <p className="text-sm text-muted-foreground">
-                {t('glossary.stats.organizationalCategories')}
+                {t('stats.organizationalCategories')}
               </p>
             </div>
           </div>

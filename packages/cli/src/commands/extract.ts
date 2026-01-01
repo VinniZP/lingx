@@ -1,9 +1,10 @@
 import { Command } from 'commander';
-import { readFile, writeFile } from 'fs/promises';
-import { join, relative } from 'path';
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import { join, relative, dirname } from 'path';
 import { existsSync } from 'fs';
 import { glob } from 'glob';
 import { loadConfig } from '../lib/config.js';
+import { parseNamespacedKey } from '@localeflow/shared';
 import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
 import { createFormatter } from '../lib/formatter/index.js';
 import { regenerateTypesIfEnabled } from './types.js';
@@ -18,6 +19,7 @@ interface ExtractOptions {
   detectIcu?: boolean;
   clean?: boolean;
   locale?: string;
+  sync?: boolean;
 }
 
 interface ExtractedKeyWithIcu extends ExtractedKey {
@@ -36,6 +38,7 @@ export function createExtractCommand(): Command {
     .option('--detect-icu', 'Detect ICU MessageFormat variables in code')
     .option('--clean', 'Remove unused keys from locale file')
     .option('-l, --locale <file>', 'Locale file to clean (default: uses config)')
+    .option('--sync', 'Sync extracted keys to locale files (creates missing keys with empty values)')
     .action(async (options: ExtractOptions) => {
       try {
         await extract(options);
@@ -149,11 +152,12 @@ async function extract(options: ExtractOptions): Promise<void> {
         console.log(chalk.cyan(`[${namespace}]`));
       }
       for (const key of keys.sort((a, b) => a.key.localeCompare(b.key))) {
-        const displayKey = namespace ? key.key.replace(`${namespace}:`, '') : key.key;
+        // Parse the combined key to get just the key name for display
+        const { key: keyName } = parseNamespacedKey(key.key);
         const location = key.location
           ? chalk.gray(` (${relative(cwd, key.location.file)}:${key.location.line})`)
           : '';
-        console.log(`  ${displayKey}${location}`);
+        console.log(`  ${keyName}${location}`);
 
         if (detectIcu && key.icu && key.icu.variables.length > 0) {
           console.log(chalk.gray(`    Variables: ${key.icu.variables.join(', ')}`));
@@ -186,6 +190,11 @@ async function extract(options: ExtractOptions): Promise<void> {
     // Clean unused keys from locale file if requested
     if (options.clean) {
       await cleanUnusedKeys(cwd, config, uniqueKeys, options.locale);
+    }
+
+    // Sync extracted keys to locale files if requested
+    if (options.sync) {
+      await syncExtractedKeys(cwd, config, uniqueKeys);
     }
 
     // Regenerate types if enabled
@@ -275,6 +284,149 @@ async function cleanUnusedKeys(
     }
   } catch (error) {
     spinner.fail('Failed to clean unused keys');
+    throw error;
+  }
+}
+
+/**
+ * Sync extracted keys to locale files.
+ * - Creates missing keys with empty values in appropriate namespace folders.
+ * - Removes unused keys that exist in files but not in code.
+ *
+ * File structure:
+ * - locales/[lang].json - root keys (no namespace)
+ * - locales/[namespace]/[lang].json - namespaced keys
+ */
+async function syncExtractedKeys(
+  cwd: string,
+  config: Awaited<ReturnType<typeof loadConfig>>,
+  extractedKeys: ExtractedKeyWithIcu[]
+): Promise<void> {
+  const spinner = createSpinner('Syncing extracted keys to locale files...');
+  spinner.start();
+
+  try {
+    const localesDir = join(cwd, config.paths.translations);
+    const sourceLocale = config.types?.sourceLocale ?? 'en';
+
+    // Group keys by namespace, extracting just the key part (without namespace prefix)
+    const byNamespace = new Map<string | null, Set<string>>();
+    for (const key of extractedKeys) {
+      // Parse the combined key to get namespace and key name
+      const { namespace, key: keyName } = parseNamespacedKey(key.key);
+      const ns = namespace ?? null;
+
+      if (!byNamespace.has(ns)) {
+        byNamespace.set(ns, new Set());
+      }
+      byNamespace.get(ns)!.add(keyName);
+    }
+
+    // Create formatter
+    const formatter = createFormatter(config.format.type, {
+      nested: config.format.nested,
+      indentation: config.format.indentation,
+    });
+
+    let createdFiles = 0;
+    let addedKeys = 0;
+    let removedKeys = 0;
+    const removedKeysList: string[] = [];
+
+    // Process each namespace
+    for (const [namespace, keyNames] of byNamespace) {
+      // Determine file path
+      const filePath = namespace
+        ? join(localesDir, namespace, `${sourceLocale}.json`)
+        : join(localesDir, `${sourceLocale}.json`);
+
+      // Ensure directory exists
+      const dir = dirname(filePath);
+      if (!existsSync(dir)) {
+        await mkdir(dir, { recursive: true });
+      }
+
+      // Read existing translations or create empty object
+      let existingTranslations: Record<string, string> = {};
+      const fileExists = existsSync(filePath);
+      if (fileExists) {
+        try {
+          const content = await readFile(filePath, 'utf-8');
+          existingTranslations = formatter.parse(content);
+        } catch {
+          // If parse fails, start with empty object
+          existingTranslations = {};
+        }
+      } else {
+        createdFiles++;
+      }
+
+      // Build new translations: add missing, skip unused
+      const newTranslations: Record<string, string> = {};
+
+      // Add all extracted keys (with existing values or empty string for new)
+      for (const keyName of keyNames) {
+        newTranslations[keyName] = existingTranslations[keyName] ?? '';
+        if (!(keyName in existingTranslations)) {
+          addedKeys++;
+        }
+      }
+
+      // Track removed keys (exist in file but not in extracted)
+      for (const existingKey of Object.keys(existingTranslations)) {
+        if (!keyNames.has(existingKey)) {
+          removedKeys++;
+          const displayKey = namespace ? `${namespace}:${existingKey}` : existingKey;
+          removedKeysList.push(displayKey);
+        }
+      }
+
+      // Sort keys alphabetically for consistent output
+      const sortedTranslations: Record<string, string> = {};
+      for (const k of Object.keys(newTranslations).sort()) {
+        sortedTranslations[k] = newTranslations[k];
+      }
+
+      // Write file if there were changes
+      const hasChanges = addedKeys > 0 || removedKeys > 0 || !fileExists;
+      if (hasChanges) {
+        const content = formatter.format(sortedTranslations);
+        await writeFile(filePath, content + '\n', 'utf-8');
+      }
+    }
+
+    // Build summary message
+    const parts: string[] = [];
+    if (addedKeys > 0) parts.push(`${addedKeys} added`);
+    if (removedKeys > 0) parts.push(`${removedKeys} removed`);
+    if (createdFiles > 0) parts.push(`${createdFiles} file(s) created`);
+
+    if (parts.length > 0) {
+      spinner.succeed(`Synced: ${parts.join(', ')}`);
+
+      // Display removed keys if any
+      if (removedKeysList.length > 0) {
+        console.log();
+        console.log(chalk.bold('Removed Keys:'));
+        for (const key of removedKeysList.sort()) {
+          console.log(chalk.red(`  - ${key}`));
+        }
+      }
+
+      // Display summary by namespace
+      console.log();
+      console.log(chalk.bold('Synced Files:'));
+      for (const [namespace, keyNames] of byNamespace) {
+        const filePath = namespace
+          ? join(config.paths.translations, namespace, `${sourceLocale}.json`)
+          : join(config.paths.translations, `${sourceLocale}.json`);
+        console.log(chalk.green(`  ${filePath}`), chalk.gray(`(${keyNames.size} keys)`));
+      }
+    } else {
+      spinner.succeed('All keys already synced');
+    }
+  } catch (error) {
+    spinner.fail('Failed to sync extracted keys');
     throw error;
   }
 }

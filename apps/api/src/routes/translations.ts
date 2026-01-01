@@ -23,6 +23,7 @@ import {
   batchApprovalSchema,
   batchQualityCheckResponseSchema,
   qualityIssueSchema,
+  namespaceListResponseSchema,
 } from '@localeflow/shared';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
@@ -66,7 +67,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, _reply) => {
       const { branchId } = request.params;
-      const { search, page, limit, filter } = request.query;
+      const { search, page, limit, filter, namespace } = request.query;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -86,8 +87,49 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         page,
         limit,
         filter,
+        namespace,
       });
       return toKeyListResultDto(result);
+    }
+  );
+
+  /**
+   * GET /api/branches/:branchId/keys/namespaces - List unique namespaces with counts
+   */
+  app.get(
+    '/api/branches/:branchId/keys/namespaces',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'List unique namespaces with key counts',
+        tags: ['Translations'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          branchId: z.string(),
+        }),
+        response: {
+          200: namespaceListResponseSchema,
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { branchId } = request.params;
+
+      const projectId = await branchService.getProjectIdByBranchId(branchId);
+      if (!projectId) {
+        throw new NotFoundError('Branch');
+      }
+
+      const isMember = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      const namespaces = await translationService.getNamespaces(branchId);
+      return { namespaces };
     }
   );
 
@@ -113,7 +155,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { branchId } = request.params;
-      const { name, description } = request.body;
+      const { name, namespace, description } = request.body;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -130,6 +172,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
 
       const key = await translationService.createKey({
         name,
+        namespace,
         description,
         branchId,
       });
@@ -218,7 +261,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, _reply) => {
       const { id } = request.params;
-      const { name, description } = request.body;
+      const { name, namespace, description } = request.body;
 
       const projectId = await translationService.getProjectIdByKeyId(id);
       if (!projectId) {
@@ -233,7 +276,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ForbiddenError('Not a member of this project');
       }
 
-      const updated = await translationService.updateKey(id, { name, description });
+      const updated = await translationService.updateKey(id, { name, namespace, description });
       return toTranslationKeyDto(updated);
     }
   );

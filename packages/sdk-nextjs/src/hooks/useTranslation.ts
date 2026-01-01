@@ -1,55 +1,44 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import { useLocaleflowContext } from '../context/LocaleflowContext';
-import type { TranslationFunction, DynamicTranslationFunction, TranslationValues, TranslationKey } from '../types';
+import { NS_DELIMITER } from '../constants';
+import type {
+  TranslationFunction,
+  DynamicTranslationFunction,
+  NamespacedTranslationFunction,
+  NamespacedDynamicTranslationFunction,
+  NamespaceTranslationKeys,
+  NamespaceKeys,
+  TranslationValues,
+  TranslationKey,
+} from '../types';
 
 /**
- * Return type for useTranslation hook
+ * Return type for useTranslation hook without namespace (root keys)
  */
 export interface UseTranslationReturn {
-  /**
-   * Translate a key with ICU MessageFormat support.
-   * Use this for direct string literal keys.
-   *
-   * @param key - Translation key (string literal)
-   * @param values - Values for ICU MessageFormat placeholders
-   * @returns Formatted translation string
-   *
-   * @example
-   * ```tsx
-   * const { t } = useTranslation();
-   * t('greeting', { name: 'World' }); // "Hello, World!"
-   * t('cart_items', { count: 5 }); // "5 items" (with ICU plural)
-   * ```
-   */
+  /** Translate a root key */
   t: TranslationFunction;
-
-  /**
-   * Translate a dynamic key (from tKey()).
-   * Use this when translating keys stored in variables/arrays.
-   *
-   * @param key - TranslationKey from tKey()
-   * @param values - Values for ICU MessageFormat placeholders
-   * @returns Formatted translation string
-   *
-   * @example
-   * ```tsx
-   * const items = [{ labelKey: tKey('nav.home') }];
-   * const { td } = useTranslation();
-   * items.map(item => td(item.labelKey));
-   * ```
-   */
+  /** Translate a dynamic root key (from tKey()) */
   td: DynamicTranslationFunction;
-
-  /**
-   * Whether translations are ready to use
-   */
+  /** Whether translations are ready */
   ready: boolean;
+  /** Any error that occurred */
+  error: Error | null;
+}
 
-  /**
-   * Any error that occurred during loading
-   */
+/**
+ * Return type for useTranslation hook with namespace
+ */
+export interface UseNamespacedTranslationReturn<NS extends string> {
+  /** Translate a namespaced key - only accepts keys valid for this namespace */
+  t: NamespacedTranslationFunction<NamespaceTranslationKeys<NS>>;
+  /** Translate a dynamic namespaced key (from tKey()) */
+  td: NamespacedDynamicTranslationFunction<NamespaceTranslationKeys<NS>>;
+  /** Whether translations are ready */
+  ready: boolean;
+  /** Any error that occurred */
   error: Error | null;
 }
 
@@ -61,72 +50,68 @@ export interface UseTranslationReturn {
  *
  * @example
  * ```tsx
- * // Without namespace
+ * // Without namespace - t() accepts root keys only
  * const { t, ready } = useTranslation();
  * if (!ready) return <Loading />;
  * return <h1>{t('greeting', { name: 'World' })}</h1>;
  *
- * // With namespace
- * const { t } = useTranslation('auth');
- * return <h1>{t('login.title')}</h1>; // Looks up 'auth:login.title'
+ * // With namespace - t() accepts only keys from that namespace
+ * const { t } = useTranslation('glossary');
+ * return <h1>{t('dialog.title')}</h1>; // Only glossary keys allowed
  * ```
  */
-export function useTranslation(namespace?: string): UseTranslationReturn {
+export function useTranslation(): UseTranslationReturn;
+export function useTranslation<NS extends keyof NamespaceKeys>(
+  namespace: NS
+): UseNamespacedTranslationReturn<NS & string>;
+export function useTranslation(namespace?: string): UseTranslationReturn | UseNamespacedTranslationReturn<string> {
   const context = useLocaleflowContext();
-  const { translations, ready, error, t: contextT } = context;
+  const { translations, ready, error, t: contextT, loadNamespace, loadedNamespaces } = context;
+
+  // Load namespace on mount if provided and not already loaded
+  useEffect(() => {
+    if (namespace && !loadedNamespaces.has(namespace)) {
+      loadNamespace(namespace);
+    }
+  }, [namespace, loadNamespace, loadedNamespaces]);
 
   /**
-   * Translation function that handles namespace prefixing.
-   * Delegates to context's t function for full ICU MessageFormat support.
+   * Translation function that handles namespace key lookup.
+   * When a namespace is provided, keys are looked up with namespace␟key format.
+   * e.g., useTranslation('glossary') + t('tags.title') → looks up 'glossary␟tags.title'
    */
-  const t = useCallback<TranslationFunction>(
+  const t = useCallback(
     (key: string, values?: TranslationValues) => {
-      // Build full key with namespace prefix if provided
-      const fullKey = namespace ? `${namespace}:${key}` : key;
-
-      // Check if namespaced key exists
-      const hasNamespacedKey = fullKey in translations;
-
-      // If namespaced key doesn't exist, try without namespace (for common keys)
-      if (!hasNamespacedKey && namespace && key in translations) {
-        // Use the non-namespaced key with ICU formatting from context
-        return contextT(key, values);
-      }
-
-      // Use the full key (with namespace prefix) with ICU formatting from context
+      // Build full key with namespace delimiter if namespace is provided
+      const fullKey = namespace ? `${namespace}${NS_DELIMITER}${key}` : key;
       return contextT(fullKey, values);
     },
-    [translations, namespace, contextT]
+    [namespace, contextT]
   );
 
   /**
    * Dynamic translation function for TranslationKey branded strings.
    * Same implementation as t(), but typed to only accept TranslationKey.
    */
-  const td = useCallback<DynamicTranslationFunction>(
+  const td = useCallback(
     <T extends string>(key: TranslationKey<T>, values?: TranslationValues) => {
-      // TranslationKey is just a branded string, so we can use it as a regular key
       const stringKey = key as unknown as string;
-      const fullKey = namespace ? `${namespace}:${stringKey}` : stringKey;
-
-      const hasNamespacedKey = fullKey in translations;
-
-      if (!hasNamespacedKey && namespace && stringKey in translations) {
-        return contextT(stringKey, values);
-      }
-
+      const fullKey = namespace ? `${namespace}${NS_DELIMITER}${stringKey}` : stringKey;
       return contextT(fullKey, values);
     },
-    [translations, namespace, contextT]
+    [namespace, contextT]
   );
+
+  // Check if namespace is loaded (or no namespace needed)
+  const isReady = namespace ? loadedNamespaces.has(namespace) && ready : ready;
 
   return useMemo(
     () => ({
       t,
       td,
-      ready,
+      ready: isReady,
       error,
     }),
-    [t, td, ready, error]
+    [t, td, isReady, error]
   );
 }

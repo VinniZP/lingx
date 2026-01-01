@@ -17,7 +17,7 @@ export function GlossaryTagsSection({
   onCreateTag,
   onDeleteTag,
 }: GlossaryTagsSectionProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <section className="space-y-6 animate-fade-in-up stagger-4">
@@ -28,16 +28,16 @@ export function GlossaryTagsSection({
           </div>
           <div>
             <h2 className="text-xl font-semibold tracking-tight">
-              {t('glossary.tags.title')}
+              {t('tags.title')}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {t('glossary.tags.description')}
+              {t('tags.description')}
             </p>
           </div>
         </div>
         <Button size="sm" variant="outline" className="h-9 gap-2" onClick={onCreateTag}>
           <Plus className="size-4" />
-          {t('glossary.tags.addTag')}
+          {t('tags.addTag')}
         </Button>
       </div>
 
@@ -50,14 +50,14 @@ export function GlossaryTagsSection({
               </div>
             </div>
             <h3 className="text-base font-semibold mb-1.5">
-              {t('glossary.tags.noTagsYet')}
+              {t('tags.noTagsYet')}
             </h3>
             <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
-              {t('glossary.tags.createToOrganize')}
+              {t('tags.createToOrganize')}
             </p>
             <Button size="sm" variant="outline" className="gap-2" onClick={onCreateTag}>
               <Plus className="size-4" />
-              {t('glossary.tags.createFirstTag')}
+              {t('tags.createFirstTag')}
             </Button>
           </div>
         ) : (

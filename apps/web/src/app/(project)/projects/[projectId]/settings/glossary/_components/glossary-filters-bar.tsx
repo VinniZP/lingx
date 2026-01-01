@@ -42,14 +42,14 @@ export function GlossaryFiltersBar({
   tags,
   totalEntries,
 }: GlossaryFiltersBarProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <div className="relative flex-1 min-w-[240px] max-w-md">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
-          placeholder={t('glossary.filters.searchPlaceholder')}
+          placeholder={t('filters.searchPlaceholder')}
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-11 bg-card border-border/50"
@@ -59,10 +59,10 @@ export function GlossaryFiltersBar({
       <Select value={sourceLanguageFilter} onValueChange={onSourceLanguageChange}>
         <SelectTrigger className="w-[150px] h-10 bg-card border-border/50">
           <Globe className="size-3.5 mr-2 text-muted-foreground" />
-          <SelectValue placeholder={t('glossary.filters.language')} />
+          <SelectValue placeholder={t('filters.language')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{t('common.allLanguages')}</SelectItem>
+          <SelectItem value="all">{t('filters.allLanguages')}</SelectItem>
           {languages.map((lang) => (
             <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
           ))}
@@ -73,10 +73,10 @@ export function GlossaryFiltersBar({
         <Select value={domainFilter} onValueChange={onDomainChange}>
           <SelectTrigger className="w-[150px] h-10 bg-card border-border/50">
             <Hash className="size-3.5 mr-2 text-muted-foreground" />
-            <SelectValue placeholder={t('glossary.filters.domain')} />
+            <SelectValue placeholder={t('filters.domain')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('common.allDomains')}</SelectItem>
+            <SelectItem value="all">{t('filters.allDomains')}</SelectItem>
             {domains.map((domain) => (
               <SelectItem key={domain} value={domain}>{domain}</SelectItem>
             ))}
@@ -88,10 +88,10 @@ export function GlossaryFiltersBar({
         <Select value={tagFilter} onValueChange={onTagChange}>
           <SelectTrigger className="w-[150px] h-10 bg-card border-border/50">
             <Tag className="size-3.5 mr-2 text-muted-foreground" />
-            <SelectValue placeholder={t('glossary.filters.tag')} />
+            <SelectValue placeholder={t('filters.tag')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('common.allTags')}</SelectItem>
+            <SelectItem value="all">{t('filters.allTags')}</SelectItem>
             {tags.map((tag) => (
               <SelectItem key={tag.id} value={tag.id}>
                 <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export function GlossaryFiltersBar({
 
       <div className="ml-auto flex items-center gap-2">
         <span className="text-sm text-muted-foreground tabular-nums">
-          {t('glossary.filters.entriesCount', { count: totalEntries })}
+          {t('filters.entriesCount', { count: totalEntries })}
         </span>
       </div>
     </div>

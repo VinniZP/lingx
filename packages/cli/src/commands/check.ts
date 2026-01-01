@@ -5,6 +5,7 @@ import { glob } from 'glob';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createExtractor, type ExtractionError } from '../lib/extractor/index.js';
+import { parseNamespacedKey, toUserKey } from '@localeflow/shared';
 import {
   validateTranslations,
   summarizeValidation,
@@ -194,6 +195,12 @@ async function check(options: CheckOptions): Promise<number> {
     console.log(`Platform keys: ${platformKeys.size}`);
     console.log();
 
+    // Helper to display keys in user-friendly format (namespace:key instead of delimiter)
+    const displayKey = (key: string): string => {
+      const { namespace, key: keyName } = parseNamespacedKey(key);
+      return toUserKey(namespace, keyName);
+    };
+
     // Check for missing keys (in code but not platform)
     if (checkMissing) {
       const missing = [...codeKeys].filter(k => !platformKeys.has(k));
@@ -204,7 +211,7 @@ async function check(options: CheckOptions): Promise<number> {
         console.log(chalk.gray('Keys in code but not in platform:'));
         console.log();
         for (const key of missing.sort()) {
-          console.log(`  ${chalk.yellow('!')} ${key}`);
+          console.log(`  ${chalk.yellow('!')} ${displayKey(key)}`);
         }
         console.log();
       } else {
@@ -223,7 +230,7 @@ async function check(options: CheckOptions): Promise<number> {
         console.log(chalk.gray('Keys in platform but not in code:'));
         console.log();
         for (const key of unused.sort()) {
-          console.log(`  ${chalk.gray('-')} ${key}`);
+          console.log(`  ${chalk.gray('-')} ${displayKey(key)}`);
         }
         console.log();
       } else {

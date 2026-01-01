@@ -19,7 +19,7 @@ export function GlossaryEntryRow({
   onEdit,
   onDelete,
 }: GlossaryEntryRowProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <div
@@ -62,7 +62,7 @@ export function GlossaryEntryRow({
                 ))}
                 {entry.translations.length > 3 && (
                   <span className="text-xs text-muted-foreground">
-                    {t('glossary.entry.moreTranslations', { count: entry.translations.length - 3 })}
+                    {t('entry.moreTranslations', { count: entry.translations.length - 3 })}
                   </span>
                 )}
               </div>

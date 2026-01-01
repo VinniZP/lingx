@@ -23,7 +23,7 @@ export function GlossaryTerminologyHeader({
   onImport,
   onAddTerm,
 }: GlossaryTerminologyHeaderProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <div className="flex items-center justify-between">
@@ -33,10 +33,10 @@ export function GlossaryTerminologyHeader({
         </div>
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
-            {t('glossary.terminology.title')}
+            {t('terminology.title')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t('glossary.terminology.description')}
+            {t('terminology.description')}
           </p>
         </div>
       </div>
@@ -45,27 +45,27 @@ export function GlossaryTerminologyHeader({
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-9 gap-2">
               <Download className="size-4" />
-              {t('glossary.terminology.export')}
+              {t('terminology.export')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onExportCsv}>
               <FileText className="size-4 mr-2" />
-              {t('glossary.terminology.exportAsCsv')}
+              {t('terminology.exportAsCsv')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onExportTbx}>
               <FileText className="size-4 mr-2" />
-              {t('glossary.terminology.exportAsTbx')}
+              {t('terminology.exportAsTbx')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <Button variant="outline" size="sm" className="h-9 gap-2" onClick={onImport}>
           <Upload className="size-4" />
-          {t('glossary.terminology.import')}
+          {t('terminology.import')}
         </Button>
         <Button size="sm" className="h-9 gap-2" onClick={onAddTerm}>
           <Plus className="size-4" />
-          {t('glossary.terminology.addTerm')}
+          {t('terminology.addTerm')}
         </Button>
       </div>
     </div>

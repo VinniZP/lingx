@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { inferIcuParamTypes, type IcuParamType } from './icu-type-inferrer.js';
@@ -32,13 +32,25 @@ interface TranslationEntry {
 }
 
 /**
+ * Namespace entries with their translation keys
+ */
+interface NamespaceEntries {
+  /** Namespace name */
+  namespace: string;
+  /** Translation entries for this namespace */
+  entries: TranslationEntry[];
+}
+
+/**
  * Result of type generation
  */
 export interface TypeGeneratorResult {
-  /** Number of translation keys processed */
+  /** Number of root translation keys processed */
   keyCount: number;
   /** Number of keys with ICU parameters */
   keysWithParams: number;
+  /** Number of namespaces found */
+  namespaceCount: number;
   /** Output file path */
   outputPath: string;
 }
@@ -48,27 +60,85 @@ export interface TypeGeneratorResult {
  *
  * Creates a .d.ts file that augments the @localeflow/sdk-nextjs module
  * with type-safe translation keys and ICU parameter types.
+ *
+ * File structure:
+ * - locales/{lang}.json → TranslationResources.keys (root keys)
+ * - locales/{namespace}/{lang}.json → NamespaceKeys[namespace]
  */
 export async function generateTypes(
   options: TypeGeneratorOptions
 ): Promise<TypeGeneratorResult> {
-  // Build path to source locale file
   const fileName = options.filePattern.replace('{lang}', options.sourceLocale);
-  const filePath = join(options.translationsPath, fileName);
 
-  if (!existsSync(filePath)) {
-    throw new Error(
-      `Source locale file not found: ${filePath}\n` +
-        `Please ensure the file exists or check your config.`
-    );
+  // Read root locale file for TranslationResources.keys
+  const rootFilePath = join(options.translationsPath, fileName);
+  let rootEntries: TranslationEntry[] = [];
+
+  if (existsSync(rootFilePath)) {
+    rootEntries = await readTranslationFile(rootFilePath, options.nested);
   }
 
-  // Read and parse translations
+  // Scan for namespace subdirectories
+  const namespaceEntries: NamespaceEntries[] = [];
+
+  if (existsSync(options.translationsPath)) {
+    const dirEntries = await readdir(options.translationsPath, { withFileTypes: true });
+
+    for (const entry of dirEntries) {
+      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+        const nsFilePath = join(options.translationsPath, entry.name, fileName);
+        if (existsSync(nsFilePath)) {
+          const entries = await readTranslationFile(nsFilePath, options.nested);
+          if (entries.length > 0) {
+            namespaceEntries.push({
+              namespace: entry.name,
+              entries,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Sort namespaces alphabetically
+  namespaceEntries.sort((a, b) => a.namespace.localeCompare(b.namespace));
+
+  // Generate TypeScript declaration content
+  const declarationContent = generateDeclarationFile(rootEntries, namespaceEntries);
+
+  // Ensure output directory exists
+  const outputDir = dirname(options.outputPath);
+  if (!existsSync(outputDir)) {
+    await mkdir(outputDir, { recursive: true });
+  }
+
+  // Write declaration file
+  await writeFile(options.outputPath, declarationContent, 'utf-8');
+
+  // Count total keys including namespaces
+  const totalNsKeys = namespaceEntries.reduce((sum, ns) => sum + ns.entries.length, 0);
+  const allEntries = [...rootEntries, ...namespaceEntries.flatMap(ns => ns.entries)];
+
+  return {
+    keyCount: rootEntries.length + totalNsKeys,
+    keysWithParams: allEntries.filter((e) => e.params.length > 0).length,
+    namespaceCount: namespaceEntries.length,
+    outputPath: options.outputPath,
+  };
+}
+
+/**
+ * Reads and parses a translation file
+ */
+async function readTranslationFile(
+  filePath: string,
+  nested: boolean
+): Promise<TranslationEntry[]> {
   const content = await readFile(filePath, 'utf-8');
   const rawTranslations = JSON.parse(content);
 
   // Flatten nested translations to dot-notation
-  const flatTranslations = options.nested
+  const flatTranslations = nested
     ? flattenObject(rawTranslations)
     : rawTranslations;
 
@@ -81,23 +151,7 @@ export async function generateTypes(
     entries.push({ key, value, params });
   }
 
-  // Generate TypeScript declaration content
-  const declarationContent = generateDeclarationFile(entries);
-
-  // Ensure output directory exists
-  const outputDir = dirname(options.outputPath);
-  if (!existsSync(outputDir)) {
-    await mkdir(outputDir, { recursive: true });
-  }
-
-  // Write declaration file
-  await writeFile(options.outputPath, declarationContent, 'utf-8');
-
-  return {
-    keyCount: entries.length,
-    keysWithParams: entries.filter((e) => e.params.length > 0).length,
-    outputPath: options.outputPath,
-  };
+  return entries;
 }
 
 /**
@@ -136,18 +190,28 @@ function escapeJsDoc(str: string): string {
 /**
  * Generates the TypeScript declaration file content
  */
-function generateDeclarationFile(entries: TranslationEntry[]): string {
-  // Sort entries alphabetically
-  const sortedEntries = [...entries].sort((a, b) => a.key.localeCompare(b.key));
+function generateDeclarationFile(
+  rootEntries: TranslationEntry[],
+  namespaceEntries: NamespaceEntries[] = []
+): string {
+  // Sort root entries alphabetically
+  const sortedRootEntries = [...rootEntries].sort((a, b) => a.key.localeCompare(b.key));
 
-  // Generate TranslationKeys union type
-  const keysUnion = sortedEntries
-    .map((e) => `  | '${e.key}'`)
-    .join('\n');
+  // Generate TranslationKeys union type (root keys only)
+  const keysUnion = sortedRootEntries.length > 0
+    ? sortedRootEntries.map((e) => `      | '${e.key}'`).join('\n')
+    : '      | never';
 
-  // Generate TranslationParams interface
-  const paramsEntries = sortedEntries
+  // Collect all entries (root + namespaced) for params
+  const allEntries = [
+    ...sortedRootEntries,
+    ...namespaceEntries.flatMap(ns => ns.entries),
+  ];
+
+  // Generate TranslationParams interface (for all keys with params)
+  const paramsEntries = allEntries
     .filter((e) => e.params.length > 0)
+    .sort((a, b) => a.key.localeCompare(b.key))
     .map((e) => {
       const paramType = e.params.map((p) => `${p.name}: ${p.type}`).join('; ');
       const jsdoc = `    /** ${escapeJsDoc(e.value)} */`;
@@ -155,9 +219,18 @@ function generateDeclarationFile(entries: TranslationEntry[]): string {
     })
     .join('\n');
 
+  // Generate NamespaceKeys interface
+  const namespaceKeysContent = namespaceEntries.length > 0
+    ? namespaceEntries.map(ns => {
+        const sortedNsEntries = [...ns.entries].sort((a, b) => a.key.localeCompare(b.key));
+        const nsKeysUnion = sortedNsEntries.map((e) => `        | '${e.key}'`).join('\n');
+        return `    /** Keys in the '${ns.namespace}' namespace */\n    '${ns.namespace}':\n${nsKeysUnion};`;
+      }).join('\n')
+    : '    // No namespaces defined';
+
   // Build the full declaration file
   // Note: We use interface merging to augment the SDK types
-  // The SDK defines TranslationResources as an empty interface that we extend here
+  // The SDK defines TranslationResources and NamespaceKeys as empty interfaces that we extend here
   return `// This file is auto-generated by LocaleFlow CLI
 // Do not edit manually. Run 'localeflow types' to regenerate.
 
@@ -170,11 +243,21 @@ declare module '@localeflow/sdk-nextjs' {
    */
   interface TranslationResources {
     /**
-     * All available translation keys.
+     * Root translation keys (no namespace).
      * Generated from source locale translations.
      */
     keys:
 ${keysUnion};
+  }
+
+  /**
+   * Namespace-specific translation keys.
+   * Each namespace maps to its available keys.
+   *
+   * Usage: tKey('key', 'namespace')
+   */
+  interface NamespaceKeys {
+${namespaceKeysContent}
   }
 
   /**

@@ -38,7 +38,7 @@ export function GlossaryProviderSyncSection({
   onSync,
   onDeleteSync,
 }: GlossaryProviderSyncSectionProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <section className="space-y-6 animate-fade-in-up stagger-5">
@@ -48,10 +48,10 @@ export function GlossaryProviderSyncSection({
         </div>
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
-            {t('glossary.providerSync.title')}
+            {t('providerSync.title')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t('glossary.providerSync.description')}
+            {t('providerSync.description')}
           </p>
         </div>
       </div>
@@ -64,10 +64,10 @@ export function GlossaryProviderSyncSection({
           </div>
           <div>
             <p className="text-sm font-medium mb-1">
-              {t('glossary.providerSync.consistency')}
+              {t('providerSync.consistency')}
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {t('glossary.providerSync.consistencyDescription')}
+              {t('providerSync.consistencyDescription')}
             </p>
           </div>
         </div>
@@ -77,10 +77,10 @@ export function GlossaryProviderSyncSection({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {t('glossary.providerSync.activeSyncs')}
+                {t('providerSync.activeSyncs')}
               </h4>
               <Badge variant="secondary" className="text-[10px]">
-                {t('glossary.providerSync.connected', { count: syncStatuses.length })}
+                {t('providerSync.connected', { count: syncStatuses.length })}
               </Badge>
             </div>
             <div className="divide-y divide-border/50 rounded-xl border border-border/50 overflow-hidden">
@@ -119,7 +119,7 @@ export function GlossaryProviderSyncSection({
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {sync.sourceLanguage} → {sync.targetLanguage} · {t('glossary.providerSync.termsSynced', { count: sync.entriesCount })}
+                        {sync.sourceLanguage} → {sync.targetLanguage} · {t('providerSync.termsSynced', { count: sync.entriesCount })}
                       </p>
                     </div>
                   </div>
@@ -141,10 +141,10 @@ export function GlossaryProviderSyncSection({
               <Zap className="size-6 text-muted-foreground/60" />
             </div>
             <p className="text-sm font-medium mb-1">
-              {t('glossary.providerSync.noSyncs')}
+              {t('providerSync.noSyncs')}
             </p>
             <p className="text-sm text-muted-foreground">
-              {t('glossary.providerSync.connectBelow')}
+              {t('providerSync.connectBelow')}
             </p>
           </div>
         )}
@@ -153,7 +153,7 @@ export function GlossaryProviderSyncSection({
         {stats && stats.languagePairs.length > 0 && (
           <div className="pt-5 border-t border-border/50">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              {t('glossary.providerSync.quickSync')}
+              {t('providerSync.quickSync')}
             </h4>
             <div className="flex flex-wrap gap-2.5">
               {stats.languagePairs.slice(0, 4).map((pair) => (
@@ -174,14 +174,14 @@ export function GlossaryProviderSyncSection({
                       disabled={isSyncing}
                     >
                       <Languages className="size-4 mr-2 text-[#0F2B46] dark:text-blue-400" />
-                      {t('glossary.providerSync.syncToDeepL')}
+                      {t('providerSync.syncToDeepL')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onSync('GOOGLE_TRANSLATE', pair.sourceLanguage, pair.targetLanguage)}
                       disabled={isSyncing}
                     >
                       <Languages className="size-4 mr-2 text-emerald-500" />
-                      {t('glossary.providerSync.syncToGoogle')}
+                      {t('providerSync.syncToGoogle')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

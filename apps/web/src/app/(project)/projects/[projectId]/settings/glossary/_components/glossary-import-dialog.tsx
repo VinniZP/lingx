@@ -33,7 +33,7 @@ export function GlossaryImportDialog({
   isImporting,
   onImport,
 }: GlossaryImportDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importFormat, setImportFormat] = useState<'csv' | 'tbx'>('csv');
   const [importOverwrite, setImportOverwrite] = useState(false);
@@ -56,10 +56,10 @@ export function GlossaryImportDialog({
             </div>
             <div className="flex-1 min-w-0">
               <DialogTitle className="text-xl font-semibold tracking-tight">
-                {t('glossary.import.title')}
+                {t('import.title')}
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground mt-1">
-                {t('glossary.import.description')}
+                {t('import.description')}
               </DialogDescription>
             </div>
           </div>
@@ -71,7 +71,7 @@ export function GlossaryImportDialog({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <div className="size-1.5 rounded-full bg-emerald-500" />
-              {t('glossary.import.fileFormat')}
+              {t('import.fileFormat')}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -109,7 +109,7 @@ export function GlossaryImportDialog({
                     CSV
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    {t('glossary.import.csvDescription')}
+                    {t('import.csvDescription')}
                   </div>
                 </div>
               </button>
@@ -148,7 +148,7 @@ export function GlossaryImportDialog({
                     TBX
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    {t('glossary.import.tbxDescription')}
+                    {t('import.tbxDescription')}
                   </div>
                 </div>
               </button>
@@ -159,7 +159,7 @@ export function GlossaryImportDialog({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <div className="size-1.5 rounded-full bg-amber-500" />
-              {t('glossary.import.options')}
+              {t('import.options')}
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-border/50 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent p-4">
@@ -169,10 +169,10 @@ export function GlossaryImportDialog({
                 </div>
                 <div className="space-y-0.5">
                   <label className="text-sm font-medium cursor-pointer">
-                    {t('glossary.import.overwriteExisting')}
+                    {t('import.overwriteExisting')}
                   </label>
                   <p className="text-xs text-muted-foreground">
-                    {t('glossary.import.overwriteDescription')}
+                    {t('import.overwriteDescription')}
                   </p>
                 </div>
               </div>
@@ -193,10 +193,10 @@ export function GlossaryImportDialog({
               <Upload className="size-6 text-muted-foreground group-hover:text-emerald-500 transition-colors" />
             </div>
             <p className="text-sm font-medium mb-1">
-              {t('glossary.import.clickToSelect')}
+              {t('import.clickToSelect')}
             </p>
             <p className="text-xs text-muted-foreground">
-              {t('glossary.import.dragAndDrop', { format: importFormat === 'csv' ? '.csv' : '.tbx' })}
+              {t('import.dragAndDrop', { format: importFormat === 'csv' ? '.csv' : '.tbx' })}
             </p>
           </div>
 
@@ -216,7 +216,7 @@ export function GlossaryImportDialog({
         <div className="px-7 py-5 border-t border-border/40 bg-muted/20 flex items-center justify-between">
           <div className="text-xs text-muted-foreground flex items-center gap-1.5">
             <FileText className="size-3.5" />
-            {t('glossary.import.accepts', { format: importFormat === 'csv' ? 'CSV' : 'TBX' })}
+            {t('import.accepts', { format: importFormat === 'csv' ? 'CSV' : 'TBX' })}
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -237,7 +237,7 @@ export function GlossaryImportDialog({
               ) : (
                 <Upload className="size-4" />
               )}
-              {t('glossary.import.selectFile')}
+              {t('import.selectFile')}
             </Button>
           </div>
         </div>

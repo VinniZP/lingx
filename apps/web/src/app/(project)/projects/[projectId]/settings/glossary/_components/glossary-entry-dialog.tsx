@@ -63,7 +63,7 @@ export function GlossaryEntryDialog({
   isSubmitting,
   onSubmit,
 }: GlossaryEntryDialogProps) {
-  const { t, td } = useTranslation();
+  const { t, td } = useTranslation('glossary');
 
   const form = useForm<EntryFormData>({
     resolver: zodResolver(entryFormSchema),
@@ -142,12 +142,12 @@ export function GlossaryEntryDialog({
             </div>
             <div className="flex-1 min-w-0">
               <DialogTitle className="text-xl font-semibold tracking-tight">
-                {editingEntry ? t('glossary.dialog.editTerm') : t('glossary.dialog.addNewTerm')}
+                {editingEntry ? t('dialog.editTerm') : t('dialog.addNewTerm')}
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground mt-1">
                 {editingEntry
-                  ? t('glossary.dialog.editDescription')
-                  : t('glossary.dialog.addDescription')}
+                  ? t('dialog.editDescription')
+                  : t('dialog.addDescription')}
               </DialogDescription>
             </div>
           </div>
@@ -159,7 +159,7 @@ export function GlossaryEntryDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 <div className="size-1.5 rounded-full bg-primary" />
-                {t('glossary.dialog.termInformation')}
+                {t('dialog.termInformation')}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -169,11 +169,11 @@ export function GlossaryEntryDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        {t('glossary.dialog.sourceTerm')}
+                        {t('dialog.sourceTerm')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t('glossary.dialog.sourceTermPlaceholder')}
+                          placeholder={t('dialog.sourceTermPlaceholder')}
                           className="h-11 bg-muted/30 border-border/60 focus:bg-background"
                           {...field}
                         />
@@ -189,7 +189,7 @@ export function GlossaryEntryDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        {t('glossary.dialog.sourceLanguage')}
+                        {t('dialog.sourceLanguage')}
                       </FormLabel>
                       <Select
                         value={field.value}
@@ -198,7 +198,7 @@ export function GlossaryEntryDialog({
                       >
                         <FormControl>
                           <SelectTrigger className="h-11 bg-muted/30 border-border/60">
-                            <SelectValue placeholder={t('glossary.dialog.selectLanguage')} />
+                            <SelectValue placeholder={t('dialog.selectLanguage')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -225,7 +225,7 @@ export function GlossaryEntryDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 <div className="size-1.5 rounded-full bg-amber-500" />
-                {t('glossary.dialog.classification')}
+                {t('dialog.classification')}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -235,18 +235,18 @@ export function GlossaryEntryDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        {t('glossary.dialog.partOfSpeech')}
+                        {t('dialog.partOfSpeech')}
                       </FormLabel>
                       <Select value={field.value || '__none__'} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger className="h-11 bg-muted/30 border-border/60">
-                            <SelectValue placeholder={t('glossary.dialog.selectType')} />
+                            <SelectValue placeholder={t('dialog.selectType')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="__none__">
                             <span className="text-muted-foreground">
-                              {t('glossary.dialog.noneSpecified')}
+                              {t('dialog.noneSpecified')}
                             </span>
                           </SelectItem>
                           {PART_OF_SPEECH_OPTIONS.map((opt) => (
@@ -267,13 +267,13 @@ export function GlossaryEntryDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        {t('glossary.dialog.domain')}
+                        {t('dialog.domain')}
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
                           <Input
-                            placeholder={t('glossary.dialog.domainPlaceholder')}
+                            placeholder={t('dialog.domainPlaceholder')}
                             className="h-11 pl-10 bg-muted/30 border-border/60 focus:bg-background"
                             {...field}
                           />
@@ -290,7 +290,7 @@ export function GlossaryEntryDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 <div className="size-1.5 rounded-full bg-blue-500" />
-                {t('glossary.dialog.additionalDetails')}
+                {t('dialog.additionalDetails')}
               </div>
 
               <FormField
@@ -299,11 +299,11 @@ export function GlossaryEntryDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">
-                      {t('glossary.dialog.usageContext')}
+                      {t('dialog.usageContext')}
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={t('glossary.dialog.contextPlaceholder')}
+                        placeholder={t('dialog.contextPlaceholder')}
                         className="resize-none min-h-[80px] bg-muted/30 border-border/60 focus:bg-background"
                         {...field}
                       />
@@ -319,11 +319,11 @@ export function GlossaryEntryDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">
-                      {t('glossary.dialog.translatorNotes')}
+                      {t('dialog.translatorNotes')}
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={t('glossary.dialog.notesPlaceholder')}
+                        placeholder={t('dialog.notesPlaceholder')}
                         className="resize-none min-h-[80px] bg-muted/30 border-border/60 focus:bg-background"
                         {...field}
                       />
@@ -346,10 +346,10 @@ export function GlossaryEntryDialog({
                     </div>
                     <div className="space-y-0.5">
                       <FormLabel className="text-sm font-medium cursor-pointer">
-                        {t('glossary.dialog.caseSensitive')}
+                        {t('dialog.caseSensitive')}
                       </FormLabel>
                       <FormDescription className="text-xs">
-                        {t('glossary.dialog.caseSensitiveDescription')}
+                        {t('dialog.caseSensitiveDescription')}
                       </FormDescription>
                     </div>
                   </div>
@@ -369,10 +369,10 @@ export function GlossaryEntryDialog({
                   <FormItem>
                     <div className="flex items-center justify-between mb-3">
                       <FormLabel className="text-sm font-medium">
-                        {t('glossary.dialog.tags')}
+                        {t('dialog.tags')}
                       </FormLabel>
                       <span className="text-xs text-muted-foreground">
-                        {t('glossary.dialog.tagsSelected', { count: field.value.length })}
+                        {t('dialog.tagsSelected', { count: field.value.length })}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -425,12 +425,12 @@ export function GlossaryEntryDialog({
             {editingEntry ? (
               <span className="flex items-center gap-1.5">
                 <Sparkles className="size-3.5" />
-                {t('glossary.dialog.changesApplyToAll')}
+                {t('dialog.changesApplyToAll')}
               </span>
             ) : (
               <span className="flex items-center gap-1.5">
                 <BookOpen className="size-3.5" />
-                {t('glossary.dialog.termAvailableForMatching')}
+                {t('dialog.termAvailableForMatching')}
               </span>
             )}
           </div>
@@ -455,7 +455,7 @@ export function GlossaryEntryDialog({
               ) : (
                 <Plus className="size-4" />
               )}
-              {editingEntry ? t('glossary.dialog.saveChanges') : t('glossary.dialog.addTerm')}
+              {editingEntry ? t('dialog.saveChanges') : t('dialog.addTerm')}
             </Button>
           </div>
         </div>

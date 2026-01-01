@@ -431,20 +431,30 @@ async function main() {
   let translationsCreated = 0;
 
   for (const keyData of demoKeys) {
-    const key = await prisma.translationKey.upsert({
+    // Use findFirst + create/update pattern since namespace can be null
+    let key = await prisma.translationKey.findFirst({
       where: {
-        branchId_name: {
-          branchId: mainBranch.id,
-          name: keyData.name,
-        },
-      },
-      update: { description: keyData.description },
-      create: {
         branchId: mainBranch.id,
+        namespace: null,
         name: keyData.name,
-        description: keyData.description,
       },
     });
+
+    if (key) {
+      key = await prisma.translationKey.update({
+        where: { id: key.id },
+        data: { description: keyData.description },
+      });
+    } else {
+      key = await prisma.translationKey.create({
+        data: {
+          branchId: mainBranch.id,
+          namespace: null,
+          name: keyData.name,
+          description: keyData.description,
+        },
+      });
+    }
     keysCreated++;
 
     for (const [lang, value] of Object.entries(keyData.translations)) {

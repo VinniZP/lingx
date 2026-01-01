@@ -255,6 +255,7 @@ enum ApprovalStatus {
 model TranslationKey {
   id          String   @id @default(cuid())
   branchId    String
+  namespace   String?  // Optional namespace for grouping (null = root)
   name        String   // The key identifier (e.g., "common.welcome")
   description String?  // Context for translators
   createdAt   DateTime @default(now())
@@ -263,8 +264,9 @@ model TranslationKey {
   branch       Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
   translations Translation[]
 
-  @@unique([branchId, name])
+  @@unique([branchId, namespace, name])
   @@index([branchId])
+  @@index([branchId, namespace])
   @@index([name])
 }
 

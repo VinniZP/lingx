@@ -39,7 +39,7 @@ export function GlossaryTagDialog({
   isSubmitting,
   onSubmit,
 }: GlossaryTagDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   const form = useForm<TagFormData>({
     resolver: zodResolver(tagFormSchema),
@@ -62,9 +62,9 @@ export function GlossaryTagDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>{t('glossary.tagDialog.title')}</DialogTitle>
+          <DialogTitle>{t('tagDialog.title')}</DialogTitle>
           <DialogDescription>
-            {t('glossary.tagDialog.description')}
+            {t('tagDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -78,7 +78,7 @@ export function GlossaryTagDialog({
                   <FormLabel>{t('common.name')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={t('glossary.tagDialog.namePlaceholder')}
+                      placeholder={t('tagDialog.namePlaceholder')}
                       {...field}
                     />
                   </FormControl>
@@ -123,7 +123,7 @@ export function GlossaryTagDialog({
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="size-4 animate-spin mr-1.5" />}
-                {t('glossary.tagDialog.createTag')}
+                {t('tagDialog.createTag')}
               </Button>
             </DialogFooter>
           </form>

@@ -399,6 +399,7 @@ export type TranslationValue = z.infer<typeof translationValueSchema>;
 export const translationKeyResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
+  namespace: z.string().nullable(),
   description: z.string().nullable().optional(),
   branchId: z.string(),
   translations: z.array(translationValueSchema),

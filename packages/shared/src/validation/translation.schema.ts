@@ -16,10 +16,21 @@ export const keyDescriptionSchema = z
   .max(1000, 'Description must be less than 1000 characters');
 
 /**
+ * Namespace schema - optional grouping for keys
+ */
+export const namespaceSchema = z
+  .string()
+  .max(100, 'Namespace must be less than 100 characters')
+  .regex(/^[a-zA-Z0-9_-]+$/, 'Namespace can only contain letters, numbers, underscores, and hyphens')
+  .optional()
+  .nullable();
+
+/**
  * Translation key creation input
  */
 export const createKeySchema = z.object({
   name: keyNameSchema,
+  namespace: namespaceSchema,
   description: keyDescriptionSchema.optional(),
 });
 
@@ -30,6 +41,7 @@ export type CreateKeyInput = z.infer<typeof createKeySchema>;
  */
 export const updateKeySchema = z.object({
   name: keyNameSchema.optional(),
+  namespace: namespaceSchema,
   description: keyDescriptionSchema.optional(),
 });
 
@@ -126,6 +138,26 @@ export const keyListQuerySchema = z.object({
   page: z.coerce.number().default(1),
   limit: z.coerce.number().max(100).default(50),
   filter: keyFilterSchema.optional(),
+  namespace: z.string().optional(), // Filter by namespace (use "__root__" for keys without namespace)
 });
 
 export type KeyListQuery = z.infer<typeof keyListQuerySchema>;
+
+/**
+ * Namespace with count for namespace list
+ */
+export const namespaceCountSchema = z.object({
+  namespace: z.string().nullable(),
+  count: z.number(),
+});
+
+export type NamespaceCount = z.infer<typeof namespaceCountSchema>;
+
+/**
+ * Namespace list response
+ */
+export const namespaceListResponseSchema = z.object({
+  namespaces: z.array(namespaceCountSchema),
+});
+
+export type NamespaceListResponse = z.infer<typeof namespaceListResponseSchema>;

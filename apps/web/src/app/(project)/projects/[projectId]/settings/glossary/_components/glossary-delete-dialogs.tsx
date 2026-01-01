@@ -27,15 +27,15 @@ export function DeleteEntryDialog({
   onClose,
   onConfirm,
 }: DeleteEntryDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <AlertDialog open={!!entry} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t('glossary.deleteEntry.title')}</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteEntry.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t('glossary.deleteEntry.description', { term: entry?.sourceTerm || '' })}
+            {t('deleteEntry.description', { term: entry?.sourceTerm || '' })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -66,15 +66,15 @@ export function DeleteTagDialog({
   onClose,
   onConfirm,
 }: DeleteTagDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   return (
     <AlertDialog open={!!tag} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t('glossary.deleteTag.title')}</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteTag.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t('glossary.deleteTag.description', { name: tag?.name || '' })}
+            {t('deleteTag.description', { name: tag?.name || '' })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

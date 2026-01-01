@@ -6,3 +6,6 @@ export * from './api/index.js';
 
 // Validation schemas
 export * from './validation/index.js';
+
+// Constants
+export * from './constants/namespace.js';

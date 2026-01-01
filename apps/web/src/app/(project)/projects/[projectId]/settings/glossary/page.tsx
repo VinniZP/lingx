@@ -38,7 +38,7 @@ interface PageProps {
 
 export default function GlossarySettingsPage({ params }: PageProps) {
   const { projectId } = use(params);
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   // Filter State
   const [search, setSearch] = useState('');
@@ -107,7 +107,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
             tagIds: data.tagIds,
           },
         });
-        toast.success(t('glossary.toasts.entryUpdated'));
+        toast.success(t('toasts.entryUpdated'));
       } else {
         await createEntry.mutateAsync({
           sourceTerm: data.sourceTerm,
@@ -120,11 +120,11 @@ export default function GlossarySettingsPage({ params }: PageProps) {
           tagIds: data.tagIds,
           translations: data.translations.filter(t => t.targetTerm),
         });
-        toast.success(t('glossary.toasts.entryCreated'));
+        toast.success(t('toasts.entryCreated'));
       }
       setIsEntryDialogOpen(false);
     } catch {
-      toast.error(t('glossary.toasts.entryFailed'));
+      toast.error(t('toasts.entryFailed'));
     }
   }, [editingEntry, updateEntry, createEntry, t]);
 
@@ -132,10 +132,10 @@ export default function GlossarySettingsPage({ params }: PageProps) {
     if (!deletingEntry) return;
     try {
       await deleteEntry.mutateAsync(deletingEntry.id);
-      toast.success(t('glossary.toasts.entryDeleted'));
+      toast.success(t('toasts.entryDeleted'));
       setDeletingEntry(null);
     } catch {
-      toast.error(t('glossary.toasts.deleteFailed'));
+      toast.error(t('toasts.deleteFailed'));
     }
   }, [deletingEntry, deleteEntry, t]);
 
@@ -143,10 +143,10 @@ export default function GlossarySettingsPage({ params }: PageProps) {
   const handleTagSubmit = useCallback(async (data: TagFormData) => {
     try {
       await createTag.mutateAsync(data);
-      toast.success(t('glossary.toasts.tagCreated'));
+      toast.success(t('toasts.tagCreated'));
       setIsTagDialogOpen(false);
     } catch {
-      toast.error(t('glossary.toasts.tagFailed'));
+      toast.error(t('toasts.tagFailed'));
     }
   }, [createTag, t]);
 
@@ -154,10 +154,10 @@ export default function GlossarySettingsPage({ params }: PageProps) {
     if (!deletingTag) return;
     try {
       await deleteTag.mutateAsync(deletingTag.id);
-      toast.success(t('glossary.toasts.tagDeleted'));
+      toast.success(t('toasts.tagDeleted'));
       setDeletingTag(null);
     } catch {
-      toast.error(t('glossary.toasts.deleteTagFailed'));
+      toast.error(t('toasts.deleteTagFailed'));
     }
   }, [deletingTag, deleteTag, t]);
 
@@ -165,10 +165,10 @@ export default function GlossarySettingsPage({ params }: PageProps) {
   const handleImport = useCallback(async (file: File, format: 'csv' | 'tbx', overwrite: boolean) => {
     try {
       await importGlossary.mutateAsync({ file, format, overwrite });
-      toast.success(t('glossary.toasts.importSuccess'));
+      toast.success(t('toasts.importSuccess'));
       setIsImportDialogOpen(false);
     } catch {
-      toast.error(t('glossary.toasts.importFailed'));
+      toast.error(t('toasts.importFailed'));
     }
   }, [importGlossary, t]);
 
@@ -183,9 +183,9 @@ export default function GlossarySettingsPage({ params }: PageProps) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success(t('glossary.toasts.exportSuccess'));
+      toast.success(t('toasts.exportSuccess'));
     } catch {
-      toast.error(t('glossary.toasts.exportFailed'));
+      toast.error(t('toasts.exportFailed'));
     }
   }, [exportGlossary, t]);
 
@@ -198,9 +198,9 @@ export default function GlossarySettingsPage({ params }: PageProps) {
         targetLanguage: tgtLang,
       });
       const providerName = provider === 'DEEPL' ? 'DeepL' : 'Google Translate';
-      toast.success(t('glossary.toasts.syncSuccess', { provider: providerName }));
+      toast.success(t('toasts.syncSuccess', { provider: providerName }));
     } catch {
-      toast.error(t('glossary.toasts.syncFailed'));
+      toast.error(t('toasts.syncFailed'));
     }
   }, [syncGlossary, t]);
 
@@ -211,9 +211,9 @@ export default function GlossarySettingsPage({ params }: PageProps) {
         sourceLanguage: srcLang,
         targetLanguage: tgtLang,
       });
-      toast.success(t('glossary.toasts.syncDeleted'));
+      toast.success(t('toasts.syncDeleted'));
     } catch {
-      toast.error(t('glossary.toasts.syncDeleteFailed'));
+      toast.error(t('toasts.syncDeleteFailed'));
     }
   }, [deleteSyncGlossary, t]);
 

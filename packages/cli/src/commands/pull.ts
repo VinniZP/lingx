@@ -1,6 +1,8 @@
 import { Command } from 'commander';
-import { join } from 'path';
-import type { CliTranslationsResponse } from '@localeflow/shared';
+import { join, dirname } from 'path';
+import { mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
+import { parseNamespacedKey, type CliTranslationsResponse } from '@localeflow/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
@@ -102,30 +104,60 @@ async function pull(options: PullOptions): Promise<void> {
       ? [options.lang]
       : (config.pull.languages.length > 0 ? config.pull.languages : response.languages);
 
-    // Write translation files
+    // Write translation files, split by namespace
     let filesWritten = 0;
+    const namespaceSummary = new Map<string | null, number>();
+
     for (const lang of languages) {
-      const translations = response.translations[lang] ?? {};
-      if (Object.keys(translations).length === 0) {
+      const allTranslations = response.translations[lang] ?? {};
+      if (Object.keys(allTranslations).length === 0) {
         continue;
       }
 
-      const fileName = config.pull.filePattern.replace('{lang}', lang)
-        || `${lang}${formatter.extension}`;
-      const filePath = join(absOutputDir, fileName);
+      // Group translations by namespace
+      const byNamespace = new Map<string | null, Record<string, string>>();
+      for (const [combinedKey, value] of Object.entries(allTranslations)) {
+        const { namespace, key } = parseNamespacedKey(combinedKey);
+        if (!byNamespace.has(namespace)) {
+          byNamespace.set(namespace, {});
+        }
+        byNamespace.get(namespace)![key] = value;
+      }
 
-      await writeTranslationFile(filePath, translations, formatter);
-      filesWritten++;
+      // Write files for each namespace
+      for (const [namespace, translations] of byNamespace) {
+        if (Object.keys(translations).length === 0) {
+          continue;
+        }
+
+        // Determine file path based on namespace
+        const fileName = config.pull.filePattern.replace('{lang}', lang)
+          || `${lang}${formatter.extension}`;
+        const filePath = namespace
+          ? join(absOutputDir, namespace, fileName)
+          : join(absOutputDir, fileName);
+
+        // Ensure directory exists for namespaced files
+        const dir = dirname(filePath);
+        if (!existsSync(dir)) {
+          await mkdir(dir, { recursive: true });
+        }
+
+        await writeTranslationFile(filePath, translations, formatter);
+        filesWritten++;
+
+        // Track namespace summary
+        const currentCount = namespaceSummary.get(namespace) ?? 0;
+        namespaceSummary.set(namespace, currentCount + Object.keys(translations).length);
+      }
     }
 
     spinner.succeed(`Downloaded ${filesWritten} translation file(s) to ${outputDir}`);
 
-    for (const lang of languages) {
-      const translations = response.translations[lang] ?? {};
-      const keyCount = Object.keys(translations).length;
-      if (keyCount > 0) {
-        logger.info(`  ${lang}: ${keyCount} keys`);
-      }
+    // Show summary by namespace
+    for (const [namespace, keyCount] of namespaceSummary) {
+      const nsLabel = namespace ?? '(root)';
+      logger.info(`  ${nsLabel}: ${keyCount} keys`);
     }
 
     // Regenerate types if enabled

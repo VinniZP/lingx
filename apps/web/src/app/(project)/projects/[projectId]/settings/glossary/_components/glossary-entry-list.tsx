@@ -29,7 +29,7 @@ export function GlossaryEntryList({
   onDelete,
   onCreateFirst,
 }: GlossaryEntryListProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('glossary');
 
   if (isLoading) {
     return (
@@ -39,7 +39,7 @@ export function GlossaryEntryList({
             <Loader2 className="size-6 animate-spin text-primary" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {t('glossary.list.loading')}
+            {t('list.loading')}
           </p>
         </div>
       </div>
@@ -60,18 +60,18 @@ export function GlossaryEntryList({
           </div>
           <h3 className="text-lg font-semibold mb-2">
             {hasFilters
-              ? t('glossary.list.noMatching')
-              : t('glossary.list.startBuilding')}
+              ? t('list.noMatching')
+              : t('list.startBuilding')}
           </h3>
           <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
             {hasFilters
-              ? t('glossary.list.adjustFilters')
-              : t('glossary.list.addTerminology')}
+              ? t('list.adjustFilters')
+              : t('list.addTerminology')}
           </p>
           {!hasFilters && (
             <Button onClick={onCreateFirst} className="gap-2">
               <Plus className="size-4" />
-              {t('glossary.list.addFirstTerm')}
+              {t('list.addFirstTerm')}
             </Button>
           )}
         </div>
@@ -97,7 +97,7 @@ export function GlossaryEntryList({
       {totalPages > 1 && (
         <div className="px-6 py-4 border-t border-border/50 flex items-center justify-between bg-muted/20">
           <span className="text-sm text-muted-foreground tabular-nums">
-            {t('common.pagination.pageOf', { page, total: totalPages })}
+            {t('pagination.pageOf', { page, total: totalPages })}
           </span>
           <div className="flex items-center gap-2">
             <Button
@@ -107,7 +107,7 @@ export function GlossaryEntryList({
               disabled={page <= 1}
               onClick={() => onPageChange(page - 1)}
             >
-              {t('common.pagination.previous')}
+              {t('pagination.previous')}
             </Button>
             <Button
               variant="outline"
@@ -116,7 +116,7 @@ export function GlossaryEntryList({
               disabled={page >= totalPages}
               onClick={() => onPageChange(page + 1)}
             >
-              {t('common.pagination.next')}
+              {t('pagination.next')}
             </Button>
           </div>
         </div>

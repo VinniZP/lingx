@@ -383,6 +383,7 @@ export interface Translation {
 export interface TranslationKey {
   id: string;
   name: string;
+  namespace: string | null;
   description?: string | null;
   branchId: string;
   translations: Translation[];
@@ -399,30 +400,43 @@ export interface KeyListResult {
 
 export interface CreateKeyInput {
   name: string;
+  namespace?: string | null;
   description?: string;
 }
 
 export interface UpdateKeyInput {
   name?: string;
+  namespace?: string | null;
   description?: string;
+}
+
+export interface NamespaceCount {
+  namespace: string | null;
+  count: number;
 }
 
 // Translation API
 export const translationApi = {
   listKeys: (
     branchId: string,
-    params?: { search?: string; page?: number; limit?: number; filter?: KeyFilter }
+    params?: { search?: string; page?: number; limit?: number; filter?: KeyFilter; namespace?: string }
   ) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.filter && params.filter !== 'all') query.set('filter', params.filter);
+    if (params?.namespace) query.set('namespace', params.namespace);
     const queryString = query.toString();
     return fetchApi<KeyListResult>(
       `/api/branches/${branchId}/keys${queryString ? `?${queryString}` : ''}`
     );
   },
+
+  getNamespaces: (branchId: string) =>
+    fetchApi<{ namespaces: NamespaceCount[] }>(
+      `/api/branches/${branchId}/keys/namespaces`
+    ),
 
   getKey: (id: string) => fetchApi<TranslationKey>(`/api/keys/${id}`),
 

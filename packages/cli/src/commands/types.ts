@@ -140,8 +140,11 @@ async function runTypeGeneration(options: GenerationOptions): Promise<void> {
       nested: options.nested,
     });
 
+    const nsInfo = result.namespaceCount > 0
+      ? `, ${chalk.magenta(result.namespaceCount)} namespace(s)`
+      : '';
     spinner.succeed(
-      `Generated types: ${chalk.cyan(result.keyCount)} keys (${chalk.yellow(result.keysWithParams)} with params)`
+      `Generated types: ${chalk.cyan(result.keyCount)} keys (${chalk.yellow(result.keysWithParams)} with params${nsInfo})`
     );
     logger.info(`Output: ${relative(options.cwd, result.outputPath)}`);
   } catch (error) {
@@ -172,8 +175,9 @@ export async function regenerateTypesIfEnabled(cwd: string): Promise<void> {
       nested: config.format.nested,
     });
 
+    const nsInfo = result.namespaceCount > 0 ? `, ${result.namespaceCount} namespace(s)` : '';
     logger.info(
-      `Types regenerated: ${result.keyCount} keys (${result.keysWithParams} with params)`
+      `Types regenerated: ${result.keyCount} keys (${result.keysWithParams} with params${nsInfo})`
     );
   } catch (error) {
     // Log but don't fail the parent command

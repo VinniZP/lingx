@@ -285,7 +285,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
           {/* Key name and source preview */}
           <div className="flex-1 min-w-0">
             <span className="font-mono text-sm text-foreground/90 truncate block">
-              {translationKey.name}
+              {translationKey.name} {translationKey.namespace && <Badge variant={"outline"}>{translationKey.namespace}</Badge>}
             </span>
             {/* Source text preview */}
             {defaultLanguage && (

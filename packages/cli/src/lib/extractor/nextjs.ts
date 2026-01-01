@@ -20,6 +20,7 @@ import type {
   ExtractionResult,
   ExtractionError,
 } from './index.js';
+import { combineKey } from '@localeflow/shared';
 import type { File } from '@babel/types';
 
 // Handle ESM/CJS interop - Babel exports default differently
@@ -159,15 +160,30 @@ export class NextjsExtractor implements Extractor {
           }
 
           // Check for marker function calls (tKey, etc.)
+          // tKey('key') - root key
+          // tKey('key', 'namespace') - namespaced key
           if (
             isIdentifier(callee) &&
             markerFunctionsSet.has(callee.name)
           ) {
             const keyValue = extractKeyFromArgs(path.node.arguments);
             if (keyValue) {
+              // Extract optional namespace from second argument
+              let markerNamespace: string | undefined;
+              if (path.node.arguments.length > 1) {
+                const nsArg = path.node.arguments[1];
+                if (isStringLiteral(nsArg)) {
+                  markerNamespace = nsArg.value;
+                }
+              }
+
+              // Combine namespace + key using delimiter
+              const fullKey = combineKey(markerNamespace ?? null, keyValue);
+
               keys.push({
-                key: keyValue,
+                key: fullKey,
                 source: 'marker',
+                namespace: markerNamespace,
                 location: filePath && loc
                   ? {
                       file: filePath,
@@ -201,7 +217,7 @@ export class NextjsExtractor implements Extractor {
           ) {
             const keyValue = extractKeyFromArgs(path.node.arguments);
             if (keyValue) {
-              const fullKey = currentNamespace ? `${currentNamespace}:${keyValue}` : keyValue;
+              const fullKey = combineKey(currentNamespace ?? null, keyValue);
               keys.push({
                 key: fullKey,
                 source: 'function',

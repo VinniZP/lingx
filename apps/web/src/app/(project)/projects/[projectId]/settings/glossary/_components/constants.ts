@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TNsKey } from '@localeflow/sdk-nextjs';
 import type { PartOfSpeech } from '@/lib/api';
 
 // Form schemas - validation messages use i18n keys for runtime translation
@@ -31,21 +31,21 @@ export type TagFormData = z.infer<typeof tagFormSchema>;
 // Part of speech option interface with typed translation key
 export interface PartOfSpeechOption {
   value: PartOfSpeech;
-  labelKey: TKey;
+  labelKey: TNsKey<'glossary'>;
 }
 
 // Part of speech options with tKey for static extraction
 export const PART_OF_SPEECH_OPTIONS: PartOfSpeechOption[] = [
-  { value: 'NOUN', labelKey: tKey('glossary.partOfSpeech.noun') },
-  { value: 'VERB', labelKey: tKey('glossary.partOfSpeech.verb') },
-  { value: 'ADJECTIVE', labelKey: tKey('glossary.partOfSpeech.adjective') },
-  { value: 'ADVERB', labelKey: tKey('glossary.partOfSpeech.adverb') },
-  { value: 'PRONOUN', labelKey: tKey('glossary.partOfSpeech.pronoun') },
-  { value: 'PREPOSITION', labelKey: tKey('glossary.partOfSpeech.preposition') },
-  { value: 'CONJUNCTION', labelKey: tKey('glossary.partOfSpeech.conjunction') },
-  { value: 'INTERJECTION', labelKey: tKey('glossary.partOfSpeech.interjection') },
-  { value: 'DETERMINER', labelKey: tKey('glossary.partOfSpeech.determiner') },
-  { value: 'OTHER', labelKey: tKey('glossary.partOfSpeech.other') },
+  { value: 'NOUN', labelKey: tKey('partOfSpeech.noun', 'glossary') },
+  { value: 'VERB', labelKey: tKey('partOfSpeech.verb', 'glossary') },
+  { value: 'ADJECTIVE', labelKey: tKey('partOfSpeech.adjective', 'glossary') },
+  { value: 'ADVERB', labelKey: tKey('partOfSpeech.adverb', 'glossary') },
+  { value: 'PRONOUN', labelKey: tKey('partOfSpeech.pronoun', 'glossary') },
+  { value: 'PREPOSITION', labelKey: tKey('partOfSpeech.preposition', 'glossary') },
+  { value: 'CONJUNCTION', labelKey: tKey('partOfSpeech.conjunction', 'glossary') },
+  { value: 'INTERJECTION', labelKey: tKey('partOfSpeech.interjection', 'glossary') },
+  { value: 'DETERMINER', labelKey: tKey('partOfSpeech.determiner', 'glossary') },
+  { value: 'OTHER', labelKey: tKey('partOfSpeech.other', 'glossary') },
 ];
 
 // Tag colors - refined palette
