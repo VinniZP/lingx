@@ -63,7 +63,6 @@ export default function ProjectLayout({
               <Languages className="size-6 text-primary animate-pulse" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );

@@ -3,7 +3,7 @@
 import { use, useState, useCallback } from 'react';
 import { useTranslation } from '@localeflow/sdk-nextjs';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { LoadingPulse } from '@/components/namespace-loader';
 import type { PartOfSpeech, GlossaryEntry, GlossaryTag, MTProvider } from '@/lib/api';
 import {
   useCreateGlossaryEntry,
@@ -240,12 +240,11 @@ export default function GlossarySettingsPage({ params }: PageProps) {
   }, []);
 
   const hasFilters = search !== '' || sourceLanguageFilter !== 'all' || domainFilter !== 'all' || tagFilter !== 'all';
-
   // Show loading state while translations are loading
   if (!ready) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        <LoadingPulse />
       </div>
     );
   }
