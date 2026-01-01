@@ -56,6 +56,8 @@ import {
   Shield,
   Hash,
   ChevronRight,
+  Zap,
+  Key,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -128,122 +130,141 @@ export default function ProfileSettingsPage() {
     : 'Just joined';
 
   return (
-    <div className="min-h-[calc(100vh-8rem)]">
-      {/* Subtle gradient backdrop */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-primary/[0.03] via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-warm/[0.02] via-transparent to-transparent rounded-full blur-3xl" />
+    <div className="min-h-[calc(100vh-8rem)] pb-16">
+      {/* Premium atmospheric backdrop */}
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        {/* Primary gradient orb */}
+        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-gradient-to-bl from-info/[0.08] via-info/[0.04] to-transparent rounded-full blur-3xl translate-x-1/3 -translate-y-1/3 animate-pulse" style={{ animationDuration: '8s' }} />
+        {/* Warm accent orb */}
+        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-gradient-to-tr from-warm/[0.06] via-warm/[0.02] to-transparent rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
+        {/* Floating accent orb */}
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-r from-primary/[0.04] to-info/[0.04] rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '12s' }} />
+        {/* Refined grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)`,
+          backgroundSize: '48px 48px'
+        }} />
       </div>
 
-      {/* Back navigation */}
+      {/* Back navigation - refined with better hover state */}
       <Link
         href="/settings"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group mb-8 animate-fade-in-up"
+        className="inline-flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-all duration-300 group mb-12 animate-fade-in-up"
       >
-        <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
-        <span>{t('settings.back')}</span>
+        <div className="size-9 rounded-xl bg-card border border-border/50 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all duration-300 shadow-sm">
+          <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
+        </div>
+        <span className="font-medium tracking-tight">{t('settings.backToSettings')}</span>
       </Link>
 
-      {/* Hero Profile Card */}
-      <div className="relative mb-10 animate-fade-in-up stagger-1">
-        <div className="island overflow-hidden">
-          {/* Decorative header stripe */}
-          <div className="h-24 sm:h-28 bg-gradient-to-r from-primary/10 via-primary/5 to-warm/5 relative">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent_0%,rgba(255,255,255,0.5)_50%,transparent_100%)] dark:bg-[linear-gradient(to_right,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)]" />
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent" />
-          </div>
+      {/* Premium Page Header */}
+      <div className="relative mb-12 animate-fade-in-up stagger-1">
+        <div className="island overflow-hidden border-0 shadow-lg shadow-info/[0.03]">
+          {/* Gradient accent band */}
+          <div className="h-1.5 bg-gradient-to-r from-info via-info/70 to-primary" />
 
-          <div className="px-6 lg:px-8 pb-6 lg:pb-8 -mt-12 sm:-mt-14 relative">
-            <div className="flex flex-col sm:flex-row gap-6 items-start">
-              {/* Large Avatar */}
-              <AvatarUpload profile={profile} />
-
-              {/* Profile Info */}
-              <div className="flex-1 min-w-0 pt-2 sm:pt-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-1">
-                      {profile.name || 'Your Profile'}
-                    </h1>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="size-4 shrink-0" />
-                      <span className="text-sm truncate">{profile.email}</span>
-                      {profile.pendingEmailChange && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
-                          <span className="size-1.5 rounded-full bg-warning animate-pulse" />
-                          Pending
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Role badge */}
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
-                    <Shield className="size-3.5 text-primary" />
-                    <span className="text-xs font-medium text-primary">
-                      {profile.role.charAt(0) + profile.role.slice(1).toLowerCase()}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Stats row */}
-                <div className="flex flex-wrap items-center gap-6 mt-5 pt-5 border-t border-border/50">
-                  <StatItem
-                    icon={Calendar}
-                    label={t('profile.memberSince')}
-                    value={joinDate}
-                    subtext={memberDuration}
-                  />
-                  <div className="hidden sm:block w-px h-8 bg-border/50" />
-                  <StatItem
-                    icon={Sparkles}
-                    label={t('profile.accountStatus')}
-                    value={t('common.active')}
-                    valueClass="text-success"
-                  />
+          <div className="p-8 lg:p-10">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+              {/* Icon with premium glow effect */}
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-info/25 rounded-3xl blur-2xl scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-br from-info/30 to-primary/20 rounded-3xl blur-xl" />
+                <div className="relative size-20 lg:size-24 rounded-3xl bg-gradient-to-br from-info/20 via-info/10 to-primary/5 flex items-center justify-center border border-info/20 backdrop-blur-sm">
+                  <User className="size-10 lg:size-12 text-info" />
+                  <Sparkles className="absolute -top-1 -right-1 size-5 text-info animate-pulse" />
                 </div>
               </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3 mb-3">
+                  <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+                    {t('profile.title')}
+                  </h1>
+                  {/* Role badge */}
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/15 text-primary border border-primary/20">
+                    {profile.role.charAt(0) + profile.role.slice(1).toLowerCase()}
+                  </span>
+                </div>
+                <p className="text-muted-foreground text-base lg:text-lg max-w-xl leading-relaxed">
+                  {t('profile.description')}
+                </p>
+              </div>
+
+              {/* Profile Summary Widget */}
+              <ProfileSummaryWidget profile={profile} joinDate={joinDate} memberDuration={memberDuration} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content Grid */}
-      <div className="grid gap-8 lg:grid-cols-5">
-        {/* Main Forms - Left Side */}
-        <div className="lg:col-span-3 space-y-8">
-          {/* Profile Details */}
-          <ProfileForm
-            profile={profile}
-            onEmailChangeClick={() => setEmailDialogOpen(true)}
-          />
+      {/* Main Content Grid */}
+      <div className="grid gap-8 lg:gap-10 lg:grid-cols-12">
+        {/* Left Column - Main Forms */}
+        <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+          {/* Avatar & Basic Info Card */}
+          <section className="animate-fade-in-up stagger-2">
+            <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+              {/* Section header with subtle gradient */}
+              <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+                <div className="flex items-center gap-5">
+                  <div className="size-12 rounded-2xl bg-gradient-to-br from-info/15 to-info/5 flex items-center justify-center border border-info/10">
+                    <Camera className="size-5 text-info" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold tracking-tight">{t('profile.avatar')}</h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">{t('profile.avatarDescription')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8">
+                <AvatarUpload profile={profile} />
+              </div>
+            </div>
+          </section>
+
+          {/* Profile Details Form */}
+          <section className="animate-fade-in-up stagger-3">
+            <ProfileForm
+              profile={profile}
+              onEmailChangeClick={() => setEmailDialogOpen(true)}
+            />
+          </section>
 
           {/* Preferences */}
-          <PreferencesForm
-            profile={profile}
-            projects={projectsData?.projects || []}
-          />
+          <section className="animate-fade-in-up stagger-4">
+            <PreferencesForm
+              profile={profile}
+              projects={projectsData?.projects || []}
+            />
+          </section>
         </div>
 
-        {/* Sidebar - Right Side */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Right Column - Sidebar */}
+        <div className="lg:col-span-5 xl:col-span-4 space-y-8">
           {/* Quick Info Card */}
-          <AccountInfoCard profile={profile} />
+          <section className="animate-fade-in-up stagger-5">
+            <AccountInfoCard profile={profile} />
+          </section>
 
           {/* Pending Email Change */}
           {profile.pendingEmailChange && (
-            <PendingEmailChange
-              newEmail={profile.pendingEmailChange}
-              onCancel={async () => {
-                await profileApi.cancelEmailChange();
-                queryClient.invalidateQueries({ queryKey: ['profile'] });
-                toast.success('Email change cancelled');
-              }}
-            />
+            <section className="animate-fade-in-up stagger-5">
+              <PendingEmailChange
+                newEmail={profile.pendingEmailChange}
+                onCancel={async () => {
+                  await profileApi.cancelEmailChange();
+                  queryClient.invalidateQueries({ queryKey: ['profile'] });
+                  toast.success('Email change cancelled');
+                }}
+              />
+            </section>
           )}
 
           {/* Quick Tips */}
-          <QuickTipsCard />
+          <section className="animate-fade-in-up stagger-6">
+            <QuickTipsCard />
+          </section>
         </div>
       </div>
 
@@ -258,41 +279,70 @@ export default function ProfileSettingsPage() {
 }
 
 // ============================================
-// Stat Item Component
+// Profile Summary Widget
 // ============================================
 
-function StatItem({
-  icon: Icon,
-  label,
-  value,
-  subtext,
-  valueClass
+function ProfileSummaryWidget({
+  profile,
+  joinDate,
+  memberDuration,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  subtext?: string;
-  valueClass?: string;
+  profile: UserProfile;
+  joinDate: string;
+  memberDuration: string;
 }) {
+  const { t } = useTranslation();
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="size-9 rounded-lg bg-muted/50 flex items-center justify-center">
-        <Icon className="size-4 text-muted-foreground" />
+    <div className="shrink-0 p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50 min-w-[200px]">
+      <div className="flex items-center gap-4 mb-4">
+        {/* Avatar */}
+        <div className="size-14 rounded-xl bg-gradient-to-br from-info/20 via-info/10 to-primary/10 flex items-center justify-center border border-info/20 overflow-hidden">
+          {profile.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt={profile.name || 'Avatar'}
+              className="size-full object-cover"
+            />
+          ) : (
+            <span className="text-lg font-semibold text-info">
+              {profile.name
+                ? profile.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)
+                : profile.email[0].toUpperCase()}
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold truncate">{profile.name || t('profile.noName')}</p>
+          <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+        </div>
       </div>
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={cn("text-sm font-medium", valueClass)}>{value}</p>
-        {subtext && <p className="text-[10px] text-muted-foreground/70">{subtext}</p>}
+      <div className="space-y-2 pt-4 border-t border-border/50">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">{t('profile.memberSince')}</span>
+          <span className="font-medium">{memberDuration}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">{t('profile.accountStatus')}</span>
+          <span className="font-medium text-success">{t('common.active')}</span>
+        </div>
       </div>
     </div>
   );
 }
+
 
 // ============================================
 // Avatar Upload Component
 // ============================================
 
 function AvatarUpload({ profile }: { profile: UserProfile }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isDragging, setIsDragging] = useState(false);
   const { refreshUser } = useAuth();
@@ -353,80 +403,116 @@ function AvatarUpload({ profile }: { profile: UserProfile }) {
   const isLoading = uploadMutation.isPending || deleteMutation.isPending;
 
   return (
-    <div className="relative shrink-0 group">
-      {/* Avatar container with ring */}
-      <div
-        className={cn(
-          'size-24 sm:size-28 rounded-2xl flex items-center justify-center overflow-hidden',
-          'ring-4 ring-card shadow-xl transition-all duration-300',
-          'bg-gradient-to-br from-primary/20 via-primary/10 to-warm/10',
-          isDragging && 'ring-primary scale-105',
-          !isDragging && 'hover:ring-primary/50'
-        )}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-      >
-        {isLoading ? (
-          <Loader2 className="size-8 text-primary animate-spin" />
-        ) : profile.avatarUrl ? (
-          <img
-            src={profile.avatarUrl}
-            alt={profile.name || 'Avatar'}
-            className="size-full object-cover"
-          />
-        ) : (
-          <span className="text-3xl font-semibold text-primary/80">{initials}</span>
-        )}
-      </div>
-
-      {/* Hover overlay with actions */}
-      <div
-        className={cn(
-          'absolute inset-0 rounded-2xl bg-black/60 backdrop-blur-sm',
-          'flex items-center justify-center gap-2',
-          'opacity-0 group-hover:opacity-100 transition-all duration-200',
-          'ring-4 ring-transparent group-hover:ring-primary/30'
-        )}
-      >
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
-          className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 transition-colors"
-          title="Upload photo"
-        >
-          <Camera className="size-5 text-white" />
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(file);
-            e.target.value = '';
+    <div className="flex flex-col sm:flex-row items-start gap-6">
+      {/* Avatar container with premium styling */}
+      <div className="relative shrink-0 group">
+        <div
+          className={cn(
+            'size-28 sm:size-32 rounded-2xl flex items-center justify-center overflow-hidden',
+            'ring-4 ring-card shadow-xl transition-all duration-300',
+            'bg-gradient-to-br from-info/20 via-info/10 to-primary/10',
+            isDragging && 'ring-info scale-105',
+            !isDragging && 'hover:ring-info/50'
+          )}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
           }}
-          disabled={isLoading}
-        />
-        {profile.avatarUrl && (
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+        >
+          {isLoading ? (
+            <Loader2 className="size-8 text-info animate-spin" />
+          ) : profile.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt={profile.name || 'Avatar'}
+              className="size-full object-cover"
+            />
+          ) : (
+            <span className="text-4xl font-semibold text-info/80">{initials}</span>
+          )}
+        </div>
+
+        {/* Hover overlay with actions */}
+        <div
+          className={cn(
+            'absolute inset-0 rounded-2xl bg-black/60 backdrop-blur-sm',
+            'flex items-center justify-center gap-3',
+            'opacity-0 group-hover:opacity-100 transition-all duration-200',
+            'ring-4 ring-transparent group-hover:ring-info/30'
+          )}
+        >
           <button
-            onClick={() => deleteMutation.mutate()}
+            onClick={() => fileInputRef.current?.click()}
             disabled={isLoading}
-            className="p-2.5 rounded-xl bg-white/20 hover:bg-destructive/80 transition-colors"
-            title="Remove photo"
+            className="p-3 rounded-xl bg-white/20 hover:bg-white/30 transition-colors"
+            title="Upload photo"
           >
-            <Trash2 className="size-5 text-white" />
+            <Camera className="size-5 text-white" />
           </button>
-        )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(file);
+              e.target.value = '';
+            }}
+            disabled={isLoading}
+          />
+          {profile.avatarUrl && (
+            <button
+              onClick={() => deleteMutation.mutate()}
+              disabled={isLoading}
+              className="p-3 rounded-xl bg-white/20 hover:bg-destructive/80 transition-colors"
+              title="Remove photo"
+            >
+              <Trash2 className="size-5 text-white" />
+            </button>
+          )}
+        </div>
+
+        {/* Edit indicator */}
+        <div className="absolute -bottom-1 -right-1 size-8 rounded-xl bg-card border border-border shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Camera className="size-4 text-muted-foreground" />
+        </div>
       </div>
 
-      {/* Edit indicator */}
-      <div className="absolute -bottom-1 -right-1 size-7 rounded-lg bg-card border border-border shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-        <Camera className="size-3.5 text-muted-foreground" />
+      {/* Upload instructions */}
+      <div className="flex-1 space-y-4">
+        <div className="space-y-2">
+          <p className="text-sm font-medium">{t('profile.uploadAvatar')}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {t('profile.avatarRequirements')}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            className="h-10 rounded-xl gap-2"
+          >
+            <Camera className="size-4" />
+            {t('profile.uploadNew')}
+          </Button>
+          {profile.avatarUrl && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteMutation.mutate()}
+              disabled={isLoading}
+              className="h-10 rounded-xl gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="size-4" />
+              {t('profile.removeAvatar')}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -474,18 +560,21 @@ function ProfileForm({
   const hasChanges = form.formState.isDirty;
 
   return (
-    <section className="animate-fade-in-up stagger-2">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <User className="size-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold">{t('profile.title')}</h2>
-          <p className="text-xs text-muted-foreground">{t('profile.description')}</p>
+    <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+      {/* Section header with subtle gradient */}
+      <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+        <div className="flex items-center gap-5">
+          <div className="size-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10">
+            <User className="size-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">{t('profile.personalInfo')}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">{t('profile.personalInfoDescription')}</p>
+          </div>
         </div>
       </div>
 
-      <div className="island p-6">
+      <div className="p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -493,11 +582,11 @@ function ProfileForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('profile.displayName')}</FormLabel>
+                  <FormLabel className="text-sm font-medium">{t('profile.displayName')}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t('profile.displayNamePlaceholder')}
-                      className="bg-background/50"
+                      className="h-12 rounded-xl"
                       {...field}
                     />
                   </FormControl>
@@ -509,16 +598,26 @@ function ProfileForm({
               )}
             />
 
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">{t('profile.emailAddress')}</Label>
-              <div className="flex gap-3">
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/40" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-card px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {t('profile.emailAddress')}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex gap-4">
                 <div className="flex-1 relative">
                   <Input
                     value={profile.email}
                     disabled
-                    className="bg-muted/50 pr-20"
+                    className="h-12 rounded-xl bg-muted/30 pr-24"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-md border border-success/20">
                     {t('common.verified')}
                   </span>
                 </div>
@@ -526,8 +625,9 @@ function ProfileForm({
                   type="button"
                   variant="outline"
                   onClick={onEmailChangeClick}
-                  className="shrink-0"
+                  className="shrink-0 h-12 rounded-xl gap-2"
                 >
+                  <Mail className="size-4" />
                   {t('profile.changeEmail')}
                 </Button>
               </div>
@@ -537,20 +637,22 @@ function ProfileForm({
             </div>
 
             {hasChanges && (
-              <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+              <div className="flex justify-end gap-3 pt-6 border-t border-border/40">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => form.reset()}
+                  className="h-12 rounded-xl"
                 >
                   {t('profile.discard')}
                 </Button>
                 <Button
                   type="submit"
                   disabled={mutation.isPending}
+                  className="h-12 rounded-xl gap-2 shadow-lg shadow-primary/15"
                 >
                   {mutation.isPending && (
-                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   )}
                   {t('profile.saveChanges')}
                 </Button>
@@ -559,7 +661,7 @@ function ProfileForm({
           </form>
         </Form>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -608,146 +710,147 @@ function PreferencesForm({
   };
 
   return (
-    <section className="animate-fade-in-up stagger-3">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="size-8 rounded-lg bg-warm/10 flex items-center justify-center">
-          <Palette className="size-4 text-warm" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold">{t('profile.preferences.title')}</h2>
-          <p className="text-xs text-muted-foreground">{t('profile.preferences.description')}</p>
+    <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+      {/* Section header with subtle gradient */}
+      <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+        <div className="flex items-center gap-5">
+          <div className="size-12 rounded-2xl bg-gradient-to-br from-warm/15 to-warm/5 flex items-center justify-center border border-warm/10">
+            <Palette className="size-5 text-warm" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">{t('profile.preferences.title')}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">{t('profile.preferences.description')}</p>
+          </div>
         </div>
       </div>
 
-      <div className="island overflow-hidden">
-        {/* Appearance group */}
-        <div className="p-4 border-b border-border/50">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{t('profile.preferences.appearance')}</p>
-          <div className="space-y-1">
-            <PreferenceRow
-              icon={Palette}
-              title={t('profile.preferences.theme')}
-              description={t('profile.preferences.colorScheme')}
-            >
-              <Select
-                value={profile.preferences.theme}
-                onValueChange={(value) => updatePreference('theme', value as UserPreferences['theme'])}
-              >
-                <SelectTrigger className="w-32 h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="system">{t('profile.preferences.system')}</SelectItem>
-                  <SelectItem value="light">{t('profile.preferences.light')}</SelectItem>
-                  <SelectItem value="dark">{t('profile.preferences.dark')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </PreferenceRow>
-
-            <PreferenceRow
-              icon={Languages}
-              title={t('profile.preferences.language')}
-              description={t('profile.preferences.interfaceLanguage')}
-            >
-              <Select
-                value={profile.preferences.language}
-                onValueChange={(value) => updatePreference('language', value)}
-              >
-                <SelectTrigger className="w-32 h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">{t('profile.preferences.english')}</SelectItem>
-                  <SelectItem value="es">{t('profile.preferences.spanish')}</SelectItem>
-                  <SelectItem value="fr">{t('profile.preferences.french')}</SelectItem>
-                  <SelectItem value="de">{t('profile.preferences.german')}</SelectItem>
-                  <SelectItem value="ja">{t('profile.preferences.japanese')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </PreferenceRow>
-          </div>
-        </div>
-
-        {/* Workflow group */}
-        <div className="p-4 border-b border-border/50">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{t('profile.preferences.workflow')}</p>
+      {/* Appearance group */}
+      <div className="px-8 py-6 border-b border-border/40">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">{t('profile.preferences.appearance')}</p>
+        <div className="space-y-2">
           <PreferenceRow
-            icon={FolderOpen}
-            title={t('profile.preferences.defaultProject')}
-            description={t('profile.preferences.openOnLogin')}
+            icon={Palette}
+            title={t('profile.preferences.theme')}
+            description={t('profile.preferences.colorScheme')}
           >
             <Select
-              value={profile.preferences.defaultProjectId || 'none'}
-              onValueChange={(value) =>
-                updatePreference('defaultProjectId', value === 'none' ? null : value)
-              }
+              value={profile.preferences.theme}
+              onValueChange={(value) => updatePreference('theme', value as UserPreferences['theme'])}
             >
-              <SelectTrigger className="w-40 h-9 text-sm">
-                <SelectValue placeholder={t('profile.preferences.never')} />
+              <SelectTrigger className="w-36 h-10 text-sm rounded-xl">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">{t('profile.preferences.never')}</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="system">{t('profile.preferences.system')}</SelectItem>
+                <SelectItem value="light">{t('profile.preferences.light')}</SelectItem>
+                <SelectItem value="dark">{t('profile.preferences.dark')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </PreferenceRow>
+
+          <PreferenceRow
+            icon={Languages}
+            title={t('profile.preferences.language')}
+            description={t('profile.preferences.interfaceLanguage')}
+          >
+            <Select
+              value={profile.preferences.language}
+              onValueChange={(value) => updatePreference('language', value)}
+            >
+              <SelectTrigger className="w-36 h-10 text-sm rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">{t('profile.preferences.english')}</SelectItem>
+                <SelectItem value="es">{t('profile.preferences.spanish')}</SelectItem>
+                <SelectItem value="fr">{t('profile.preferences.french')}</SelectItem>
+                <SelectItem value="de">{t('profile.preferences.german')}</SelectItem>
+                <SelectItem value="ja">{t('profile.preferences.japanese')}</SelectItem>
               </SelectContent>
             </Select>
           </PreferenceRow>
         </div>
+      </div>
 
-        {/* Notifications group */}
-        <div className="p-4">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{t('profile.preferences.notifications')}</p>
-          <div className="space-y-1">
-            <PreferenceRow
-              icon={Mail}
-              title={t('profile.preferences.emailNotifications')}
-              description={t('profile.preferences.emailNotificationsDesc')}
-            >
-              <Switch
-                checked={profile.preferences.notifications.email}
-                onCheckedChange={(checked: boolean) => updateNotification('email', checked)}
-              />
-            </PreferenceRow>
+      {/* Workflow group */}
+      <div className="px-8 py-6 border-b border-border/40">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">{t('profile.preferences.workflow')}</p>
+        <PreferenceRow
+          icon={FolderOpen}
+          title={t('profile.preferences.defaultProject')}
+          description={t('profile.preferences.openOnLogin')}
+        >
+          <Select
+            value={profile.preferences.defaultProjectId || 'none'}
+            onValueChange={(value) =>
+              updatePreference('defaultProjectId', value === 'none' ? null : value)
+            }
+          >
+            <SelectTrigger className="w-44 h-10 text-sm rounded-xl">
+              <SelectValue placeholder={t('profile.preferences.never')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{t('profile.preferences.never')}</SelectItem>
+              {projects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </PreferenceRow>
+      </div>
 
-            <PreferenceRow
-              icon={Bell}
-              title={t('profile.preferences.inAppNotifications')}
-              description={t('profile.preferences.inAppNotificationsDesc')}
-            >
-              <Switch
-                checked={profile.preferences.notifications.inApp}
-                onCheckedChange={(checked: boolean) => updateNotification('inApp', checked)}
-              />
-            </PreferenceRow>
+      {/* Notifications group */}
+      <div className="px-8 py-6">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">{t('profile.preferences.notifications')}</p>
+        <div className="space-y-2">
+          <PreferenceRow
+            icon={Mail}
+            title={t('profile.preferences.emailNotifications')}
+            description={t('profile.preferences.emailNotificationsDesc')}
+          >
+            <Switch
+              checked={profile.preferences.notifications.email}
+              onCheckedChange={(checked: boolean) => updateNotification('email', checked)}
+            />
+          </PreferenceRow>
 
-            <PreferenceRow
-              icon={Clock}
-              title={t('profile.preferences.activityDigest')}
-              description={t('profile.preferences.summaryFrequency')}
+          <PreferenceRow
+            icon={Bell}
+            title={t('profile.preferences.inAppNotifications')}
+            description={t('profile.preferences.inAppNotificationsDesc')}
+          >
+            <Switch
+              checked={profile.preferences.notifications.inApp}
+              onCheckedChange={(checked: boolean) => updateNotification('inApp', checked)}
+            />
+          </PreferenceRow>
+
+          <PreferenceRow
+            icon={Clock}
+            title={t('profile.preferences.activityDigest')}
+            description={t('profile.preferences.summaryFrequency')}
+          >
+            <Select
+              value={profile.preferences.notifications.digestFrequency}
+              onValueChange={(value) =>
+                updateNotification('digestFrequency', value as 'never' | 'daily' | 'weekly')
+              }
             >
-              <Select
-                value={profile.preferences.notifications.digestFrequency}
-                onValueChange={(value) =>
-                  updateNotification('digestFrequency', value as 'never' | 'daily' | 'weekly')
-                }
-              >
-                <SelectTrigger className="w-28 h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="never">{t('profile.preferences.never')}</SelectItem>
-                  <SelectItem value="daily">{t('profile.preferences.daily')}</SelectItem>
-                  <SelectItem value="weekly">{t('profile.preferences.weekly')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </PreferenceRow>
-          </div>
+              <SelectTrigger className="w-32 h-10 text-sm rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="never">{t('profile.preferences.never')}</SelectItem>
+                <SelectItem value="daily">{t('profile.preferences.daily')}</SelectItem>
+                <SelectItem value="weekly">{t('profile.preferences.weekly')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </PreferenceRow>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -758,28 +861,27 @@ function PreferencesForm({
 function AccountInfoCard({ profile }: { profile: UserProfile }) {
   const { t } = useTranslation();
   return (
-    <section className="animate-fade-in-up stagger-4">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="size-8 rounded-lg bg-muted flex items-center justify-center">
-          <Hash className="size-4 text-muted-foreground" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold">{t('profile.accountDetails.title')}</h2>
-          <p className="text-xs text-muted-foreground">{t('profile.accountDetails.description')}</p>
-        </div>
+    <>
+      <div className="flex items-center justify-between mb-5 px-1">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+          <div className="size-6 rounded-lg bg-muted/50 flex items-center justify-center">
+            <Hash className="size-3.5 text-muted-foreground" />
+          </div>
+          {t('profile.accountDetails.title')}
+        </h3>
       </div>
 
-      <div className="island p-0 overflow-hidden">
-        <div className="divide-y divide-border/50">
-          <InfoRow label="User ID" value={profile.id} mono copyable />
-          <InfoRow label="Email" value={profile.email} />
+      <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+        <div className="divide-y divide-border/40">
+          <InfoRow label={t('profile.accountDetails.userId')} value={profile.id} mono copyable />
+          <InfoRow label={t('profile.emailAddress')} value={profile.email} />
           <InfoRow
-            label="Role"
+            label={t('profile.accountDetails.role')}
             value={profile.role.charAt(0) + profile.role.slice(1).toLowerCase()}
             badge
           />
           <InfoRow
-            label="Created"
+            label={t('profile.accountDetails.created')}
             value={profile.createdAt
               ? new Date(profile.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -791,7 +893,7 @@ function AccountInfoCard({ profile }: { profile: UserProfile }) {
           />
         </div>
       </div>
-    </section>
+    </>
   );
 }
 
@@ -802,39 +904,62 @@ function AccountInfoCard({ profile }: { profile: UserProfile }) {
 function QuickTipsCard() {
   const { t } = useTranslation();
   const tips = [
-    { title: t('profile.quickTips.keyboardShortcuts'), description: t('profile.quickTips.keyboardShortcutsDesc') },
-    { title: t('profile.quickTips.apiAccess'), description: t('profile.quickTips.apiAccessDesc') },
+    {
+      icon: Zap,
+      title: t('profile.quickTips.keyboardShortcuts'),
+      description: t('profile.quickTips.keyboardShortcutsDesc'),
+      color: 'text-primary',
+      bg: 'from-primary/10 to-primary/5',
+    },
+    {
+      icon: Key,
+      title: t('profile.quickTips.apiKeys'),
+      description: t('profile.quickTips.apiKeysDesc'),
+      color: 'text-warm',
+      bg: 'from-warm/10 to-warm/5',
+    },
+    {
+      icon: Shield,
+      title: t('profile.quickTips.security'),
+      description: t('profile.quickTips.securityDesc'),
+      color: 'text-success',
+      bg: 'from-success/10 to-success/5',
+    },
   ];
 
   return (
-    <section className="animate-fade-in-up stagger-5">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="size-8 rounded-lg bg-success/10 flex items-center justify-center">
-          <Sparkles className="size-4 text-success" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold">{t('profile.quickTips.title')}</h2>
-          <p className="text-xs text-muted-foreground">{t('profile.quickTips.description')}</p>
-        </div>
+    <>
+      <div className="flex items-center justify-between mb-5 px-1">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+          <div className="size-6 rounded-lg bg-success/10 flex items-center justify-center">
+            <Sparkles className="size-3.5 text-success" />
+          </div>
+          {t('profile.quickTips.title')}
+        </h3>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         {tips.map((tip, i) => (
           <div
             key={i}
-            className="group island p-4 hover:border-primary/20 transition-colors cursor-pointer"
+            className={cn(
+              'p-5 rounded-2xl border border-border/40 bg-gradient-to-br',
+              tip.bg
+            )}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{tip.title}</p>
-                <p className="text-xs text-muted-foreground">{tip.description}</p>
+            <div className="flex items-start gap-4">
+              <div className="size-10 rounded-xl bg-card/80 flex items-center justify-center border border-border/40 shrink-0">
+                <tip.icon className={cn('size-5', tip.color)} />
               </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+              <div>
+                <p className="font-semibold text-sm mb-1">{tip.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{tip.description}</p>
+              </div>
             </div>
           </div>
         ))}
       </div>
-    </section>
+    </>
   );
 }
 
@@ -882,29 +1007,50 @@ function EmailChangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
-          <DialogHeader className="gap-3">
-            <div className="flex items-center gap-3">
-              <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">
-                <Mail className="size-5 text-primary" />
-              </div>
-              <div>
-                <DialogTitle>{t('profile.changeEmailDialog.title')}</DialogTitle>
-                <DialogDescription className="mt-1">
-                  {t('profile.changeEmailDialog.description')}
-                </DialogDescription>
+      <DialogContent className="sm:max-w-[440px] border-0 shadow-2xl p-0 overflow-hidden gap-0">
+        {/* Decorative gradient header */}
+        <div className="relative h-32 bg-gradient-to-br from-info/20 via-info/10 to-transparent overflow-hidden">
+          {/* Animated gradient orbs */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-info/30 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
+            backgroundSize: '24px 24px'
+          }} />
+
+          {/* Centered icon with glow */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-info/40 rounded-3xl blur-xl scale-150" />
+              <div className="relative size-20 rounded-3xl bg-gradient-to-br from-info/30 via-info/20 to-info/10 flex items-center justify-center border border-info/30 backdrop-blur-sm shadow-lg shadow-info/20">
+                <Mail className="size-10 text-info" strokeWidth={1.5} />
               </div>
             </div>
-          </DialogHeader>
+          </div>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6">
-            <div className="space-y-4">
-              <div className="p-3 rounded-xl bg-muted/50 text-sm border border-border/50">
+        {/* Content */}
+        <div className="px-8 pb-8 pt-6">
+          {/* Title & description */}
+          <div className="text-center mb-8">
+            <DialogHeader className="space-y-2">
+              <DialogTitle className="text-2xl font-semibold tracking-tight">
+                {t('profile.changeEmailDialog.title')}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
+                {t('profile.changeEmailDialog.description')}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="p-4 rounded-xl bg-muted/30 text-sm border border-border/40">
                 <p className="text-muted-foreground">
-                  {t('profile.changeEmailDialog.currentEmail')} <span className="font-medium text-foreground">{currentEmail}</span>
+                  {t('profile.changeEmailDialog.currentEmail')}{' '}
+                  <span className="font-medium text-foreground">{currentEmail}</span>
                 </p>
               </div>
 
@@ -913,11 +1059,12 @@ function EmailChangeDialog({
                 name="newEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('profile.emailAddress')}</FormLabel>
+                    <FormLabel className="text-sm font-medium">{t('profile.emailAddress')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
                         placeholder={t('profile.changeEmailDialog.newEmailPlaceholder')}
+                        className="h-12 rounded-xl"
                         {...field}
                       />
                     </FormControl>
@@ -931,11 +1078,12 @@ function EmailChangeDialog({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('auth.password')}</FormLabel>
+                    <FormLabel className="text-sm font-medium">{t('auth.password')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
                         placeholder={t('profile.changeEmailDialog.passwordPlaceholder')}
+                        className="h-12 rounded-xl"
                         {...field}
                       />
                     </FormControl>
@@ -946,25 +1094,30 @@ function EmailChangeDialog({
                   </FormItem>
                 )}
               />
-            </div>
 
-            <DialogFooter className="mt-6 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending && (
-                  <Loader2 className="size-4 mr-2 animate-spin" />
-                )}
-                {t('profile.changeEmailDialog.submit')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              <DialogFooter className="flex-col sm:flex-row gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1 h-12 rounded-xl"
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={mutation.isPending}
+                  className="flex-1 h-12 rounded-xl gap-2 shadow-lg shadow-primary/15"
+                >
+                  {mutation.isPending && (
+                    <Loader2 className="size-4 animate-spin" />
+                  )}
+                  {t('profile.changeEmailDialog.submit')}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -978,16 +1131,17 @@ function LoadingState() {
   const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center h-[60vh]">
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-6">
         <div className="relative">
-          <div className="size-16 rounded-2xl bg-gradient-to-br from-primary/20 to-warm/10 animate-pulse" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <User className="size-7 text-primary animate-pulse" />
+          <div className="absolute inset-0 bg-info/20 rounded-3xl blur-2xl scale-125" />
+          <div className="relative size-20 rounded-3xl bg-gradient-to-br from-info/20 to-info/5 flex items-center justify-center border border-info/20">
+            <User className="size-10 text-info animate-pulse" />
           </div>
+          <div className="absolute inset-0 rounded-3xl border-2 border-info/30 animate-ping" style={{ animationDuration: '2s' }} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium">{t('profile.loading')}</p>
-          <p className="text-xs text-muted-foreground">{t('profile.loadingMessage')}</p>
+          <p className="font-medium text-foreground mb-1">{t('profile.loading')}</p>
+          <p className="text-sm text-muted-foreground">{t('profile.loadingMessage')}</p>
         </div>
       </div>
     </div>
@@ -1015,21 +1169,21 @@ function InfoRow({
   return (
     <div
       className={cn(
-        "flex items-center justify-between px-4 py-3",
-        copyable && "cursor-pointer hover:bg-muted/30 transition-colors"
+        "flex items-center justify-between px-5 py-4",
+        copyable && "cursor-pointer hover:bg-muted/30 transition-colors group"
       )}
       onClick={copyable ? handleCopy : undefined}
       title={copyable ? 'Click to copy' : undefined}
     >
       <span className="text-sm text-muted-foreground">{label}</span>
       {badge ? (
-        <span className="text-xs font-medium px-2 py-1 rounded-md bg-primary/10 text-primary">
+        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/15 text-primary border border-primary/20">
           {value}
         </span>
       ) : (
         <span className={cn(
           'text-sm font-medium',
-          mono && 'font-mono text-xs bg-muted/50 px-2 py-0.5 rounded'
+          mono && 'font-mono text-xs bg-muted/50 px-2.5 py-1 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors'
         )}>
           {value}
         </span>
@@ -1050,14 +1204,14 @@ function PreferenceRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-3 px-1 rounded-lg hover:bg-muted/30 transition-colors">
-      <div className="flex items-center gap-3">
-        <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
+    <div className="flex items-center justify-between py-4 px-2 rounded-xl hover:bg-muted/20 transition-colors">
+      <div className="flex items-center gap-4">
+        <div className="size-10 rounded-xl bg-muted/40 flex items-center justify-center shrink-0 border border-border/30">
           <Icon className="size-4 text-muted-foreground" />
         </div>
         <div>
           <p className="text-sm font-medium">{title}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         </div>
       </div>
       {children}
@@ -1072,31 +1226,32 @@ function PendingEmailChange({
   newEmail: string;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   return (
-    <section className="animate-fade-in-up stagger-5">
-      <div className="island p-4 border-warning/30 bg-gradient-to-br from-warning/5 to-transparent">
-        <div className="flex items-start gap-3">
-          <div className="size-10 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
-            <AlertCircle className="size-5 text-warning" />
+    <div className="island overflow-hidden border-0 shadow-lg shadow-warning/[0.03] border-warning/30 bg-gradient-to-br from-warning/5 to-transparent">
+      <div className="p-5">
+        <div className="flex items-start gap-4">
+          <div className="size-12 rounded-2xl bg-warning/10 flex items-center justify-center shrink-0 border border-warning/20">
+            <AlertCircle className="size-6 text-warning" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold">Email Change Pending</p>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">
-              Verification sent to <span className="font-medium text-foreground">{newEmail}</span>
+            <p className="font-semibold">{t('profile.emailChangePending')}</p>
+            <p className="text-sm text-muted-foreground mt-1 truncate">
+              {t('profile.verificationSentTo')} <span className="font-medium text-foreground">{newEmail}</span>
             </p>
             <Button
               variant="ghost"
               size="sm"
-              className="mt-3 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="mt-4 h-10 rounded-xl text-xs font-medium text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
               onClick={onCancel}
             >
-              <X className="size-3 mr-1.5" />
-              Cancel Change
+              <X className="size-4" />
+              {t('profile.cancelEmailChange')}
             </Button>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 

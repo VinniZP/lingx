@@ -391,6 +391,10 @@
   },
   "settings": {
     "title": "Account Settings",
+    "joined": "Joined",
+    "accountHealth": "Account Health",
+    "excellent": "Excellent",
+    "accountSettings": "Account Settings",
     "apiKeys": {
       "title": "API Keys",
       "description": "Generate and manage API keys for CLI and SDK authentication"
@@ -409,8 +413,8 @@
       "strongPasswordDesc": "Use a unique password with 12+ characters",
       "apiKeyRotation": "API Key Rotation",
       "apiKeyRotationDesc": "Rotate API keys periodically for better security",
-      "twoFactorAuth": "Two-Factor Auth",
-      "twoFactorAuthDesc": "Enable 2FA for additional account protection"
+      "activeSessions": "Active Sessions",
+      "activeSessionsDesc": "Review and revoke unused sessions regularly"
     },
     "resources": {
       "title": "Resources",
@@ -421,22 +425,33 @@
       "cliGuide": "CLI Guide",
       "cliGuideDesc": "Set up the command-line tool"
     },
-    "back": "Settings",
     "backToSettings": "Back to Settings"
   },
   "profile": {
     "title": "Profile Details",
-    "description": "Manage your personal information",
+    "description": "Manage your personal information and preferences",
     "memberSince": "Member since",
     "accountStatus": "Account status",
+    "noName": "No name set",
+    "avatar": "Profile Photo",
+    "avatarDescription": "Upload a photo to personalize your account",
+    "uploadAvatar": "Upload Photo",
+    "avatarRequirements": "JPG, PNG or GIF. Max 5MB. Recommended 256x256px.",
+    "uploadNew": "Upload New",
+    "removeAvatar": "Remove",
+    "personalInfo": "Personal Information",
+    "personalInfoDescription": "Update your name and email address",
     "displayName": "Display Name",
     "displayNamePlaceholder": "Enter your name",
     "displayNameHint": "This is how you'll appear throughout the app",
     "emailAddress": "Email Address",
-    "changeEmail": "Change",
+    "changeEmail": "Change Email",
     "emailChangeHint": "Changing your email requires verification",
     "discard": "Discard",
     "saveChanges": "Save Changes",
+    "emailChangePending": "Email Change Pending",
+    "verificationSentTo": "Verification sent to",
+    "cancelEmailChange": "Cancel Change",
     "preferences": {
       "title": "Preferences",
       "description": "Customize your experience",
@@ -469,15 +484,18 @@
     },
     "accountDetails": {
       "title": "Account Details",
-      "description": "Technical information"
+      "userId": "User ID",
+      "role": "Role",
+      "created": "Created"
     },
     "quickTips": {
       "title": "Quick Tips",
-      "description": "Get the most out of LocaleFlow",
       "keyboardShortcuts": "Keyboard shortcuts",
       "keyboardShortcutsDesc": "Press Cmd+K for quick actions",
-      "apiAccess": "API access",
-      "apiAccessDesc": "Generate keys in Settings"
+      "apiKeys": "API Keys",
+      "apiKeysDesc": "Generate keys in Settings → API Keys",
+      "security": "Security",
+      "securityDesc": "Review active sessions regularly"
     },
     "changeEmailDialog": {
       "title": "Change Email Address",

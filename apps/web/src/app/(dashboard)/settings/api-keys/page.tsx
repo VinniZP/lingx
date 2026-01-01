@@ -40,6 +40,9 @@ import {
   RotateCcw,
   Clock,
   ArrowLeft,
+  Sparkles,
+  KeyRound,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@localeflow/sdk-nextjs';
@@ -48,11 +51,11 @@ import { useTranslation } from '@localeflow/sdk-nextjs';
  * ApiKeysPage - Premium redesigned API keys management
  *
  * Features:
- * - Hero section with key icon and stats
- * - Asymmetric grid layout (7-5 split)
- * - Premium table styling with islands
+ * - Premium atmospheric backdrop with gradient orbs
+ * - Hero section with glow effect matching security page
+ * - Refined back navigation with icon container
+ * - Premium islands with subtle shadows
  * - Sidebar with documentation and security tips
- * - Consistent button styling (primary purple)
  */
 export default function ApiKeysPage() {
   const { t } = useTranslation();
@@ -136,15 +139,19 @@ export default function ApiKeysPage() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-4">
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-6">
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 animate-pulse" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Languages className="w-5 h-5 text-primary animate-pulse" />
+            <div className="absolute inset-0 bg-warm/20 rounded-3xl blur-2xl scale-125" />
+            <div className="relative size-20 rounded-3xl bg-gradient-to-br from-warm/20 to-warm/5 flex items-center justify-center border border-warm/20">
+              <Key className="size-10 text-warm animate-pulse" />
             </div>
+            <div className="absolute inset-0 rounded-3xl border-2 border-warm/30 animate-ping" style={{ animationDuration: '2s' }} />
           </div>
-          <p className="text-sm text-muted-foreground">{t('apiKeys.loading')}</p>
+          <div className="text-center">
+            <p className="font-medium text-foreground mb-1">{t('apiKeys.loading')}</p>
+            <p className="text-sm text-muted-foreground">{t('common.pleaseWait')}</p>
+          </div>
         </div>
       </div>
     );
@@ -159,258 +166,329 @@ export default function ApiKeysPage() {
   const revokedKeys = apiKeys.filter((k) => k.revoked);
 
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="island p-6 lg:p-8 animate-fade-in-up">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-          {/* Icon */}
-          <div className="relative shrink-0">
-            <div className="size-16 rounded-2xl bg-gradient-to-br from-warm/20 via-warm/10 to-primary/10 flex items-center justify-center border border-warm/20">
-              <Key className="size-7 text-warm" />
-            </div>
-          </div>
+    <div className="min-h-[calc(100vh-8rem)] pb-16">
+      {/* Premium atmospheric backdrop */}
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        {/* Primary gradient orb */}
+        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-gradient-to-bl from-warm/[0.08] via-warm/[0.04] to-transparent rounded-full blur-3xl translate-x-1/3 -translate-y-1/3 animate-pulse" style={{ animationDuration: '8s' }} />
+        {/* Secondary accent orb */}
+        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-gradient-to-tr from-primary/[0.06] via-primary/[0.02] to-transparent rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
+        {/* Floating accent orb */}
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-r from-warm/[0.04] to-primary/[0.04] rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '12s' }} />
+        {/* Refined grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)`,
+          backgroundSize: '48px 48px'
+        }} />
+      </div>
 
-          {/* Title & Description */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <Link
-                href="/settings"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="size-4" />
-              </Link>
-              <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">
-                {t('apiKeys.pageTitle')}
-              </h1>
-            </div>
-            <p className="text-muted-foreground">
-              {t('apiKeys.pageDescription')}
-            </p>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-6 sm:gap-8 pt-4 sm:pt-0 border-t sm:border-t-0 sm:border-l border-border sm:pl-8">
-            <StatPill
-              label={t('apiKeys.stats.active')}
-              value={isLoading ? '-' : activeKeys.length}
-              highlight={activeKeys.length > 0}
-            />
-            <div className="w-px h-8 bg-border hidden sm:block" />
-            <StatPill
-              label={t('apiKeys.stats.total')}
-              value={isLoading ? '-' : apiKeys.length}
-            />
-          </div>
+      {/* Back navigation - refined with icon container */}
+      <Link
+        href="/settings"
+        className="inline-flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-all duration-300 group mb-12 animate-fade-in-up"
+      >
+        <div className="size-9 rounded-xl bg-card border border-border/50 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all duration-300 shadow-sm">
+          <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
         </div>
+        <span className="font-medium tracking-tight">{t('settings.backToSettings')}</span>
+      </Link>
 
-        {/* CTA Button */}
-        <div className="mt-6 pt-6 border-t border-border">
-          <Button
-            onClick={() => setShowCreateDialog(true)}
-            className="h-11 gap-2 w-full sm:w-auto"
-            data-testid="generate-key-button"
-          >
-            <Plus className="size-4" />
-            {t('apiKeys.generateNew')}
-          </Button>
+      {/* Premium Page Header */}
+      <div className="relative mb-12 animate-fade-in-up stagger-1">
+        <div className="island overflow-hidden border-0 shadow-lg shadow-warm/[0.03]">
+          {/* Gradient accent band */}
+          <div className="h-1.5 bg-gradient-to-r from-warm via-warm/70 to-primary" />
+
+          <div className="p-8 lg:p-10">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+              {/* Icon with premium glow effect */}
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-warm/25 rounded-3xl blur-2xl scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-br from-warm/30 to-primary/20 rounded-3xl blur-xl" />
+                <div className="relative size-20 lg:size-24 rounded-3xl bg-gradient-to-br from-warm/20 via-warm/10 to-primary/5 flex items-center justify-center border border-warm/20 backdrop-blur-sm">
+                  <Key className="size-10 lg:size-12 text-warm" />
+                  <Sparkles className="absolute -top-1 -right-1 size-5 text-warm animate-pulse" />
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight mb-3 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+                  {t('apiKeys.pageTitle')}
+                </h1>
+                <p className="text-muted-foreground text-base lg:text-lg max-w-xl leading-relaxed">
+                  {t('apiKeys.pageDescription')}
+                </p>
+              </div>
+
+              {/* Stats Widget */}
+              <div className="shrink-0 p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50 min-w-[180px]">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{t('apiKeys.stats.active')}</span>
+                    <span className={cn(
+                      "text-2xl font-bold tracking-tight",
+                      activeKeys.length > 0 ? "text-success" : "text-foreground"
+                    )}>
+                      {isLoading ? '-' : activeKeys.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                    <span className="text-sm text-muted-foreground">{t('apiKeys.stats.total')}</span>
+                    <span className="text-lg font-semibold">
+                      {isLoading ? '-' : apiKeys.length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="mt-8 pt-8 border-t border-border/40">
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                className="h-12 rounded-xl gap-2.5 px-6 shadow-lg shadow-primary/15"
+                data-testid="generate-key-button"
+              >
+                <Plus className="size-5" />
+                {t('apiKeys.generateNew')}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* New Key Alert */}
+      {/* New Key Alert - Premium styling */}
       {newKey && (
-        <div className="island p-6 border-warm/30 bg-warm/5 animate-fade-in-up">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-warm/20 flex items-center justify-center shrink-0">
-                <Key className="size-5 text-warm" />
+        <div className="mb-8 animate-fade-in-up stagger-2">
+          <div className="island overflow-hidden border-0 shadow-lg shadow-success/[0.05] bg-gradient-to-br from-success/5 via-transparent to-transparent">
+            <div className="h-1 bg-gradient-to-r from-success via-success/70 to-success/40" />
+            <div className="p-6 lg:p-8">
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    <div className="absolute inset-0 bg-success/30 rounded-2xl blur-lg" />
+                    <div className="relative size-14 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center border border-success/20">
+                      <KeyRound className="size-7 text-success" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-0.5">{t('apiKeys.newKeyCreated')}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t('apiKeys.copyKeyNow')}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-10 shrink-0 rounded-xl hover:bg-muted/50"
+                  onClick={() => setNewKey(null)}
+                >
+                  <X className="size-4" />
+                </Button>
               </div>
-              <div>
-                <h3 className="font-semibold">{t('apiKeys.newKeyCreated')}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('apiKeys.copyKeyNow')}
-                </p>
+
+              <div className="relative group">
+                <code
+                  className="block p-5 bg-muted/30 rounded-2xl border border-border/40 font-mono text-sm break-all pr-16"
+                  data-testid="new-api-key"
+                >
+                  {newKey}
+                </code>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 size-11 rounded-xl border-border/50 bg-card shadow-sm group-hover:border-success/30 transition-colors"
+                  onClick={copyToClipboard}
+                >
+                  {copied ? (
+                    <Check className="size-5 text-success" />
+                  ) : (
+                    <Copy className="size-5" />
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-3 mt-5 p-4 rounded-xl bg-warning/5 border border-warning/20">
+                <AlertTriangle className="size-5 text-warning shrink-0" />
+                <span className="text-sm text-muted-foreground">{t('apiKeys.storeSecurely')}</span>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9 shrink-0"
-              onClick={() => setNewKey(null)}
-            >
-              <X className="size-4" />
-            </Button>
-          </div>
-
-          <div className="relative">
-            <code
-              className="block p-4 bg-card rounded-xl border font-mono text-sm break-all pr-14"
-              data-testid="new-api-key"
-            >
-              {newKey}
-            </code>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 size-10"
-              onClick={copyToClipboard}
-            >
-              {copied ? (
-                <Check className="size-4 text-success" />
-              ) : (
-                <Copy className="size-4" />
-              )}
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
-            <AlertTriangle className="size-4 text-warm shrink-0" />
-            <span>{t('apiKeys.storeSecurely')}</span>
           </div>
         </div>
       )}
 
-      {/* Grid Layout */}
-      <div className="grid gap-6 lg:grid-cols-12">
+      {/* Grid Layout - Premium styling */}
+      <div className="grid gap-8 lg:gap-10 lg:grid-cols-12">
         {/* Main Content - Keys List */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 xl:col-span-8 space-y-8">
           {/* Active Keys */}
-          <div className="space-y-3 animate-fade-in-up stagger-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <section className="animate-fade-in-up stagger-2">
+            <div className="flex items-center justify-between mb-5 px-1">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                <div className="size-6 rounded-lg bg-success/10 flex items-center justify-center">
+                  <ShieldCheck className="size-3.5 text-success" />
+                </div>
                 {t('apiKeys.activeKeys')}
-              </h2>
-              <span className="text-xs text-muted-foreground">
+              </h3>
+              <span className="text-xs text-muted-foreground font-medium">
                 {activeKeys.length} {activeKeys.length === 1 ? t('apiKeys.key') : t('apiKeys.keys')}
               </span>
             </div>
 
-            <div className="island divide-y divide-border">
+            <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
               {isLoading ? (
-                <div className="p-6 space-y-4">
-                  <Skeleton className="h-16 w-full rounded-xl" />
-                  <Skeleton className="h-16 w-full rounded-xl" />
+                <div className="p-8 space-y-4">
+                  <Skeleton className="h-20 w-full rounded-2xl" />
+                  <Skeleton className="h-20 w-full rounded-2xl" />
                 </div>
               ) : activeKeys.length === 0 ? (
-                <div className="p-8 text-center">
-                  <div className="size-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
-                    <Key className="size-6 text-muted-foreground" />
+                <div className="p-12 text-center">
+                  <div className="relative mx-auto mb-6">
+                    <div className="absolute inset-0 bg-muted/50 rounded-3xl blur-xl scale-150" />
+                    <div className="relative size-20 rounded-3xl bg-gradient-to-br from-muted/60 to-muted/20 flex items-center justify-center border border-border/40">
+                      <Key className="size-10 text-muted-foreground/60" />
+                    </div>
                   </div>
-                  <p className="text-muted-foreground mb-4">{t('apiKeys.noActiveKeys')}</p>
+                  <p className="text-muted-foreground mb-6 text-base">{t('apiKeys.noActiveKeys')}</p>
                   <Button
                     variant="outline"
                     onClick={() => setShowCreateDialog(true)}
-                    className="h-11"
+                    className="h-12 rounded-xl px-6 gap-2"
                   >
+                    <Plus className="size-4" />
                     {t('apiKeys.generateFirst')}
                   </Button>
                 </div>
               ) : (
-                activeKeys.map((key) => (
-                  <ApiKeyRow
-                    key={key.id}
-                    apiKey={key}
-                    onRevoke={() => revokeMutation.mutate(key.id)}
-                    isRevoking={revokeMutation.isPending}
-                  />
-                ))
+                <div className="divide-y divide-border/40">
+                  {activeKeys.map((key) => (
+                    <ApiKeyRow
+                      key={key.id}
+                      apiKey={key}
+                      onRevoke={() => revokeMutation.mutate(key.id)}
+                      isRevoking={revokeMutation.isPending}
+                    />
+                  ))}
+                </div>
               )}
             </div>
-          </div>
+          </section>
 
           {/* Revoked Keys */}
           {revokedKeys.length > 0 && (
-            <div className="space-y-3 animate-fade-in-up stagger-3">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <section className="animate-fade-in-up stagger-3">
+              <div className="flex items-center justify-between mb-5 px-1">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                  <div className="size-6 rounded-lg bg-muted/50 flex items-center justify-center">
+                    <Key className="size-3.5 text-muted-foreground" />
+                  </div>
                   {t('apiKeys.revokedKeys')}
-                </h2>
-                <span className="text-xs text-muted-foreground">
+                </h3>
+                <span className="text-xs text-muted-foreground font-medium">
                   {revokedKeys.length} {revokedKeys.length === 1 ? t('apiKeys.key') : t('apiKeys.keys')}
                 </span>
               </div>
 
-              <div className="island divide-y divide-border opacity-60">
-                {revokedKeys.map((key) => (
-                  <div key={key.id} className="p-4 flex items-center gap-4">
-                    <div className="size-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <Key className="size-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{key.name}</p>
-                        <Badge variant="destructive" className="text-[10px] font-medium">
-                          {t('apiKeys.revoked')}
-                        </Badge>
+              <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02] opacity-70">
+                <div className="divide-y divide-border/40">
+                  {revokedKeys.map((key) => (
+                    <div key={key.id} className="p-5 flex items-center gap-4">
+                      <div className="size-12 rounded-xl bg-muted/50 flex items-center justify-center shrink-0 border border-border/30">
+                        <Key className="size-5 text-muted-foreground" />
                       </div>
-                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                        {key.keyPrefix}...
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2.5">
+                          <p className="font-medium truncate">{key.name}</p>
+                          <Badge variant="destructive" className="text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                            {t('apiKeys.revoked')}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-mono mt-1">
+                          {key.keyPrefix}...
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground hidden sm:block">
+                        {formatDistanceToNow(new Date(key.createdAt), { addSuffix: true })}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground hidden sm:block">
-                      {formatDistanceToNow(new Date(key.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            </section>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 xl:col-span-4 space-y-8">
           {/* Security Tips */}
-          <div className="space-y-3 animate-fade-in-up stagger-3">
-            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              {t('apiKeys.securityTips.title')}
-            </h2>
-            <div className="island divide-y divide-border">
-              <SecurityTip
-                icon={Shield}
-                status="info"
-                title={t('apiKeys.securityTips.keepSecret')}
-                description={t('apiKeys.securityTips.keepSecretDesc')}
-              />
-              <SecurityTip
-                icon={RotateCcw}
-                status="warning"
-                title={t('apiKeys.securityTips.rotateRegularly')}
-                description={t('apiKeys.securityTips.rotateRegularlyDesc')}
-              />
-              <SecurityTip
-                icon={Clock}
-                status="good"
-                title={t('apiKeys.securityTips.monitorUsage')}
-                description={t('apiKeys.securityTips.monitorUsageDesc')}
-              />
+          <section className="animate-fade-in-up stagger-4">
+            <div className="flex items-center justify-between mb-5 px-1">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                <div className="size-6 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <Shield className="size-3.5 text-warning" />
+                </div>
+                {t('apiKeys.securityTips.title')}
+              </h3>
             </div>
-          </div>
+            <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+              <div className="divide-y divide-border/40">
+                <SecurityTip
+                  icon={Shield}
+                  status="info"
+                  title={t('apiKeys.securityTips.keepSecret')}
+                  description={t('apiKeys.securityTips.keepSecretDesc')}
+                />
+                <SecurityTip
+                  icon={RotateCcw}
+                  status="warning"
+                  title={t('apiKeys.securityTips.rotateRegularly')}
+                  description={t('apiKeys.securityTips.rotateRegularlyDesc')}
+                />
+                <SecurityTip
+                  icon={Clock}
+                  status="good"
+                  title={t('apiKeys.securityTips.monitorUsage')}
+                  description={t('apiKeys.securityTips.monitorUsageDesc')}
+                />
+              </div>
+            </div>
+          </section>
 
           {/* Documentation Links */}
-          <div className="space-y-3 animate-fade-in-up stagger-4">
-            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              {t('apiKeys.docs.title')}
-            </h2>
-            <div className="island divide-y divide-border">
-              <ResourceLink
-                href="https://docs.localeflow.dev/cli"
-                icon={Terminal}
-                title={t('apiKeys.docs.cliSetup')}
-                description={t('apiKeys.docs.cliSetupDesc')}
-              />
-              <ResourceLink
-                href="https://docs.localeflow.dev/sdk"
-                icon={BookOpen}
-                title={t('apiKeys.docs.sdkIntegration')}
-                description={t('apiKeys.docs.sdkIntegrationDesc')}
-              />
-              <ResourceLink
-                href="https://docs.localeflow.dev/api"
-                icon={Key}
-                title={t('apiKeys.docs.apiReference')}
-                description={t('apiKeys.docs.apiReferenceDesc')}
-              />
+          <section className="animate-fade-in-up stagger-5">
+            <div className="flex items-center justify-between mb-5 px-1">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2.5 tracking-tight">
+                <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="size-3.5 text-primary" />
+                </div>
+                {t('apiKeys.docs.title')}
+              </h3>
             </div>
-          </div>
+            <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
+              <div className="divide-y divide-border/40">
+                <ResourceLink
+                  href="https://docs.localeflow.dev/cli"
+                  icon={Terminal}
+                  title={t('apiKeys.docs.cliSetup')}
+                  description={t('apiKeys.docs.cliSetupDesc')}
+                />
+                <ResourceLink
+                  href="https://docs.localeflow.dev/sdk"
+                  icon={BookOpen}
+                  title={t('apiKeys.docs.sdkIntegration')}
+                  description={t('apiKeys.docs.sdkIntegrationDesc')}
+                />
+                <ResourceLink
+                  href="https://docs.localeflow.dev/api"
+                  icon={Key}
+                  title={t('apiKeys.docs.apiReference')}
+                  description={t('apiKeys.docs.apiReferenceDesc')}
+                />
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -426,35 +504,9 @@ export default function ApiKeysPage() {
   );
 }
 
-/**
- * StatPill - Compact stat display
- */
-function StatPill({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: string | number;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="text-center sm:text-left">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        {label}
-      </p>
-      <p className={cn(
-        "text-2xl font-semibold tracking-tight mt-0.5",
-        highlight && "text-success"
-      )}>
-        {value}
-      </p>
-    </div>
-  );
-}
 
 /**
- * ApiKeyRow - Individual API key display
+ * ApiKeyRow - Individual API key display with premium styling
  */
 function ApiKeyRow({
   apiKey,
@@ -473,20 +525,20 @@ function ApiKeyRow({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="p-4 flex items-center gap-4 group">
-      <div className="size-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-        <ShieldCheck className="size-4 text-success" />
+    <div className="p-5 flex items-center gap-5 group hover:bg-muted/20 transition-colors">
+      <div className="size-12 rounded-xl bg-gradient-to-br from-success/15 to-success/5 flex items-center justify-center shrink-0 border border-success/20">
+        <ShieldCheck className="size-5 text-success" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="font-medium truncate">{apiKey.name}</p>
-          <Badge className="bg-success/10 text-success border-success/20 text-[10px] font-medium">
+        <div className="flex items-center gap-2.5">
+          <p className="font-semibold truncate">{apiKey.name}</p>
+          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-success/15 text-success border border-success/20">
             {t('apiKeys.stats.active')}
-          </Badge>
+          </span>
         </div>
-        <div className="flex items-center gap-3 mt-0.5">
-          <code className="text-xs text-muted-foreground font-mono">
+        <div className="flex items-center gap-3 mt-1.5">
+          <code className="text-xs text-muted-foreground font-mono bg-muted/30 px-2 py-0.5 rounded-md">
             {apiKey.keyPrefix}...
           </code>
           <span className="text-xs text-muted-foreground hidden sm:inline">
@@ -498,7 +550,7 @@ function ApiKeyRow({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-3 shrink-0">
         <span className="text-xs text-muted-foreground hidden lg:block">
           {formatDistanceToNow(new Date(apiKey.createdAt), { addSuffix: true })}
         </span>
@@ -508,27 +560,26 @@ function ApiKeyRow({
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="size-10 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               data-testid="revoke-key-button"
             >
               <Trash2 className="size-4" />
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent className="border-0 shadow-2xl rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>{t('apiKeys.revokeDialog.title')}</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-xl">{t('apiKeys.revokeDialog.title')}</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground leading-relaxed">
                 This will permanently revoke the API key{' '}
-                <strong>{apiKey.name}</strong>. Any applications using this key
-                will no longer be able to authenticate. This action cannot be
-                undone.
+                <strong className="text-foreground">{apiKey.name}</strong>. Any applications using this key
+                will no longer be able to authenticate. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="h-11">{t('apiKeys.revokeDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogFooter className="gap-3 mt-2">
+              <AlertDialogCancel className="h-12 rounded-xl">{t('apiKeys.revokeDialog.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={onRevoke}
-                className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="h-12 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/20"
               >
                 {isRevoking ? t('apiKeys.revokeDialog.revoking') : t('apiKeys.revokeDialog.confirm')}
               </AlertDialogAction>
@@ -541,7 +592,7 @@ function ApiKeyRow({
 }
 
 /**
- * SecurityTip - Security recommendation item
+ * SecurityTip - Security recommendation item with premium styling
  */
 function SecurityTip({
   icon: Icon,
@@ -555,29 +606,32 @@ function SecurityTip({
   description: string;
 }) {
   const statusColors = {
-    good: 'text-success bg-success/10',
-    warning: 'text-warning bg-warning/10',
-    info: 'text-info bg-info/10',
+    good: { icon: 'text-success', bg: 'from-success/15 to-success/5', border: 'border-success/20' },
+    warning: { icon: 'text-warning', bg: 'from-warning/15 to-warning/5', border: 'border-warning/20' },
+    info: { icon: 'text-info', bg: 'from-info/15 to-info/5', border: 'border-info/20' },
   };
 
+  const colors = statusColors[status];
+
   return (
-    <div className="p-4 flex items-start gap-3">
+    <div className="p-5 flex items-start gap-4">
       <div className={cn(
-        'size-8 rounded-lg flex items-center justify-center shrink-0',
-        statusColors[status]
+        'size-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br border',
+        colors.bg,
+        colors.border
       )}>
-        <Icon className="size-4" />
+        <Icon className={cn('size-5', colors.icon)} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+        <p className="font-semibold text-sm">{title}</p>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{description}</p>
       </div>
     </div>
   );
 }
 
 /**
- * ResourceLink - Documentation link item
+ * ResourceLink - Documentation link item with premium styling
  */
 function ResourceLink({
   href,
@@ -595,18 +649,18 @@ function ResourceLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="p-4 flex items-center gap-3 hover:bg-accent/50 transition-colors group"
+      className="p-5 flex items-center gap-4 hover:bg-muted/20 transition-colors group"
     >
-      <div className="size-8 rounded-lg bg-muted flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
-        <Icon className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      <div className="size-10 rounded-xl bg-muted/40 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors border border-border/30 group-hover:border-primary/20">
+        <Icon className="size-5 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm group-hover:text-primary transition-colors">
+        <p className="font-semibold text-sm group-hover:text-primary transition-colors">
           {title}
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+        <p className="text-xs text-muted-foreground mt-1">{description}</p>
       </div>
-      <ChevronRight className="size-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+      <ExternalLink className="size-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
     </a>
   );
 }
