@@ -1,5 +1,6 @@
 import { parse, type ParserPlugin } from '@babel/parser';
 import _traverse from '@babel/traverse';
+import generate from '@babel/generator';
 import {
   isIdentifier,
   isStringLiteral,
@@ -9,9 +10,16 @@ import {
   type Expression,
   type SpreadElement,
   type ArgumentPlaceholder,
+  type Comment,
 } from '@babel/types';
 import type { NodePath, TraverseOptions } from '@babel/traverse';
-import type { ExtractorOptions, Extractor, ExtractedKey } from './index.js';
+import type {
+  ExtractorOptions,
+  Extractor,
+  ExtractedKey,
+  ExtractionResult,
+  ExtractionError,
+} from './index.js';
 import type { File } from '@babel/types';
 
 // Handle ESM/CJS interop - Babel exports default differently
@@ -22,32 +30,62 @@ const traverse: TraverseFn = (
     : (_traverse as { default: TraverseFn }).default
 ) as TraverseFn;
 
+// Handle ESM/CJS interop for generator
+type GeneratorFn = (ast: CallExpression) => { code: string };
+const generateCode: GeneratorFn = (
+  typeof generate === 'function'
+    ? generate
+    : (generate as { default: GeneratorFn }).default
+) as GeneratorFn;
+
+/**
+ * Dynamic translation functions that accept TranslationKey (from tKey).
+ * These are allowed to have variable arguments and are NOT extracted or errored.
+ */
+const DYNAMIC_TRANSLATION_FUNCTIONS = new Set(['td']);
+
 /**
  * Extracts translation keys from Next.js/React source code using AST parsing.
  *
  * Supports:
  * - t('key') function calls
+ * - tKey('key') marker function calls
+ * - td() dynamic translation (ignored - uses TranslationKey from tKey)
  * - useTranslation('namespace') for namespace prefixing
  * - i18n.t('key'), this.t('key') member expressions
  * - Template literals with static strings
  * - JSX and TypeScript syntax
+ * - Magic comments: @lf-skip, @lf-key
  */
 export class NextjsExtractor implements Extractor {
   private functions: Set<string>;
+  private markerFunctions: Set<string>;
+  private dynamicFunctions: Set<string>;
 
   constructor(options: ExtractorOptions) {
     this.functions = new Set(options.functions);
+    // Always include 'tKey' as a marker function
+    this.markerFunctions = new Set(options.markerFunctions ?? ['tKey']);
+    // Dynamic translation functions are always ignored
+    this.dynamicFunctions = DYNAMIC_TRANSLATION_FUNCTIONS;
   }
 
   extractFromCode(code: string, filePath?: string): string[] {
-    const details = this.extractFromCodeWithDetails(code, filePath);
-    return details.map(d => d.key);
+    const result = this.extract(code, filePath);
+    return result.keys.map(d => d.key);
   }
 
   extractFromCodeWithDetails(code: string, filePath?: string): ExtractedKey[] {
+    const result = this.extract(code, filePath);
+    return result.keys;
+  }
+
+  extract(code: string, filePath?: string): ExtractionResult {
     const keys: ExtractedKey[] = [];
+    const errors: ExtractionError[] = [];
     let currentNamespace: string | undefined;
     const functionsSet = this.functions;
+    const markerFunctionsSet = this.markerFunctions;
 
     try {
       const plugins: ParserPlugin[] = ['jsx', 'typescript'];
@@ -57,9 +95,56 @@ export class NextjsExtractor implements Extractor {
         errorRecovery: true,
       });
 
+      // Process comments for @lf-skip and @lf-key
+      const skipLines = new Set<number>();
+      const commentKeys: ExtractedKey[] = [];
+
+      for (const comment of (ast.comments ?? []) as Comment[]) {
+        const text = comment.value.trim();
+
+        // @lf-skip - skip the next line
+        if (text === '@lf-skip') {
+          if (comment.loc) {
+            skipLines.add(comment.loc.end.line + 1);
+          }
+        }
+
+        // @lf-key key.name - extract key from comment
+        const keyMatch = text.match(/^@lf-key\s+(\S+)/);
+        if (keyMatch) {
+          commentKeys.push({
+            key: keyMatch[1],
+            source: 'comment',
+            location: filePath && comment.loc
+              ? {
+                  file: filePath,
+                  line: comment.loc.start.line,
+                  column: comment.loc.start.column,
+                }
+              : undefined,
+          });
+        }
+      }
+
+      const dynamicFunctionsSet = this.dynamicFunctions;
+
       traverse(ast, {
         CallExpression(path: NodePath<CallExpression>) {
           const callee = path.node.callee;
+          const loc = path.node.loc;
+
+          // Check if this line should be skipped
+          if (loc && skipLines.has(loc.start.line)) {
+            return;
+          }
+
+          // Skip dynamic translation functions (td) - they use TranslationKey from tKey
+          if (
+            isIdentifier(callee) &&
+            dynamicFunctionsSet.has(callee.name)
+          ) {
+            return;
+          }
 
           // Check for useTranslation('namespace') calls to capture namespace
           if (
@@ -73,26 +158,72 @@ export class NextjsExtractor implements Extractor {
             }
           }
 
+          // Check for marker function calls (tKey, etc.)
+          if (
+            isIdentifier(callee) &&
+            markerFunctionsSet.has(callee.name)
+          ) {
+            const keyValue = extractKeyFromArgs(path.node.arguments);
+            if (keyValue) {
+              keys.push({
+                key: keyValue,
+                source: 'marker',
+                location: filePath && loc
+                  ? {
+                      file: filePath,
+                      line: loc.start.line,
+                      column: loc.start.column,
+                    }
+                  : undefined,
+              });
+            }
+            // Marker functions should always have static keys
+            if (!keyValue && path.node.arguments.length > 0) {
+              errors.push({
+                message: 'Marker function requires a static string key',
+                location: {
+                  file: filePath ?? '<unknown>',
+                  line: loc?.start.line ?? 0,
+                  column: loc?.start.column ?? 0,
+                },
+                code: generateCodeSafe(path.node),
+              });
+            }
+          }
+
           // Check for t('key') calls - direct function call
           // Skip useTranslation since it's used for namespace, not key extraction
           if (
             isIdentifier(callee) &&
             functionsSet.has(callee.name) &&
-            callee.name !== 'useTranslation'
+            callee.name !== 'useTranslation' &&
+            !markerFunctionsSet.has(callee.name)
           ) {
             const keyValue = extractKeyFromArgs(path.node.arguments);
             if (keyValue) {
               const fullKey = currentNamespace ? `${currentNamespace}:${keyValue}` : keyValue;
               keys.push({
                 key: fullKey,
+                source: 'function',
                 namespace: currentNamespace,
-                location: filePath && path.node.loc
+                location: filePath && loc
                   ? {
                       file: filePath,
-                      line: path.node.loc.start.line,
-                      column: path.node.loc.start.column,
+                      line: loc.start.line,
+                      column: loc.start.column,
                     }
                   : undefined,
+              });
+            } else if (path.node.arguments.length > 0) {
+              // Dynamic key detected - this is an error
+              errors.push({
+                message: 'Dynamic key detected - wrap with tKey() or use @lf-key comment',
+                location: {
+                  file: filePath ?? '<unknown>',
+                  line: loc?.start.line ?? 0,
+                  column: loc?.start.column ?? 0,
+                },
+                code: generateCodeSafe(path.node),
               });
             }
           }
@@ -107,25 +238,54 @@ export class NextjsExtractor implements Extractor {
             if (keyValue) {
               keys.push({
                 key: keyValue,
-                location: filePath && path.node.loc
+                source: 'function',
+                location: filePath && loc
                   ? {
                       file: filePath,
-                      line: path.node.loc.start.line,
-                      column: path.node.loc.start.column,
+                      line: loc.start.line,
+                      column: loc.start.column,
                     }
                   : undefined,
+              });
+            } else if (path.node.arguments.length > 0) {
+              // Dynamic key detected - this is an error
+              errors.push({
+                message: 'Dynamic key detected - wrap with tKey() or use @lf-key comment',
+                location: {
+                  file: filePath ?? '<unknown>',
+                  line: loc?.start.line ?? 0,
+                  column: loc?.start.column ?? 0,
+                },
+                code: generateCodeSafe(path.node),
               });
             }
           }
         },
       });
-    } catch (error) {
-      // Parse error - return empty keys rather than failing
-      // Log warning but don't crash the extraction process
-      console.warn(`Parse error in ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
 
-    return keys;
+      // Add keys from comments
+      keys.push(...commentKeys);
+
+      // If there are errors, return empty keys
+      if (errors.length > 0) {
+        return { keys: [], errors };
+      }
+
+      return { keys, errors: [] };
+    } catch (error) {
+      // Parse error - return empty keys with error
+      return {
+        keys: [],
+        errors: [{
+          message: `Parse error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          location: {
+            file: filePath ?? '<unknown>',
+            line: 0,
+            column: 0,
+          },
+        }],
+      };
+    }
   }
 }
 
@@ -155,6 +315,17 @@ function extractKeyFromArgs(args: (Expression | SpreadElement | ArgumentPlacehol
     }
   }
 
-  // Dynamic key - skip
+  // Dynamic key - return undefined
   return undefined;
+}
+
+/**
+ * Safely generate code string from AST node.
+ */
+function generateCodeSafe(node: CallExpression): string {
+  try {
+    return generateCode(node).code;
+  } catch {
+    return '<code generation failed>';
+  }
 }

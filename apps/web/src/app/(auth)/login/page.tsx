@@ -21,8 +21,10 @@ import { handleApiFieldErrors } from '@/lib/form-errors';
 import { toast } from 'sonner';
 import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
@@ -35,12 +37,12 @@ export default function LoginPage() {
     setPasskeyLoading(true);
     try {
       await loginWithPasskey();
-      toast.success('Welcome back!', {
-        description: 'You signed in with your passkey.',
+      toast.success(t('auth.welcomeToast'), {
+        description: t('auth.passkeySignInSuccess'),
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Passkey authentication failed';
-      toast.error('Passkey sign in failed', {
+      const message = error instanceof Error ? error.message : t('auth.passkeyAuthFailed');
+      toast.error(t('auth.passkeySignInFailed'), {
         description: message,
       });
     } finally {
@@ -60,16 +62,16 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     try {
       await login(data.email, data.password);
-      toast.success('Welcome back!', {
-        description: 'You have successfully signed in.',
+      toast.success(t('auth.welcomeToast'), {
+        description: t('auth.welcomeDescription'),
       });
     } catch (error) {
       // Try to map field-level errors to form fields first
       if (!handleApiFieldErrors(error, form.setError)) {
         const message = error instanceof ApiError
           ? error.message
-          : 'An unexpected error occurred. Please try again.';
-        toast.error('Sign in failed', {
+          : t('auth.unexpectedError');
+        toast.error(t('auth.signInFailed'), {
           description: message,
         });
       }
@@ -84,10 +86,10 @@ export default function LoginPage() {
           className="text-[2rem] font-semibold tracking-tight text-foreground"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
-          Welcome back
+          {t('auth.welcomeBack')}
         </h1>
         <p className="text-muted-foreground text-[15px] leading-relaxed">
-          Enter your credentials to access your projects
+          {t('auth.enterCredentials')}
         </p>
       </div>
 
@@ -103,13 +105,13 @@ export default function LoginPage() {
           >
             {passkeyLoading ? (
               <>
-                <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
-                Authenticating...
+                <Loader2 className="mr-2 size-4.5 animate-spin" />
+                {t('auth.authenticating')}
               </>
             ) : (
               <>
-                <Fingerprint className="mr-2 h-[18px] w-[18px]" />
-                Sign in with passkey
+                <Fingerprint className="mr-2 size-4.5" />
+                {t('auth.signInWithPasskey')}
               </>
             )}
           </Button>
@@ -117,11 +119,11 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative py-1">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+              <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent" />
             </div>
             <div className="relative flex justify-center">
               <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-                or continue with email
+                {t('auth.orContinueWithEmail')}
               </span>
             </div>
           </div>
@@ -138,17 +140,17 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email address</FormLabel>
+                  <FormLabel>{t('auth.emailAddress')}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                         focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
                       }`}>
-                        <Mail className="w-[18px] h-[18px]" />
+                        <Mail className="size-4.5" />
                       </div>
                       <Input
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('email')}
                         onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
@@ -169,12 +171,12 @@ export default function LoginPage() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('auth.password')}</FormLabel>
                     <Link
                       href="/forgot-password"
                       className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 touch-manipulation"
                     >
-                      Forgot password?
+                      {t('auth.forgotPassword')}
                     </Link>
                   </div>
                   <FormControl>
@@ -182,11 +184,11 @@ export default function LoginPage() {
                       <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                         focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
                       }`}>
-                        <Lock className="w-[18px] h-[18px]" />
+                        <Lock className="size-4.5" />
                       </div>
                       <Input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
+                        placeholder={t('auth.passwordPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('password')}
                         onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
@@ -200,9 +202,9 @@ export default function LoginPage() {
                         tabIndex={-1}
                       >
                         {showPassword ? (
-                          <EyeOff className="w-[18px] h-[18px]" />
+                          <EyeOff className="size-4.5" />
                         ) : (
-                          <Eye className="w-[18px] h-[18px]" />
+                          <Eye className="size-4.5" />
                         )}
                       </button>
                     </div>
@@ -221,13 +223,13 @@ export default function LoginPage() {
           >
             {form.formState.isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
-                Signing in...
+                <Loader2 className="mr-2 size-4.5 animate-spin" />
+                {t('auth.signingIn')}
               </>
             ) : (
               <>
-                Sign in
-                <ArrowRight className="ml-2 h-[18px] w-[18px]" />
+                {t('auth.signIn')}
+                <ArrowRight className="ml-2 size-4.5" />
               </>
             )}
           </Button>
@@ -241,7 +243,7 @@ export default function LoginPage() {
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-            New to Localeflow?
+            {t('auth.newToLocaleflow')}
           </span>
         </div>
       </div>
@@ -252,7 +254,7 @@ export default function LoginPage() {
           href="/register"
           className="group inline-flex items-center gap-2 py-2.5 px-5 text-sm font-medium text-foreground rounded-xl border border-border/60 bg-card hover:bg-accent hover:border-border transition-all duration-200 touch-manipulation"
         >
-          Create an account
+          {t('auth.createAnAccount')}
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
       </div>

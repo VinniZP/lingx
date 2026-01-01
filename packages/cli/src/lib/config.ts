@@ -33,6 +33,8 @@ export interface LocaleflowConfig {
     patterns: string[];
     exclude: string[];
     functions: string[];
+    /** Marker functions for key extraction (e.g., tKey). Default: ['tKey'] */
+    markerFunctions?: string[];
   };
 }
 
@@ -62,6 +64,7 @@ export const DEFAULT_CONFIG: LocaleflowConfig = {
     patterns: ['src/**/*.tsx', 'src/**/*.ts'],
     exclude: ['**/*.test.ts', '**/*.spec.ts'],
     functions: ['t', 'useTranslation'],
+    markerFunctions: ['tKey'],
   },
 };
 

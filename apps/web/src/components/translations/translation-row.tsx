@@ -13,13 +13,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation, tKey, type TranslationKey as TKey } from '@localeflow/sdk-nextjs';
 
 type TranslationStatus = 'translated' | 'modified' | 'missing';
 
-const approvalStatusConfig: Record<ApprovalStatus, { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }> = {
-  PENDING: { label: 'Pending', variant: 'secondary', icon: Clock },
-  APPROVED: { label: 'Approved', variant: 'success', icon: CheckCircle },
-  REJECTED: { label: 'Rejected', variant: 'destructive', icon: XCircle },
+// Approval status config with tKey() wrapped labels for static extraction
+const approvalStatusConfig: Record<ApprovalStatus, { labelKey: TKey; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }> = {
+  PENDING: { labelKey: tKey('translations.row.pending'), variant: 'secondary', icon: Clock },
+  APPROVED: { labelKey: tKey('translations.row.approved'), variant: 'success', icon: CheckCircle },
+  REJECTED: { labelKey: tKey('translations.row.rejected'), variant: 'destructive', icon: XCircle },
 };
 
 interface TranslationRowProps {
@@ -61,6 +63,7 @@ export function TranslationRow({
   onSelectionChange,
   onTranslationFocus,
 }: TranslationRowProps) {
+  const { t, td } = useTranslation();
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
@@ -185,7 +188,7 @@ export function TranslationRow({
                       onTranslationChange(translationKey.id, lang.code, e.target.value)
                     }
                     onBlur={() => handleBlur(lang.code)}
-                    placeholder={`Enter ${lang.name} translation...`}
+                    placeholder={t('translations.row.enterTranslationPlaceholder', { language: lang.name })}
                     className={cn(
                       'w-full bg-transparent text-[15px] leading-relaxed resize-none',
                       'focus:outline-none placeholder:text-muted-foreground/40',
@@ -201,7 +204,7 @@ export function TranslationRow({
                       !value && 'italic text-muted-foreground/60'
                     )}
                   >
-                    {value || 'Missing translation'}
+                    {value || t('translations.row.missingTranslation')}
                   </button>
                 )}
               </div>
@@ -230,7 +233,7 @@ export function TranslationRow({
                               <ThumbsUp className="size-3.5" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Approve</TooltipContent>
+                          <TooltipContent>{t('translations.row.approve')}</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -244,7 +247,7 @@ export function TranslationRow({
                               <ThumbsDown className="size-3.5" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Reject</TooltipContent>
+                          <TooltipContent>{t('translations.row.reject')}</TooltipContent>
                         </Tooltip>
                       </>
                     )}
@@ -261,7 +264,7 @@ export function TranslationRow({
                       const Icon = approvalStatusConfig[approvalStatus].icon;
                       return <Icon className="size-3" />;
                     })()}
-                    {approvalStatusConfig[approvalStatus].label}
+                    {td(approvalStatusConfig[approvalStatus].labelKey)}
                   </Badge>
                 )}
 
@@ -269,13 +272,13 @@ export function TranslationRow({
                 {isSaving && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground animate-fade-in">
                     <Loader2 className="size-3 animate-spin" />
-                    <span>Saving</span>
+                    <span>{t('translations.row.saving')}</span>
                   </div>
                 )}
                 {justSaved && !isSaving && (
                   <div className="flex items-center gap-1.5 text-xs text-emerald-600 animate-fade-in">
                     <Check className="size-3" />
-                    <span>Saved</span>
+                    <span>{t('translations.row.saved')}</span>
                   </div>
                 )}
               </div>

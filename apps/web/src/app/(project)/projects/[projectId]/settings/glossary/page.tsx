@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -148,6 +149,7 @@ interface PageProps {
 
 export default function GlossarySettingsPage({ params }: PageProps) {
   const { projectId } = use(params);
+  const { t } = useTranslation();
 
   // State
   const [search, setSearch] = useState('');
@@ -566,7 +568,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All languages</SelectItem>
+              <SelectItem value="all">{t('common.allLanguages')}</SelectItem>
               {languages.map((lang) => (
                 <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
               ))}
@@ -580,7 +582,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 <SelectValue placeholder="Domain" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All domains</SelectItem>
+                <SelectItem value="all">{t('common.allDomains')}</SelectItem>
                 {domains.map((domain) => (
                   <SelectItem key={domain} value={domain}>{domain}</SelectItem>
                 ))}
@@ -595,7 +597,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 <SelectValue placeholder="Tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All tags</SelectItem>
+                <SelectItem value="all">{t('common.allTags')}</SelectItem>
                 {tags.map((tag) => (
                   <SelectItem key={tag.id} value={tag.id}>
                     <div className="flex items-center gap-2">
@@ -1306,7 +1308,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 className="h-10 px-4"
                 onClick={() => setIsEntryDialogOpen(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={entryForm.handleSubmit(handleEntrySubmit)}
@@ -1331,7 +1333,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
       <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Create Tag</DialogTitle>
+            <DialogTitle>{t('dialogs.createTag.title')}</DialogTitle>
             <DialogDescription>
               Add a new tag to organize your glossary
             </DialogDescription>
@@ -1344,7 +1346,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t('common.name')}</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Technical, Legal" {...field} />
                     </FormControl>
@@ -1358,7 +1360,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Color</FormLabel>
+                    <FormLabel>{t('common.color')}</FormLabel>
                     <div className="flex flex-wrap gap-2.5 pt-2">
                       {TAG_COLORS.map((color) => (
                         <button
@@ -1385,11 +1387,11 @@ export default function GlossarySettingsPage({ params }: PageProps) {
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsTagDialogOpen(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" disabled={createTag.isPending}>
                   {createTag.isPending && <Loader2 className="size-4 animate-spin mr-1.5" />}
-                  Create Tag
+                  {t('dialogs.createTag.title')}
                 </Button>
               </DialogFooter>
             </form>
@@ -1579,7 +1581,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
                 className="h-10 px-4"
                 onClick={() => setIsImportDialogOpen(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={() => fileInputRef.current?.click()}
@@ -1602,20 +1604,20 @@ export default function GlossarySettingsPage({ params }: PageProps) {
       <AlertDialog open={!!deletingEntry} onOpenChange={(open) => !open && setDeletingEntry(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Entry?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteConfirm.deleteEntry')}</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete &ldquo;{deletingEntry?.sourceTerm}&rdquo; and all its translations.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteEntry}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteEntry.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1625,20 +1627,20 @@ export default function GlossarySettingsPage({ params }: PageProps) {
       <AlertDialog open={!!deletingTag} onOpenChange={(open) => !open && setDeletingTag(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Tag?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteConfirm.deleteTag')}</AlertDialogTitle>
             <AlertDialogDescription>
               This will remove the tag &ldquo;{deletingTag?.name}&rdquo; from all entries.
               The entries themselves will not be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTag}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteTag.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

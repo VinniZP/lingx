@@ -31,6 +31,7 @@ import {
 import { CreateSpaceDialog, CreateBranchDialog, MergeBranchDialog } from '@/components/dialogs';
 import { ActivityItem } from '@/components/activity';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import type { ProjectTreeSpace } from '@/lib/api';
 
 interface PageProps {
@@ -49,6 +50,7 @@ interface PageProps {
  */
 export default function ProjectDetailPage({ params }: PageProps) {
   const { projectId } = use(params);
+  const { t } = useTranslation();
 
   // Dialog state
   const [createSpaceOpen, setCreateSpaceOpen] = useState(false);
@@ -131,7 +133,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
   if (!project) {
     return (
       <div className="text-destructive p-6 rounded-xl bg-destructive/10 border border-destructive/20">
-        Project not found.
+        {t('projectDetail.notFound')}
       </div>
     );
   }
@@ -160,17 +162,17 @@ export default function ProjectDetailPage({ params }: PageProps) {
           {/* Right: Inline Stats */}
           <div className="flex flex-wrap items-center gap-6 lg:gap-10">
             <StatPill
-              label="Languages"
+              label={t('dashboard.stats.languages')}
               value={project.languages.length}
             />
             <div className="w-px h-8 bg-border hidden sm:block" />
             <StatPill
-              label="Keys"
+              label={t('dashboard.stats.keys')}
               value={statsLoading ? '-' : stats?.totalKeys || 0}
             />
             <div className="w-px h-8 bg-border hidden sm:block" />
             <StatPill
-              label="Complete"
+              label={t('dashboard.stats.complete')}
               value={statsLoading ? '-' : `${completionPercentage}%`}
               highlight={completionPercentage === 100}
             />
@@ -189,14 +191,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
                   <Sparkles className="size-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Start Translating</h3>
+                  <h3 className="font-semibold text-lg">{t('projectDetail.startTranslating')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Edit translations on the {defaultBranch.name} branch
+                    {t('projectDetail.editOnBranch', { branchName: defaultBranch.name })}
                   </p>
                 </div>
               </div>
               <Button className="gap-2 group-hover:gap-3 transition-all w-full sm:w-auto">
-                Open Editor
+                {t('projectDetail.openEditor')}
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
@@ -212,9 +214,9 @@ export default function ProjectDetailPage({ params }: PageProps) {
           <div className="island animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between p-6 pb-4">
               <div>
-                <h2 className="text-lg font-semibold">Spaces & Branches</h2>
+                <h2 className="text-lg font-semibold">{t('projectDetail.spacesAndBranches.title')}</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Organize translations by space and work on feature branches
+                  {t('projectDetail.spacesAndBranches.description')}
                 </p>
               </div>
               <Button
@@ -224,7 +226,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 className="gap-1.5"
               >
                 <Plus className="size-4" />
-                New Space
+                {t('projectDetail.spacesAndBranches.newSpace')}
               </Button>
             </div>
 
@@ -240,13 +242,13 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     <div className="size-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 mx-auto flex items-center justify-center mb-4">
                       <FolderOpen className="size-7 text-amber-600" />
                     </div>
-                    <p className="text-muted-foreground mb-4">No spaces yet</p>
+                    <p className="text-muted-foreground mb-4">{t('projectDetail.spacesAndBranches.noSpacesYet')}</p>
                     <Button
                       onClick={() => setCreateSpaceOpen(true)}
                       className="gap-2"
                     >
                       <Plus className="size-4" />
-                      Create First Space
+                      {t('projectDetail.spacesAndBranches.createFirstSpace')}
                     </Button>
                   </div>
                 </div>
@@ -269,9 +271,9 @@ export default function ProjectDetailPage({ params }: PageProps) {
           {/* Translation Coverage */}
           <div className="island animate-fade-in-up stagger-3">
             <div className="p-6 pb-4">
-              <h2 className="text-lg font-semibold">Translation Coverage</h2>
+              <h2 className="text-lg font-semibold">{t('projectDetail.translationCoverage.title')}</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Progress by language
+                {t('projectDetail.translationCoverage.subtitle')}
               </p>
             </div>
 
@@ -299,7 +301,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                             <span className="font-medium">{lang.name}</span>
                             {lang.isDefault && (
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-                                default
+                                {t('projectDetail.translationCoverage.default')}
                               </span>
                             )}
                             {isComplete && (
@@ -341,34 +343,34 @@ export default function ProjectDetailPage({ params }: PageProps) {
           {/* Quick Actions */}
           <div className="space-y-3 animate-fade-in-up stagger-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              Quick Actions
+              {t('projectDetail.quickActions.title')}
             </h2>
             <div className="space-y-3">
               {defaultBranch && (
                 <QuickActionCard
                   href={`/projects/${projectId}/translations/${defaultBranch.id}`}
                   icon={Edit}
-                  title="Edit Translations"
-                  subtitle="Manage keys and values"
+                  title={t('projectDetail.quickActions.editTranslations')}
+                  subtitle={t('projectDetail.quickActions.editTranslationsSubtitle')}
                 />
               )}
               <QuickActionCard
                 href={`/projects/${projectId}/environments`}
                 icon={Zap}
-                title="Environments"
-                subtitle="Production, staging, dev"
+                title={t('projectDetail.quickActions.environments')}
+                subtitle={t('projectDetail.quickActions.environmentsSubtitle')}
               />
               <QuickActionCard
                 href="/settings/api-keys"
                 icon={Key}
-                title="API Keys"
-                subtitle="Manage access tokens"
+                title={t('projectDetail.quickActions.apiKeys')}
+                subtitle={t('projectDetail.quickActions.apiKeysSubtitle')}
               />
               <QuickActionCard
                 href={`/projects/${projectId}/settings`}
                 icon={Settings}
-                title="Project Settings"
-                subtitle="Languages, members"
+                title={t('projectDetail.quickActions.projectSettings')}
+                subtitle={t('projectDetail.quickActions.projectSettingsSubtitle')}
               />
             </div>
           </div>
@@ -377,9 +379,9 @@ export default function ProjectDetailPage({ params }: PageProps) {
           <div className="space-y-3 animate-fade-in-up stagger-4">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Recent Activity
+                {t('activity.title')}
               </h2>
-              <span className="text-xs text-muted-foreground">Last 7 days</span>
+              <span className="text-xs text-muted-foreground">{t('activity.lastWeek')}</span>
             </div>
 
             <div className="island divide-y divide-border">
@@ -401,7 +403,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     <Activity className="size-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    No recent activity
+                    {t('activity.noRecent')}
                   </p>
                 </div>
               ) : (
@@ -514,6 +516,7 @@ function SpaceCard({
   onCreateBranch: () => void;
   onMergeBranch: (branch: ProjectTreeBranch) => void;
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -527,7 +530,7 @@ function SpaceCard({
             <div className="text-left">
               <div className="font-semibold">{space.name}</div>
               <div className="text-sm text-muted-foreground">
-                {space.branches.length} branch{space.branches.length !== 1 ? 'es' : ''}
+                {t('projectDetail.spacesAndBranches.branchCount', { count: space.branches.length })}
               </div>
             </div>
           </div>
@@ -559,13 +562,13 @@ function SpaceCard({
                   </span>
                   {branch.isDefault && (
                     <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-primary/10 text-primary">
-                      default
+                      {t('projectDetail.translationCoverage.default')}
                     </span>
                   )}
                 </Link>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-sm text-muted-foreground font-mono hidden sm:inline">
-                    {branch.keyCount} keys
+                    {t('projectDetail.spacesAndBranches.keyCount', { count: branch.keyCount })}
                   </span>
                   <Button
                     variant="ghost"
@@ -576,7 +579,7 @@ function SpaceCard({
                       onMergeBranch(branch);
                     }}
                     className="size-8 rounded-lg text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-colors"
-                    aria-label={`Merge ${branch.name} branch`}
+                    aria-label={t('projectDetail.spacesAndBranches.mergeBranchAriaLabel', { branchName: branch.name })}
                   >
                     <GitMerge className="size-4" />
                   </Button>
@@ -593,7 +596,7 @@ function SpaceCard({
               }}
             >
               <Plus className="size-4" />
-              New Branch
+              {t('projectDetail.spacesAndBranches.newBranch')}
             </Button>
           </div>
         </CollapsibleContent>

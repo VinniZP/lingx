@@ -26,6 +26,7 @@ import { createApiKeySchema, type CreateApiKeyInput } from '@localeflow/shared';
 import { cn } from '@/lib/utils';
 import { ApiError } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface ApiKeyDialogProps {
   open: boolean;
@@ -36,13 +37,6 @@ interface ApiKeyDialogProps {
   error?: ApiError | null;
 }
 
-// Suggested key name templates
-const suggestions = [
-  { icon: Terminal, label: 'CLI', value: 'CLI' },
-  { icon: Code, label: 'Development', value: 'Development SDK' },
-  { icon: Globe, label: 'Production', value: 'Production' },
-];
-
 export function ApiKeyDialog({
   open,
   onOpenChange,
@@ -50,6 +44,15 @@ export function ApiKeyDialog({
   isLoading,
   error,
 }: ApiKeyDialogProps) {
+  const { t } = useTranslation();
+
+  // Suggested key name templates - defined inside component to use translations
+  const suggestions = [
+    { icon: Terminal, label: t('apiKeys.suggestions.cli'), value: 'CLI' },
+    { icon: Code, label: t('apiKeys.suggestions.development'), value: 'Development SDK' },
+    { icon: Globe, label: t('apiKeys.suggestions.production'), value: 'Production' },
+  ];
+
   const form = useForm<CreateApiKeyInput>({
     resolver: zodResolver(createApiKeySchema),
     mode: 'onTouched',
@@ -91,10 +94,10 @@ export function ApiKeyDialog({
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight">
-                  Generate New API Key
+                  {t('apiKeys.title')}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
-                  Create a key for CLI or SDK authentication
+                  {t('apiKeys.description')}
                 </DialogDescription>
               </div>
             </div>
@@ -108,7 +111,7 @@ export function ApiKeyDialog({
               {/* Quick suggestions */}
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Quick Start
+                  {t('apiKeys.quickStart')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.map((suggestion) => (
@@ -135,16 +138,16 @@ export function ApiKeyDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Key Name</FormLabel>
+                    <FormLabel>{t('apiKeys.nameLabel')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Production API, CI/CD Pipeline"
+                        placeholder={t('apiKeys.namePlaceholder')}
                         autoFocus
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      A descriptive name to identify this key's purpose
+                      {t('apiKeys.nameHint')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -157,8 +160,8 @@ export function ApiKeyDialog({
                   <Sparkles className="size-4 text-info" />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  <p className="font-medium text-foreground mb-0.5">One-time display</p>
-                  <p>The key will only be shown once after creation. Store it securely.</p>
+                  <p className="font-medium text-foreground mb-0.5">{t('apiKeys.oneTimeDisplay')}</p>
+                  <p>{t('apiKeys.oneTimeDisplayHint')}</p>
                 </div>
               </div>
             </div>
@@ -171,7 +174,7 @@ export function ApiKeyDialog({
                 onClick={() => handleOpenChange(false)}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -181,12 +184,12 @@ export function ApiKeyDialog({
                 {isLoading ? (
                   <>
                     <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Creating...
+                    {t('apiKeys.generating')}
                   </>
                 ) : (
                   <>
                     <Key className="size-4" />
-                    Generate Key
+                    {t('apiKeys.generate')}
                   </>
                 )}
               </Button>

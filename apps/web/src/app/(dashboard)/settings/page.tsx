@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils';
  * - Consistent premium styling with design system
  */
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { user, isManager, isLoading } = useAuth();
   const router = useRouter();
 
@@ -49,7 +51,7 @@ export default function SettingsPage() {
               <Languages className="w-5 h-5 text-primary animate-pulse" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -98,7 +100,7 @@ export default function SettingsPage() {
           {/* User Info */}
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">
-              {user?.name || 'Account Settings'}
+              {user?.name || t('settings.title')}
             </h1>
             <p className="text-muted-foreground mt-1 flex items-center gap-2">
               <Mail className="size-4 shrink-0" />
@@ -124,7 +126,7 @@ export default function SettingsPage() {
           {/* Settings Section */}
           <div className="space-y-3 animate-fade-in-up stagger-2">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              Account Settings
+              {t('settings.title')}
             </h2>
             <div className="space-y-3">
               <SettingsActionCard
@@ -132,24 +134,24 @@ export default function SettingsPage() {
                 icon={Key}
                 iconBg="bg-warm/10"
                 iconColor="text-warm"
-                title="API Keys"
-                description="Generate and manage API keys for CLI and SDK authentication"
+                title={t('settings.apiKeys.title')}
+                description={t('settings.apiKeys.description')}
               />
               <SettingsActionCard
                 href="/settings/security"
                 icon={Shield}
                 iconBg="bg-primary/10"
                 iconColor="text-primary"
-                title="Security"
-                description="Manage your password and active sessions"
+                title={t('settings.security.title')}
+                description={t('settings.security.description')}
               />
               <SettingsActionCard
                 href="/settings/profile"
                 icon={User}
                 iconBg="bg-info/10"
                 iconColor="text-info"
-                title="Profile"
-                description="Update your name, email, and profile settings"
+                title={t('settings.profile.title')}
+                description={t('settings.profile.description')}
               />
             </div>
           </div>
@@ -160,31 +162,31 @@ export default function SettingsPage() {
           {/* Security Tips */}
           <div className="space-y-3 animate-fade-in-up stagger-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              Security Tips
+              {t('settings.tips.title')}
             </h2>
             <div className="island divide-y divide-border">
               <div className="p-4">
                 <SecurityTip
                   icon={Fingerprint}
                   status="good"
-                  title="Strong Password"
-                  description="Use a unique password with 12+ characters"
+                  title={t('settings.tips.strongPassword')}
+                  description={t('settings.tips.strongPasswordDesc')}
                 />
               </div>
               <div className="p-4">
                 <SecurityTip
                   icon={Key}
                   status="info"
-                  title="API Key Rotation"
-                  description="Rotate API keys periodically for better security"
+                  title={t('settings.tips.apiKeyRotation')}
+                  description={t('settings.tips.apiKeyRotationDesc')}
                 />
               </div>
               <div className="p-4">
                 <SecurityTip
                   icon={Lock}
                   status="warning"
-                  title="Two-Factor Auth"
-                  description="Enable 2FA for additional account protection"
+                  title={t('settings.tips.twoFactorAuth')}
+                  description={t('settings.tips.twoFactorAuthDesc')}
                   comingSoon
                 />
               </div>
@@ -194,23 +196,23 @@ export default function SettingsPage() {
           {/* Quick Links */}
           <div className="space-y-3 animate-fade-in-up stagger-4">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              Resources
+              {t('settings.resources.title')}
             </h2>
             <div className="island divide-y divide-border">
               <ResourceLink
                 href="https://docs.localeflow.dev"
-                title="Documentation"
-                description="Learn how to use LocaleFlow"
+                title={t('settings.resources.docs')}
+                description={t('settings.resources.docsDesc')}
               />
               <ResourceLink
                 href="https://docs.localeflow.dev/api"
-                title="API Reference"
-                description="Integrate with our REST API"
+                title={t('settings.resources.api')}
+                description={t('settings.resources.apiDesc')}
               />
               <ResourceLink
                 href="https://docs.localeflow.dev/cli"
-                title="CLI Guide"
-                description="Set up the command-line tool"
+                title={t('settings.resources.cliGuide')}
+                description={t('settings.resources.cliGuideDesc')}
               />
             </div>
           </div>

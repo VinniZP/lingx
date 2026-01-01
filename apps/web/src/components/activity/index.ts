@@ -13,7 +13,8 @@ export { ActivityChangesModal } from './activity-changes-modal';
 export { getActivityIcon } from './activity-icon';
 export {
   getActivityDescription,
-  getActivityVerb,
   formatRelativeTime,
   formatLanguageList,
+  translateKey,
+  type TranslationKeyObj,
 } from './activity-description';

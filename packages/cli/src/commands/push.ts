@@ -17,6 +17,7 @@ interface PushOptions {
   format?: 'json' | 'yaml';
   languages?: string;
   force?: boolean;
+  delete?: boolean;
 }
 
 export function createPushCommand(): Command {
@@ -29,6 +30,7 @@ export function createPushCommand(): Command {
     .option('--format <type>', 'File format: json or yaml')
     .option('-l, --languages <langs>', 'Languages to push (comma-separated)')
     .option('-f, --force', 'Force push without conflict prompts')
+    .option('-d, --delete', 'Delete remote keys not present in local files')
     .action(async (options: PushOptions) => {
       try {
         await push(options);
@@ -50,6 +52,7 @@ async function push(options: PushOptions): Promise<void> {
   const format = options.format ?? config.format.type;
   const sourceDir = options.source ?? config.paths.translations;
   const force = options.force ?? false;
+  const deleteRemote = options.delete ?? false;
 
   // Language filtering: CLI flag > config > all detected
   const languageFilter = options.languages?.split(',').map(l => l.trim())
@@ -185,11 +188,56 @@ async function push(options: PushOptions): Promise<void> {
       }
     }
 
+    // Delete remote keys not in local files
+    let deletedCount = 0;
+    if (deleteRemote && diff.remoteOnly.length > 0) {
+      spinner.text = 'Deleting remote-only keys...';
+
+      // Get unique key names to delete
+      const keysToDelete = new Set(diff.remoteOnly.map(r => r.key));
+
+      // Fetch all keys from branch to get their IDs (paginated)
+      interface KeyListResponse {
+        keys: { id: string; name: string }[];
+        total: number;
+      }
+
+      const keyNameToId = new Map<string, string>();
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const keyListResponse = await client.get<KeyListResponse>(
+          `/api/branches/${targetBranch.id}/keys?limit=100&page=${page}`
+        );
+
+        for (const key of keyListResponse.keys) {
+          if (keysToDelete.has(key.name)) {
+            keyNameToId.set(key.name, key.id);
+          }
+        }
+
+        hasMore = keyListResponse.keys.length === 100;
+        page++;
+      }
+
+      // Get IDs for keys to delete
+      const keyIdsToDelete = [...keyNameToId.values()];
+
+      if (keyIdsToDelete.length > 0) {
+        await client.post(`/api/branches/${targetBranch.id}/keys/bulk-delete`, {
+          keyIds: keyIdsToDelete,
+        });
+        deletedCount = keyIdsToDelete.length;
+      }
+    }
+
     // Build success message
     const parts: string[] = [];
     if (updatedCount > 0) parts.push(`${updatedCount} updated`);
     if (newCount > 0) parts.push(`${newCount} new`);
     if (skippedCount > 0) parts.push(`${skippedCount} skipped`);
+    if (deletedCount > 0) parts.push(`${deletedCount} deleted`);
 
     const summary = parts.length > 0 ? ` (${parts.join(', ')})` : '';
     spinner.succeed(`Pushed ${totalKeys} keys across ${languages.length} language(s)${summary}`);

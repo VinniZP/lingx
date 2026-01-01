@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { totpApi, ApiError, TotpSetupResponse } from '@/lib/api';
 import {
   Dialog,
@@ -40,14 +41,9 @@ interface TwoFactorSetupProps {
 type Step = 'intro' | 'qrcode' | 'verify' | 'backup';
 
 const STEPS: Step[] = ['intro', 'qrcode', 'verify', 'backup'];
-const STEP_LABELS = {
-  intro: 'Get Started',
-  qrcode: 'Scan QR',
-  verify: 'Verify',
-  backup: 'Backup',
-};
 
 export function TwoFactorSetup({ open, onOpenChange, onComplete }: TwoFactorSetupProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>('intro');
   const [setupData, setSetupData] = useState<TotpSetupResponse | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
@@ -103,7 +99,7 @@ export function TwoFactorSetup({ open, onOpenChange, onComplete }: TwoFactorSetu
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError('Failed to start setup. Please try again.');
+        setError(t('twoFactorSetup.failedToStart'));
       }
     } finally {
       setIsLoading(false);
@@ -150,7 +146,7 @@ export function TwoFactorSetup({ open, onOpenChange, onComplete }: TwoFactorSetu
   const handleVerify = async (fullCode?: string) => {
     const codeToVerify = fullCode || code.join('');
     if (codeToVerify.length !== 6) {
-      setError('Please enter all 6 digits');
+      setError(t('twoFactor.enterAllDigits'));
       return;
     }
 
@@ -165,7 +161,7 @@ export function TwoFactorSetup({ open, onOpenChange, onComplete }: TwoFactorSetu
         const fieldErrorMsg = err.fieldErrors?.[0]?.message;
         setError(fieldErrorMsg || err.message);
       } else {
-        setError('Verification failed. Please try again.');
+        setError(t('twoFactor.verificationFailed'));
       }
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -179,23 +175,23 @@ export function TwoFactorSetup({ open, onOpenChange, onComplete }: TwoFactorSetu
       navigator.clipboard.writeText(setupData.secret);
       setCopiedSecret(true);
       setTimeout(() => setCopiedSecret(false), 2000);
-      toast.success('Secret copied to clipboard');
+      toast.success(t('twoFactorSetup.secretCopied'));
     }
   };
 
   const downloadBackupCodes = () => {
     if (!setupData?.backupCodes) return;
 
-    const content = `LocaleFlow Backup Codes
+    const content = `${t('twoFactorSetup.backupCodesFile.title')}
 ========================
-Generated: ${new Date().toLocaleString()}
+${t('twoFactorSetup.backupCodesFile.generated')}: ${new Date().toLocaleString()}
 
-These codes can be used to sign in if you lose access to your authenticator app.
-Each code can only be used once.
+${t('twoFactorSetup.backupCodesFile.description')}
+${t('twoFactorSetup.backupCodesFile.oneTimeUse')}
 
 ${setupData.backupCodes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
 
-Keep these codes in a safe place!
+${t('twoFactorSetup.backupCodesFile.keepSafe')}
 `;
 
     const blob = new Blob([content], { type: 'text/plain' });
@@ -207,13 +203,13 @@ Keep these codes in a safe place!
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Backup codes downloaded');
+    toast.success(t('twoFactorSetup.backupCodesDownloaded'));
   };
 
   const handleComplete = () => {
     onComplete();
     onOpenChange(false);
-    toast.success('Two-factor authentication enabled!');
+    toast.success(t('twoFactorSetup.enabled'));
   };
 
   const handleCancel = async () => {
@@ -260,16 +256,16 @@ Keep these codes in a safe place!
 
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {step === 'intro' && 'Enable Two-Factor Authentication'}
-              {step === 'qrcode' && 'Scan QR Code'}
-              {step === 'verify' && 'Verify Your Setup'}
-              {step === 'backup' && 'Save Backup Codes'}
+              {step === 'intro' && t('twoFactorSetup.title.intro')}
+              {step === 'qrcode' && t('twoFactorSetup.title.qrcode')}
+              {step === 'verify' && t('twoFactorSetup.title.verify')}
+              {step === 'backup' && t('twoFactorSetup.title.backup')}
             </DialogTitle>
             <DialogDescription>
-              {step === 'intro' && 'Add an extra layer of security to your account'}
-              {step === 'qrcode' && 'Use your authenticator app to scan this code'}
-              {step === 'verify' && 'Enter the 6-digit code from your app'}
-              {step === 'backup' && 'Store these codes safely for account recovery'}
+              {step === 'intro' && t('twoFactorSetup.description.intro')}
+              {step === 'qrcode' && t('twoFactorSetup.description.qrcode')}
+              {step === 'verify' && t('twoFactorSetup.description.verify')}
+              {step === 'backup' && t('twoFactorSetup.description.backup')}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -291,18 +287,18 @@ Keep these codes in a safe place!
                 {[
                   {
                     icon: Smartphone,
-                    title: 'Download an authenticator app',
-                    description: 'Google Authenticator, Authy, or any TOTP app',
+                    title: t('twoFactorSetup.steps.downloadApp.title'),
+                    description: t('twoFactorSetup.steps.downloadApp.description'),
                   },
                   {
                     icon: QrCode,
-                    title: 'Scan a QR code',
-                    description: 'Link your account by scanning the QR code',
+                    title: t('twoFactorSetup.steps.scanQr.title'),
+                    description: t('twoFactorSetup.steps.scanQr.description'),
                   },
                   {
                     icon: KeyRound,
-                    title: 'Save backup codes',
-                    description: 'Keep codes safe in case you lose your device',
+                    title: t('twoFactorSetup.steps.saveBackup.title'),
+                    description: t('twoFactorSetup.steps.saveBackup.description'),
                   },
                 ].map((item, i) => (
                   <div
@@ -322,14 +318,14 @@ Keep these codes in a safe place!
 
               <div className="flex gap-3 pt-1">
                 <Button variant="outline" onClick={handleCancel} className="flex-1">
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button onClick={handleStartSetup} disabled={isLoading} className="flex-1 gap-2">
                   {isLoading ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <>
-                      Get Started
+                      {t('twoFactorSetup.getStarted')}
                       <ArrowRight className="size-4" />
                     </>
                   )}
@@ -357,7 +353,7 @@ Keep these codes in a safe place!
 
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-3">
-                  Can't scan? Enter this code manually:
+                  {t('twoFactorSetup.cantScan')}
                 </p>
                 <div className="inline-flex items-center gap-2 bg-muted/50 rounded-xl px-4 py-2.5 border border-border/50">
                   <code className="font-mono text-sm tracking-wider font-medium">
@@ -380,10 +376,10 @@ Keep these codes in a safe place!
 
               <div className="flex gap-3 pt-2">
                 <Button variant="outline" onClick={handleCancel} className="flex-1">
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button onClick={() => setStep('verify')} className="flex-1 gap-2">
-                  I've Scanned It
+                  {t('twoFactorSetup.iveScannedIt')}
                   <ArrowRight className="size-4" />
                 </Button>
               </div>
@@ -419,13 +415,13 @@ Keep these codes in a safe place!
               </div>
 
               <p className="text-center text-sm text-muted-foreground">
-                Enter the 6-digit code from your authenticator app
+                {t('twoFactorSetup.enterCodeFromApp')}
               </p>
 
               <div className="flex gap-3 pt-2">
                 <Button variant="outline" onClick={() => setStep('qrcode')} className="flex-1 gap-2">
                   <ArrowLeft className="size-4" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <Button
                   onClick={() => handleVerify()}
@@ -435,7 +431,7 @@ Keep these codes in a safe place!
                   {isLoading ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    'Verify Code'
+                    t('twoFactorSetup.verifyCode')
                   )}
                 </Button>
               </div>
@@ -451,8 +447,8 @@ Keep these codes in a safe place!
                   <ShieldCheck className="size-5 text-success" />
                 </div>
                 <div>
-                  <p className="font-medium text-success text-sm">2FA Enabled Successfully!</p>
-                  <p className="text-xs text-muted-foreground">Your account is now more secure</p>
+                  <p className="font-medium text-success text-sm">{t('twoFactorSetup.successBanner.title')}</p>
+                  <p className="text-xs text-muted-foreground">{t('twoFactorSetup.successBanner.description')}</p>
                 </div>
               </div>
 
@@ -476,7 +472,7 @@ Keep these codes in a safe place!
                 className="w-full gap-2"
               >
                 <Download className="size-4" />
-                Download Backup Codes
+                {t('twoFactorSetup.downloadBackupCodes')}
               </Button>
 
               <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors">
@@ -486,8 +482,7 @@ Keep these codes in a safe place!
                   className="mt-0.5"
                 />
                 <span className="text-sm text-muted-foreground leading-relaxed">
-                  I have saved these backup codes in a safe place. I understand that I won't be able
-                  to see them again.
+                  {t('twoFactorSetup.acknowledgement')}
                 </span>
               </label>
 
@@ -497,7 +492,7 @@ Keep these codes in a safe place!
                 className="w-full h-11 gap-2"
               >
                 <CheckCircle2 className="size-4" />
-                Complete Setup
+                {t('twoFactorSetup.completeSetup')}
               </Button>
             </div>
           )}

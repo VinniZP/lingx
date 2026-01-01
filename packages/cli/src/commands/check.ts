@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, relative } from 'path';
 import { glob } from 'glob';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
-import { createExtractor } from '../lib/extractor/index.js';
+import { createExtractor, type ExtractionError } from '../lib/extractor/index.js';
 import {
   validateTranslations,
   summarizeValidation,
@@ -112,13 +112,38 @@ async function check(options: CheckOptions): Promise<number> {
 
     const extractor = createExtractor(config.extract.framework, {
       functions: config.extract.functions,
+      markerFunctions: config.extract.markerFunctions,
     });
 
     const codeKeys = new Set<string>();
+    const allErrors: ExtractionError[] = [];
+
     for (const file of files) {
       const code = await readFile(file, 'utf-8');
-      const keys = extractor.extractFromCode(code, file);
-      keys.forEach(k => codeKeys.add(k));
+      const result = extractor.extract(code, file);
+      result.keys.forEach(k => codeKeys.add(k.key));
+      allErrors.push(...result.errors);
+    }
+
+    // If there are extraction errors (dynamic keys), abort and show them
+    if (allErrors.length > 0) {
+      spinner.fail('Extraction failed');
+      console.log();
+      console.log(chalk.red.bold('ERROR: Dynamic keys detected - extraction aborted'));
+      console.log();
+      console.log(chalk.red(`Dynamic keys found (${allErrors.length}):`));
+
+      for (const error of allErrors) {
+        const relativePath = relative(cwd, error.location.file);
+        console.log(`  ${chalk.gray(`${relativePath}:${error.location.line}`)}`);
+        console.log(`    ${chalk.red('✗')} ${error.code ?? error.message}`);
+        console.log(`      ${chalk.yellow(error.message)}`);
+      }
+
+      console.log();
+      console.log(chalk.yellow('Fix all dynamic keys before running check.'));
+      console.log(chalk.gray('Use tKey() to wrap dynamic keys or @lf-key comments to declare them.'));
+      return 1;
     }
 
     // Fetch remote translations

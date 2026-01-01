@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Database, Loader2, Copy, CheckCircle2, Sparkles, Languages, Zap } from 'lucide-react';
 import type { MTProvider } from '@/lib/api';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface TranslationMemoryPanelProps {
   projectId: string;
@@ -29,6 +30,7 @@ export function TranslationMemoryPanel({
   onApplyMatch,
   isVisible = true,
 }: TranslationMemoryPanelProps) {
+  const { t } = useTranslation();
   const [debouncedSourceText, setDebouncedSourceText] = useState(sourceText);
   const [appliedId, setAppliedId] = useState<string | null>(null);
   const [mtResult, setMtResult] = useState<{ text: string; provider: MTProvider; cached: boolean } | null>(null);
@@ -121,17 +123,17 @@ export function TranslationMemoryPanel({
       <div className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Database className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Translation Memory</span>
+          <span className="text-sm font-medium">{t('translations.memoryPanel.title')}</span>
         </div>
         <div className="rounded-lg border border-dashed border-border p-4 text-center">
           <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
             <Sparkles className="size-5 text-muted-foreground" />
           </div>
           <p className="text-xs text-muted-foreground">
-            Enter at least 3 characters in the source language
+            {t('translations.memoryPanel.enterMinChars')}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-1">
-            to see translation suggestions
+            {t('translations.memoryPanel.toSeeSuggestions')}
           </p>
         </div>
       </div>
@@ -146,7 +148,7 @@ export function TranslationMemoryPanel({
     <div className="p-4">
       <div className="flex items-center gap-2 mb-3">
         <Database className="size-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Translation Memory</span>
+        <span className="text-sm font-medium">{t('translations.memoryPanel.title')}</span>
         {isLoading && <Loader2 className="size-3 animate-spin text-muted-foreground" />}
       </div>
 
@@ -154,7 +156,7 @@ export function TranslationMemoryPanel({
       {isLoading && matches.length === 0 && (
         <div className="rounded-lg border border-dashed border-border p-4 text-center">
           <Loader2 className="size-5 animate-spin text-muted-foreground mx-auto mb-2" />
-          <p className="text-xs text-muted-foreground">Searching...</p>
+          <p className="text-xs text-muted-foreground">{t('translations.memoryPanel.searching')}</p>
         </div>
       )}
 
@@ -164,9 +166,9 @@ export function TranslationMemoryPanel({
           <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
             <Database className="size-5 text-muted-foreground" />
           </div>
-          <p className="text-xs text-muted-foreground">No matches found</p>
+          <p className="text-xs text-muted-foreground">{t('translations.memoryPanel.noMatches')}</p>
           <p className="text-xs text-muted-foreground/70 mt-1">
-            Approve translations to build memory
+            {t('translations.memoryPanel.approveToBuildMemory')}
           </p>
         </div>
       )}
@@ -178,7 +180,7 @@ export function TranslationMemoryPanel({
           {exactMatches.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Exact Matches
+                {t('translations.memoryPanel.exactMatches')}
               </div>
               {exactMatches.map((match) => (
                 <MatchCard
@@ -195,7 +197,7 @@ export function TranslationMemoryPanel({
           {fuzzyMatches.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Similar Matches
+                {t('translations.memoryPanel.similarMatches')}
               </div>
               {fuzzyMatches.map((match) => (
                 <MatchCard
@@ -215,7 +217,7 @@ export function TranslationMemoryPanel({
         <div className="mt-4 pt-4 border-t border-border">
           <div className="flex items-center gap-2 mb-3">
             <Languages className="size-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Machine Translation</span>
+            <span className="text-sm font-medium">{t('translations.memoryPanel.machineTranslation')}</span>
           </div>
 
           {!mtResult ? (
@@ -231,7 +233,7 @@ export function TranslationMemoryPanel({
               ) : (
                 <Zap className="size-4" />
               )}
-              {mtTranslate.isPending ? 'Translating...' : 'Get Translation'}
+              {mtTranslate.isPending ? t('translations.memoryPanel.translating') : t('translations.memoryPanel.getTranslation')}
             </Button>
           ) : (
             <div className="rounded-lg border border-border bg-card p-3 space-y-2">
@@ -242,7 +244,7 @@ export function TranslationMemoryPanel({
                 </span>
                 {mtResult.cached && (
                   <span className="text-xs text-muted-foreground">
-                    cached
+                    {t('translations.memoryPanel.cached')}
                   </span>
                 )}
               </div>
@@ -261,12 +263,12 @@ export function TranslationMemoryPanel({
                 {mtApplied ? (
                   <>
                     <CheckCircle2 className="size-4 text-success" />
-                    Applied
+                    {t('translations.memoryPanel.applied')}
                   </>
                 ) : (
                   <>
                     <Copy className="size-4" />
-                    Apply
+                    {t('translations.memoryPanel.apply')}
                   </>
                 )}
               </Button>
@@ -285,6 +287,7 @@ interface MatchCardProps {
 }
 
 function MatchCard({ match, onApply, isApplied }: MatchCardProps) {
+  const { t } = useTranslation();
   const similarityPercent = Math.round(match.similarity * 100);
   const isExact = match.matchType === 'exact';
 
@@ -303,7 +306,7 @@ function MatchCard({ match, onApply, isApplied }: MatchCardProps) {
           {similarityPercent}%
         </span>
         <span className="text-xs text-muted-foreground">
-          Used {match.usageCount}x
+          {t('translations.memoryPanel.usedCount', { count: match.usageCount })}
         </span>
       </div>
 
@@ -326,12 +329,12 @@ function MatchCard({ match, onApply, isApplied }: MatchCardProps) {
         {isApplied ? (
           <>
             <CheckCircle2 className="size-4 text-success" />
-            Applied
+            {t('translations.memoryPanel.applied')}
           </>
         ) : (
           <>
             <Copy className="size-4" />
-            Apply
+            {t('translations.memoryPanel.apply')}
           </>
         )}
       </Button>

@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Globe2, Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 const AVAILABLE_LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -49,6 +50,7 @@ const AVAILABLE_LANGUAGES = [
 ];
 
 export default function NewProjectPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -71,8 +73,8 @@ export default function NewProjectPage() {
     mutationFn: (data: CreateProjectInput) => projectApi.create(data),
     onSuccess: (project) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast.success('Project created', {
-        description: `${project.name} has been created successfully.`,
+      toast.success(t('projects.newProject.success'), {
+        description: t('projects.newProject.successDescription', { name: project.name }),
       });
       router.push(`/projects/${project.id}`);
     },
@@ -80,7 +82,7 @@ export default function NewProjectPage() {
       // Try to map field-level errors to form fields first
       if (!handleApiFieldErrors(error, form.setError)) {
         // Only show toast for non-field errors
-        toast.error('Failed to create project', {
+        toast.error(t('projects.newProject.failed'), {
           description: error.message,
         });
       }
@@ -116,15 +118,15 @@ export default function NewProjectPage() {
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild aria-label="Go back to projects">
+        <Button variant="ghost" size="icon" asChild aria-label={t('projects.newProject.backLabel')}>
           <Link href="/projects">
             <ArrowLeft className="size-5" aria-hidden="true" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">New Project</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('projects.newProject.title')}</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Create a new localization project
+            {t('projects.newProject.subtitle')}
           </p>
         </div>
       </div>
@@ -135,9 +137,9 @@ export default function NewProjectPage() {
           {/* Project Details Card */}
           <div className="island p-6 space-y-6 animate-fade-in-up stagger-1">
             <div>
-              <h2 className="font-semibold text-lg">Project Details</h2>
+              <h2 className="font-semibold text-lg">{t('projects.newProject.details.title')}</h2>
               <p className="text-sm text-muted-foreground">
-                Enter the basic information for your project
+                {t('projects.newProject.details.description')}
               </p>
             </div>
 
@@ -147,10 +149,10 @@ export default function NewProjectPage() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Name</FormLabel>
+                  <FormLabel>{t('projects.newProject.name.label')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="My Application"
+                      placeholder={t('projects.newProject.name.placeholder')}
                       {...field}
                       onChange={(e) => handleNameChange(e.target.value)}
                     />
@@ -166,16 +168,16 @@ export default function NewProjectPage() {
               name="slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Slug</FormLabel>
+                  <FormLabel>{t('projects.newProject.slug.label')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="my-application"
+                      placeholder={t('projects.newProject.slug.placeholder')}
                       className="font-mono"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    URL-safe identifier for your project
+                    {t('projects.newProject.slug.description')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -189,11 +191,14 @@ export default function NewProjectPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Description <span className="text-muted-foreground font-normal">(optional)</span>
+                    {t('projects.newProject.description.label')}{' '}
+                    <span className="text-muted-foreground font-normal">
+                      ({t('projects.newProject.description.optional')})
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="A brief description of your project..."
+                      placeholder={t('projects.newProject.description.placeholder')}
                       rows={3}
                       {...field}
                     />
@@ -209,10 +214,10 @@ export default function NewProjectPage() {
             <div>
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 <Globe2 className="size-5 text-primary" />
-                Languages
+                {t('projects.newProject.languages.title')}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Select the languages for your project
+                {t('projects.newProject.languages.description')}
               </p>
             </div>
 
@@ -262,11 +267,11 @@ export default function NewProjectPage() {
               name="defaultLanguage"
               render={({ field }) => (
                 <FormItem className="pt-4 border-t border-border">
-                  <FormLabel>Default Language</FormLabel>
+                  <FormLabel>{t('projects.newProject.languages.defaultLabel')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select default language" />
+                        <SelectValue placeholder={t('projects.newProject.languages.defaultPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -284,7 +289,7 @@ export default function NewProjectPage() {
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    The source language for translations
+                    {t('projects.newProject.languages.defaultDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -300,7 +305,7 @@ export default function NewProjectPage() {
               onClick={() => router.back()}
               className="sm:w-auto"
             >
-              Cancel
+              {t('projects.newProject.actions.cancel')}
             </Button>
             <Button
               type="submit"
@@ -310,10 +315,10 @@ export default function NewProjectPage() {
               {createMutation.isPending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Creating...
+                  {t('projects.newProject.actions.creating')}
                 </>
               ) : (
-                'Create Project'
+                t('projects.newProject.actions.create')
               )}
             </Button>
           </div>

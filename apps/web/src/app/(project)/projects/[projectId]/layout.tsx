@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ export default function ProjectLayout({
   const pathname = usePathname();
   const params = useParams();
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
 
   const projectId = params.projectId as string;
 
@@ -61,7 +63,7 @@ export default function ProjectLayout({
               <Languages className="size-6 text-primary animate-pulse" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -91,7 +93,7 @@ export default function ProjectLayout({
       <SidebarInset>
         {/* Mobile header - island style (matching dashboard) */}
         <header className="flex h-14 items-center gap-3 px-4 md:hidden bg-card mx-4 mt-4 rounded-xl">
-          <SidebarTrigger className="size-9" aria-label="Toggle navigation menu" />
+          <SidebarTrigger className="size-9" aria-label={t('nav.toggleNavigation')} />
           <Link href={`/projects/${projectId}`} className="flex items-center gap-2 flex-1">
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary text-primary-foreground">
               <Languages className="size-4" />
@@ -103,7 +105,7 @@ export default function ProjectLayout({
             size="icon"
             className="size-9"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            aria-label="Toggle theme"
+            aria-label={t('nav.toggleTheme')}
           >
             <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -115,10 +117,10 @@ export default function ProjectLayout({
           {/* Desktop toolbar - inline with content (matching dashboard) */}
           <div className="hidden md:flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <SidebarTrigger className="size-8" aria-label="Toggle sidebar" />
+              <SidebarTrigger className="size-8" aria-label={t('nav.toggleSidebar')} />
               <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                 <Search className="size-4" />
-                <span className="hidden lg:inline">Search...</span>
+                <span className="hidden lg:inline">{t('nav.search')}</span>
                 <span className="hidden lg:inline-flex"><Kbd variant="pill">K</Kbd></span>
               </Button>
             </div>
@@ -128,7 +130,7 @@ export default function ProjectLayout({
                 size="icon"
                 className="size-9"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                aria-label="Toggle theme"
+                aria-label={t('nav.toggleTheme')}
               >
                 <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

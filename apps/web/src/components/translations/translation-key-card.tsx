@@ -29,14 +29,15 @@ import { InlineSuggestion } from './inline-suggestion';
 import { QualityIssues } from './quality-issues';
 import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
+import { useTranslation, tKey, type TranslationKey as TKey } from '@localeflow/sdk-nextjs';
 
 const approvalStatusConfig: Record<
   ApprovalStatus,
-  { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }
+  { labelKey: TKey; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }
 > = {
-  PENDING: { label: 'Pending', variant: 'secondary', icon: Clock },
-  APPROVED: { label: 'Approved', variant: 'success', icon: CheckCircle },
-  REJECTED: { label: 'Rejected', variant: 'destructive', icon: XCircle },
+  PENDING: { labelKey: tKey('translations.keyCard.pending'), variant: 'secondary', icon: Clock },
+  APPROVED: { labelKey: tKey('translations.keyCard.approved'), variant: 'success', icon: CheckCircle },
+  REJECTED: { labelKey: tKey('translations.keyCard.rejected'), variant: 'destructive', icon: XCircle },
 };
 
 interface TranslationKeyCardProps {
@@ -90,6 +91,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
   isFocusedKey,
   onKeyboardNavigate,
 }: TranslationKeyCardProps) {
+  const { t, td } = useTranslation();
   const inputRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -289,7 +291,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
             {defaultLanguage && (
               <span className="text-sm text-muted-foreground truncate block mt-0.5">
                 {getTranslationValue(translationKey, defaultLanguage.code) || (
-                  <span className="italic text-muted-foreground/50">No source text</span>
+                  <span className="italic text-muted-foreground/50">{t('translations.keyCard.noSourceText')}</span>
                 )}
               </span>
             )}
@@ -414,7 +416,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   </span>
                   {isSource && (
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      Source
+                      {t('translations.keyCard.source')}
                     </span>
                   )}
                 </div>
@@ -445,7 +447,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="top">
-                            Copy from source
+                            {t('translations.keyCard.copyFromSource')}
                             <span className="ml-2"><Kbd variant="pill">D</Kbd></span>
                           </TooltipContent>
                         </Tooltip>
@@ -474,7 +476,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
-                          Machine translate
+                          {t('translations.keyCard.machineTranslate')}
                           <span className="ml-2"><Kbd variant="pill">M</Kbd></span>
                         </TooltipContent>
                       </Tooltip>
@@ -500,7 +502,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                                 <ThumbsUp className="size-3.5" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Approve</TooltipContent>
+                            <TooltipContent>{t('translations.keyCard.approve')}</TooltipContent>
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -514,7 +516,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                                 <ThumbsDown className="size-3.5" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Reject</TooltipContent>
+                            <TooltipContent>{t('translations.keyCard.reject')}</TooltipContent>
                           </Tooltip>
                         </>
                       )}
@@ -531,20 +533,20 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                         const Icon = approvalStatusConfig[approvalStatus].icon;
                         return <Icon className="size-3" />;
                       })()}
-                      {approvalStatusConfig[approvalStatus].label}
+                      {td(approvalStatusConfig[approvalStatus].labelKey)}
                     </Badge>
                   )}
 
                   {isSaving && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Loader2 className="size-3 animate-spin" />
-                      <span>Saving</span>
+                      <span>{t('translations.keyCard.saving')}</span>
                     </div>
                   )}
                   {justSaved && !isSaving && (
                     <div className="flex items-center gap-1.5 text-xs text-success">
                       <Check className="size-3" />
-                      <span>Saved</span>
+                      <span>{t('translations.keyCard.saved')}</span>
                     </div>
                   )}
                 </div>
@@ -560,7 +562,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   onChange={(e) => handleTextareaChange(e, lang.code)}
                   onFocus={() => onFocusLanguage(lang.code)}
                   onKeyDown={(e) => handleKeyDown(e, lang.code)}
-                  placeholder={isEmpty ? `Enter ${isSource ? 'source' : lang.name} text...` : undefined}
+                  placeholder={isEmpty ? t('translations.keyCard.enterTextPlaceholder', { language: isSource ? t('translations.keyCard.source') : lang.name }) : undefined}
                   className={cn(
                     'w-full px-3 py-2.5 rounded-xl text-sm leading-relaxed resize-none',
                     'bg-background border transition-all duration-200',
@@ -588,7 +590,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                     )}
                   >
                     <Zap className="size-3.5" />
-                    Translate
+                    {t('translations.keyCard.translate')}
                   </button>
                 )}
 
@@ -596,7 +598,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                 {isEmpty && !isSource && isFetching && (
                   <div className="absolute right-3 inset-y-0 my-auto h-7 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Loader2 className="size-3.5 animate-spin" />
-                    <span>Translating...</span>
+                    <span>{t('translations.keyCard.translating')}</span>
                   </div>
                 )}
               </div>
@@ -611,7 +613,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   <div className="flex items-center gap-2 text-xs">
                     <QualityIssues issues={qualityResult.issues} />
                     <span className="text-muted-foreground">
-                      {qualityResult.hasErrors ? 'Quality issues found' : 'Quality warnings'}
+                      {qualityResult.hasErrors ? t('translations.keyCard.qualityIssuesFound') : t('translations.keyCard.qualityWarnings')}
                     </span>
                   </div>
                 );
@@ -634,15 +636,15 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
       <div className="px-4 py-2 border-t border-border/40 bg-muted/20 flex items-center gap-5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <kbd className="px-1.5 py-0.5 rounded bg-muted font-kbd text-[11px]">Tab</kbd>
-          <span>next field</span>
+          <span>{t('translations.keyCard.nextField')}</span>
         </span>
         <span className="flex items-center gap-1.5">
           <Kbd variant="pill">↵</Kbd>
-          <span>apply suggestion</span>
+          <span>{t('translations.keyCard.applySuggestion')}</span>
         </span>
         <span className="flex items-center gap-1.5">
           <kbd className="px-1.5 py-0.5 rounded bg-muted font-kbd text-[11px]">Esc</kbd>
-          <span>collapse</span>
+          <span>{t('translations.keyCard.collapse')}</span>
         </span>
       </div>
     </div>

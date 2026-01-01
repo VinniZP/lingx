@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -92,6 +93,7 @@ interface ProviderCardProps {
 }
 
 function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(!config);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -115,28 +117,28 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
         apiKey: data.apiKey,
         isActive: data.isActive,
       });
-      toast.success('Configuration saved', {
-        description: `${getProviderDisplayName(provider)} has been configured.`,
+      toast.success(t('integrations.toasts.configSaved'), {
+        description: t('integrations.toasts.configSavedDescription', { provider: getProviderDisplayName(provider) }),
       });
       setIsEditing(false);
       onSave();
     } catch {
-      toast.error('Failed to save configuration');
+      toast.error(t('integrations.toasts.configSaveFailed'));
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(provider);
-      toast.success('Configuration removed', {
-        description: `${getProviderDisplayName(provider)} has been disconnected.`,
+      toast.success(t('integrations.toasts.configRemoved'), {
+        description: t('integrations.toasts.configRemovedDescription', { provider: getProviderDisplayName(provider) }),
       });
       setShowDeleteDialog(false);
       form.reset({ apiKey: '', isActive: true });
       setIsEditing(true);
       onSave();
     } catch {
-      toast.error('Failed to remove configuration');
+      toast.error(t('integrations.toasts.configRemoveFailed'));
     }
   };
 
@@ -144,17 +146,17 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
     try {
       const result = await testMutation.mutateAsync(provider);
       if (result.success) {
-        toast.success('Connection successful', {
-          description: `${getProviderDisplayName(provider)} is working correctly.`,
+        toast.success(t('integrations.toasts.connectionSuccessful'), {
+          description: t('integrations.toasts.connectionSuccessfulDescription', { provider: getProviderDisplayName(provider) }),
         });
       } else {
-        toast.error('Connection failed', {
-          description: result.error || 'Could not connect to the provider.',
+        toast.error(t('integrations.toasts.connectionFailed'), {
+          description: result.error || t('integrations.toasts.connectionFailedDescription'),
         });
       }
     } catch {
-      toast.error('Test failed', {
-        description: 'Could not test the connection.',
+      toast.error(t('integrations.toasts.testFailed'), {
+        description: t('integrations.toasts.testFailedDescription'),
       });
     }
   };
@@ -210,7 +212,7 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                 {config && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-success/15 text-success border border-success/20">
                     <Check className="size-3" />
-                    Connected
+                    {t('integrations.connected')}
                   </span>
                 )}
               </div>
@@ -235,25 +237,25 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                   <FormItem>
                     <FormLabel className="text-sm font-medium flex items-center gap-2">
                       <Key className="size-3.5" />
-                      API Key
+                      {t('integrations.apiKey')}
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder={config ? '••••••••••••••••' : 'Enter your API key'}
+                        placeholder={config ? '••••••••••••••••' : t('integrations.enterApiKey')}
                         className="bg-background/50 font-mono"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      Your {info.name} API key.{' '}
+                      {t('integrations.apiKeyDescription', { provider: info.name })}{' '}
                       <a
                         href={info.docsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline inline-flex items-center gap-0.5"
                       >
-                        Get one here <ExternalLink className="size-2.5" />
+                        {t('integrations.getOneHere')} <ExternalLink className="size-2.5" />
                       </a>
                     </FormDescription>
                     <FormMessage />
@@ -267,9 +269,9 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-xl border border-border/60 bg-background/50 p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-sm font-medium">Enable Provider</FormLabel>
+                      <FormLabel className="text-sm font-medium">{t('integrations.enableProvider')}</FormLabel>
                       <FormDescription className="text-[11px]">
-                        Make this provider available for translations
+                        {t('integrations.enableProviderDescription')}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -282,11 +284,11 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
               <div className="flex gap-2 pt-1">
                 <Button type="submit" disabled={saveMutation.isPending} size="sm">
                   {saveMutation.isPending && <Loader2 className="size-4 animate-spin mr-1.5" />}
-                  Save Configuration
+                  {t('integrations.saveConfiguration')}
                 </Button>
                 {config && (
                   <Button type="button" variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                 )}
               </div>
@@ -300,7 +302,7 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                   <Key className="size-3.5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">API Key</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('integrations.apiKey')}</p>
                   <code className="font-mono text-sm font-medium">{config.keyPrefix}</code>
                 </div>
               </div>
@@ -317,12 +319,12 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                   ) : (
                     <>
                       <Zap className="size-3.5 mr-1" />
-                      Test
+                      {t('integrations.test')}
                     </>
                   )}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="h-8 px-2.5 text-xs">
-                  Update
+                  {t('integrations.update')}
                 </Button>
                 <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                   <AlertDialogTrigger asChild>
@@ -336,14 +338,13 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Remove {info.name}?</AlertDialogTitle>
+                      <AlertDialogTitle>{t('dialogs.deleteConfirm.removeIntegration', { name: info.name })}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will remove the API key and disable {info.name} for this project. You
-                        can add it again later.
+                        {t('dialogs.deleteConfirm.removeIntegrationDescription', { name: info.name })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDelete}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -351,7 +352,7 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
                         {deleteMutation.isPending && (
                           <Loader2 className="mr-2 size-4 animate-spin" />
                         )}
-                        Remove
+                        {t('common.remove')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -362,11 +363,11 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
         ) : (
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground mb-4">
-              Connect your {info.name} account to enable automatic translations
+              {t('integrations.connectAccount', { provider: info.name })}
             </p>
             <Button onClick={() => setIsEditing(true)} size="sm" className="gap-2">
               <Plug className="size-4" />
-              Configure {info.name}
+              {t('integrations.configure', { provider: info.name })}
             </Button>
           </div>
         )}
@@ -381,6 +382,7 @@ interface PageProps {
 
 export default function IntegrationsSettingsPage({ params }: PageProps) {
   const { projectId } = use(params);
+  const { t } = useTranslation();
 
   const { data: configsData, refetch: refetchConfigs } = useMTConfigs(projectId);
   const { data: usageData } = useMTUsage(projectId);
@@ -400,8 +402,8 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
             <Plug className="size-[18px] text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Translation Providers</h2>
-            <p className="text-sm text-muted-foreground">Connect services for automatic translations</p>
+            <h2 className="text-lg font-semibold tracking-tight">{t('integrations.providers.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('integrations.providers.subtitle')}</p>
           </div>
         </div>
 
@@ -428,8 +430,8 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
             <BarChart3 className="size-[18px] text-emerald-500" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Usage This Month</h2>
-            <p className="text-sm text-muted-foreground">Translation statistics and estimated costs</p>
+            <h2 className="text-lg font-semibold tracking-tight">{t('integrations.usage.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('integrations.usage.subtitle')}</p>
           </div>
         </div>
 
@@ -462,11 +464,11 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                   {hasData ? (
                     <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-success/15 text-success">
                       <Activity className="size-3" />
-                      Active
+                      {t('integrations.usage.active')}
                     </span>
                   ) : (
                     <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted/50 text-muted-foreground">
-                      No data
+                      {t('integrations.usage.noData')}
                     </span>
                   )}
                 </div>
@@ -477,7 +479,7 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                       hasData ? "text-muted-foreground" : "text-muted-foreground/60"
                     )}>
                       <Send className="size-3" />
-                      Characters
+                      {t('integrations.usage.characters')}
                     </div>
                     <div className={cn(
                       "text-2xl font-semibold tracking-tight",
@@ -492,7 +494,7 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                       hasData ? "text-muted-foreground" : "text-muted-foreground/60"
                     )}>
                       <Activity className="size-3" />
-                      Requests
+                      {t('integrations.usage.requests')}
                     </div>
                     <div className={cn(
                       "text-2xl font-semibold tracking-tight",
@@ -507,7 +509,7 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                       hasData ? "text-muted-foreground" : "text-muted-foreground/60"
                     )}>
                       <Database className="size-3" />
-                      Cache Hits
+                      {t('integrations.usage.cacheHits')}
                     </div>
                     <div className={cn(
                       "text-2xl font-semibold tracking-tight",
@@ -522,7 +524,7 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                       hasData ? "text-muted-foreground" : "text-muted-foreground/60"
                     )}>
                       <DollarSign className="size-3" />
-                      Est. Cost
+                      {t('integrations.usage.estCost')}
                     </div>
                     <div className={cn(
                       "text-2xl font-semibold tracking-tight",
@@ -545,8 +547,8 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
             <Info className="size-[18px] text-blue-500" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">How It Works</h2>
-            <p className="text-sm text-muted-foreground">Understanding machine translation</p>
+            <h2 className="text-lg font-semibold tracking-tight">{t('integrations.howItWorks.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('integrations.howItWorks.subtitle')}</p>
           </div>
         </div>
 
@@ -557,10 +559,9 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                 <Database className="size-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium mb-0.5">Intelligent Caching</p>
+                <p className="text-sm font-medium mb-0.5">{t('integrations.howItWorks.caching.title')}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Translation results are cached for 30 days to reduce costs and improve performance.
-                  Identical source texts won&apos;t be charged twice.
+                  {t('integrations.howItWorks.caching.description')}
                 </p>
               </div>
             </div>
@@ -570,10 +571,9 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                 <Zap className="size-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium mb-0.5">Provider Priority</p>
+                <p className="text-sm font-medium mb-0.5">{t('integrations.howItWorks.priority.title')}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  When multiple providers are configured, the first active provider is used by default.
-                  You can specify a provider when requesting translations.
+                  {t('integrations.howItWorks.priority.description')}
                 </p>
               </div>
             </div>

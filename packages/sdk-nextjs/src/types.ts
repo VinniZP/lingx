@@ -3,6 +3,47 @@ import type { DetectionConfig } from './detection/types.js';
 // Re-export detection types for convenience
 export type { DetectionConfig } from './detection/types.js';
 
+// ============================================
+// Translation Key Types (for static extraction)
+// ============================================
+
+/**
+ * Branded type for translation keys.
+ * Keys wrapped with tKey() get this type, allowing them to be used with t().
+ * Plain strings widened to `string` type will fail TypeScript checks.
+ */
+declare const TranslationKeyBrand: unique symbol;
+export type TranslationKey<T extends string = string> = T & {
+  readonly [TranslationKeyBrand]: true;
+};
+
+/**
+ * Marks a string as a translation key for static extraction.
+ *
+ * Use this when storing keys in variables, arrays, or objects that will
+ * later be passed to td(). The CLI can statically extract tKey() calls
+ * while td() allows dynamic usage at runtime.
+ *
+ * @example
+ * ```typescript
+ * // Define extractable keys in arrays/objects
+ * const navItems = [
+ *   { path: '/', labelKey: tKey('nav.home') },
+ *   { path: '/about', labelKey: tKey('nav.about') },
+ * ];
+ *
+ * // Use td() for dynamic usage - extractor won't error
+ * navItems.map(item => (
+ *   <Link to={item.path}>{td(item.labelKey)}</Link>
+ * ));
+ *
+ * // td() ONLY accepts TranslationKey (from tKey)
+ * // This prevents accidentally using plain strings dynamically
+ * ```
+ */
+export const tKey = <T extends string>(key: T): TranslationKey<T> =>
+  key as TranslationKey<T>;
+
 /**
  * Configuration for LocaleflowProvider
  */
@@ -84,10 +125,31 @@ export interface LocaleflowProviderProps extends LocaleflowConfig {
 export type TranslationValues = Record<string, string | number | Date>;
 
 /**
- * Translation function with ICU MessageFormat support
+ * Translation function with ICU MessageFormat support.
+ * Accepts string literals directly for static key usage.
  */
 export type TranslationFunction = (
   key: string,
+  values?: TranslationValues
+) => string;
+
+/**
+ * Dynamic translation function for TranslationKey branded strings.
+ * Use this when translating keys stored in variables/arrays (wrapped with tKey).
+ *
+ * @example
+ * ```typescript
+ * const items = [
+ *   { labelKey: tKey('nav.home') },
+ *   { labelKey: tKey('nav.about') },
+ * ];
+ *
+ * // Use td() for keys from variables
+ * items.map(item => td(item.labelKey));
+ * ```
+ */
+export type DynamicTranslationFunction = <T extends string>(
+  key: TranslationKey<T>,
   values?: TranslationValues
 ) => string;
 

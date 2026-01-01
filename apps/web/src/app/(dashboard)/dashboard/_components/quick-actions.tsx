@@ -2,47 +2,49 @@
 
 import Link from 'next/link';
 import { Upload, Key, GitBranch, Users, Terminal } from 'lucide-react';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface QuickActionsProps {
   isManager: boolean;
 }
 
 export function QuickActions({ isManager }: QuickActionsProps) {
+  const { t } = useTranslation();
   return (
     <div className="lg:col-span-3 space-y-6">
       <div className="space-y-3 animate-fade-in-up stagger-3">
         <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-          Quick Actions
+          {t('dashboard.quickActions')}
         </h2>
         <div className="space-y-3">
           <QuickActionLink
             href="/projects"
             icon={Upload}
-            title="Import translations"
-            description="JSON, YAML, XLIFF"
+            title={t('dashboard.import.title')}
+            description={t('dashboard.import.formats')}
           />
 
           {isManager && (
             <QuickActionLink
               href="/settings/api-keys"
               icon={Key}
-              title="API Keys"
-              description="Manage access"
+              title={t('dashboard.apiKeys.title')}
+              description={t('dashboard.apiKeys.description')}
             />
           )}
 
           <QuickActionLink
             href="/projects"
             icon={GitBranch}
-            title="Manage branches"
-            description="Version control"
+            title={t('dashboard.branches.title')}
+            description={t('dashboard.branches.description')}
           />
 
           <QuickActionLink
             href="/projects"
             icon={Users}
-            title="Team members"
-            description="Collaborate"
+            title={t('dashboard.team.title')}
+            description={t('dashboard.team.description')}
           />
         </div>
       </div>
@@ -54,12 +56,12 @@ export function QuickActions({ isManager }: QuickActionsProps) {
             <Terminal className="size-4 text-primary" />
           </div>
           <div>
-            <p className="font-medium text-sm">CLI Available</p>
+            <p className="font-medium text-sm">{t('dashboard.cli.title')}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Sync translations from your terminal
+              {t('dashboard.cli.description')}
             </p>
             <code className="text-[10px] font-mono text-primary/70 mt-2 block">
-              npx localeflow pull
+              {t('dashboard.cli.command')}
             </code>
           </div>
         </div>

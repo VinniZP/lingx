@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createBranchSchema, type CreateBranchInput } from '@localeflow/shared';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { branchApi, ApiError, ProjectTreeBranch } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,7 @@ export function CreateBranchDialog({
   spaceName,
   branches,
 }: CreateBranchDialogProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -102,15 +104,15 @@ export function CreateBranchDialog({
     onSuccess: (newBranch, variables) => {
       queryClient.invalidateQueries({ queryKey: ['project-tree', projectId] });
       const sourceName = branches.find((b) => b.id === variables.fromBranchId)?.name || 'source';
-      toast.success('Branch created', {
-        description: `"${variables.name}" branch has been created from ${sourceName}.`,
+      toast.success(t('dialogs.createBranch.created'), {
+        description: t('dialogs.createBranch.createdDescription', { name: variables.name, source: sourceName }),
       });
       onOpenChange(false);
       router.push(`/projects/${projectId}/translations/${newBranch.id}`);
     },
     onError: (error: ApiError) => {
       if (!handleApiFieldErrors(error, form.setError)) {
-        toast.error('Failed to create branch', {
+        toast.error(t('dialogs.createBranch.createFailed'), {
           description: error.message,
         });
       }
@@ -143,10 +145,10 @@ export function CreateBranchDialog({
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight">
-                  New Branch
+                  {t('dialogs.createBranch.title')}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
-                  Create a branch in &quot;{spaceName}&quot;
+                  {t('dialogs.createBranch.description', { spaceName })}
                 </DialogDescription>
               </div>
             </div>
@@ -163,16 +165,16 @@ export function CreateBranchDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Branch Name</FormLabel>
+                    <FormLabel>{t('dialogs.createBranch.nameLabel')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., feature-checkout, v2-redesign"
+                        placeholder={t('dialogs.createBranch.namePlaceholder')}
                         autoFocus
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      Will be created as: <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{branchName ? generateSlug(branchName) : 'branch-name'}</code>
+                      {t('dialogs.createBranch.willBeCreatedAs')} <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{branchName ? generateSlug(branchName) : 'branch-name'}</code>
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -185,11 +187,11 @@ export function CreateBranchDialog({
                 name="fromBranchId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Copy From</FormLabel>
+                    <FormLabel>{t('dialogs.createBranch.copyFrom')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select source branch" />
+                          <SelectValue placeholder={t('dialogs.createBranch.selectSource')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -202,7 +204,7 @@ export function CreateBranchDialog({
                                 <Star className="size-3 fill-amber-400 text-amber-400" />
                               )}
                               <span className="text-muted-foreground text-xs">
-                                ({branch.keyCount} keys)
+                                ({t('common.keys', { count: branch.keyCount })})
                               </span>
                             </div>
                           </SelectItem>
@@ -210,7 +212,7 @@ export function CreateBranchDialog({
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      All translations will be copied from this branch
+                      {t('dialogs.createBranch.copyNote')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -225,10 +227,10 @@ export function CreateBranchDialog({
                   </div>
                   <div className="text-xs text-muted-foreground">
                     <p className="font-medium text-foreground mb-0.5">
-                      Copying {selectedSourceBranch.keyCount} translation keys
+                      {t('dialogs.createBranch.copyingKeys', { count: selectedSourceBranch.keyCount })}
                     </p>
                     <p>
-                      Changes made to this branch won&apos;t affect &quot;{selectedSourceBranch.name}&quot; until merged.
+                      {t('dialogs.createBranch.isolationNote', { branchName: selectedSourceBranch.name })}
                     </p>
                   </div>
                 </div>
@@ -243,7 +245,7 @@ export function CreateBranchDialog({
                 onClick={() => handleOpenChange(false)}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -253,12 +255,12 @@ export function CreateBranchDialog({
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Creating...
+                    {t('common.loading')}
                   </>
                 ) : (
                   <>
                     <GitBranch className="size-4" />
-                    Create Branch
+                    {t('common.create')} {t('dialogs.createBranch.title')}
                   </>
                 )}
               </Button>

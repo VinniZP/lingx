@@ -1,10 +1,19 @@
 /**
  * Activity Description Utility
  *
- * Generates human-readable descriptions for activity items.
- * Uses structured metadata for i18n-ready formatting.
+ * Generates i18n-ready translation keys for activity items.
+ * Returns translation keys with parameters for caller to translate.
  */
 import type { Activity, ActivityType } from '@localeflow/shared';
+import { tKey, type TranslationKey, type TranslationValues, type DynamicTranslationFunction } from '@localeflow/sdk-nextjs';
+
+/**
+ * Translation key with optional interpolation parameters.
+ */
+export type TranslationKeyObj = {
+  key: TranslationKey;
+  params?: TranslationValues;
+};
 
 /**
  * Format language codes as uppercase comma-separated list.
@@ -21,9 +30,9 @@ export function formatLanguageList(languages?: string[]): string {
  * Format relative time for activity display.
  *
  * @param dateString - ISO date string
- * @returns Human-readable relative time
+ * @returns Translation key with params for relative time
  */
-export function formatRelativeTime(dateString: string): string {
+export function formatRelativeTime(dateString: string): TranslationKeyObj {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -31,119 +40,137 @@ export function formatRelativeTime(dateString: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffMins < 1) return { key: tKey('time.justNow') };
+  if (diffMins < 60) return { key: tKey('time.minutesAgo'), params: { count: diffMins } };
+  if (diffHours < 24) return { key: tKey('time.hoursAgo'), params: { count: diffHours } };
+  if (diffDays === 1) return { key: tKey('time.yesterday') };
+  if (diffDays < 7) return { key: tKey('time.daysAgo'), params: { count: diffDays } };
 
-  return date.toLocaleDateString('en-US', {
+  const formattedDate = date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
   });
+  return { key: tKey('time.date'), params: { date: formattedDate } };
 }
 
 /**
  * Get activity description based on type and metadata.
  *
  * @param activity - Activity item
- * @returns Human-readable description
+ * @returns Translation key with params for activity description
  */
-export function getActivityDescription(activity: Activity): string {
+export function getActivityDescription(activity: Activity): TranslationKeyObj {
   const { type, count, metadata } = activity;
   const languages = formatLanguageList(metadata?.languages);
 
   switch (type) {
     case 'translation':
-      return count === 1
-        ? `Updated translation${languages ? ` in ${languages}` : ''}`
-        : `Updated ${count} translations${languages ? ` in ${languages}` : ''}`;
+      return {
+        key: count === 1 ? tKey('activity.description.translationSingle') : tKey('activity.description.translationPlural'),
+        params: { count, languages: languages || 'undefined' },
+      };
 
     case 'key_add':
-      return count === 1 ? 'Added translation key' : `Added ${count} translation keys`;
+      return {
+        key: count === 1 ? tKey('activity.description.keyAddSingle') : tKey('activity.description.keyAddPlural'),
+        params: { count },
+      };
 
     case 'key_delete':
-      return count === 1 ? 'Deleted translation key' : `Deleted ${count} translation keys`;
+      return {
+        key: count === 1 ? tKey('activity.description.keyDeleteSingle') : tKey('activity.description.keyDeletePlural'),
+        params: { count },
+      };
 
     case 'branch_create':
-      const sourceName = metadata?.sourceBranchName
-        ? ` from "${metadata.sourceBranchName}"`
-        : '';
-      return `Created branch "${metadata?.branchName || 'new branch'}"${sourceName}`;
+      return {
+        key: metadata?.sourceBranchName
+          ? tKey('activity.description.branchCreateWithSource')
+          : tKey('activity.description.branchCreate'),
+        params: {
+          branchName: metadata?.branchName || 'new branch',
+          sourceBranchName: metadata?.sourceBranchName || '',
+        },
+      };
 
     case 'branch_delete':
-      return `Deleted branch "${metadata?.branchName || ''}"`;
+      return {
+        key: tKey('activity.description.branchDelete'),
+        params: { branchName: metadata?.branchName || '' },
+      };
 
     case 'merge':
-      return `Merged "${metadata?.sourceBranchName}" into "${metadata?.targetBranchName}"`;
+      return {
+        key: tKey('activity.description.merge'),
+        params: {
+          sourceBranchName: metadata?.sourceBranchName || '',
+          targetBranchName: metadata?.targetBranchName || '',
+        },
+      };
 
     case 'import':
       const keyCount = metadata?.keyCount || count;
-      const fileName = metadata?.fileName ? ` from ${metadata.fileName}` : '';
-      return `Imported ${keyCount} key${keyCount !== 1 ? 's' : ''}${fileName}`;
+      return {
+        key: metadata?.fileName ? tKey('activity.description.importWithFile') : tKey('activity.description.import'),
+        params: { count: keyCount, fileName: metadata?.fileName || '' },
+      };
 
     case 'export':
-      const format = metadata?.format || 'file';
-      return `Exported translations to ${format}`;
+      return {
+        key: tKey('activity.description.export'),
+        params: { format: metadata?.format || 'file' },
+      };
 
     case 'project_settings':
-      const fields = metadata?.changedFields?.join(', ') || 'settings';
-      return `Updated project ${fields}`;
+      return {
+        key: tKey('activity.description.projectSettings'),
+        params: { fields: metadata?.changedFields?.join(', ') || 'settings' },
+      };
 
     case 'environment_create':
-      return `Created environment "${metadata?.environmentName}"`;
+      return {
+        key: tKey('activity.description.environmentCreate'),
+        params: { environmentName: metadata?.environmentName || '' },
+      };
 
     case 'environment_delete':
-      return `Deleted environment "${metadata?.environmentName}"`;
+      return {
+        key: tKey('activity.description.environmentDelete'),
+        params: { environmentName: metadata?.environmentName || '' },
+      };
 
     case 'environment_switch_branch':
-      return `Switched "${metadata?.environmentName}" to "${metadata?.newBranchName}"`;
+      return {
+        key: tKey('activity.description.environmentSwitchBranch'),
+        params: {
+          environmentName: metadata?.environmentName || '',
+          newBranchName: metadata?.newBranchName || '',
+        },
+      };
 
     case 'ai_translate':
       const aiKeyCount = metadata?.keyCount || count;
       const targetLangs = formatLanguageList(metadata?.languages);
-      return `AI translated ${aiKeyCount} key${aiKeyCount !== 1 ? 's' : ''}${targetLangs ? ` to ${targetLangs}` : ''}`;
+      return {
+        key: targetLangs ? tKey('activity.description.aiTranslateWithLanguages') : tKey('activity.description.aiTranslate'),
+        params: { count: aiKeyCount, languages: targetLangs || 'undefined' },
+      };
 
     default:
-      return 'Activity recorded';
+      return { key: tKey('activity.description.default') };
   }
 }
 
 /**
- * Get a short action verb for the activity type.
+ * Helper to translate a TranslationKeyObj using the td function.
  *
- * @param type - Activity type
- * @returns Short action verb
+ * @param td - Dynamic translation function from useTranslation hook
+ * @param translationKey - TranslationKeyObj object with key and params
+ * @returns Translated string
  */
-export function getActivityVerb(type: ActivityType): string {
-  switch (type) {
-    case 'translation':
-      return 'Updated';
-    case 'key_add':
-      return 'Added';
-    case 'key_delete':
-      return 'Deleted';
-    case 'branch_create':
-      return 'Created';
-    case 'branch_delete':
-      return 'Deleted';
-    case 'merge':
-      return 'Merged';
-    case 'import':
-      return 'Imported';
-    case 'export':
-      return 'Exported';
-    case 'project_settings':
-      return 'Updated';
-    case 'environment_create':
-      return 'Created';
-    case 'environment_delete':
-      return 'Deleted';
-    case 'environment_switch_branch':
-      return 'Switched';
-    case 'ai_translate':
-      return 'Translated';
-    default:
-      return 'Modified';
-  }
+export function translateKey(
+  td: DynamicTranslationFunction,
+  translationKey: TranslationKeyObj
+): string {
+  return td(translationKey.key, translationKey.params);
 }

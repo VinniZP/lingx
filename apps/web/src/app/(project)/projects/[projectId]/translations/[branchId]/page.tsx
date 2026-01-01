@@ -2,6 +2,7 @@
 
 import { use, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import Link from 'next/link';
 import {
   translationApi,
@@ -66,6 +67,7 @@ export default function TranslationsPage({ params }: PageProps) {
   const { projectId, branchId } = use(params);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   // Core state
   const [search, setSearch] = useState('');
@@ -553,11 +555,11 @@ export default function TranslationsPage({ params }: PageProps) {
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-xs">
               <div className="space-y-1.5 text-xs">
-                <div><kbd className="font-kbd text-[11px] bg-background/20 text-inherit px-1.5 py-0.5 rounded tracking-wide">↑↓</kbd> Navigate keys</div>
-                <div><kbd className="font-kbd text-[11px] bg-background/20 text-inherit px-1.5 py-0.5 rounded">Tab</kbd> Switch fields</div>
-                <div><Kbd variant="pill">↵</Kbd> Apply suggestion</div>
-                <div><Kbd variant="pill">M</Kbd> Machine translate</div>
-                <div><kbd className="font-kbd text-[11px] bg-background/20 text-inherit px-1.5 py-0.5 rounded">Esc</kbd> Collapse</div>
+                <div>{t('translations.keyboard.navigate')}</div>
+                <div>{t('translations.keyboard.switchFields')}</div>
+                <div>{t('translations.keyboard.applySuggestion')}</div>
+                <div>{t('translations.keyboard.machineTranslate')}</div>
+                <div>{t('translations.keyboard.collapse')}</div>
               </div>
             </TooltipContent>
           </Tooltip>
@@ -568,11 +570,11 @@ export default function TranslationsPage({ params }: PageProps) {
             disabled={allBranches.length < 2}
           >
             <GitMerge className="h-4 w-4" />
-            Merge
+            {t('translations.merge')}
           </Button>
           <Button onClick={() => setShowKeyDialog(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            New Key
+            {t('translations.newKey')}
           </Button>
         </div>
       </div>
@@ -622,12 +624,12 @@ export default function TranslationsPage({ params }: PageProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Keys</SelectItem>
-              <SelectItem value="missing">Missing</SelectItem>
-              <SelectItem value="complete">Complete</SelectItem>
-              <SelectItem value="pending">Pending Review</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="all">{t('translations.filters.all')}</SelectItem>
+              <SelectItem value="missing">{t('translations.filters.missing')}</SelectItem>
+              <SelectItem value="complete">{t('translations.filters.complete')}</SelectItem>
+              <SelectItem value="pending">{t('translations.filters.pending')}</SelectItem>
+              <SelectItem value="approved">{t('translations.filters.approved')}</SelectItem>
+              <SelectItem value="rejected">{t('translations.filters.rejected')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

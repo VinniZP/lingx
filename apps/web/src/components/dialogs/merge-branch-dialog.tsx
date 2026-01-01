@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ConflictEntry } from '@localeflow/shared';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import {
   branchApi,
   ApiError,
@@ -54,12 +55,6 @@ interface MergeBranchDialogProps {
 
 type StepType = 'select' | 'preview' | 'conflicts';
 
-const steps: { key: StepType; label: string }[] = [
-  { key: 'select', label: 'Select' },
-  { key: 'preview', label: 'Preview' },
-  { key: 'conflicts', label: 'Resolve' },
-];
-
 /**
  * MergeBranchDialog - Premium dialog for merging branches
  *
@@ -72,11 +67,19 @@ export function MergeBranchDialog({
   sourceBranch,
   allBranches,
 }: MergeBranchDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const [targetBranchId, setTargetBranchId] = useState('');
   const [resolutions, setResolutions] = useState<Resolution[]>([]);
   const [step, setStep] = useState<StepType>('select');
+
+  // Steps with translated labels
+  const steps: { key: StepType; label: string }[] = [
+    { key: 'select', label: t('dialogs.mergeBranch.steps.select') },
+    { key: 'preview', label: t('dialogs.mergeBranch.steps.preview') },
+    { key: 'conflicts', label: t('dialogs.mergeBranch.steps.resolve') },
+  ];
 
   // Get available target branches (exclude the source branch)
   const targetBranches = useMemo(
@@ -122,19 +125,22 @@ export function MergeBranchDialog({
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['project-tree', projectId] });
         queryClient.invalidateQueries({ queryKey: ['keys'] });
-        toast.success('Branches merged', {
-          description: `Successfully merged ${result.merged} changes into ${targetBranches.find((b) => b.id === targetBranchId)?.name || 'target branch'}.`,
+        toast.success(t('dialogs.mergeBranch.success'), {
+          description: t('dialogs.mergeBranch.successDescription', {
+            count: result.merged,
+            branch: targetBranches.find((b) => b.id === targetBranchId)?.name || 'target branch'
+          }),
         });
         onOpenChange(false);
       } else if (result.conflicts && result.conflicts.length > 0) {
         setStep('conflicts');
-        toast.warning('Conflicts detected', {
-          description: `${result.conflicts.length} conflict(s) need to be resolved before merging.`,
+        toast.warning(t('dialogs.mergeBranch.conflictsDetected'), {
+          description: t('dialogs.mergeBranch.conflictsDescription', { count: result.conflicts.length }),
         });
       }
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to merge branches', {
+      toast.error(t('dialogs.mergeBranch.failed'), {
         description: error.message,
       });
     },
@@ -178,10 +184,10 @@ export function MergeBranchDialog({
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight">
-                  Merge Branch
+                  {t('dialogs.mergeBranch.title')}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
-                  Merge changes from "{sourceBranch?.name}" into another branch
+                  {t('dialogs.mergeBranch.description', { branch: sourceBranch?.name || '' })}
                 </DialogDescription>
               </div>
             </div>
@@ -231,7 +237,7 @@ export function MergeBranchDialog({
                 {/* Source branch card */}
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Source Branch
+                    {t('dialogs.mergeBranch.sourceBranch')}
                   </Label>
                   <div className="flex items-center gap-3 py-3 px-3 rounded-xl bg-primary/5 border border-primary/20">
                     <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -245,7 +251,7 @@ export function MergeBranchDialog({
                         )}
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {sourceBranch?.keyCount} translation keys
+                        {t('dialogs.mergeBranch.translationKeys', { count: sourceBranch?.keyCount || 0 })}
                       </span>
                     </div>
                   </div>
@@ -261,11 +267,11 @@ export function MergeBranchDialog({
                 {/* Target branch select */}
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Target Branch
+                    {t('dialogs.mergeBranch.targetBranch')}
                   </Label>
                   <Select value={targetBranchId} onValueChange={setTargetBranchId}>
                     <SelectTrigger size="auto" className="py-3 px-3 rounded-xl [&>span]:flex-1">
-                      <SelectValue placeholder="Select target branch">
+                      <SelectValue placeholder={t('dialogs.mergeBranch.selectTargetBranch')}>
                         {targetBranch && (
                           <div className="flex items-center gap-3">
                             <div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -279,7 +285,7 @@ export function MergeBranchDialog({
                                 )}
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                {targetBranch.keyCount} translation keys
+                                {t('dialogs.mergeBranch.translationKeys', { count: targetBranch.keyCount })}
                               </span>
                             </div>
                           </div>
@@ -296,7 +302,7 @@ export function MergeBranchDialog({
                               <Star className="size-3 fill-amber-400 text-amber-400" />
                             )}
                             <span className="text-xs text-muted-foreground ml-auto">
-                              {branch.keyCount} keys
+                              {t('common.keys', { count: branch.keyCount })}
                             </span>
                           </div>
                         </SelectItem>
@@ -312,8 +318,8 @@ export function MergeBranchDialog({
                   <Sparkles className="size-4 text-primary" />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  <p className="font-medium text-foreground mb-0.5">How merging works</p>
-                  <p>All translation keys and values from the source will be applied to the target branch. Conflicts will be shown for manual resolution.</p>
+                  <p className="font-medium text-foreground mb-0.5">{t('dialogs.mergeBranch.howItWorks')}</p>
+                  <p>{t('dialogs.mergeBranch.howItWorksNote')}</p>
                 </div>
               </div>
             </div>
@@ -325,14 +331,14 @@ export function MergeBranchDialog({
                 onClick={() => onOpenChange(false)}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handlePreview}
                 disabled={!targetBranchId}
                 className="h-11 gap-2 flex-1 sm:flex-none"
               >
-                Preview Changes
+                {t('dialogs.mergeBranch.previewChanges')}
                 <ChevronRight className="size-4" />
               </Button>
             </DialogFooter>
@@ -360,24 +366,24 @@ export function MergeBranchDialog({
               {diffLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="size-8 animate-spin text-primary mb-3" />
-                  <p className="text-sm text-muted-foreground">Comparing branches...</p>
+                  <p className="text-sm text-muted-foreground">{t('dialogs.mergeBranch.comparingBranches')}</p>
                 </div>
               ) : diffError ? (
                 <div className="text-center py-12">
                   <div className="size-12 rounded-xl bg-destructive/10 flex items-center justify-center mx-auto mb-3">
                     <AlertTriangle className="size-5 text-destructive" />
                   </div>
-                  <p className="text-sm text-destructive font-medium">Failed to load diff</p>
-                  <p className="text-xs text-muted-foreground mt-1">Please try again</p>
+                  <p className="text-sm text-destructive font-medium">{t('dialogs.mergeBranch.failedToLoadDiff')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('dialogs.mergeBranch.pleaseTryAgain')}</p>
                 </div>
               ) : !hasChanges && !hasConflicts ? (
                 <div className="text-center py-12">
                   <div className="size-14 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
                     <Check className="size-7 text-success" />
                   </div>
-                  <p className="font-semibold text-lg mb-1">Branches are in sync</p>
+                  <p className="font-semibold text-lg mb-1">{t('dialogs.mergeBranch.branchesInSync')}</p>
                   <p className="text-sm text-muted-foreground">
-                    No changes to merge between these branches
+                    {t('dialogs.mergeBranch.noChanges')}
                   </p>
                 </div>
               ) : (
@@ -385,10 +391,10 @@ export function MergeBranchDialog({
                   {/* Change stats summary */}
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { label: 'Added', count: diff?.added.length || 0, icon: Plus, color: 'success' },
-                      { label: 'Modified', count: diff?.modified.length || 0, icon: Edit3, color: 'primary' },
-                      { label: 'Deleted', count: diff?.deleted.length || 0, icon: Minus, color: 'destructive' },
-                      { label: 'Conflicts', count: diff?.conflicts.length || 0, icon: AlertTriangle, color: 'warning' },
+                      { label: t('dialogs.mergeBranch.added'), count: diff?.added.length || 0, icon: Plus, color: 'success' },
+                      { label: t('dialogs.mergeBranch.modified'), count: diff?.modified.length || 0, icon: Edit3, color: 'primary' },
+                      { label: t('dialogs.mergeBranch.deleted'), count: diff?.deleted.length || 0, icon: Minus, color: 'destructive' },
+                      { label: t('dialogs.mergeBranch.conflicts'), count: diff?.conflicts.length || 0, icon: AlertTriangle, color: 'warning' },
                     ].map((stat) => (
                       <div
                         key={stat.label}
@@ -434,7 +440,7 @@ export function MergeBranchDialog({
                       >
                         <Plus className="size-3.5 text-success shrink-0" />
                         <span className="font-mono text-sm truncate flex-1">{entry.key}</span>
-                        <span className="text-[10px] font-medium text-success uppercase">Added</span>
+                        <span className="text-[10px] font-medium text-success uppercase">{t('dialogs.mergeBranch.added')}</span>
                       </div>
                     ))}
                     {diff?.modified.map((entry) => (
@@ -444,7 +450,7 @@ export function MergeBranchDialog({
                       >
                         <Edit3 className="size-3.5 text-primary shrink-0" />
                         <span className="font-mono text-sm truncate flex-1">{entry.key}</span>
-                        <span className="text-[10px] font-medium text-primary uppercase">Modified</span>
+                        <span className="text-[10px] font-medium text-primary uppercase">{t('dialogs.mergeBranch.modified')}</span>
                       </div>
                     ))}
                     {diff?.deleted.map((entry) => (
@@ -454,7 +460,7 @@ export function MergeBranchDialog({
                       >
                         <Minus className="size-3.5 text-destructive shrink-0" />
                         <span className="font-mono text-sm truncate flex-1">{entry.key}</span>
-                        <span className="text-[10px] font-medium text-destructive uppercase">Deleted</span>
+                        <span className="text-[10px] font-medium text-destructive uppercase">{t('dialogs.mergeBranch.deleted')}</span>
                       </div>
                     ))}
                     {diff?.conflicts.map((conflict) => (
@@ -464,7 +470,7 @@ export function MergeBranchDialog({
                       >
                         <AlertTriangle className="size-3.5 text-warning shrink-0" />
                         <span className="font-mono text-sm truncate flex-1">{conflict.key}</span>
-                        <span className="text-[10px] font-medium text-warning uppercase">Conflict</span>
+                        <span className="text-[10px] font-medium text-warning uppercase">{t('dialogs.mergeBranch.conflict')}</span>
                       </div>
                     ))}
                   </div>
@@ -479,7 +485,7 @@ export function MergeBranchDialog({
                 onClick={() => setStep('select')}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Back
+                {t('common.back')}
               </Button>
               <Button
                 onClick={handleMerge}
@@ -492,17 +498,17 @@ export function MergeBranchDialog({
                 {mergeMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Merging...
+                    {t('dialogs.mergeBranch.merging')}
                   </>
                 ) : hasConflicts ? (
                   <>
                     <AlertTriangle className="size-4" />
-                    Review Conflicts
+                    {t('dialogs.mergeBranch.reviewConflicts')}
                   </>
                 ) : (
                   <>
                     <GitMerge className="size-4" />
-                    Merge Changes
+                    {t('dialogs.mergeBranch.mergeChanges')}
                   </>
                 )}
               </Button>
@@ -521,10 +527,10 @@ export function MergeBranchDialog({
                 </div>
                 <div>
                   <p className="font-semibold text-sm">
-                    {mergeMutation.data?.conflicts?.length} conflict{(mergeMutation.data?.conflicts?.length || 0) !== 1 ? 's' : ''} detected
+                    {t('dialogs.mergeBranch.conflictsCount', { count: mergeMutation.data?.conflicts?.length || 0 })}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Choose which version to keep for each conflicting translation key
+                    {t('dialogs.mergeBranch.chooseVersion')}
                   </p>
                 </div>
               </div>
@@ -556,7 +562,7 @@ export function MergeBranchDialog({
                         {isResolved && (
                           <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
                             <Check className="size-3.5" />
-                            Resolved
+                            {t('dialogs.mergeBranch.resolved')}
                           </div>
                         )}
                       </div>
@@ -628,7 +634,7 @@ export function MergeBranchDialog({
                   <span className="font-semibold text-foreground">{resolutions.length}</span>
                   {' / '}
                   <span className="font-semibold text-foreground">{mergeMutation.data?.conflicts?.length || 0}</span>
-                  {' resolved'}
+                  {' '}{t('dialogs.mergeBranch.resolved')}
                 </div>
                 {/* Progress bar */}
                 <div className="flex-1 mx-4 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -642,7 +648,7 @@ export function MergeBranchDialog({
                 {allConflictsResolved && (
                   <div className="flex items-center gap-1.5 text-xs font-medium text-success">
                     <Check className="size-3.5" />
-                    Ready
+                    {t('dialogs.mergeBranch.ready')}
                   </div>
                 )}
               </div>
@@ -655,7 +661,7 @@ export function MergeBranchDialog({
                 onClick={() => setStep('preview')}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Back
+                {t('common.back')}
               </Button>
               <Button
                 onClick={handleMerge}
@@ -665,12 +671,12 @@ export function MergeBranchDialog({
                 {mergeMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Merging...
+                    {t('dialogs.mergeBranch.merging')}
                   </>
                 ) : (
                   <>
                     <GitMerge className="size-4" />
-                    Complete Merge
+                    {t('dialogs.mergeBranch.completeMerge')}
                   </>
                 )}
               </Button>

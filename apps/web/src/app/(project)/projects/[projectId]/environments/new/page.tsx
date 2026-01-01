@@ -7,6 +7,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEnvironmentSchema, type CreateEnvironmentInput } from '@localeflow/shared';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import {
   environmentApi,
   projectApi,
@@ -66,6 +67,7 @@ interface BranchWithSpace {
 
 export default function NewEnvironmentPage({ params }: PageProps) {
   const { projectId } = use(params);
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -222,7 +224,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Environment Name</FormLabel>
+                      <FormLabel>{t('environments.form.name')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -244,7 +246,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                   name="slug"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Slug</FormLabel>
+                      <FormLabel>{t('environments.form.slug')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -266,7 +268,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                   name="branchId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Source Branch</FormLabel>
+                      <FormLabel>{t('environments.form.sourceBranch')}</FormLabel>
                       {branchesLoading ? (
                         <Skeleton className="h-11 w-full rounded-xl" />
                       ) : allBranches && allBranches.length > 0 ? (
@@ -343,7 +345,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
                     onClick={() => router.back()}
                     className="h-11"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                   <Button
                     type="submit"

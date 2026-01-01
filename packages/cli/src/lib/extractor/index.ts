@@ -6,7 +6,18 @@ export interface ExtractorOptions {
    * List of function names to search for (e.g., ['t', 'useTranslation'])
    */
   functions: string[];
+
+  /**
+   * List of marker function names to extract keys from (e.g., ['tKey'])
+   * These functions are used to mark strings for extraction without translating.
+   */
+  markerFunctions?: string[];
 }
+
+/**
+ * Source of the extracted key.
+ */
+export type KeySource = 'function' | 'marker' | 'comment';
 
 /**
  * Represents an extracted translation key with optional metadata.
@@ -32,6 +43,14 @@ export interface ExtractedKey {
   namespace?: string;
 
   /**
+   * How this key was extracted.
+   * - 'function': from t('key') calls
+   * - 'marker': from tKey('key') marker function
+   * - 'comment': from @lf-key comment
+   */
+  source?: KeySource;
+
+  /**
    * ICU variables detected in the translation (if analyzed with ICU detector)
    */
   icuVariables?: string[];
@@ -43,20 +62,70 @@ export interface ExtractedKey {
 }
 
 /**
+ * Represents an extraction error (e.g., dynamic key usage).
+ */
+export interface ExtractionError {
+  /**
+   * Error message describing the issue.
+   */
+  message: string;
+
+  /**
+   * Location in the source code where the error occurred.
+   */
+  location: {
+    file: string;
+    line: number;
+    column: number;
+  };
+
+  /**
+   * The code snippet that caused the error.
+   */
+  code?: string;
+}
+
+/**
+ * Result of extracting keys from source code.
+ */
+export interface ExtractionResult {
+  /**
+   * Extracted translation keys.
+   * Empty if errors were found (extraction aborted).
+   */
+  keys: ExtractedKey[];
+
+  /**
+   * Extraction errors (e.g., dynamic key usage).
+   * If non-empty, keys will be empty.
+   */
+  errors: ExtractionError[];
+}
+
+/**
  * Interface for translation key extractors.
  */
 export interface Extractor {
   /**
    * Extract translation keys from source code.
    * Returns an array of key strings.
+   * @deprecated Use extract() for full error reporting.
    */
   extractFromCode(code: string, filePath?: string): string[];
 
   /**
    * Extract translation keys with detailed metadata.
    * Returns an array of ExtractedKey objects with location and namespace info.
+   * @deprecated Use extract() for full error reporting.
    */
   extractFromCodeWithDetails(code: string, filePath?: string): ExtractedKey[];
+
+  /**
+   * Extract translation keys with full error reporting.
+   * Returns ExtractionResult with keys and any errors found.
+   * If errors are found (e.g., dynamic keys), keys will be empty.
+   */
+  extract(code: string, filePath?: string): ExtractionResult;
 }
 
 import { NextjsExtractor } from './nextjs.js';

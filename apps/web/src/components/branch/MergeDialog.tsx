@@ -23,6 +23,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import type { BranchDiffResponse } from '@localeflow/shared';
 import type { Resolution } from '@/lib/api';
 import { ConflictResolver } from './ConflictResolver';
@@ -44,6 +45,7 @@ export function MergeDialog({
   merging,
   mergeError,
 }: MergeDialogProps) {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [resolutions, setResolutions] = useState<Map<string, Resolution>>(
     new Map()
@@ -90,18 +92,18 @@ export function MergeDialog({
               <GitMerge className="h-4 w-4 md:h-5 md:w-5 text-white" />
             </span>
             <span className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-1 min-w-0">
-              <span className="text-sm md:text-lg">Merge</span>
+              <span className="text-sm md:text-lg">{t('branch.mergeDialog.merge')}</span>
               <span className="font-mono text-indigo-600 text-sm md:text-lg truncate">
                 {diff.source.name}
               </span>
-              <span className="text-sm md:text-lg hidden md:inline">into</span>
+              <span className="text-sm md:text-lg hidden md:inline">{t('branch.mergeDialog.into')}</span>
               <span className="font-mono text-violet-600 text-sm md:text-lg truncate">
                 {isMobile ? `-> ${diff.target.name}` : diff.target.name}
               </span>
             </span>
           </DialogTitle>
           <DialogDescription className="mt-2 text-sm">
-            Review changes and resolve any conflicts before merging.
+            {t('branch.mergeDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +120,7 @@ export function MergeDialog({
                     <div className="text-base md:text-lg font-bold text-emerald-700">
                       {diff.added.length}
                     </div>
-                    <div className="text-xs text-emerald-600">Added</div>
+                    <div className="text-xs text-emerald-600">{t('branch.mergeDialog.stats.added')}</div>
                   </div>
                 </div>
 
@@ -130,7 +132,7 @@ export function MergeDialog({
                     <div className="text-base md:text-lg font-bold text-violet-700">
                       {diff.modified.length}
                     </div>
-                    <div className="text-xs text-violet-600">Modified</div>
+                    <div className="text-xs text-violet-600">{t('branch.mergeDialog.stats.modified')}</div>
                   </div>
                 </div>
 
@@ -142,7 +144,7 @@ export function MergeDialog({
                     <div className="text-base md:text-lg font-bold text-rose-700">
                       {diff.deleted.length}
                     </div>
-                    <div className="text-xs text-rose-600">Deleted</div>
+                    <div className="text-xs text-rose-600">{t('branch.mergeDialog.stats.deleted')}</div>
                   </div>
                 </div>
 
@@ -155,7 +157,7 @@ export function MergeDialog({
                       <div className="text-base md:text-lg font-bold text-amber-700">
                         {diff.conflicts.length}
                       </div>
-                      <div className="text-xs text-amber-600">Conflicts</div>
+                      <div className="text-xs text-amber-600">{t('branch.mergeDialog.stats.conflicts')}</div>
                     </div>
                   </div>
                 )}
@@ -166,13 +168,10 @@ export function MergeDialog({
                 <Alert className="border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50">
                   <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-amber-600" />
                   <AlertTitle className="text-amber-800 font-semibold text-sm md:text-base">
-                    Conflicts Detected
+                    {t('branch.mergeDialog.conflictsDetected')}
                   </AlertTitle>
                   <AlertDescription className="text-amber-700 text-sm">
-                    {diff.conflicts.length} translation key
-                    {diff.conflicts.length > 1 ? 's have' : ' has'} been
-                    modified in both branches. You must resolve all conflicts
-                    before merging.
+                    {t('branch.mergeDialog.conflictsDescription', { count: diff.conflicts.length })}
                   </AlertDescription>
                 </Alert>
               )}
@@ -181,7 +180,7 @@ export function MergeDialog({
               {mergeError && (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />
-                  <AlertTitle className="text-sm md:text-base">Merge Failed</AlertTitle>
+                  <AlertTitle className="text-sm md:text-base">{t('branch.mergeDialog.mergeFailed')}</AlertTitle>
                   <AlertDescription className="text-sm">{mergeError}</AlertDescription>
                 </Alert>
               )}
@@ -195,12 +194,10 @@ export function MergeDialog({
                     </div>
                     <div>
                       <h4 className="font-semibold text-emerald-800 text-sm md:text-base">
-                        Ready to Merge
+                        {t('branch.mergeDialog.readyToMerge')}
                       </h4>
                       <p className="text-xs md:text-sm text-emerald-600">
-                        This merge will apply {totalChanges} change
-                        {totalChanges !== 1 ? 's' : ''} to the target branch. No
-                        conflicts were detected.
+                        {t('branch.mergeDialog.readyToMergeDescription', { count: totalChanges })}
                       </p>
                     </div>
                   </div>
@@ -211,7 +208,7 @@ export function MergeDialog({
               {totalChanges === 0 && !hasConflicts && (
                 <div className="p-3 md:p-4 rounded-lg bg-slate-50 border border-slate-200 text-center">
                   <p className="text-slate-600 text-sm">
-                    No changes to merge. Both branches are identical.
+                    {t('branch.mergeDialog.noChanges')}
                   </p>
                 </div>
               )}
@@ -220,7 +217,7 @@ export function MergeDialog({
               {totalChanges > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-slate-700">
-                    Changes Summary
+                    {t('branch.mergeDialog.changesSummary')}
                   </h4>
                   <div className="max-h-36 md:max-h-48 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
                     {diff.added.map((entry) => (
@@ -282,7 +279,7 @@ export function MergeDialog({
               className="w-full h-11 touch-manipulation order-first"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Preview
+              {t('branch.mergeDialog.backToPreview')}
             </Button>
           )}
 
@@ -291,7 +288,7 @@ export function MergeDialog({
             <div className="flex-1">
               <Button variant="ghost" onClick={() => setStep('preview')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Preview
+                {t('branch.mergeDialog.backToPreview')}
               </Button>
             </div>
           )}
@@ -304,7 +301,7 @@ export function MergeDialog({
                 className={`bg-amber-500 hover:bg-amber-600 text-white touch-manipulation ${isMobile ? 'w-full h-11' : ''}`}
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                Resolve Conflicts ({diff.conflicts.length})
+                {t('branch.mergeDialog.resolveConflicts', { count: diff.conflicts.length })}
               </Button>
             )}
             {(step === 'resolve' || !hasConflicts) && (
@@ -316,15 +313,15 @@ export function MergeDialog({
                 {merging ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Merging...
+                    {t('branch.mergeDialog.merging')}
                   </>
                 ) : (
                   <>
                     <GitMerge className="h-4 w-4 mr-2" />
-                    Merge Branch
+                    {t('branch.mergeDialog.mergeBranch')}
                     {hasConflicts && !allConflictsResolved && (
                       <Badge variant="secondary" className="ml-2 text-xs">
-                        {resolutions.size}/{diff.conflicts.length} resolved
+                        {t('branch.mergeDialog.resolvedCount', { resolved: resolutions.size, total: diff.conflicts.length })}
                       </Badge>
                     )}
                   </>
@@ -336,7 +333,7 @@ export function MergeDialog({
               onClick={handleClose}
               className={`touch-manipulation ${isMobile ? 'w-full h-11' : ''}`}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
           </div>
         </DialogFooter>

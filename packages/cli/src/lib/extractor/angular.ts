@@ -1,4 +1,4 @@
-import type { ExtractorOptions, Extractor, ExtractedKey } from './index.js';
+import type { ExtractorOptions, Extractor, ExtractedKey, ExtractionResult } from './index.js';
 
 /**
  * Angular extractor - basic implementation using regex patterns.
@@ -22,11 +22,22 @@ export class AngularExtractor implements Extractor {
   }
 
   extractFromCode(code: string, filePath?: string): string[] {
-    const details = this.extractFromCodeWithDetails(code, filePath);
-    return details.map(d => d.key);
+    const result = this.extract(code, filePath);
+    return result.keys.map(d => d.key);
   }
 
   extractFromCodeWithDetails(code: string, filePath?: string): ExtractedKey[] {
+    const result = this.extract(code, filePath);
+    return result.keys;
+  }
+
+  extract(code: string, filePath?: string): ExtractionResult {
+    const keys = this.extractKeysInternal(code, filePath);
+    // Angular extractor uses regex - no dynamic key detection for now
+    return { keys, errors: [] };
+  }
+
+  private extractKeysInternal(code: string, filePath?: string): ExtractedKey[] {
     const keys: ExtractedKey[] = [];
 
     // Extract from template: {{ 'key' | translate }}

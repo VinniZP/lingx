@@ -4,6 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { projectApi } from '@/lib/api';
 import {
   ArrowLeft,
@@ -26,6 +27,7 @@ interface LayoutProps {
 export default function SettingsLayout({ children, params }: LayoutProps) {
   const { projectId } = use(params);
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', projectId],
@@ -51,8 +53,8 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
             </div>
           </div>
           <div className="text-center space-y-1">
-            <p className="text-sm font-medium">Loading settings</p>
-            <p className="text-xs text-muted-foreground">Please wait...</p>
+            <p className="text-sm font-medium">{t('projectSettings.layout.loadingSettings')}</p>
+            <p className="text-xs text-muted-foreground">{t('common.pleaseWait')}</p>
           </div>
         </div>
       </div>
@@ -63,32 +65,32 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
     {
       href: `/projects/${projectId}/settings`,
       icon: Settings,
-      label: 'General',
-      description: 'Project details & languages',
+      label: t('projectSettings.layout.nav.general'),
+      description: t('projectSettings.layout.nav.generalDescription'),
       isActive: isGeneralActive,
       badge: null,
     },
     {
       href: `/projects/${projectId}/settings/glossary`,
       icon: BookOpen,
-      label: 'Glossary',
-      description: 'Terminology management',
+      label: t('projectSettings.layout.nav.glossary'),
+      description: t('projectSettings.layout.nav.glossaryDescription'),
       isActive: isGlossaryActive,
       badge: null,
     },
     {
       href: `/projects/${projectId}/settings/integrations`,
       icon: Languages,
-      label: 'Integrations',
-      description: 'Translation providers',
+      label: t('projectSettings.layout.nav.integrations'),
+      description: t('projectSettings.layout.nav.integrationsDescription'),
       isActive: isIntegrationsActive,
       badge: connectedCount > 0 ? `${connectedCount}` : null,
     },
   ];
 
   const comingSoonItems = [
-    { icon: Users, label: 'Team', description: 'Members & roles' },
-    { icon: Shield, label: 'Security', description: 'Access control' },
+    { icon: Users, label: t('projectSettings.layout.nav.team'), description: t('projectSettings.layout.nav.teamDescription') },
+    { icon: Shield, label: t('projectSettings.layout.nav.security'), description: t('projectSettings.layout.nav.securityDescription') },
   ];
 
   return (
@@ -117,10 +119,10 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
                 </div>
                 <div>
                   <h1 className="text-2xl font-semibold tracking-tight">
-                    Settings
+                    {t('projectSettings.layout.title')}
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Configure <span className="font-medium text-foreground/80">{project?.name}</span>
+                    {t('projectSettings.layout.subtitle', { projectName: project?.name || '' })}
                   </p>
                 </div>
               </div>
@@ -138,7 +140,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
               {/* Active Navigation */}
               <div className="space-y-1.5">
                 <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3">
-                  Configure
+                  {t('projectSettings.layout.configure')}
                 </p>
 
                 {navItems.map((item) => {
@@ -192,7 +194,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
               {/* Coming Soon */}
               <div className="space-y-1.5">
                 <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3">
-                  Coming Soon
+                  {t('projectSettings.layout.comingSoon')}
                 </p>
 
                 {comingSoonItems.map((item) => {
@@ -223,9 +225,9 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
 
               {/* Help Card */}
               <div className="mx-1 p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/40">
-                <p className="text-xs font-medium mb-1">Need help?</p>
+                <p className="text-xs font-medium mb-1">{t('projectSettings.layout.needHelp')}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Check our documentation for guides on configuring your project.
+                  {t('projectSettings.layout.needHelpDescription')}
                 </p>
               </div>
             </nav>

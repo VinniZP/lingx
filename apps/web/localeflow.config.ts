@@ -25,9 +25,9 @@ const config: LocaleflowConfig = {
   },
   extract: {
     framework: 'nextjs',
-    patterns: ["./src/**/*.tsx","./src/**/*.ts"],
+    patterns: ['**/*.tsx', '**/*.ts'],
     exclude: ['**/*.test.ts', '**/*.spec.ts'],
-    functions: ["t","useTranslation"],
+    functions: ['t', 'useTranslation'],
   },
 };
 

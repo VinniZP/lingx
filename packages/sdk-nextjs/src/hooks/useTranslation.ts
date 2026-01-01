@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useLocaleflowContext } from '../context/LocaleflowContext';
-import type { TranslationFunction, TranslationValues } from '../types';
+import type { TranslationFunction, DynamicTranslationFunction, TranslationValues, TranslationKey } from '../types';
 
 /**
  * Return type for useTranslation hook
@@ -10,9 +10,9 @@ import type { TranslationFunction, TranslationValues } from '../types';
 export interface UseTranslationReturn {
   /**
    * Translate a key with ICU MessageFormat support.
-   * Supports: plural, select, selectordinal, number, date, time formatting.
+   * Use this for direct string literal keys.
    *
-   * @param key - Translation key (without namespace prefix if using namespace)
+   * @param key - Translation key (string literal)
    * @param values - Values for ICU MessageFormat placeholders
    * @returns Formatted translation string
    *
@@ -24,6 +24,23 @@ export interface UseTranslationReturn {
    * ```
    */
   t: TranslationFunction;
+
+  /**
+   * Translate a dynamic key (from tKey()).
+   * Use this when translating keys stored in variables/arrays.
+   *
+   * @param key - TranslationKey from tKey()
+   * @param values - Values for ICU MessageFormat placeholders
+   * @returns Formatted translation string
+   *
+   * @example
+   * ```tsx
+   * const items = [{ labelKey: tKey('nav.home') }];
+   * const { td } = useTranslation();
+   * items.map(item => td(item.labelKey));
+   * ```
+   */
+  td: DynamicTranslationFunction;
 
   /**
    * Whether translations are ready to use
@@ -82,12 +99,34 @@ export function useTranslation(namespace?: string): UseTranslationReturn {
     [translations, namespace, contextT]
   );
 
+  /**
+   * Dynamic translation function for TranslationKey branded strings.
+   * Same implementation as t(), but typed to only accept TranslationKey.
+   */
+  const td = useCallback<DynamicTranslationFunction>(
+    <T extends string>(key: TranslationKey<T>, values?: TranslationValues) => {
+      // TranslationKey is just a branded string, so we can use it as a regular key
+      const stringKey = key as unknown as string;
+      const fullKey = namespace ? `${namespace}:${stringKey}` : stringKey;
+
+      const hasNamespacedKey = fullKey in translations;
+
+      if (!hasNamespacedKey && namespace && stringKey in translations) {
+        return contextT(stringKey, values);
+      }
+
+      return contextT(fullKey, values);
+    },
+    [translations, namespace, contextT]
+  );
+
   return useMemo(
     () => ({
       t,
+      td,
       ready,
       error,
     }),
-    [t, ready, error]
+    [t, td, ready, error]
   );
 }

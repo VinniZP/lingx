@@ -43,6 +43,7 @@ import {
   Settings,
   AlertCircle,
 } from 'lucide-react';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface KeyFormDialogProps {
   open: boolean;
@@ -52,12 +53,7 @@ interface KeyFormDialogProps {
 }
 
 // Quick suggestion templates for common key patterns
-const nameSuggestions = [
-  { icon: MessageSquare, label: 'common.', description: 'Shared strings' },
-  { icon: FileText, label: 'page.', description: 'Page-specific' },
-  { icon: AlertCircle, label: 'error.', description: 'Error messages' },
-  { icon: Settings, label: 'settings.', description: 'Settings labels' },
-];
+// NOTE: descriptions are handled via i18n keys in the component
 
 export function KeyFormDialog({
   open,
@@ -65,8 +61,17 @@ export function KeyFormDialog({
   branchId,
   editKey,
 }: KeyFormDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
+
+  // Quick suggestion templates for common key patterns
+  const nameSuggestions = [
+    { icon: MessageSquare, label: 'common.', description: t('keyForm.prefix.common') },
+    { icon: FileText, label: 'page.', description: t('keyForm.prefix.page') },
+    { icon: AlertCircle, label: 'error.', description: t('keyForm.prefix.error') },
+    { icon: Settings, label: 'settings.', description: t('keyForm.prefix.settings') },
+  ];
 
   const form = useForm<CreateKeyInput>({
     resolver: zodResolver(createKeySchema),
@@ -94,14 +99,14 @@ export function KeyFormDialog({
       translationApi.createKey(branchId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
-      toast.success('Key created', {
-        description: `"${variables.name}" has been created.`,
+      toast.success(t('keyForm.createSuccess'), {
+        description: t('keyForm.createSuccessDescription', { name: variables.name }),
       });
       onOpenChange(false);
     },
     onError: (error: ApiError) => {
       if (!handleApiFieldErrors(error, form.setError)) {
-        toast.error('Failed to create key', {
+        toast.error(t('keyForm.createFailed'), {
           description: error.message,
         });
       }
@@ -113,14 +118,14 @@ export function KeyFormDialog({
       translationApi.updateKey(editKey!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
-      toast.success('Key updated', {
-        description: 'Changes have been saved.',
+      toast.success(t('keyForm.updateSuccess'), {
+        description: t('keyForm.updateSuccessDescription'),
       });
       onOpenChange(false);
     },
     onError: (error: ApiError) => {
       if (!handleApiFieldErrors(error, form.setError)) {
-        toast.error('Failed to update key', {
+        toast.error(t('keyForm.updateFailed'), {
           description: error.message,
         });
       }
@@ -184,12 +189,12 @@ export function KeyFormDialog({
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight">
-                  {isEditing ? 'Edit Translation Key' : 'New Translation Key'}
+                  {isEditing ? t('keyForm.editTitle') : t('keyForm.createTitle')}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
                   {isEditing
-                    ? 'Update the key identifier and context'
-                    : 'Create a unique identifier for your translatable string'}
+                    ? t('keyForm.editDescription')
+                    : t('keyForm.createDescription')}
                 </DialogDescription>
               </div>
             </div>
@@ -204,7 +209,7 @@ export function KeyFormDialog({
               {!isEditing && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Namespace Prefix
+                    {t('keyForm.namespacePrefix')}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {nameSuggestions.map((suggestion) => (
@@ -234,12 +239,12 @@ export function KeyFormDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Key Name</FormLabel>
+                    <FormLabel>{t('keyForm.keyName.label')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
                         <Input
-                          placeholder="e.g., common.welcome.title"
+                          placeholder={t('keyForm.keyName.placeholder')}
                           className="pl-10 font-mono text-[15px]"
                           autoFocus
                           autoComplete="off"
@@ -249,7 +254,7 @@ export function KeyFormDialog({
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Use dot notation for namespacing (e.g., <code className="text-xs bg-muted px-1 py-0.5 rounded">page.home.hero_title</code>)
+                      {t('keyForm.keyName.description')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -263,18 +268,20 @@ export function KeyFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
-                      Context for Translators
-                      <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+                      {t('keyForm.context.label')}
+                      <span className="text-muted-foreground font-normal text-xs">
+                        ({t('keyForm.context.optional')})
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe where this text appears and any important context for accurate translation..."
+                        placeholder={t('keyForm.context.placeholder')}
                         className="min-h-[100px] resize-none"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      Help translators understand the context and tone
+                      {t('keyForm.context.description')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -288,8 +295,8 @@ export function KeyFormDialog({
                     <Sparkles className="size-4 text-primary" />
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    <p className="font-medium text-foreground mb-0.5">Pro tip</p>
-                    <p>After creating the key, you can immediately add translations in the editor below.</p>
+                    <p className="font-medium text-foreground mb-0.5">{t('keyForm.proTip.title')}</p>
+                    <p>{t('keyForm.proTip.description')}</p>
                   </div>
                 </div>
               )}
@@ -303,7 +310,7 @@ export function KeyFormDialog({
                 onClick={() => handleOpenChange(false)}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Cancel
+                {t('keyForm.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -313,12 +320,12 @@ export function KeyFormDialog({
                 {isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    {isEditing ? 'Saving...' : 'Creating...'}
+                    {isEditing ? t('keyForm.saving') : t('keyForm.creating')}
                   </>
                 ) : (
                   <>
                     <Key className="size-4" />
-                    {isEditing ? 'Save Changes' : 'Create Key'}
+                    {isEditing ? t('keyForm.saveChanges') : t('keyForm.createKey')}
                   </>
                 )}
               </Button>

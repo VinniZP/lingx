@@ -1,42 +1,13 @@
 {
   "common": {
-    "welcome": "Willkommen in LocaleFlow!",
-    "hello": "Hallo, {name}!",
     "loading": "Laden...",
-    "save": "Speichern",
     "cancel": "Abbrechen",
     "delete": "Löschen",
     "viewAll": "Alle anzeigen",
     "languages": "{count, plural, one {# Sprache} other {# Sprachen}}"
   },
-  "cart": {
-    "items": "{count, plural, =0 {Keine Artikel} one {1 Artikel} other {{count} Artikel}} im Warenkorb",
-    "total": "Gesamt: {amount, number, ::currency/EUR}"
-  },
-  "nav": {
-    "home": "Startseite",
-    "about": "Über uns",
-    "contact": "Kontakt",
-    "settings": "Einstellungen"
-  },
   "auth": {
-    "login": "Anmelden",
-    "logout": "Abmelden",
-    "register": "Registrieren",
     "forgotPassword": "Passwort vergessen?"
-  },
-  "form": {
-    "email": "E-Mail",
-    "password": "Passwort",
-    "required": "Dieses Feld ist erforderlich"
-  },
-  "messages": {
-    "success": "Vorgang erfolgreich abgeschlossen",
-    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-    "notFound": "Seite nicht gefunden"
-  },
-  "datetime": {
-    "lastUpdated": "Zuletzt aktualisiert: {date, date, medium}"
   },
   "dashboard": {
     "greeting": {
@@ -58,9 +29,6 @@
       "cta": "Loslegen"
     },
     "recentProjects": "Aktuelle Projekte",
-    "noProjects": "Noch keine Projekte",
-    "createFirst": "Erstellen Sie Ihr erstes Projekt",
-    "addAnother": "Weiteres Projekt hinzufügen",
     "quickActions": "Schnellaktionen",
     "import": {
       "title": "Übersetzungen importieren",
@@ -81,11 +49,6 @@
     "cli": {
       "title": "CLI verfügbar",
       "description": "Übersetzungen vom Terminal synchronisieren"
-    },
-    "activity": {
-      "title": "Aktuelle Aktivität",
-      "period": "Letzte 24 Stunden",
-      "empty": "Aktivitäten erscheinen hier während Sie arbeiten"
     },
     "resources": {
       "title": "Ressourcen",
@@ -124,7 +87,6 @@
       "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
     },
     "filters": "Filter",
-    "newProject": "Neues Projekt",
     "empty": {
       "title": "Noch keine Projekte",
       "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen.",

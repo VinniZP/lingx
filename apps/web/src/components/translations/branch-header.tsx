@@ -2,6 +2,7 @@
 
 import { GitBranch, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface BranchHeaderProps {
   branchName: string;
@@ -16,6 +17,8 @@ export function BranchHeader({
   completionPercent,
   translatorsOnline,
 }: BranchHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between gap-4">
       {/* Branch info */}
@@ -26,7 +29,7 @@ export function BranchHeader({
         </div>
         {changesCount > 0 && (
           <span className="text-sm text-muted-foreground">
-            {changesCount} {changesCount === 1 ? 'change' : 'changes'}
+            {t('translations.branchHeader.changes', { count: changesCount })}
           </span>
         )}
       </div>
@@ -37,7 +40,7 @@ export function BranchHeader({
         {translatorsOnline !== undefined && translatorsOnline > 0 && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="size-4" />
-            <span>{translatorsOnline} translators online</span>
+            <span>{t('translations.branchHeader.translatorsOnline', { count: translatorsOnline })}</span>
           </div>
         )}
 
@@ -45,7 +48,7 @@ export function BranchHeader({
         {completionPercent !== undefined && (
           <div className="flex items-center gap-2 text-sm font-medium text-primary">
             <Sparkles className="size-4" />
-            <span>{completionPercent}% complete</span>
+            <span>{t('translations.branchHeader.complete', { percent: completionPercent })}</span>
           </div>
         )}
       </div>

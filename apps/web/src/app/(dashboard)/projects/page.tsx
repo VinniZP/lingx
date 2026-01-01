@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useProjects } from '@/hooks';
 import { ProjectsHeader } from './_components/projects-header';
@@ -10,6 +11,7 @@ import { ProjectListItem } from './_components/project-list-item';
 import { ProjectsEmpty } from './_components/projects-empty';
 
 export default function ProjectsPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -26,7 +28,7 @@ export default function ProjectsPage() {
   if (error) {
     return (
       <div className="text-destructive p-6 rounded-xl bg-destructive/10 border border-destructive/20">
-        Failed to load projects. Please try again.
+        {t('projects.failedToLoad')}
       </div>
     );
   }

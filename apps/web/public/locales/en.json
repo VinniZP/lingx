@@ -1,42 +1,69 @@
 {
   "common": {
-    "welcome": "Welcome to LocaleFlow!",
-    "hello": "Hello, {name}!",
     "loading": "Loading...",
-    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "viewAll": "View all",
-    "languages": "{count, plural, one {# language} other {# languages}}"
-  },
-  "cart": {
-    "items": "{count, plural, =0 {No items} one {1 item} other {{count} items}} in cart",
-    "total": "Total: {amount, number, ::currency/USD}"
-  },
-  "nav": {
-    "home": "Home",
-    "about": "About",
-    "contact": "Contact",
-    "settings": "Settings"
+    "languages": "{count, plural, one {# language} other {# languages}}",
+    "remove": "Remove",
+    "create": "Create",
+    "continue": "Continue",
+    "back": "Back",
+    "learnMore": "Learn more",
+    "keys": "{count, plural, one {# key} other {# keys}}",
+    "allLanguages": "All languages",
+    "allDomains": "All domains",
+    "allTags": "All tags",
+    "name": "Name",
+    "color": "Color",
+    "verified": "Verified",
+    "active": "Active",
+    "optional": "(optional)",
+    "goBack": "Go back",
+    "branch": "Branch",
+    "switching": "Switching...",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "deleting": "Deleting...",
+    "pleaseWait": "Please wait..."
   },
   "auth": {
-    "login": "Log in",
-    "logout": "Log out",
-    "register": "Sign up",
-    "forgotPassword": "Forgot password?"
-  },
-  "form": {
-    "email": "Email",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create your account",
+    "enterCredentials": "Enter your credentials to access your projects",
+    "startManaging": "Start managing your translations in minutes",
+    "authenticating": "Authenticating...",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "signInWithPasskey": "Sign in with passkey",
+    "orContinueWithEmail": "or continue with email",
+    "newToLocaleflow": "New to Localeflow?",
+    "createAnAccount": "Create an account",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInInstead": "Sign in instead",
+    "emailAddress": "Email address",
+    "emailPlaceholder": "you@example.com",
     "password": "Password",
-    "required": "This field is required"
-  },
-  "messages": {
-    "success": "Operation completed successfully",
-    "error": "An error occurred. Please try again.",
-    "notFound": "Page not found"
-  },
-  "datetime": {
-    "lastUpdated": "Last updated: {date, date, medium}"
+    "passwordPlaceholder": "Enter your password",
+    "createPassword": "Create a strong password",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "John Doe",
+    "welcomeToast": "Welcome back!",
+    "welcomeDescription": "You have successfully signed in.",
+    "accountCreated": "Account created!",
+    "accountCreatedDescription": "Welcome to Localeflow. Your account is ready.",
+    "signInFailed": "Sign in failed",
+    "registrationFailed": "Registration failed",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "termsAgreement": "By continuing, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "passkeyAuthFailed": "Authentication failed",
+    "passkeySignInFailed": "Passkey sign in failed",
+    "passkeySignInSuccess": "Signed in with passkey"
   },
   "dashboard": {
     "greeting": {
@@ -49,7 +76,8 @@
       "projects": "Projects",
       "keys": "Keys",
       "languages": "Languages",
-      "complete": "Complete"
+      "complete": "Complete",
+      "pending": "Pending"
     },
     "progress": "Overall translation progress",
     "createProject": {
@@ -58,9 +86,6 @@
       "cta": "Get started"
     },
     "recentProjects": "Recent Projects",
-    "noProjects": "No projects yet",
-    "createFirst": "Create your first project",
-    "addAnother": "Add another project",
     "quickActions": "Quick Actions",
     "import": {
       "title": "Import translations",
@@ -80,12 +105,8 @@
     },
     "cli": {
       "title": "CLI Available",
-      "description": "Sync translations from your terminal"
-    },
-    "activity": {
-      "title": "Recent Activity",
-      "period": "Last 24 hours",
-      "empty": "Activity will appear here as you work"
+      "description": "Sync translations from your terminal",
+      "command": "npx localeflow pull"
     },
     "resources": {
       "title": "Resources",
@@ -109,30 +130,8 @@
       "step3": {
         "title": "Sync with your app",
         "description": "Use CLI or API to pull translations"
-      }
-    }
-  },
-  "activity": {
-    "title": "Recent Activity",
-    "lastDay": "Last 24 hours",
-    "lastWeek": "Last 7 days",
-    "empty": "Activity will appear here as you work",
-    "noRecent": "No recent activity",
-    "viewAll": "View all changes",
-    "preview": {
-      "changes": "Changes",
-      "andMore": "and {count} more",
-      "noPreview": "No preview available"
-    },
-    "modal": {
-      "title": "Activity Details",
-      "changes": "Changes",
-      "showing": "Showing {shown} of {total}",
-      "loadMore": "Load more",
-      "noChanges": "No detailed changes recorded for this activity.",
-      "old": "Old",
-      "new": "New",
-      "empty": "Empty"
+      },
+      "cta": "Create your first project"
     }
   },
   "projects": {
@@ -147,7 +146,6 @@
       "noResultsHint": "Try adjusting your search query"
     },
     "filters": "Filters",
-    "newProject": "New Project",
     "empty": {
       "title": "No projects yet",
       "description": "Create your first project to start managing translations with version control and collaboration.",
@@ -157,6 +155,1119 @@
       "keys": "{count} keys",
       "progress": "Progress",
       "main": "main"
+    },
+    "failedToLoad": "Failed to load projects. Please try again.",
+    "newProject": {
+      "title": "New Project",
+      "subtitle": "Create a new localization project",
+      "backLabel": "Go back to projects",
+      "details": {
+        "title": "Project Details",
+        "description": "Enter the basic information for your project"
+      },
+      "name": {
+        "label": "Project Name",
+        "placeholder": "My Application"
+      },
+      "slug": {
+        "label": "Slug",
+        "placeholder": "my-application",
+        "description": "URL-safe identifier for your project"
+      },
+      "description": {
+        "label": "Description",
+        "optional": "(optional)",
+        "placeholder": "A brief description of your project..."
+      },
+      "languages": {
+        "title": "Languages",
+        "description": "Select the languages for your project",
+        "defaultLabel": "Default Language",
+        "defaultPlaceholder": "Select default language",
+        "defaultDescription": "The source language for translations"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "create": "Create Project"
+      },
+      "success": "Project created",
+      "successDescription": "{name} has been created successfully.",
+      "failed": "Failed to create project"
+    }
+  },
+  "activity": {
+    "title": "Recent Activity",
+    "lastDay": "Last 24 hours",
+    "lastWeek": "Last 7 days",
+    "empty": "Activity will appear here as you work",
+    "noRecent": "No recent activity",
+    "viewAll": "View all changes",
+    "preview": {
+      "andMore": "+{count} more",
+      "loading": "Loading...",
+      "empty": "empty",
+      "viewAllHint": "Click to see {count} changes",
+      "noDetails": "No details available",
+      "metadata": {
+        "branch": "Branch",
+        "from": "From",
+        "source": "Source",
+        "target": "Target",
+        "conflictsResolved": "Conflicts resolved",
+        "file": "File",
+        "keys": "Keys",
+        "languages": "Languages",
+        "format": "Format",
+        "changed": "Changed",
+        "environment": "Environment",
+        "to": "To"
+      }
+    },
+    "modal": {
+      "auditTrail": "Audit Trail",
+      "loadMore": "Load more",
+      "noChanges": "No detailed changes recorded",
+      "noChangesHint": "This activity doesn't have granular change tracking.",
+      "empty": "Empty"
+    },
+    "viewAllChanges": "View all {count} changes",
+    "description": {
+      "translationSingle": "Updated translation{languages, select, undefined {} other { in {languages}}}",
+      "translationPlural": "Updated {count} translations{languages, select, undefined {} other { in {languages}}}",
+      "keyAddSingle": "Added translation key",
+      "keyAddPlural": "Added {count} translation keys",
+      "keyDeleteSingle": "Deleted translation key",
+      "keyDeletePlural": "Deleted {count} translation keys",
+      "branchCreate": "Created branch \"{branchName}\"",
+      "branchCreateWithSource": "Created branch \"{branchName}\" from \"{sourceBranchName}\"",
+      "branchDelete": "Deleted branch \"{branchName}\"",
+      "merge": "Merged \"{sourceBranchName}\" into \"{targetBranchName}\"",
+      "import": "Imported {count, plural, one {# key} other {# keys}}",
+      "importWithFile": "Imported {count, plural, one {# key} other {# keys}} from {fileName}",
+      "export": "Exported translations to {format}",
+      "projectSettings": "Updated project {fields}",
+      "environmentCreate": "Created environment \"{environmentName}\"",
+      "environmentDelete": "Deleted environment \"{environmentName}\"",
+      "environmentSwitchBranch": "Switched \"{environmentName}\" to \"{newBranchName}\"",
+      "aiTranslate": "AI translated {count, plural, one {# key} other {# keys}}",
+      "aiTranslateWithLanguages": "AI translated {count, plural, one {# key} other {# keys}} to {languages}",
+      "default": "Activity recorded"
+    }
+  },
+  "nav": {
+    "language": "Language",
+    "toggleNavigation": "Toggle navigation menu",
+    "toggleSidebar": "Toggle sidebar",
+    "toggleTheme": "Toggle theme",
+    "search": "Search..."
+  },
+  "twoFactor": {
+    "title": "Two-factor authentication",
+    "backupCodeTitle": "Backup code",
+    "enterCode": "Enter the 6-digit code from your authenticator app",
+    "enterBackupCode": "Enter one of your backup codes to sign in",
+    "backupCode": "Backup code",
+    "backupCodePlaceholder": "XXXXXXXX",
+    "verificationCode": "Verification code",
+    "rememberDevice": "Remember this device",
+    "rememberDeviceDescription": "Skip 2FA for 30 days on this device",
+    "verifying": "Verifying...",
+    "verifyAndSignIn": "Verify & Sign In",
+    "haveYourApp": "Have your app?",
+    "lostAccess": "Lost access?",
+    "useAuthenticatorApp": "Use authenticator app",
+    "useBackupCode": "Use a backup code",
+    "havingTrouble": "Having trouble?",
+    "getHelp": "Get help",
+    "backToLogin": "Back to login",
+    "enterAllDigits": "Please enter all 6 digits",
+    "verificationFailed": "Verification failed. Please try again.",
+    "codesRemaining": "Only {count} backup codes remaining. Consider regenerating them."
+  },
+  "verifyEmail": {
+    "verifying": "Verifying Email",
+    "pleaseWait": "Please wait while we verify your email address...",
+    "verified": "Email Verified!",
+    "successMessage": "Your email has been successfully changed to:",
+    "goToProfile": "Go to Profile",
+    "failed": "Verification Failed",
+    "invalidLink": "Invalid verification link. No token provided.",
+    "expiredLink": "Failed to verify email. The link may have expired.",
+    "goToLogin": "Go to Login",
+    "loading": "Loading",
+    "loadingMessage": "Please wait..."
+  },
+  "landing": {
+    "brand": "LocaleFlow",
+    "signIn": "Sign in",
+    "getStarted": "Get started",
+    "openSourceBadge": "Open source and self-hosted",
+    "headline": "Localization that",
+    "headlineHighlight": "flows naturally",
+    "subheadline": "Manage translations with git-like branching. Collaborate with your team, review changes, and ship localized products with confidence.",
+    "startForFree": "Start for free",
+    "viewOnGitHub": "View on GitHub",
+    "features": {
+      "title": "Everything you need",
+      "subtitle": "A complete localization platform designed for modern development workflows.",
+      "branching": {
+        "title": "Git-like branching",
+        "description": "Create branches for translations, review changes, and merge with confidence. Never lose work again."
+      },
+      "collaboration": {
+        "title": "Team collaboration",
+        "description": "Invite translators, assign roles, and track progress in real-time."
+      },
+      "fast": {
+        "title": "Lightning fast",
+        "description": "Optimized for performance with instant search and live updates."
+      },
+      "secure": {
+        "title": "Self-hosted & secure",
+        "description": "Your data stays on your infrastructure. Full control, always. No vendor lock-in."
+      },
+      "anyLanguage": {
+        "title": "Any language",
+        "description": "RTL, pluralization, and complex language rules supported out of the box."
+      },
+      "developerFirst": {
+        "title": "Developer-first",
+        "description": "CLI tools, SDKs, and APIs designed for modern workflows."
+      }
+    },
+    "benefits": {
+      "selfHosted": "Self-hosted",
+      "selfHostedDesc": "Your data, your servers",
+      "openSource": "Open Source",
+      "openSourceDesc": "MIT licensed, forever free",
+      "gitLike": "Git-like workflow",
+      "gitLikeDesc": "Branch, review, merge",
+      "devFirst": "Developer-first",
+      "devFirstDesc": "CLI, SDK, and API"
+    },
+    "openSourceSection": {
+      "title": "Built in the open",
+      "description": "LocaleFlow is an open source project built for learning and experimentation. Explore the code, contribute ideas, or use it as a reference for your own projects.",
+      "starOnGitHub": "Star on GitHub",
+      "reportIssue": "Report an issue"
+    },
+    "cta": {
+      "title": "Ready to streamline your",
+      "titleHighlight": "localization workflow?",
+      "description": "Join teams who trust LocaleFlow for their translation management. Self-hosted, open source, and privacy-first.",
+      "getStartedFree": "Get started free",
+      "readTheDocs": "Read the docs"
+    },
+    "footer": {
+      "description": "Open source translation management platform for modern development teams. Self-hosted, privacy-first.",
+      "project": "Project",
+      "github": "GitHub",
+      "issues": "Issues",
+      "discussions": "Discussions",
+      "resources": "Resources",
+      "documentation": "Documentation",
+      "readme": "README",
+      "contributing": "Contributing",
+      "legal": "Legal",
+      "mitLicense": "MIT License",
+      "copyright": "© {year} LocaleFlow. Open source under MIT License."
+    }
+  },
+  "authLayout": {
+    "brand": "Localeflow",
+    "headline": "Translations that",
+    "headlineHighlight": "flow, seamlessly",
+    "subheadline": "Git-like branching for your localization workflow. Collaborate, review, and ship translations with confidence.",
+    "multiLanguage": "Multi-language",
+    "multiLanguageDesc": "support",
+    "branchBased": "Branch-based",
+    "branchBasedDesc": "workflow",
+    "teamCollab": "Team",
+    "teamCollabDesc": "collaboration",
+    "selfHosted": "Self-hosted",
+    "openSource": "Open Source",
+    "privacyFirst": "Privacy-first"
+  },
+  "settings": {
+    "title": "Account Settings",
+    "apiKeys": {
+      "title": "API Keys",
+      "description": "Generate and manage API keys for CLI and SDK authentication"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage your password and active sessions"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Update your name, email, and profile settings"
+    },
+    "tips": {
+      "title": "Security Tips",
+      "strongPassword": "Strong Password",
+      "strongPasswordDesc": "Use a unique password with 12+ characters",
+      "apiKeyRotation": "API Key Rotation",
+      "apiKeyRotationDesc": "Rotate API keys periodically for better security",
+      "twoFactorAuth": "Two-Factor Auth",
+      "twoFactorAuthDesc": "Enable 2FA for additional account protection"
+    },
+    "resources": {
+      "title": "Resources",
+      "docs": "Documentation",
+      "docsDesc": "Learn how to use LocaleFlow",
+      "api": "API Reference",
+      "apiDesc": "Integrate with our REST API",
+      "cliGuide": "CLI Guide",
+      "cliGuideDesc": "Set up the command-line tool"
+    },
+    "back": "Settings",
+    "backToSettings": "Back to Settings"
+  },
+  "profile": {
+    "title": "Profile Details",
+    "description": "Manage your personal information",
+    "memberSince": "Member since",
+    "accountStatus": "Account status",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Enter your name",
+    "displayNameHint": "This is how you'll appear throughout the app",
+    "emailAddress": "Email Address",
+    "changeEmail": "Change",
+    "emailChangeHint": "Changing your email requires verification",
+    "discard": "Discard",
+    "saveChanges": "Save Changes",
+    "preferences": {
+      "title": "Preferences",
+      "description": "Customize your experience",
+      "appearance": "Appearance",
+      "theme": "Theme",
+      "colorScheme": "Color scheme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "language": "Language",
+      "interfaceLanguage": "Interface language",
+      "english": "English",
+      "spanish": "Español",
+      "french": "Français",
+      "german": "Deutsch",
+      "japanese": "日本語",
+      "workflow": "Workflow",
+      "defaultProject": "Default Project",
+      "openOnLogin": "Open on login",
+      "notifications": "Notifications",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive updates via email",
+      "inAppNotifications": "In-App Notifications",
+      "inAppNotificationsDesc": "Show notifications in app",
+      "activityDigest": "Activity Digest",
+      "summaryFrequency": "Summary frequency",
+      "never": "Never",
+      "daily": "Daily",
+      "weekly": "Weekly"
+    },
+    "accountDetails": {
+      "title": "Account Details",
+      "description": "Technical information"
+    },
+    "quickTips": {
+      "title": "Quick Tips",
+      "description": "Get the most out of LocaleFlow",
+      "keyboardShortcuts": "Keyboard shortcuts",
+      "keyboardShortcutsDesc": "Press Cmd+K for quick actions",
+      "apiAccess": "API access",
+      "apiAccessDesc": "Generate keys in Settings"
+    },
+    "changeEmailDialog": {
+      "title": "Change Email Address",
+      "description": "A verification link will be sent to your new email",
+      "currentEmail": "Current:",
+      "newEmailPlaceholder": "Enter new email",
+      "passwordPlaceholder": "Enter your password to confirm",
+      "passwordHint": "Required for security verification",
+      "submit": "Send Verification"
+    },
+    "loading": "Loading profile...",
+    "loadingMessage": "Just a moment"
+  },
+  "security": {
+    "title": "Security Settings",
+    "description": "Protect your account with multi-layered security. Manage authentication methods, monitor active sessions, and maintain control.",
+    "changePassword": {
+      "title": "Change Password",
+      "description": "Update your account password regularly",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Create a strong password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your new password",
+      "submit": "Update Password",
+      "signOutWarning": "This will sign out all other devices"
+    },
+    "activeSessions": {
+      "title": "Active Sessions",
+      "otherSessions": "{count, plural, one {# other session} other {# other sessions}}",
+      "revokeAll": "Revoke All",
+      "noOtherSessions": "No other active sessions",
+      "sessionsAppearHere": "Sessions will appear here",
+      "revokeConfirm": "This will sign out the device. They'll need to log in again to access the account.",
+      "revokeSession": "Revoke Session",
+      "revokeAllConfirm": "This will sign out all {count} other device(s) from your account.",
+      "revokeAllSessions": "Revoke All Sessions",
+      "failedToLoad": "Failed to load sessions"
+    },
+    "securityChecklist": "Security Checklist",
+    "securityScore": "Security Score",
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "active": "Active",
+      "inactive": "Inactive",
+      "activeDescription": "Your account is protected with an authenticator app",
+      "inactiveDescription": "Add an extra layer of security to your account",
+      "backupCodes": "Backup Codes",
+      "trustedDevices": "Trusted Devices",
+      "regenerateCodes": "Regenerate Backup Codes",
+      "disable": "Disable 2FA",
+      "enable": "Enable Two-Factor Authentication",
+      "features": {
+        "totp": "Use any TOTP authenticator app",
+        "backupCodes": "10 backup codes for account recovery",
+        "trustDevice": "Option to trust devices for 30 days"
+      },
+      "disableDialog": {
+        "title": "Disable Two-Factor Authentication",
+        "description": "This will remove the extra security layer from your account.",
+        "confirmPassword": "Confirm your password",
+        "submit": "Disable 2FA"
+      },
+      "regenerateDialog": {
+        "title": "Regenerate Backup Codes",
+        "description": "This will invalidate all existing backup codes and generate new ones.",
+        "submit": "Regenerate Codes"
+      },
+      "newCodesDialog": {
+        "title": "New Backup Codes Generated",
+        "description": "Save these codes in a safe place. Each code can only be used once.",
+        "download": "Download as Text File",
+        "saved": "I've Saved My Codes"
+      }
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "description": "Sign in without passwords using biometrics or security keys",
+      "notSupported": "Passkey Not Supported",
+      "notSupportedDescription": "Your browser doesn't support passkeys. Try using a modern browser like Chrome, Safari, or Edge.",
+      "addPasskey": "Add Passkey",
+      "goPasswordless": "Go Passwordless",
+      "features": {
+        "biometrics": "Use biometrics or security keys to sign in",
+        "phishingResistant": "Phishing-resistant and more secure than passwords",
+        "synced": "Synced across devices with iCloud, Google, or Microsoft"
+      },
+      "passwordlessEnabled": {
+        "title": "Passwordless Enabled",
+        "description": "Your account is secured with passkeys only. You can sign in using biometrics or security keys."
+      },
+      "addDialog": {
+        "title": "Add a Passkey",
+        "description": "Give your passkey a memorable name to identify it across your devices",
+        "nameLabel": "Passkey Name",
+        "namePlaceholder": "e.g., MacBook Pro, iPhone 15, YubiKey",
+        "suggestions": {
+          "macbook": "MacBook Pro",
+          "iphone": "iPhone",
+          "securityKey": "Security Key"
+        },
+        "secureNote": "Secure & Private",
+        "secureNoteDescription": "Your passkey is stored securely on your device and never leaves it."
+      },
+      "deleteDialog": {
+        "title": "Delete Passkey",
+        "description": "This passkey will be removed from your account. You won't be able to use it to sign in anymore.",
+        "submit": "Delete Passkey"
+      },
+      "passwordlessDialog": {
+        "title": "Go Passwordless",
+        "description": "Your password will be removed. You'll only be able to sign in using your passkeys.",
+        "passkeyCount": "You have {count} passkey(s) registered, which is enough for passwordless.",
+        "warning": "Make sure you have access to your passkeys on multiple devices before proceeding.",
+        "submit": "Remove Password"
+      }
+    },
+    "checklistItems": {
+      "passkeys": "Passkeys registered",
+      "passkeysDesc": "Phishing-resistant login method"
+    },
+    "loading": "Loading security settings",
+    "completeCount": "{current} of {total} complete",
+    "tips": {
+      "quickTip": "Quick Tip",
+      "enableBoth": "Enable both 2FA and passkeys for maximum security. They work together seamlessly."
+    }
+  },
+  "apiKeys": {
+    "title": "Generate New API Key",
+    "description": "Create a key for CLI or SDK authentication",
+    "quickStart": "Quick Start",
+    "suggestions": {
+      "cli": "CLI",
+      "development": "Development",
+      "production": "Production"
+    },
+    "nameLabel": "Key Name",
+    "namePlaceholder": "e.g., Production API, CI/CD Pipeline",
+    "nameHint": "A descriptive name to identify this key's purpose",
+    "oneTimeDisplay": "One-time display",
+    "oneTimeDisplayHint": "The key will only be shown once after creation. Store it securely.",
+    "generate": "Generate Key",
+    "copyWarning": "Copy it now - it won't be shown again.",
+    "createFailed": "Failed to create API key",
+    "pageTitle": "API Keys",
+    "pageDescription": "Generate and manage API keys for CLI and SDK authentication",
+    "generateNew": "Generate New Key",
+    "generateFirst": "Generate your first key",
+    "loading": "Loading...",
+    "stats": {
+      "active": "Active",
+      "total": "Total"
+    },
+    "newKeyCreated": "New API Key Created",
+    "copyKeyNow": "Copy this key now - it will not be shown again",
+    "storeSecurely": "Store this key securely. You will not be able to see it again.",
+    "createdSuccess": "API key created successfully",
+    "revokedSuccess": "API key revoked",
+    "revokedDescription": "The key can no longer be used for authentication.",
+    "revokeFailed": "Failed to revoke API key",
+    "copiedToClipboard": "Copied to clipboard",
+    "copyFailed": "Failed to copy to clipboard",
+    "activeKeys": "Active Keys",
+    "revokedKeys": "Revoked Keys",
+    "noActiveKeys": "No active API keys",
+    "key": "key",
+    "keys": "keys",
+    "revoked": "Revoked",
+    "lastUsed": "Last used:",
+    "never": "Never",
+    "revokeDialog": {
+      "title": "Revoke API Key?",
+      "cancel": "Cancel",
+      "revoking": "Revoking...",
+      "confirm": "Revoke Key"
+    },
+    "securityTips": {
+      "title": "Security Best Practices",
+      "keepSecret": "Keep Keys Secret",
+      "keepSecretDesc": "Never commit API keys to version control",
+      "rotateRegularly": "Rotate Regularly",
+      "rotateRegularlyDesc": "Rotate keys every 90 days for better security",
+      "monitorUsage": "Monitor Usage",
+      "monitorUsageDesc": "Check 'Last Used' to detect unauthorized access"
+    },
+    "docs": {
+      "title": "Documentation",
+      "cliSetup": "CLI Setup Guide",
+      "cliSetupDesc": "Configure the command-line tool",
+      "sdkIntegration": "SDK Integration",
+      "sdkIntegrationDesc": "Integrate with your application",
+      "apiReference": "REST API Reference",
+      "apiReferenceDesc": "Full API documentation"
+    },
+    "generating": "Creating..."
+  },
+  "sidebar": {
+    "brand": "LocaleFlow",
+    "tagline": "Translations",
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "settings": "Settings",
+    "language": "Language",
+    "apiKeys": "API Keys",
+    "signOut": "Sign out",
+    "userFallback": "user@example.com"
+  },
+  "dialogs": {
+    "createBranch": {
+      "title": "New Branch",
+      "description": "Create a branch in \"{spaceName}\"",
+      "nameLabel": "Branch Name",
+      "namePlaceholder": "e.g., feature-checkout, v2-redesign",
+      "willBeCreatedAs": "Will be created as:",
+      "copyFrom": "Copy From",
+      "selectSource": "Select source branch",
+      "copyNote": "All translations will be copied from this branch",
+      "copyingKeys": "Copying {count} translation keys",
+      "isolationNote": "Changes made to this branch won't affect \"{branchName}\" until merged.",
+      "created": "Branch created",
+      "createFailed": "Failed to create branch",
+      "createdDescription": "\"{name}\" branch has been created from {source}."
+    },
+    "deleteConfirm": {
+      "deleteProject": "Delete Project?",
+      "deleteEnvironment": "Delete Environment?",
+      "deleteEntry": "Delete Entry?",
+      "deleteTag": "Delete Tag?",
+      "removeIntegration": "Remove {name}?",
+      "removeIntegrationDescription": "This will remove the API key and disable {name} for this project. You can add it again later."
+    },
+    "createTag": {
+      "title": "Create Tag"
+    },
+    "createSpace": {
+      "title": "New Space",
+      "description": "Organize translations by feature or platform",
+      "nameLabel": "Space Name",
+      "namePlaceholder": "e.g., Web App, Mobile, Marketing",
+      "slugLabel": "Slug",
+      "slugPlaceholder": "web-app",
+      "slugDescription": "URL-safe identifier for your space",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What translations does this space contain?",
+      "autoCreatedBranch": "Auto-created branch",
+      "autoCreatedBranchNote": "A \"main\" branch will be created automatically as your default branch.",
+      "creating": "Creating...",
+      "createButton": "Create Space",
+      "success": "Space created",
+      "successDescription": "\"{name}\" space has been created with a main branch.",
+      "failed": "Failed to create space"
+    },
+    "mergeBranch": {
+      "title": "Merge Branch",
+      "description": "Merge changes from \"{branch}\" into another branch",
+      "steps": {
+        "select": "Select",
+        "preview": "Preview",
+        "resolve": "Resolve"
+      },
+      "sourceBranch": "Source Branch",
+      "targetBranch": "Target Branch",
+      "selectTargetBranch": "Select target branch",
+      "translationKeys": "{count, plural, one {# translation key} other {# translation keys}}",
+      "howItWorks": "How merging works",
+      "howItWorksNote": "All translation keys and values from the source will be applied to the target branch. Conflicts will be shown for manual resolution.",
+      "previewChanges": "Preview Changes",
+      "comparingBranches": "Comparing branches...",
+      "failedToLoadDiff": "Failed to load diff",
+      "pleaseTryAgain": "Please try again",
+      "branchesInSync": "Branches are in sync",
+      "noChanges": "No changes to merge between these branches",
+      "added": "Added",
+      "modified": "Modified",
+      "deleted": "Deleted",
+      "conflicts": "Conflicts",
+      "conflict": "Conflict",
+      "merging": "Merging...",
+      "reviewConflicts": "Review Conflicts",
+      "mergeChanges": "Merge Changes",
+      "conflictsCount": "{count, plural, one {# conflict detected} other {# conflicts detected}}",
+      "chooseVersion": "Choose which version to keep for each conflicting translation key",
+      "resolved": "resolved",
+      "ready": "Ready",
+      "completeMerge": "Complete Merge",
+      "success": "Branches merged",
+      "successDescription": "Successfully merged {count} changes into {branch}.",
+      "conflictsDetected": "Conflicts detected",
+      "conflictsDescription": "{count, plural, one {# conflict needs} other {# conflicts need}} to be resolved before merging.",
+      "failed": "Failed to merge branches"
+    }
+  },
+  "translations": {
+    "keyboard": {
+      "navigate": "↑↓ Navigate keys",
+      "switchFields": "Tab Switch fields",
+      "applySuggestion": "↵ Apply suggestion",
+      "machineTranslate": "M Machine translate",
+      "collapse": "Esc Collapse"
+    },
+    "merge": "Merge",
+    "newKey": "New Key",
+    "filters": {
+      "all": "All Keys",
+      "missing": "Missing",
+      "complete": "Complete",
+      "pending": "Pending Review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "editor": {
+      "selectKeyPrompt": "Select a key from the list to edit translations",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "unsavedChanges": "Unsaved changes",
+      "default": "default",
+      "enterTranslationPlaceholder": "Enter {language} translation..."
+    },
+    "row": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "enterTranslationPlaceholder": "Enter {language} translation...",
+      "missingTranslation": "Missing translation",
+      "approve": "Approve",
+      "reject": "Reject",
+      "saving": "Saving",
+      "saved": "Saved"
+    },
+    "memoryPanel": {
+      "title": "Translation Memory",
+      "enterMinChars": "Enter at least 3 characters in the source language",
+      "toSeeSuggestions": "to see translation suggestions",
+      "searching": "Searching...",
+      "noMatches": "No matches found",
+      "approveToBuildMemory": "Approve translations to build memory",
+      "exactMatches": "Exact Matches",
+      "similarMatches": "Similar Matches",
+      "usedCount": "Used {count}x",
+      "applied": "Applied",
+      "apply": "Apply",
+      "machineTranslation": "Machine Translation",
+      "translating": "Translating...",
+      "getTranslation": "Get Translation",
+      "cached": "cached"
+    },
+    "inlineSuggestion": {
+      "from": "from {source}",
+      "cached": "cached",
+      "applied": "Applied",
+      "apply": "Apply",
+      "dismiss": "Dismiss",
+      "showLess": "Show less",
+      "moreSuggestions": "{count, plural, one {# more suggestion} other {# more suggestions}}"
+    },
+    "commandPalette": {
+      "searchPlaceholder": "Search keys or type a command...",
+      "quickActions": "Quick Actions",
+      "translateCurrentField": "Translate current field",
+      "translateAllLanguages": "Translate all languages",
+      "copyFromSource": "Copy from source",
+      "approveTranslation": "Approve translation",
+      "rejectTranslation": "Reject translation",
+      "approveAllTranslations": "Approve all translations",
+      "rejectAllTranslations": "Reject all translations",
+      "jumpToKey": "Jump to Key"
+    },
+    "glossaryPanel": {
+      "title": "Glossary",
+      "enterSourceText": "Enter source text to see",
+      "matchingTerminology": "matching terminology",
+      "searchingGlossary": "Searching glossary...",
+      "noTermsFound": "No terms found",
+      "addTermsHint": "Add terms in Settings → Glossary",
+      "exactMatches": "Exact Matches",
+      "termFoundInText": "Term Found in Text",
+      "caseSensitive": "Case sensitive",
+      "exact": "exact",
+      "found": "found",
+      "applied": "Applied",
+      "applyTerm": "Apply Term"
+    },
+    "qualityIssues": {
+      "title": "Quality Issues ({count})",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info",
+      "placeholderMissing": "Missing placeholder",
+      "placeholderExtra": "Extra placeholder",
+      "whitespaceLeading": "Leading whitespace",
+      "whitespaceTrailing": "Trailing whitespace",
+      "whitespaceDouble": "Double spaces",
+      "whitespaceTab": "Tab character",
+      "punctuationMismatch": "Punctuation mismatch"
+    },
+    "keyCard": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "noSourceText": "No source text",
+      "source": "Source",
+      "copyFromSource": "Copy from source",
+      "machineTranslate": "Machine translate",
+      "approve": "Approve",
+      "reject": "Reject",
+      "saving": "Saving",
+      "saved": "Saved",
+      "enterTextPlaceholder": "Enter {language} text...",
+      "translate": "Translate",
+      "translating": "Translating...",
+      "qualityIssuesFound": "Quality issues found",
+      "qualityWarnings": "Quality warnings",
+      "nextField": "next field",
+      "applySuggestion": "apply suggestion",
+      "collapse": "collapse"
+    },
+    "branchHeader": {
+      "changes": "{count, plural, one {# change} other {# changes}}",
+      "translatorsOnline": "{count, plural, one {# translator} other {# translators}} online",
+      "complete": "{percent}% complete"
+    },
+    "stats": {
+      "translationCoverage": "Translation Coverage",
+      "percentComplete": "{percent}% complete",
+      "lastUpdated": "Last updated:",
+      "totalKeys": "Total Keys",
+      "languages": "Languages",
+      "complete": "Complete"
+    }
+  },
+  "environments": {
+    "title": "Environments",
+    "form": {
+      "name": "Environment Name",
+      "slug": "Slug",
+      "sourceBranch": "Source Branch"
+    },
+    "subtitle": "Manage deployment environments",
+    "newEnvironment": "New Environment",
+    "loading": "Loading environments...",
+    "loadError": "Failed to load environments. Please try again.",
+    "switchBranch": "Switch Branch",
+    "empty": {
+      "title": "No environments yet",
+      "description": "Environments link your SDK to specific branches. Create environments like \"production\", \"staging\", or \"development\" to manage translation deployments.",
+      "createFirst": "Create Your First Environment"
+    },
+    "sdkIntegration": {
+      "title": "SDK Integration",
+      "description": "Use environment slugs with our SDK to fetch translations dynamically."
+    },
+    "tips": {
+      "title": "Tips",
+      "separate": "Use separate environments for development, staging, and production",
+      "branches": "Switch branches to test translation changes before going live",
+      "updateTime": "SDK responses update within 5 seconds after branch switch"
+    },
+    "docsLink": {
+      "title": "SDK Documentation",
+      "description": "Learn more about integration"
+    },
+    "switchBranchDialog": {
+      "description": "Select a branch for \"{name}\"",
+      "selectBranch": "Select a branch",
+      "quickUpdate": "Quick update",
+      "updateNote": "SDK responses will reflect the new branch within 5 seconds."
+    },
+    "deleteDialog": {
+      "description": "This will permanently delete the \"{name}\" environment. SDKs using this environment will stop receiving translations."
+    },
+    "toasts": {
+      "branchSwitched": "Branch switched",
+      "branchSwitchedDescription": "SDK responses will update within 5 seconds.",
+      "branchSwitchFailed": "Failed to switch branch",
+      "environmentDeleted": "Environment deleted",
+      "environmentDeletedDescription": "The environment has been deleted.",
+      "environmentDeleteFailed": "Failed to delete environment"
+    }
+  },
+  "twoFactorSetup": {
+    "title": {
+      "intro": "Enable Two-Factor Authentication",
+      "qrcode": "Scan QR Code",
+      "verify": "Verify Your Setup",
+      "backup": "Save Backup Codes"
+    },
+    "description": {
+      "intro": "Add an extra layer of security to your account",
+      "qrcode": "Use your authenticator app to scan this code",
+      "verify": "Enter the 6-digit code from your app",
+      "backup": "Store these codes safely for account recovery"
+    },
+    "steps": {
+      "downloadApp": {
+        "title": "Download an authenticator app",
+        "description": "Google Authenticator, Authy, or any TOTP app"
+      },
+      "scanQr": {
+        "title": "Scan a QR code",
+        "description": "Link your account by scanning the QR code"
+      },
+      "saveBackup": {
+        "title": "Save backup codes",
+        "description": "Keep codes safe in case you lose your device"
+      }
+    },
+    "getStarted": "Get Started",
+    "cantScan": "Can't scan? Enter this code manually:",
+    "iveScannedIt": "I've Scanned It",
+    "enterCodeFromApp": "Enter the 6-digit code from your authenticator app",
+    "verifyCode": "Verify Code",
+    "successBanner": {
+      "title": "2FA Enabled Successfully!",
+      "description": "Your account is now more secure"
+    },
+    "downloadBackupCodes": "Download Backup Codes",
+    "acknowledgement": "I have saved these backup codes in a safe place. I understand that I won't be able to see them again.",
+    "completeSetup": "Complete Setup",
+    "failedToStart": "Failed to start setup. Please try again.",
+    "secretCopied": "Secret copied to clipboard",
+    "backupCodesDownloaded": "Backup codes downloaded",
+    "enabled": "Two-factor authentication enabled!",
+    "backupCodesFile": {
+      "title": "LocaleFlow Backup Codes",
+      "generated": "Generated",
+      "description": "These codes can be used to sign in if you lose access to your authenticator app.",
+      "oneTimeUse": "Each code can only be used once.",
+      "keepSafe": "Keep these codes in a safe place!"
+    }
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{count} min ago",
+    "hoursAgo": "{count, plural, one {# hour ago} other {# hours ago}}",
+    "yesterday": "Yesterday",
+    "daysAgo": "{count} days ago",
+    "date": "{date}"
+  },
+  "projectDetail": {
+    "notFound": "Project not found.",
+    "startTranslating": "Start Translating",
+    "editOnBranch": "Edit translations on the {branchName} branch",
+    "openEditor": "Open Editor",
+    "spacesAndBranches": {
+      "title": "Spaces & Branches",
+      "description": "Organize translations by space and work on feature branches",
+      "newSpace": "New Space",
+      "noSpacesYet": "No spaces yet",
+      "createFirstSpace": "Create First Space",
+      "branchCount": "{count, plural, one {# branch} other {# branches}}",
+      "keyCount": "{count, plural, one {# key} other {# keys}}",
+      "newBranch": "New Branch",
+      "mergeBranchAriaLabel": "Merge {branchName} branch"
+    },
+    "translationCoverage": {
+      "title": "Translation Coverage",
+      "subtitle": "Progress by language",
+      "default": "default"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "editTranslations": "Edit Translations",
+      "editTranslationsSubtitle": "Manage keys and values",
+      "environments": "Environments",
+      "environmentsSubtitle": "Production, staging, dev",
+      "apiKeys": "API Keys",
+      "apiKeysSubtitle": "Manage access tokens",
+      "projectSettings": "Project Settings",
+      "projectSettingsSubtitle": "Languages, members"
+    }
+  },
+  "projectSettings": {
+    "toasts": {
+      "projectUpdated": "Project updated",
+      "projectUpdatedDescription": "Your changes have been saved.",
+      "projectUpdateFailed": "Failed to update project",
+      "projectDeleted": "Project deleted",
+      "projectDeletedDescription": "The project has been deleted.",
+      "projectDeleteFailed": "Failed to delete project"
+    },
+    "details": {
+      "title": "Project Details",
+      "subtitle": "Basic information about your project",
+      "name": "Project Name",
+      "namePlaceholder": "My Application",
+      "identifier": "Identifier",
+      "readOnly": "Read-only",
+      "identifierDescription": "Used in API calls and URLs. Cannot be changed.",
+      "description": "Description",
+      "descriptionPlaceholder": "A brief description of your project..."
+    },
+    "languages": {
+      "title": "Languages",
+      "subtitle": "Select languages for translation",
+      "selectedCount": "{count} selected",
+      "source": "Source",
+      "sourceLanguage": "Source Language",
+      "selectSourceLanguage": "Select source language",
+      "sourceLanguageDescription": "The primary language your content is written in"
+    },
+    "unsavedChanges": "You have unsaved changes",
+    "allChangesSaved": "All changes saved",
+    "dangerZone": {
+      "title": "Danger Zone",
+      "subtitle": "Irreversible and destructive actions",
+      "deleteTitle": "Delete this project",
+      "deleteDescription": "Permanently remove this project and all its data including spaces, branches, translation keys, and history. This action cannot be undone.",
+      "deleteButton": "Delete Project",
+      "deleteDialogDescription": "This will permanently delete \"{projectName}\" and all its spaces, branches, and translations. This action cannot be undone."
+    },
+    "layout": {
+      "title": "Settings",
+      "subtitle": "Configure {projectName}",
+      "loadingSettings": "Loading settings",
+      "configure": "Configure",
+      "comingSoon": "Coming Soon",
+      "needHelp": "Need help?",
+      "needHelpDescription": "Check our documentation for guides on configuring your project.",
+      "nav": {
+        "general": "General",
+        "generalDescription": "Project details & languages",
+        "glossary": "Glossary",
+        "glossaryDescription": "Terminology management",
+        "integrations": "Integrations",
+        "integrationsDescription": "Translation providers",
+        "team": "Team",
+        "teamDescription": "Members & roles",
+        "security": "Security",
+        "securityDescription": "Access control"
+      }
+    }
+  },
+  "integrations": {
+    "connected": "Connected",
+    "apiKey": "API Key",
+    "enterApiKey": "Enter your API key",
+    "apiKeyDescription": "Your {provider} API key.",
+    "getOneHere": "Get one here",
+    "enableProvider": "Enable Provider",
+    "enableProviderDescription": "Make this provider available for translations",
+    "saveConfiguration": "Save Configuration",
+    "test": "Test",
+    "update": "Update",
+    "connectAccount": "Connect your {provider} account to enable automatic translations",
+    "configure": "Configure {provider}",
+    "toasts": {
+      "configSaved": "Configuration saved",
+      "configSavedDescription": "{provider} has been configured.",
+      "configSaveFailed": "Failed to save configuration",
+      "configRemoved": "Configuration removed",
+      "configRemovedDescription": "{provider} has been disconnected.",
+      "configRemoveFailed": "Failed to remove configuration",
+      "connectionSuccessful": "Connection successful",
+      "connectionSuccessfulDescription": "{provider} is working correctly.",
+      "connectionFailed": "Connection failed",
+      "connectionFailedDescription": "Could not connect to the provider.",
+      "testFailed": "Test failed",
+      "testFailedDescription": "Could not test the connection."
+    },
+    "providers": {
+      "title": "Translation Providers",
+      "subtitle": "Connect services for automatic translations"
+    },
+    "usage": {
+      "title": "Usage This Month",
+      "subtitle": "Translation statistics and estimated costs",
+      "active": "Active",
+      "noData": "No data",
+      "characters": "Characters",
+      "requests": "Requests",
+      "cacheHits": "Cache Hits",
+      "estCost": "Est. Cost"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Understanding machine translation",
+      "caching": {
+        "title": "Intelligent Caching",
+        "description": "Translation results are cached for 30 days to reduce costs and improve performance. Identical source texts won't be charged twice."
+      },
+      "priority": {
+        "title": "Provider Priority",
+        "description": "When multiple providers are configured, the first active provider is used by default. You can specify a provider when requesting translations."
+      }
+    }
+  },
+  "keyForm": {
+    "createTitle": "New Translation Key",
+    "editTitle": "Edit Translation Key",
+    "createDescription": "Create a unique identifier for your translatable string",
+    "editDescription": "Update the key identifier and context",
+    "namespacePrefix": "Namespace Prefix",
+    "prefix": {
+      "common": "Shared strings",
+      "page": "Page-specific",
+      "error": "Error messages",
+      "settings": "Settings labels"
+    },
+    "keyName": {
+      "label": "Key Name",
+      "placeholder": "e.g., common.welcome.title",
+      "description": "Use dot notation for namespacing (e.g., page.home.hero_title)"
+    },
+    "context": {
+      "label": "Context for Translators",
+      "optional": "optional",
+      "placeholder": "Describe where this text appears and any important context for accurate translation...",
+      "description": "Help translators understand the context and tone"
+    },
+    "proTip": {
+      "title": "Pro tip",
+      "description": "After creating the key, you can immediately add translations in the editor below."
+    },
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "saving": "Saving...",
+    "createKey": "Create Key",
+    "saveChanges": "Save Changes",
+    "createSuccess": "Key created",
+    "createSuccessDescription": "\"{name}\" has been created.",
+    "createFailed": "Failed to create key",
+    "updateSuccess": "Key updated",
+    "updateSuccessDescription": "Changes have been saved.",
+    "updateFailed": "Failed to update key"
+  },
+  "branch": {
+    "mergeDialog": {
+      "merge": "Merge",
+      "into": "into",
+      "description": "Review changes and resolve any conflicts before merging.",
+      "stats": {
+        "added": "Added",
+        "modified": "Modified",
+        "deleted": "Deleted",
+        "conflicts": "Conflicts"
+      },
+      "conflictsDetected": "Conflicts Detected",
+      "conflictsDescription": "{count, plural, one {# translation key has} other {# translation keys have}} been modified in both branches. You must resolve all conflicts before merging.",
+      "mergeFailed": "Merge Failed",
+      "readyToMerge": "Ready to Merge",
+      "readyToMergeDescription": "{count, plural, one {This merge will apply # change} other {This merge will apply # changes}} to the target branch. No conflicts were detected.",
+      "noChanges": "No changes to merge. Both branches are identical.",
+      "changesSummary": "Changes Summary",
+      "backToPreview": "Back to Preview",
+      "resolveConflicts": "Resolve Conflicts ({count})",
+      "merging": "Merging...",
+      "mergeBranch": "Merge Branch",
+      "resolvedCount": "{resolved}/{total} resolved"
+    },
+    "conflictResolver": {
+      "conflictsToResolve": "Conflicts to Resolve",
+      "conflictOf": "Conflict {current} of {total}",
+      "previousConflict": "Previous conflict",
+      "nextConflict": "Next conflict",
+      "resolved": "Resolved",
+      "compare": "Compare",
+      "custom": "Custom",
+      "customEdit": "Custom Edit",
+      "sourceIncoming": "Source (Incoming)",
+      "targetCurrent": "Target (Current)",
+      "selected": "Selected",
+      "useSource": "Use Source",
+      "keepTarget": "Keep Target",
+      "clearResolution": "Clear Resolution",
+      "customDescription": "Create a custom resolution by editing values for each language.",
+      "customDescriptionDesktop": "Create a custom resolution by editing values for each language. Start with source values or enter your own.",
+      "startWithSource": "Start with Source Values",
+      "startWithTarget": "Start with Target Values",
+      "enterTranslation": "Enter {lang} translation...",
+      "applyCustomValues": "Apply Custom Values",
+      "reset": "Reset",
+      "customResolutionApplied": "Custom resolution applied",
+      "noConflicts": "No Conflicts",
+      "noConflictsDescription": "There are no conflicts to resolve."
+    },
+    "diffView": {
+      "conflicts": "Conflicts",
+      "added": "Added",
+      "modified": "Modified",
+      "deleted": "Deleted",
+      "noDifferences": "No differences found between branches.",
+      "branchesIdentical": "Both branches contain identical translations.",
+      "sourceNew": "Source (New)",
+      "sourceIncoming": "Source (Incoming)",
+      "targetCurrent": "Target (Current)",
+      "tapToResolve": "Tap to resolve",
+      "clickToResolve": "Click to resolve this conflict",
+      "selectConflict": "Select conflict for key {key}"
     }
   }
 }

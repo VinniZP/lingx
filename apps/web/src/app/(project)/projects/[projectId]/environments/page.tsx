@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import {
   environmentApi,
   projectApi,
@@ -67,6 +68,7 @@ interface BranchWithSpace {
 
 export default function EnvironmentsPage({ params }: PageProps) {
   const { projectId } = use(params);
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const [switchDialogOpen, setSwitchDialogOpen] = useState(false);
@@ -112,14 +114,14 @@ export default function EnvironmentsPage({ params }: PageProps) {
       environmentApi.switchBranch(envId, branchId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['environments', projectId] });
-      toast.success('Branch switched', {
-        description: 'SDK responses will update within 5 seconds.',
+      toast.success(t('environments.toasts.branchSwitched'), {
+        description: t('environments.toasts.branchSwitchedDescription'),
       });
       setSwitchDialogOpen(false);
       setSwitchingEnv(null);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to switch branch', {
+      toast.error(t('environments.toasts.branchSwitchFailed'), {
         description: error.message,
       });
     },
@@ -129,14 +131,14 @@ export default function EnvironmentsPage({ params }: PageProps) {
     mutationFn: (id: string) => environmentApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['environments', projectId] });
-      toast.success('Environment deleted', {
-        description: 'The environment has been deleted.',
+      toast.success(t('environments.toasts.environmentDeleted'), {
+        description: t('environments.toasts.environmentDeletedDescription'),
       });
       setDeleteDialogOpen(false);
       setDeletingEnv(null);
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to delete environment', {
+      toast.error(t('environments.toasts.environmentDeleteFailed'), {
         description: error.message,
       });
     },
@@ -154,7 +156,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
               <Cloud className="size-5 text-primary animate-pulse" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">Loading environments...</p>
+          <p className="text-sm text-muted-foreground">{t('environments.loading')}</p>
         </div>
       </div>
     );
@@ -163,7 +165,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
   if (error) {
     return (
       <div className="island p-6 text-center border-destructive/30">
-        <p className="text-destructive">Failed to load environments. Please try again.</p>
+        <p className="text-destructive">{t('environments.loadError')}</p>
       </div>
     );
   }
@@ -173,14 +175,14 @@ export default function EnvironmentsPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild aria-label="Go back to project">
+          <Button variant="ghost" size="icon" asChild aria-label={t('common.goBack')}>
             <Link href={`/projects/${projectId}`}>
               <ArrowLeft className="size-5" aria-hidden="true" />
             </Link>
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold sm:text-3xl tracking-tight">Environments</h1>
+              <h1 className="text-2xl font-semibold sm:text-3xl tracking-tight">{t('environments.title')}</h1>
               {environments.length > 0 && (
                 <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                   {environments.length}
@@ -188,14 +190,14 @@ export default function EnvironmentsPage({ params }: PageProps) {
               )}
             </div>
             <p className="text-muted-foreground text-sm mt-0.5">
-              {project?.name} - Manage deployment environments
+              {project?.name} - {t('environments.subtitle')}
             </p>
           </div>
         </div>
         <Button asChild className="gap-2">
           <Link href={`/projects/${projectId}/environments/new`}>
             <Plus className="size-4" />
-            New Environment
+            {t('environments.newEnvironment')}
           </Link>
         </Button>
       </div>
@@ -210,16 +212,14 @@ export default function EnvironmentsPage({ params }: PageProps) {
               <Sparkles className="size-4 text-warm" />
             </div>
           </div>
-          <h3 className="text-xl font-semibold mb-2">No environments yet</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('environments.empty.title')}</h3>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Environments link your SDK to specific branches. Create environments like
-            &quot;production&quot;, &quot;staging&quot;, or &quot;development&quot; to manage
-            translation deployments.
+            {t('environments.empty.description')}
           </p>
           <Button asChild className="gap-2">
             <Link href={`/projects/${projectId}/environments/new`}>
               <Plus className="size-4" />
-              Create Your First Environment
+              {t('environments.empty.createFirst')}
             </Link>
           </Button>
         </div>
@@ -272,7 +272,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
                       }}
                     >
                       <GitBranch className="size-4" />
-                      Switch Branch
+                      {t('environments.switchBranch')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -297,10 +297,10 @@ export default function EnvironmentsPage({ params }: PageProps) {
             <div className="island p-5 animate-fade-in-up stagger-2">
               <div className="flex items-center gap-2 mb-4">
                 <Code className="size-5 text-primary" />
-                <h3 className="font-semibold">SDK Integration</h3>
+                <h3 className="font-semibold">{t('environments.sdkIntegration.title')}</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
-                Use environment slugs with our SDK to fetch translations dynamically.
+                {t('environments.sdkIntegration.description')}
               </p>
               <div className="bg-muted/50 rounded-lg p-3 font-mono text-xs">
                 <span className="text-muted-foreground">// Initialize SDK</span>
@@ -317,20 +317,20 @@ export default function EnvironmentsPage({ params }: PageProps) {
             <div className="island p-5 animate-fade-in-up stagger-3">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="size-5 text-warm" />
-                <h3 className="font-semibold">Tips</h3>
+                <h3 className="font-semibold">{t('environments.tips.title')}</h3>
               </div>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <Star className="size-4 shrink-0 mt-0.5 text-warning" />
-                  <span>Use separate environments for development, staging, and production</span>
+                  <span>{t('environments.tips.separate')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Star className="size-4 shrink-0 mt-0.5 text-warning" />
-                  <span>Switch branches to test translation changes before going live</span>
+                  <span>{t('environments.tips.branches')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Star className="size-4 shrink-0 mt-0.5 text-warning" />
-                  <span>SDK responses update within 5 seconds after branch switch</span>
+                  <span>{t('environments.tips.updateTime')}</span>
                 </li>
               </ul>
             </div>
@@ -344,8 +344,8 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 <ExternalLink className="size-5 text-info" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm">SDK Documentation</p>
-                <p className="text-xs text-muted-foreground">Learn more about integration</p>
+                <p className="font-medium text-sm">{t('environments.docsLink.title')}</p>
+                <p className="text-xs text-muted-foreground">{t('environments.docsLink.description')}</p>
               </div>
             </a>
           </div>
@@ -364,10 +364,10 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 </div>
                 <div>
                   <DialogTitle className="text-xl font-semibold tracking-tight">
-                    Switch Branch
+                    {t('environments.switchBranch')}
                   </DialogTitle>
                   <DialogDescription className="mt-1">
-                    Select a branch for &quot;{switchingEnv?.name}&quot;
+                    {t('environments.switchBranchDialog.description', { name: switchingEnv?.name || '' })}
                   </DialogDescription>
                 </div>
               </div>
@@ -377,10 +377,10 @@ export default function EnvironmentsPage({ params }: PageProps) {
           <div className="px-6 pb-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Branch</label>
+                <label className="text-sm font-medium">{t('common.branch')}</label>
                 <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a branch" />
+                    <SelectValue placeholder={t('environments.switchBranchDialog.selectBranch')} />
                   </SelectTrigger>
                   <SelectContent>
                     {allBranches?.map((branch) => (
@@ -406,8 +406,8 @@ export default function EnvironmentsPage({ params }: PageProps) {
                   <Sparkles className="size-4 text-info" />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  <p className="font-medium text-foreground mb-0.5">Quick update</p>
-                  <p>SDK responses will reflect the new branch within 5 seconds.</p>
+                  <p className="font-medium text-foreground mb-0.5">{t('environments.switchBranchDialog.quickUpdate')}</p>
+                  <p>{t('environments.switchBranchDialog.updateNote')}</p>
                 </div>
               </div>
             </div>
@@ -422,7 +422,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 }}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={() =>
@@ -437,12 +437,12 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 {switchBranchMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Switching...
+                    {t('common.switching')}
                   </>
                 ) : (
                   <>
                     <GitBranch className="size-4" />
-                    Switch Branch
+                    {t('environments.switchBranch')}
                   </>
                 )}
               </Button>
@@ -455,11 +455,9 @@ export default function EnvironmentsPage({ params }: PageProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Environment?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteConfirm.deleteEnvironment')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the &quot;{deletingEnv?.name}&quot;
-              environment. SDKs using this environment will stop receiving
-              translations.
+              {t('environments.deleteDialog.description', { name: deletingEnv?.name || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -470,13 +468,13 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 setDeletingEnv(null);
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deletingEnv && deleteMutation.mutate(deletingEnv.id)}
               className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('common.deleting') : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

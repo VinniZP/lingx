@@ -19,9 +19,10 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { activityApi, type Activity, type ActivityChange } from '@/lib/api';
-import { getActivityDescription, formatRelativeTime } from './activity-description';
+import { getActivityDescription, formatRelativeTime, translateKey } from './activity-description';
 import { getActivityIcon } from './activity-icon';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface ActivityChangesModalProps {
   activity: Activity | null;
@@ -39,6 +40,7 @@ export function ActivityChangesModal({
   open,
   onOpenChange,
 }: ActivityChangesModalProps) {
+  const { t, td } = useTranslation();
   const [changes, setChanges] = useState<ActivityChange[]>([]);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [total, setTotal] = useState(0);
@@ -108,14 +110,14 @@ export function ActivityChangesModal({
             </div>
             <div className="flex-1 min-w-0 text-left space-y-1">
               <div className="font-semibold text-lg leading-tight">
-                {getActivityDescription(activity)}
+                {translateKey(td, getActivityDescription(activity))}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground font-normal">
                 <span className="font-medium text-foreground/80">{activity.userName}</span>
                 <span className="text-muted-foreground/50">·</span>
                 <span className="flex items-center gap-1">
                   <Clock className="size-3" />
-                  {formatRelativeTime(activity.createdAt)}
+                  {translateKey(td, formatRelativeTime(activity.createdAt))}
                 </span>
                 {activity.projectName && (
                   <>
@@ -155,10 +157,10 @@ export function ActivityChangesModal({
                 <FileText className="size-8 text-muted-foreground/50" />
               </div>
               <p className="text-muted-foreground font-medium">
-                No detailed changes recorded
+                {t('activity.modal.noChanges')}
               </p>
               <p className="text-sm text-muted-foreground/70 mt-1">
-                This activity doesn't have granular change tracking.
+                {t('activity.modal.noChangesHint')}
               </p>
             </div>
           ) : (
@@ -168,7 +170,7 @@ export function ActivityChangesModal({
                 <div className="flex items-center gap-2">
                   <div className="size-1.5 rounded-full bg-primary animate-pulse" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Audit Trail
+                    {t('activity.modal.auditTrail')}
                   </span>
                 </div>
                 <Badge variant="secondary" className="text-xs font-mono tabular-nums">
@@ -200,7 +202,7 @@ export function ActivityChangesModal({
                         ) : (
                           <ChevronRight className="size-4" />
                         )}
-                        <span>Load {Math.min(ITEMS_PER_PAGE, total - changes.length)} more</span>
+                        <span>{t('activity.modal.loadMore')}</span>
                         <Badge variant="secondary" className="ml-1 text-[10px] px-1.5">
                           {total - changes.length}
                         </Badge>
@@ -221,6 +223,7 @@ export function ActivityChangesModal({
  * GitHub-style diff row with old/new values.
  */
 function ChangeRow({ change, index }: { change: ActivityChange; index: number }) {
+  const { t } = useTranslation();
   const isAddition = !change.oldValue && change.newValue;
   const isDeletion = change.oldValue && !change.newValue;
 
@@ -254,7 +257,7 @@ function ChangeRow({ change, index }: { change: ActivityChange; index: number })
               'break-words min-w-0',
               change.oldValue ? 'text-foreground/70' : 'text-muted-foreground/50 italic'
             )}>
-              {change.oldValue || 'empty'}
+              {change.oldValue || t('activity.modal.empty')}
             </span>
           </div>
         )}
@@ -267,7 +270,7 @@ function ChangeRow({ change, index }: { change: ActivityChange; index: number })
               'break-words min-w-0',
               change.newValue ? 'text-foreground' : 'text-muted-foreground/50 italic'
             )}>
-              {change.newValue || 'empty'}
+              {change.newValue || t('activity.modal.empty')}
             </span>
           </div>
         )}

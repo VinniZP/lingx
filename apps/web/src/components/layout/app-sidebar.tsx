@@ -36,18 +36,19 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { LanguagePickerCompact } from '@/components/language-picker';
+import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
 
 interface NavItem {
   href: string;
   icon: LucideIcon;
-  label: string;
+  labelKey: TranslationKey;
   requiresManager?: boolean;
 }
 
 const navigationItems: NavItem[] = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/projects', icon: FolderOpen, label: 'Projects' },
-  { href: '/settings', icon: Settings, label: 'Settings', requiresManager: true },
+  { href: '/dashboard', icon: LayoutDashboard, labelKey: tKey('sidebar.dashboard') },
+  { href: '/projects', icon: FolderOpen, labelKey: tKey('sidebar.projects') },
+  { href: '/settings', icon: Settings, labelKey: tKey('sidebar.settings'), requiresManager: true },
 ];
 
 interface AppSidebarProps {
@@ -79,6 +80,7 @@ function getDisplayName(name: string | null, email: string): string {
 }
 
 export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
+  const { t, td } = useTranslation();
   const { setOpenMobile, isMobile } = useSidebar();
 
   const filteredNavItems = navigationItems.filter(
@@ -109,8 +111,8 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                   <Languages className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span className="truncate font-semibold text-sm">LocaleFlow</span>
-                  <span className="truncate text-[11px] text-muted-foreground">Translations</span>
+                  <span className="truncate font-semibold text-sm">{t('sidebar.brand')}</span>
+                  <span className="truncate text-[11px] text-muted-foreground">{t('sidebar.tagline')}</span>
                 </div>
               </Link>
             </SidebarMenuItem>
@@ -130,11 +132,11 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
-                        tooltip={item.label}
+                        tooltip={td(item.labelKey)}
                       >
                         <Link href={item.href} onClick={handleNavClick}>
                           <item.icon className="shrink-0" />
-                          <span>{item.label}</span>
+                          <span>{td(item.labelKey)}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -151,7 +153,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
           <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
             <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
               <Globe className="size-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Language</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('sidebar.language')}</span>
             </div>
             <LanguagePickerCompact />
           </div>
@@ -174,7 +176,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                     </Avatar>
                     <div className="grid flex-1 text-left leading-tight">
                       <span className="truncate font-medium text-sm">{displayName}</span>
-                      <span className="truncate text-xs text-muted-foreground">{user?.email || 'user@example.com'}</span>
+                      <span className="truncate text-xs text-muted-foreground">{user?.email || t('sidebar.userFallback')}</span>
                     </div>
                     <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
                   </SidebarMenuButton>
@@ -197,7 +199,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                       </Avatar>
                       <div className="grid flex-1 text-left leading-tight">
                         <span className="truncate font-semibold text-sm">{displayName}</span>
-                        <span className="truncate text-xs text-muted-foreground">{user?.email || 'user@example.com'}</span>
+                        <span className="truncate text-xs text-muted-foreground">{user?.email || t('sidebar.userFallback')}</span>
                       </div>
                     </div>
                   </div>
@@ -207,13 +209,13 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                       <DropdownMenuItem asChild>
                         <Link href="/settings/api-keys" onClick={handleNavClick}>
                           <Key />
-                          API Keys
+                          {t('sidebar.apiKeys')}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/settings" onClick={handleNavClick}>
                           <Settings />
-                          Settings
+                          {t('sidebar.settings')}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -225,7 +227,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                     variant="destructive"
                   >
                     <LogOut />
-                    Sign out
+                    {t('sidebar.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

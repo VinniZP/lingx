@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { profileApi, projectApi, type UserProfile, type UserPreferences } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
@@ -82,6 +83,7 @@ type EmailChangeFormData = z.infer<typeof emailChangeSchema>;
 // ============================================
 
 export default function ProfileSettingsPage() {
+  const { t } = useTranslation();
   const { user, isManager, isLoading: authLoading, refreshUser } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -139,7 +141,7 @@ export default function ProfileSettingsPage() {
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group mb-8 animate-fade-in-up"
       >
         <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
-        <span>Settings</span>
+        <span>{t('settings.back')}</span>
       </Link>
 
       {/* Hero Profile Card */}
@@ -188,15 +190,15 @@ export default function ProfileSettingsPage() {
                 <div className="flex flex-wrap items-center gap-6 mt-5 pt-5 border-t border-border/50">
                   <StatItem
                     icon={Calendar}
-                    label="Member since"
+                    label={t('profile.memberSince')}
                     value={joinDate}
                     subtext={memberDuration}
                   />
                   <div className="hidden sm:block w-px h-8 bg-border/50" />
                   <StatItem
                     icon={Sparkles}
-                    label="Account status"
-                    value="Active"
+                    label={t('profile.accountStatus')}
+                    value={t('common.active')}
                     valueClass="text-success"
                   />
                 </div>
@@ -441,6 +443,7 @@ function ProfileForm({
   profile: UserProfile;
   onEmailChangeClick: () => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { refreshUser } = useAuth();
 
@@ -477,8 +480,8 @@ function ProfileForm({
           <User className="size-4 text-primary" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold">Profile Details</h2>
-          <p className="text-xs text-muted-foreground">Manage your personal information</p>
+          <h2 className="text-sm font-semibold">{t('profile.title')}</h2>
+          <p className="text-xs text-muted-foreground">{t('profile.description')}</p>
         </div>
       </div>
 
@@ -490,16 +493,16 @@ function ProfileForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Display Name</FormLabel>
+                  <FormLabel>{t('profile.displayName')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your name"
+                      placeholder={t('profile.displayNamePlaceholder')}
                       className="bg-background/50"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    This is how you&apos;ll appear throughout the app
+                    {t('profile.displayNameHint')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -507,7 +510,7 @@ function ProfileForm({
             />
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Email Address</Label>
+              <Label className="text-sm font-medium">{t('profile.emailAddress')}</Label>
               <div className="flex gap-3">
                 <div className="flex-1 relative">
                   <Input
@@ -516,7 +519,7 @@ function ProfileForm({
                     className="bg-muted/50 pr-20"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    Verified
+                    {t('common.verified')}
                   </span>
                 </div>
                 <Button
@@ -525,11 +528,11 @@ function ProfileForm({
                   onClick={onEmailChangeClick}
                   className="shrink-0"
                 >
-                  Change
+                  {t('profile.changeEmail')}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Changing your email requires verification
+                {t('profile.emailChangeHint')}
               </p>
             </div>
 
@@ -540,7 +543,7 @@ function ProfileForm({
                   variant="ghost"
                   onClick={() => form.reset()}
                 >
-                  Discard
+                  {t('profile.discard')}
                 </Button>
                 <Button
                   type="submit"
@@ -549,7 +552,7 @@ function ProfileForm({
                   {mutation.isPending && (
                     <Loader2 className="size-4 mr-2 animate-spin" />
                   )}
-                  Save Changes
+                  {t('profile.saveChanges')}
                 </Button>
               </div>
             )}
@@ -571,6 +574,7 @@ function PreferencesForm({
   profile: UserProfile;
   projects: { id: string; name: string }[];
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -610,20 +614,20 @@ function PreferencesForm({
           <Palette className="size-4 text-warm" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold">Preferences</h2>
-          <p className="text-xs text-muted-foreground">Customize your experience</p>
+          <h2 className="text-sm font-semibold">{t('profile.preferences.title')}</h2>
+          <p className="text-xs text-muted-foreground">{t('profile.preferences.description')}</p>
         </div>
       </div>
 
       <div className="island overflow-hidden">
         {/* Appearance group */}
         <div className="p-4 border-b border-border/50">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Appearance</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{t('profile.preferences.appearance')}</p>
           <div className="space-y-1">
             <PreferenceRow
               icon={Palette}
-              title="Theme"
-              description="Color scheme"
+              title={t('profile.preferences.theme')}
+              description={t('profile.preferences.colorScheme')}
             >
               <Select
                 value={profile.preferences.theme}
@@ -633,17 +637,17 @@ function PreferencesForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="system">System</SelectItem>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="system">{t('profile.preferences.system')}</SelectItem>
+                  <SelectItem value="light">{t('profile.preferences.light')}</SelectItem>
+                  <SelectItem value="dark">{t('profile.preferences.dark')}</SelectItem>
                 </SelectContent>
               </Select>
             </PreferenceRow>
 
             <PreferenceRow
               icon={Languages}
-              title="Language"
-              description="Interface language"
+              title={t('profile.preferences.language')}
+              description={t('profile.preferences.interfaceLanguage')}
             >
               <Select
                 value={profile.preferences.language}
@@ -653,11 +657,11 @@ function PreferencesForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="es">Espa&ntilde;ol</SelectItem>
-                  <SelectItem value="fr">Fran&ccedil;ais</SelectItem>
-                  <SelectItem value="de">Deutsch</SelectItem>
-                  <SelectItem value="ja">&#26085;&#26412;&#35486;</SelectItem>
+                  <SelectItem value="en">{t('profile.preferences.english')}</SelectItem>
+                  <SelectItem value="es">{t('profile.preferences.spanish')}</SelectItem>
+                  <SelectItem value="fr">{t('profile.preferences.french')}</SelectItem>
+                  <SelectItem value="de">{t('profile.preferences.german')}</SelectItem>
+                  <SelectItem value="ja">{t('profile.preferences.japanese')}</SelectItem>
                 </SelectContent>
               </Select>
             </PreferenceRow>
@@ -666,11 +670,11 @@ function PreferencesForm({
 
         {/* Workflow group */}
         <div className="p-4 border-b border-border/50">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Workflow</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{t('profile.preferences.workflow')}</p>
           <PreferenceRow
             icon={FolderOpen}
-            title="Default Project"
-            description="Open on login"
+            title={t('profile.preferences.defaultProject')}
+            description={t('profile.preferences.openOnLogin')}
           >
             <Select
               value={profile.preferences.defaultProjectId || 'none'}
@@ -679,10 +683,10 @@ function PreferencesForm({
               }
             >
               <SelectTrigger className="w-40 h-9 text-sm">
-                <SelectValue placeholder="None" />
+                <SelectValue placeholder={t('profile.preferences.never')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="none">{t('profile.preferences.never')}</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
@@ -695,12 +699,12 @@ function PreferencesForm({
 
         {/* Notifications group */}
         <div className="p-4">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Notifications</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">{t('profile.preferences.notifications')}</p>
           <div className="space-y-1">
             <PreferenceRow
               icon={Mail}
-              title="Email Notifications"
-              description="Receive updates via email"
+              title={t('profile.preferences.emailNotifications')}
+              description={t('profile.preferences.emailNotificationsDesc')}
             >
               <Switch
                 checked={profile.preferences.notifications.email}
@@ -710,8 +714,8 @@ function PreferencesForm({
 
             <PreferenceRow
               icon={Bell}
-              title="In-App Notifications"
-              description="Show notifications in app"
+              title={t('profile.preferences.inAppNotifications')}
+              description={t('profile.preferences.inAppNotificationsDesc')}
             >
               <Switch
                 checked={profile.preferences.notifications.inApp}
@@ -721,8 +725,8 @@ function PreferencesForm({
 
             <PreferenceRow
               icon={Clock}
-              title="Activity Digest"
-              description="Summary frequency"
+              title={t('profile.preferences.activityDigest')}
+              description={t('profile.preferences.summaryFrequency')}
             >
               <Select
                 value={profile.preferences.notifications.digestFrequency}
@@ -734,9 +738,9 @@ function PreferencesForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="never">Never</SelectItem>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="never">{t('profile.preferences.never')}</SelectItem>
+                  <SelectItem value="daily">{t('profile.preferences.daily')}</SelectItem>
+                  <SelectItem value="weekly">{t('profile.preferences.weekly')}</SelectItem>
                 </SelectContent>
               </Select>
             </PreferenceRow>
@@ -752,6 +756,7 @@ function PreferencesForm({
 // ============================================
 
 function AccountInfoCard({ profile }: { profile: UserProfile }) {
+  const { t } = useTranslation();
   return (
     <section className="animate-fade-in-up stagger-4">
       <div className="flex items-center gap-3 mb-4">
@@ -759,8 +764,8 @@ function AccountInfoCard({ profile }: { profile: UserProfile }) {
           <Hash className="size-4 text-muted-foreground" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold">Account Details</h2>
-          <p className="text-xs text-muted-foreground">Technical information</p>
+          <h2 className="text-sm font-semibold">{t('profile.accountDetails.title')}</h2>
+          <p className="text-xs text-muted-foreground">{t('profile.accountDetails.description')}</p>
         </div>
       </div>
 
@@ -795,9 +800,10 @@ function AccountInfoCard({ profile }: { profile: UserProfile }) {
 // ============================================
 
 function QuickTipsCard() {
+  const { t } = useTranslation();
   const tips = [
-    { title: 'Keyboard shortcuts', description: 'Press Cmd+K for quick actions' },
-    { title: 'API access', description: 'Generate keys in Settings' },
+    { title: t('profile.quickTips.keyboardShortcuts'), description: t('profile.quickTips.keyboardShortcutsDesc') },
+    { title: t('profile.quickTips.apiAccess'), description: t('profile.quickTips.apiAccessDesc') },
   ];
 
   return (
@@ -807,8 +813,8 @@ function QuickTipsCard() {
           <Sparkles className="size-4 text-success" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold">Quick Tips</h2>
-          <p className="text-xs text-muted-foreground">Get the most out of LocaleFlow</p>
+          <h2 className="text-sm font-semibold">{t('profile.quickTips.title')}</h2>
+          <p className="text-xs text-muted-foreground">{t('profile.quickTips.description')}</p>
         </div>
       </div>
 
@@ -845,6 +851,7 @@ function EmailChangeDialog({
   onOpenChange: (open: boolean) => void;
   currentEmail: string;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const form = useForm<EmailChangeFormData>({
@@ -883,9 +890,9 @@ function EmailChangeDialog({
                 <Mail className="size-5 text-primary" />
               </div>
               <div>
-                <DialogTitle>Change Email Address</DialogTitle>
+                <DialogTitle>{t('profile.changeEmailDialog.title')}</DialogTitle>
                 <DialogDescription className="mt-1">
-                  A verification link will be sent to your new email
+                  {t('profile.changeEmailDialog.description')}
                 </DialogDescription>
               </div>
             </div>
@@ -897,7 +904,7 @@ function EmailChangeDialog({
             <div className="space-y-4">
               <div className="p-3 rounded-xl bg-muted/50 text-sm border border-border/50">
                 <p className="text-muted-foreground">
-                  Current: <span className="font-medium text-foreground">{currentEmail}</span>
+                  {t('profile.changeEmailDialog.currentEmail')} <span className="font-medium text-foreground">{currentEmail}</span>
                 </p>
               </div>
 
@@ -906,11 +913,11 @@ function EmailChangeDialog({
                 name="newEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Email Address</FormLabel>
+                    <FormLabel>{t('profile.emailAddress')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="Enter new email"
+                        placeholder={t('profile.changeEmailDialog.newEmailPlaceholder')}
                         {...field}
                       />
                     </FormControl>
@@ -924,16 +931,16 @@ function EmailChangeDialog({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Password</FormLabel>
+                    <FormLabel>{t('auth.password')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your password to confirm"
+                        placeholder={t('profile.changeEmailDialog.passwordPlaceholder')}
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      Required for security verification
+                      {t('profile.changeEmailDialog.passwordHint')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -947,13 +954,13 @@ function EmailChangeDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending && (
                   <Loader2 className="size-4 mr-2 animate-spin" />
                 )}
-                Send Verification
+                {t('profile.changeEmailDialog.submit')}
               </Button>
             </DialogFooter>
           </form>
@@ -968,6 +975,7 @@ function EmailChangeDialog({
 // ============================================
 
 function LoadingState() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="flex flex-col items-center gap-4">
@@ -978,8 +986,8 @@ function LoadingState() {
           </div>
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium">Loading profile...</p>
-          <p className="text-xs text-muted-foreground">Just a moment</p>
+          <p className="text-sm font-medium">{t('profile.loading')}</p>
+          <p className="text-xs text-muted-foreground">{t('profile.loadingMessage')}</p>
         </div>
       </div>
     </div>

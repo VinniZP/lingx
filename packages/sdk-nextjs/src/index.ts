@@ -20,6 +20,7 @@ export type {
   LocaleflowProviderProps,
   LocaleflowContextValue,
   TranslationFunction,
+  DynamicTranslationFunction,
   TranslationValues,
   TranslationBundle,
   NestedTranslationValue,
@@ -28,7 +29,11 @@ export type {
   CacheEntry,
   CacheOptions,
   DetectionConfig,
+  TranslationKey,
 } from './types';
+
+// Translation Key Marker (for static extraction)
+export { tKey } from './types';
 
 // Language Detection
 export {

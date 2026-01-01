@@ -2,6 +2,7 @@
 
 import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -78,6 +79,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
   const { projectId } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -114,12 +116,12 @@ export default function ProjectSettingsPage({ params }: PageProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast.success('Project updated', {
-        description: 'Your changes have been saved.',
+      toast.success(t('projectSettings.toasts.projectUpdated'), {
+        description: t('projectSettings.toasts.projectUpdatedDescription'),
       });
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to update project', {
+      toast.error(t('projectSettings.toasts.projectUpdateFailed'), {
         description: error.message,
       });
     },
@@ -129,13 +131,13 @@ export default function ProjectSettingsPage({ params }: PageProps) {
     mutationFn: () => projectApi.delete(projectId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast.success('Project deleted', {
-        description: 'The project has been deleted.',
+      toast.success(t('projectSettings.toasts.projectDeleted'), {
+        description: t('projectSettings.toasts.projectDeletedDescription'),
       });
       router.push('/projects');
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to delete project', {
+      toast.error(t('projectSettings.toasts.projectDeleteFailed'), {
         description: error.message,
       });
     },
@@ -176,8 +178,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 <FileText className="size-[18px] text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Project Details</h2>
-                <p className="text-sm text-muted-foreground">Basic information about your project</p>
+                <h2 className="text-lg font-semibold tracking-tight">{t('projectSettings.details.title')}</h2>
+                <p className="text-sm text-muted-foreground">{t('projectSettings.details.subtitle')}</p>
               </div>
             </div>
 
@@ -189,10 +191,10 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium">Project Name</FormLabel>
+                      <FormLabel className="text-sm font-medium">{t('projectSettings.details.name')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="My Application"
+                          placeholder={t('projectSettings.details.namePlaceholder')}
                           className="bg-background/50"
                           {...field}
                         />
@@ -205,7 +207,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 {/* Slug (read-only) */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <FormLabel className="text-sm font-medium">Identifier</FormLabel>
+                    <FormLabel className="text-sm font-medium">{t('projectSettings.details.identifier')}</FormLabel>
                     <Hash className="size-3.5 text-muted-foreground" />
                   </div>
                   <div className="relative">
@@ -215,11 +217,11 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                       className="bg-muted/30 font-mono text-sm text-muted-foreground pr-24"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">
-                      Read-only
+                      {t('projectSettings.details.readOnly')}
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Used in API calls and URLs. Cannot be changed.
+                    {t('projectSettings.details.identifierDescription')}
                   </p>
                 </div>
 
@@ -230,12 +232,12 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-baseline justify-between">
-                        <FormLabel className="text-sm font-medium">Description</FormLabel>
-                        <span className="text-[11px] text-muted-foreground">Optional</span>
+                        <FormLabel className="text-sm font-medium">{t('projectSettings.details.description')}</FormLabel>
+                        <span className="text-[11px] text-muted-foreground">{t('common.optional')}</span>
                       </div>
                       <FormControl>
                         <Textarea
-                          placeholder="A brief description of your project..."
+                          placeholder={t('projectSettings.details.descriptionPlaceholder')}
                           rows={3}
                           className="bg-background/50 resize-none"
                           {...field}
@@ -256,12 +258,12 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 <Globe2 className="size-[18px] text-blue-500" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Languages</h2>
+                <h2 className="text-lg font-semibold tracking-tight">{t('projectSettings.languages.title')}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Select languages for translation
+                  {t('projectSettings.languages.subtitle')}
                   {selectedLanguages?.length > 0 && (
                     <span className="ml-2 text-primary font-medium">
-                      · {selectedLanguages.length} selected
+                      · {t('projectSettings.languages.selectedCount', { count: selectedLanguages.length })}
                     </span>
                   )}
                 </p>
@@ -300,7 +302,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                               )}
                               {isDefault && isSelected && (
                                 <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide bg-warning text-warning-foreground shadow-sm">
-                                  Source
+                                  {t('projectSettings.languages.source')}
                                 </span>
                               )}
                             </button>
@@ -322,11 +324,11 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                       name="defaultLanguage"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Source Language</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('projectSettings.languages.sourceLanguage')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="bg-background/50">
-                                <SelectValue placeholder="Select source language" />
+                                <SelectValue placeholder={t('projectSettings.languages.selectSourceLanguage')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -344,7 +346,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                             </SelectContent>
                           </Select>
                           <FormDescription className="text-[11px]">
-                            The primary language your content is written in
+                            {t('projectSettings.languages.sourceLanguageDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -357,7 +359,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
               {/* Save Footer */}
               <div className="px-6 py-4 bg-muted/20 border-t border-border/40 flex items-center justify-between">
                 <p className="text-[11px] text-muted-foreground">
-                  {form.formState.isDirty ? 'You have unsaved changes' : 'All changes saved'}
+                  {form.formState.isDirty ? t('projectSettings.unsavedChanges') : t('projectSettings.allChangesSaved')}
                 </p>
                 <Button
                   type="submit"
@@ -367,10 +369,10 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                   {updateMutation.isPending ? (
                     <>
                       <Loader2 className="size-4 animate-spin" />
-                      Saving...
+                      {t('common.saving')}
                     </>
                   ) : (
-                    'Save Changes'
+                    t('common.saveChanges')
                   )}
                 </Button>
               </div>
@@ -386,8 +388,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
             <AlertTriangle className="size-[18px] text-destructive" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold tracking-tight text-destructive">Danger Zone</h2>
-            <p className="text-sm text-muted-foreground">Irreversible and destructive actions</p>
+            <h2 className="text-lg font-semibold tracking-tight text-destructive">{t('projectSettings.dangerZone.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('projectSettings.dangerZone.subtitle')}</p>
           </div>
         </div>
 
@@ -395,29 +397,27 @@ export default function ProjectSettingsPage({ params }: PageProps) {
           <div className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <p className="font-medium text-sm">Delete this project</p>
+                <p className="font-medium text-sm">{t('projectSettings.dangerZone.deleteTitle')}</p>
                 <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed max-w-md">
-                  Permanently remove this project and all its data including spaces, branches,
-                  translation keys, and history. This action cannot be undone.
+                  {t('projectSettings.dangerZone.deleteDescription')}
                 </p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="gap-2 shrink-0">
                     <Trash2 className="size-4" />
-                    Delete Project
+                    {t('projectSettings.dangerZone.deleteButton')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Project?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('dialogs.deleteConfirm.deleteProject')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete <span className="font-medium text-foreground">&quot;{project.name}&quot;</span> and
-                      all its spaces, branches, and translations. This action cannot be undone.
+                      {t('projectSettings.dangerZone.deleteDialogDescription', { projectName: project.name })}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => deleteMutation.mutate()}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -425,10 +425,10 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                       {deleteMutation.isPending ? (
                         <>
                           <Loader2 className="size-4 animate-spin mr-2" />
-                          Deleting...
+                          {t('common.deleting')}
                         </>
                       ) : (
-                        'Delete Project'
+                        t('common.delete')
                       )}
                     </AlertDialogAction>
                   </AlertDialogFooter>

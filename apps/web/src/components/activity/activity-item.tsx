@@ -16,10 +16,11 @@ import {
 import { Button } from '@/components/ui/button';
 import type { Activity } from '@localeflow/shared';
 import { getActivityIcon } from './activity-icon';
-import { getActivityDescription, formatRelativeTime } from './activity-description';
+import { getActivityDescription, formatRelativeTime, translateKey } from './activity-description';
 import { ActivityPreview } from './activity-preview';
 import { ActivityChangesModal } from './activity-changes-modal';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -44,6 +45,7 @@ export function ActivityItem({
   showProjectName = false,
   className,
 }: ActivityItemProps) {
+  const { t, td } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const Icon = getActivityIcon(activity.type);
 
@@ -67,7 +69,7 @@ export function ActivityItem({
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm">{getActivityDescription(activity)}</p>
+              <p className="text-sm">{translateKey(td, getActivityDescription(activity))}</p>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                 {showProjectName && activity.projectName && (
                   <>
@@ -77,7 +79,7 @@ export function ActivityItem({
                 )}
                 <span>{activity.userName}</span>
                 <span>·</span>
-                <span>{formatRelativeTime(activity.createdAt)}</span>
+                <span>{translateKey(td, formatRelativeTime(activity.createdAt))}</span>
               </div>
             </div>
 
@@ -90,7 +92,7 @@ export function ActivityItem({
                   e.stopPropagation();
                   setModalOpen(true);
                 }}
-                aria-label="View all changes"
+                aria-label={t('activity.viewAll')}
               >
                 <Eye className="size-4" />
               </Button>
@@ -107,10 +109,10 @@ export function ActivityItem({
           {/* Header */}
           <div className="px-3 py-2.5 border-b border-border/50 bg-muted/20">
             <p className="text-sm font-medium leading-tight">
-              {getActivityDescription(activity)}
+              {translateKey(td, getActivityDescription(activity))}
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {activity.userName} · {formatRelativeTime(activity.createdAt)}
+              {activity.userName} · {translateKey(td, formatRelativeTime(activity.createdAt))}
             </p>
           </div>
 
@@ -128,7 +130,7 @@ export function ActivityItem({
                 className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => setModalOpen(true)}
               >
-                View all {activity.count} changes
+                {t('activity.viewAllChanges', { count: activity.count })}
               </Button>
             </div>
           )}
@@ -155,14 +157,15 @@ export function ActivityItemCompact({
   activity: Activity;
   className?: string;
 }) {
+  const { td } = useTranslation();
   const Icon = getActivityIcon(activity.type);
 
   return (
     <div className={cn('flex items-center gap-2 text-sm', className)}>
       <Icon className="size-4 text-muted-foreground shrink-0" />
-      <span className="truncate">{getActivityDescription(activity)}</span>
+      <span className="truncate">{translateKey(td, getActivityDescription(activity))}</span>
       <span className="text-muted-foreground text-xs shrink-0">
-        {formatRelativeTime(activity.createdAt)}
+        {translateKey(td, formatRelativeTime(activity.createdAt))}
       </span>
     </div>
   );

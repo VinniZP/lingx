@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Languages, Plus } from 'lucide-react';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 export function Onboarding() {
+  const { t } = useTranslation();
   return (
     <div className="island p-8 lg:p-10 animate-fade-in-up stagger-6">
       <div className="max-w-3xl mx-auto">
@@ -13,10 +15,10 @@ export function Onboarding() {
             <Languages className="size-7 text-white" />
           </div>
           <h3 className="text-xl font-semibold mb-2">
-            Welcome to LocaleFlow
+            {t('dashboard.welcome.title')}
           </h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Professional translation management with git-like version control for modern teams
+            {t('dashboard.welcome.description')}
           </p>
         </div>
 
@@ -24,18 +26,18 @@ export function Onboarding() {
         <div className="grid sm:grid-cols-3 gap-6 mb-8">
           <OnboardingStep
             step={1}
-            title="Create a project"
-            description="Define your source and target languages"
+            title={t('dashboard.onboarding.step1.title')}
+            description={t('dashboard.onboarding.step1.description')}
           />
           <OnboardingStep
             step={2}
-            title="Add translation keys"
-            description="Import existing or create new keys"
+            title={t('dashboard.onboarding.step2.title')}
+            description={t('dashboard.onboarding.step2.description')}
           />
           <OnboardingStep
             step={3}
-            title="Sync with your app"
-            description="Use CLI or API to pull translations"
+            title={t('dashboard.onboarding.step3.title')}
+            description={t('dashboard.onboarding.step3.description')}
           />
         </div>
 
@@ -43,7 +45,7 @@ export function Onboarding() {
           <Button asChild size="lg" className="gap-2">
             <Link href="/projects/new">
               <Plus className="size-4" />
-              Create your first project
+              {t('dashboard.onboarding.cta')}
             </Link>
           </Button>
         </div>

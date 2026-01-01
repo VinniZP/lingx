@@ -60,7 +60,7 @@ export function ProjectsToolbar({
         <Button asChild>
           <Link href="/projects/new">
             <Plus />
-            <span className="hidden sm:inline">{t('projects.newProject')}</span>
+            <span className="hidden sm:inline">{t('projects.newProject.title')}</span>
           </Link>
         </Button>
       </div>

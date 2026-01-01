@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { securityApi, totpApi, webauthnApi, type Session, type WebAuthnCredential } from '@/lib/api';
 import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser';
@@ -132,6 +133,7 @@ function useSecurityScore() {
 // ============================================
 
 export default function SecuritySettingsPage() {
+  const { t } = useTranslation();
   const { isManager, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -174,7 +176,7 @@ export default function SecuritySettingsPage() {
         <div className="size-9 rounded-xl bg-card border border-border/50 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all duration-300 shadow-sm">
           <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
         </div>
-        <span className="font-medium tracking-tight">Back to Settings</span>
+        <span className="font-medium tracking-tight">{t('settings.backToSettings')}</span>
       </Link>
 
       {/* Premium Page Header with Security Score */}
@@ -199,11 +201,11 @@ export default function SecuritySettingsPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                    Security Settings
+                    {t('security.title')}
                   </h1>
                 </div>
                 <p className="text-muted-foreground text-base lg:text-lg max-w-xl leading-relaxed">
-                  Protect your account with multi-layered security. Manage authentication methods, monitor active sessions, and maintain control.
+                  {t('security.description')}
                 </p>
               </div>
 
@@ -238,8 +240,8 @@ export default function SecuritySettingsPage() {
                     <Lock className="size-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold tracking-tight">Change Password</h2>
-                    <p className="text-sm text-muted-foreground mt-0.5">Update your account password regularly</p>
+                    <h2 className="text-xl font-semibold tracking-tight">{t('security.changePassword.title')}</h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">{t('security.changePassword.description')}</p>
                   </div>
                 </div>
               </div>
@@ -257,7 +259,7 @@ export default function SecuritySettingsPage() {
                 <div className="size-6 rounded-lg bg-muted/50 flex items-center justify-center">
                   <Activity className="size-3.5 text-muted-foreground" />
                 </div>
-                Active Sessions
+                {t('security.activeSessions.title')}
               </h3>
             </div>
             <SessionsList />
@@ -270,7 +272,7 @@ export default function SecuritySettingsPage() {
                 <div className="size-6 rounded-lg bg-success/10 flex items-center justify-center">
                   <ShieldCheck className="size-3.5 text-success" />
                 </div>
-                Security Checklist
+                {t('security.securityChecklist')}
               </h3>
             </div>
             <SecurityChecklist />
@@ -291,6 +293,7 @@ export default function SecuritySettingsPage() {
 // ============================================
 
 function SecurityScoreWidget() {
+  const { t } = useTranslation();
   const { percentage, level, color } = useSecurityScore();
 
   return (
@@ -329,7 +332,7 @@ function SecurityScoreWidget() {
         </div>
         <div className="mt-3">
           <p className={cn('text-sm font-semibold', color)}>{level}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Security Score</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('security.securityScore')}</p>
         </div>
       </div>
     </div>
@@ -341,6 +344,7 @@ function SecurityScoreWidget() {
 // ============================================
 
 function TwoFactorCard() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [setupOpen, setSetupOpen] = useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
@@ -459,20 +463,20 @@ Keep these codes in a safe place!
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <span className="font-semibold text-xl tracking-tight">Two-Factor Authentication</span>
+              <span className="font-semibold text-xl tracking-tight">{t('security.twoFactor.title')}</span>
               <span className={cn(
                 'text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full',
                 status?.enabled
                   ? 'bg-success/15 text-success border border-success/20'
                   : 'bg-warning/15 text-warning border border-warning/20'
               )}>
-                {status?.enabled ? 'Active' : 'Inactive'}
+                {status?.enabled ? t('security.twoFactor.active') : t('security.twoFactor.inactive')}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
               {status?.enabled
-                ? 'Your account is protected with an authenticator app'
-                : 'Add an extra layer of security to your account'}
+                ? t('security.twoFactor.activeDescription')
+                : t('security.twoFactor.inactiveDescription')}
             </p>
           </div>
         </div>
@@ -485,7 +489,7 @@ Keep these codes in a safe place!
                 <div className="p-5 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/20 border border-border/40">
                   <div className="flex items-center gap-2 mb-3">
                     <KeyRound className="size-4 text-muted-foreground" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Backup Codes</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('security.twoFactor.backupCodes')}</span>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className={cn(
@@ -507,7 +511,7 @@ Keep these codes in a safe place!
                 <div className="p-5 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/20 border border-border/40">
                   <div className="flex items-center gap-2 mb-3">
                     <Monitor className="size-4 text-muted-foreground" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trusted Devices</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('security.twoFactor.trustedDevices')}</span>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold tabular-nums tracking-tight">
@@ -526,7 +530,7 @@ Keep these codes in a safe place!
                   className="flex-1 gap-2.5 h-12 rounded-xl border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
                 >
                   <RefreshCw className="size-4" />
-                  Regenerate Backup Codes
+                  {t('security.twoFactor.regenerateCodes')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -534,7 +538,7 @@ Keep these codes in a safe place!
                   className="flex-1 gap-2.5 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-300"
                 >
                   <Trash2 className="size-4" />
-                  Disable 2FA
+                  {t('security.twoFactor.disable')}
                 </Button>
               </div>
             </div>
@@ -543,9 +547,9 @@ Keep these codes in a safe place!
               {/* Benefits list with icons */}
               <div className="grid gap-4">
                 {[
-                  { icon: Smartphone, text: 'Use any TOTP authenticator app', color: 'text-primary' },
-                  { icon: KeyRound, text: '10 backup codes for account recovery', color: 'text-success' },
-                  { icon: Monitor, text: 'Option to trust devices for 30 days', color: 'text-info' },
+                  { icon: Smartphone, text: t('security.twoFactor.features.totp'), color: 'text-primary' },
+                  { icon: KeyRound, text: t('security.twoFactor.features.backupCodes'), color: 'text-success' },
+                  { icon: Monitor, text: t('security.twoFactor.features.trustDevice'), color: 'text-info' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 border border-border/30 hover:border-border/50 transition-colors">
                     <div className={cn('size-10 rounded-xl bg-gradient-to-br from-primary/10 to-transparent flex items-center justify-center border border-primary/10')}>
@@ -561,7 +565,7 @@ Keep these codes in a safe place!
                 className="w-full gap-3 h-14 text-base rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all duration-300"
               >
                 <Fingerprint className="size-5" />
-                Enable Two-Factor Authentication
+                {t('security.twoFactor.enable')}
               </Button>
             </div>
           )}
@@ -583,18 +587,18 @@ Keep these codes in a safe place!
               <AlertTriangle className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">Disable Two-Factor Authentication</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.twoFactor.disableDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                This will remove the extra security layer from your account.
+                {t('security.twoFactor.disableDialog.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <div className="py-4">
-            <label className="text-sm font-medium mb-2.5 block">Confirm your password</label>
+            <label className="text-sm font-medium mb-2.5 block">{t('security.twoFactor.disableDialog.confirmPassword')}</label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
+                placeholder={t('security.changePassword.currentPasswordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pr-12 h-12 rounded-xl"
@@ -610,7 +614,7 @@ Keep these codes in a safe place!
           </div>
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel onClick={() => { setPassword(''); setShowPassword(false); }} className="rounded-xl">
-              Cancel
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => disableMutation.mutate(password)}
@@ -618,7 +622,7 @@ Keep these codes in a safe place!
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               {disableMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-              Disable 2FA
+              {t('security.twoFactor.disableDialog.submit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -632,18 +636,18 @@ Keep these codes in a safe place!
               <RefreshCw className="size-7 text-warning" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">Regenerate Backup Codes</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.twoFactor.regenerateDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                This will invalidate all existing backup codes and generate new ones.
+                {t('security.twoFactor.regenerateDialog.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <div className="py-4">
-            <label className="text-sm font-medium mb-2.5 block">Confirm your password</label>
+            <label className="text-sm font-medium mb-2.5 block">{t('security.twoFactor.disableDialog.confirmPassword')}</label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
+                placeholder={t('security.changePassword.currentPasswordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pr-12 h-12 rounded-xl"
@@ -659,7 +663,7 @@ Keep these codes in a safe place!
           </div>
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel onClick={() => { setPassword(''); setShowPassword(false); }} className="rounded-xl">
-              Cancel
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => regenerateMutation.mutate(password)}
@@ -667,7 +671,7 @@ Keep these codes in a safe place!
               className="rounded-xl"
             >
               {regenerateMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-              Regenerate Codes
+              {t('security.twoFactor.regenerateDialog.submit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -681,9 +685,9 @@ Keep these codes in a safe place!
               <CheckCircle2 className="size-7 text-success" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">New Backup Codes Generated</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.twoFactor.newCodesDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                Save these codes in a safe place. Each code can only be used once.
+                {t('security.twoFactor.newCodesDialog.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
@@ -703,7 +707,7 @@ Keep these codes in a safe place!
               className="w-full mt-5 gap-2.5 h-12 rounded-xl"
             >
               <Download className="size-4" />
-              Download as Text File
+              {t('security.twoFactor.newCodesDialog.download')}
             </Button>
           </div>
           <AlertDialogFooter>
@@ -714,7 +718,7 @@ Keep these codes in a safe place!
               }}
               className="rounded-xl"
             >
-              I've Saved My Codes
+              {t('security.twoFactor.newCodesDialog.saved')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -728,6 +732,7 @@ Keep these codes in a safe place!
 // ============================================
 
 function PasskeyCard() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteCredentialId, setDeleteCredentialId] = useState<string | null>(null);
@@ -817,9 +822,9 @@ function PasskeyCard() {
         <div className="size-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-5 border border-border/50">
           <Fingerprint className="size-8 text-muted-foreground/50" />
         </div>
-        <h3 className="font-semibold text-lg mb-2">Passkeys Not Supported</h3>
+        <h3 className="font-semibold text-lg mb-2">{t('security.passkeys.notSupported')}</h3>
         <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          Your browser doesn't support passkeys. Try using a modern browser like Chrome, Safari, or Edge.
+          {t('security.passkeys.notSupportedDescription')}
         </p>
       </div>
     );
@@ -862,7 +867,7 @@ function PasskeyCard() {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <span className="font-semibold text-xl tracking-tight">Passkeys</span>
+              <span className="font-semibold text-xl tracking-tight">{t('security.passkeys.title')}</span>
               {status?.isPasswordless && (
                 <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-success/15 text-success border border-success/20">
                   Passwordless
@@ -872,7 +877,7 @@ function PasskeyCard() {
             <p className="text-sm text-muted-foreground">
               {status?.hasPasskeys
                 ? `${status.credentialsCount} passkey${status.credentialsCount !== 1 ? 's' : ''} registered`
-                : 'Sign in without passwords using biometrics or security keys'}
+                : t('security.passkeys.description')}
             </p>
           </div>
         </div>
@@ -929,7 +934,7 @@ function PasskeyCard() {
               className="flex-1 gap-2.5 h-12 rounded-xl shadow-lg shadow-primary/15"
             >
               <Plus className="size-4" />
-              Add Passkey
+              {t('security.passkeys.addPasskey')}
             </Button>
 
             {status?.canGoPasswordless && !status.isPasswordless && (
@@ -939,7 +944,7 @@ function PasskeyCard() {
                 className="flex-1 gap-2.5 h-12 rounded-xl border-border/60 hover:border-primary/40"
               >
                 <ShieldOff className="size-4" />
-                Go Passwordless
+                {t('security.passkeys.goPasswordless')}
               </Button>
             )}
           </div>
@@ -948,9 +953,9 @@ function PasskeyCard() {
           {!status?.hasPasskeys && (
             <div className="grid gap-4 pt-2">
               {[
-                { icon: Fingerprint, text: 'Use biometrics or security keys to sign in', color: 'text-primary' },
-                { icon: ShieldCheck, text: 'Phishing-resistant and more secure than passwords', color: 'text-success' },
-                { icon: Monitor, text: 'Synced across devices with iCloud, Google, or Microsoft', color: 'text-info' },
+                { icon: Fingerprint, text: t('security.passkeys.features.biometrics'), color: 'text-primary' },
+                { icon: ShieldCheck, text: t('security.passkeys.features.phishingResistant'), color: 'text-success' },
+                { icon: Monitor, text: t('security.passkeys.features.synced'), color: 'text-info' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 border border-border/30">
                   <div className="size-10 rounded-xl bg-gradient-to-br from-primary/10 to-transparent flex items-center justify-center border border-primary/10">
@@ -968,9 +973,9 @@ function PasskeyCard() {
                 <CheckCircle2 className="size-5 text-success" />
               </div>
               <div>
-                <p className="font-medium text-success mb-1">Passwordless Enabled</p>
+                <p className="font-medium text-success mb-1">{t('security.passkeys.passwordlessEnabled.title')}</p>
                 <p className="text-sm text-muted-foreground">
-                  Your account is secured with passkeys only. You can sign in using biometrics or security keys.
+                  {t('security.passkeys.passwordlessEnabled.description')}
                 </p>
               </div>
             </div>
@@ -1010,10 +1015,10 @@ function PasskeyCard() {
             <div className="text-center mb-8">
               <DialogHeader className="space-y-2">
                 <DialogTitle className="text-2xl font-semibold tracking-tight">
-                  Add a Passkey
+                  {t('security.passkeys.addDialog.title')}
                 </DialogTitle>
                 <DialogDescription className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-                  Give your passkey a memorable name to identify it across your devices
+                  {t('security.passkeys.addDialog.description')}
                 </DialogDescription>
               </DialogHeader>
             </div>
@@ -1022,11 +1027,11 @@ function PasskeyCard() {
             <div className="space-y-3 mb-8">
               <label className="text-sm font-medium text-foreground/80 flex items-center gap-2">
                 <Key className="size-3.5 text-muted-foreground" />
-                Passkey Name
+                {t('security.passkeys.addDialog.nameLabel')}
               </label>
               <div className="relative group">
                 <Input
-                  placeholder="e.g., MacBook Pro, iPhone 15, YubiKey"
+                  placeholder={t('security.passkeys.addDialog.namePlaceholder')}
                   value={passkeyName}
                   onChange={(e) => setPasskeyName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddPasskey()}
@@ -1041,19 +1046,23 @@ function PasskeyCard() {
 
               {/* Suggestion chips */}
               <div className="flex flex-wrap gap-2 pt-1">
-                {['MacBook Pro', 'iPhone', 'Security Key'].map((suggestion) => (
+                {[
+                  { key: 'macbook', label: t('security.passkeys.addDialog.suggestions.macbook') },
+                  { key: 'iphone', label: t('security.passkeys.addDialog.suggestions.iphone') },
+                  { key: 'securityKey', label: t('security.passkeys.addDialog.suggestions.securityKey') },
+                ].map((suggestion) => (
                   <button
-                    key={suggestion}
+                    key={suggestion.key}
                     type="button"
-                    onClick={() => setPasskeyName(suggestion)}
+                    onClick={() => setPasskeyName(suggestion.label)}
                     className={cn(
                       'px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200',
-                      passkeyName === suggestion
+                      passkeyName === suggestion.label
                         ? 'bg-primary/10 border-primary/30 text-primary'
                         : 'bg-muted/30 border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
                     )}
                   >
-                    {suggestion}
+                    {suggestion.label}
                   </button>
                 ))}
               </div>
@@ -1065,9 +1074,9 @@ function PasskeyCard() {
                 <ShieldCheck className="size-4 text-primary" />
               </div>
               <div className="text-xs text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground/80">Secure & Private</span>
+                <span className="font-medium text-foreground/80">{t('security.passkeys.addDialog.secureNote')}</span>
                 <br />
-                Your passkey is stored securely on your device and never leaves it.
+                {t('security.passkeys.addDialog.secureNoteDescription')}
               </div>
             </div>
 
@@ -1081,7 +1090,7 @@ function PasskeyCard() {
                 }}
                 className="flex-1 h-12 rounded-xl border-border/60 hover:bg-muted/50 font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleAddPasskey}
@@ -1095,7 +1104,7 @@ function PasskeyCard() {
                   </>
                 ) : (
                   <>
-                    Continue
+                    {t('common.continue')}
                     <Fingerprint className="size-4" />
                   </>
                 )}
@@ -1113,21 +1122,21 @@ function PasskeyCard() {
               <Trash2 className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">Delete Passkey</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.passkeys.deleteDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                This passkey will be removed from your account. You won't be able to use it to sign in anymore.
+                {t('security.passkeys.deleteDialog.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteCredentialId && deleteMutation.mutate(deleteCredentialId)}
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
               {deleteMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-              Delete Passkey
+              {t('security.passkeys.deleteDialog.submit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1141,9 +1150,9 @@ function PasskeyCard() {
               <ShieldOff className="size-7 text-warning" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">Go Passwordless</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.passkeys.passwordlessDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                Your password will be removed. You'll only be able to sign in using your passkeys.
+                {t('security.passkeys.passwordlessDialog.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
@@ -1151,25 +1160,25 @@ function PasskeyCard() {
             <div className="flex items-start gap-4 p-4 rounded-xl bg-success/5 border border-success/20">
               <CheckCircle2 className="size-5 text-success shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                You have <span className="font-medium text-foreground">{status?.credentialsCount} passkeys</span> registered, which is enough for passwordless.
+                {t('security.passkeys.passwordlessDialog.passkeyCount', { count: status?.credentialsCount ?? 0 })}
               </p>
             </div>
             <div className="flex items-start gap-4 p-4 rounded-xl bg-warning/5 border border-warning/20">
               <AlertTriangle className="size-5 text-warning shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                Make sure you have access to your passkeys on multiple devices before proceeding.
+                {t('security.passkeys.passwordlessDialog.warning')}
               </p>
             </div>
           </div>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => goPasswordlessMutation.mutate()}
               disabled={goPasswordlessMutation.isPending}
               className="rounded-xl"
             >
               {goPasswordlessMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-              Remove Password
+              {t('security.passkeys.passwordlessDialog.submit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1201,6 +1210,7 @@ function formatDate(dateString: string): string {
 // ============================================
 
 function PasswordChangeForm() {
+  const { t } = useTranslation();
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -1250,13 +1260,13 @@ function PasswordChangeForm() {
             name="currentPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Current Password</FormLabel>
+                <FormLabel className="text-sm font-medium">{t('security.changePassword.currentPassword')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       {...field}
                       type={showPasswords.current ? 'text' : 'password'}
-                      placeholder="Enter your current password"
+                      placeholder={t('security.changePassword.currentPasswordPlaceholder')}
                       autoComplete="current-password"
                       className="pr-12 h-12 rounded-xl"
                     />
@@ -1280,7 +1290,7 @@ function PasswordChangeForm() {
             </div>
             <div className="relative flex justify-center">
               <span className="bg-card px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                New Password
+                {t('security.changePassword.newPassword')}
               </span>
             </div>
           </div>
@@ -1290,13 +1300,13 @@ function PasswordChangeForm() {
             name="newPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">New Password</FormLabel>
+                <FormLabel className="text-sm font-medium">{t('security.changePassword.newPassword')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       {...field}
                       type={showPasswords.new ? 'text' : 'password'}
-                      placeholder="Create a strong password"
+                      placeholder={t('security.changePassword.newPasswordPlaceholder')}
                       autoComplete="new-password"
                       className="pr-12 h-12 rounded-xl"
                     />
@@ -1319,13 +1329,13 @@ function PasswordChangeForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Confirm Password</FormLabel>
+                <FormLabel className="text-sm font-medium">{t('security.changePassword.confirmPassword')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       {...field}
                       type={showPasswords.confirm ? 'text' : 'password'}
-                      placeholder="Confirm your new password"
+                      placeholder={t('security.changePassword.confirmPasswordPlaceholder')}
                       autoComplete="new-password"
                       className="pr-12 h-12 rounded-xl"
                     />
@@ -1357,13 +1367,13 @@ function PasswordChangeForm() {
               ) : (
                 <>
                   <Lock className="size-4" />
-                  Update Password
+                  {t('security.changePassword.submit')}
                 </>
               )}
             </Button>
             <p className="text-xs text-muted-foreground flex items-center gap-2 sm:ml-2">
               <AlertTriangle className="size-4 text-warning shrink-0" />
-              This will sign out all other devices
+              {t('security.changePassword.signOutWarning')}
             </p>
           </div>
         </form>
@@ -1377,6 +1387,7 @@ function PasswordChangeForm() {
 // ============================================
 
 function SessionsList() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [revokeAllDialogOpen, setRevokeAllDialogOpen] = useState(false);
   const [revokeSessionId, setRevokeSessionId] = useState<string | null>(null);
@@ -1439,7 +1450,7 @@ function SessionsList() {
         <div className="size-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4 border border-destructive/20">
           <XCircle className="size-7 text-destructive" />
         </div>
-        <p className="font-medium mb-1">Failed to load sessions</p>
+        <p className="font-medium mb-1">{t('security.activeSessions.failedToLoad')}</p>
         <p className="text-sm text-muted-foreground">Please try again later</p>
       </div>
     );
@@ -1465,7 +1476,7 @@ function SessionsList() {
           <>
             <div className="px-5 py-3 flex items-center justify-between bg-muted/20 border-b border-border/40">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {otherSessions.length} other session{otherSessions.length !== 1 && 's'}
+                {t('security.activeSessions.otherSessions', { count: otherSessions.length })}
               </span>
               <Button
                 variant="ghost"
@@ -1479,7 +1490,7 @@ function SessionsList() {
                 ) : (
                   <LogOut className="size-3 mr-1.5" />
                 )}
-                Revoke All
+                {t('security.activeSessions.revokeAll')}
               </Button>
             </div>
             <div className="divide-y divide-border/40">
@@ -1498,7 +1509,7 @@ function SessionsList() {
 
         {otherSessions.length === 0 && currentSession && (
           <div className="p-8 text-center">
-            <p className="text-sm text-muted-foreground">No other active sessions</p>
+            <p className="text-sm text-muted-foreground">{t('security.activeSessions.noOtherSessions')}</p>
           </div>
         )}
 
@@ -1508,7 +1519,7 @@ function SessionsList() {
               <Monitor className="size-7 text-muted-foreground/50" />
             </div>
             <p className="font-medium mb-1">No active sessions</p>
-            <p className="text-sm text-muted-foreground">Sessions will appear here</p>
+            <p className="text-sm text-muted-foreground">{t('security.activeSessions.sessionsAppearHere')}</p>
           </div>
         )}
       </div>
@@ -1521,19 +1532,19 @@ function SessionsList() {
               <LogOut className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">Revoke Session</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.activeSessions.revokeSession')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                This will sign out the device. They'll need to log in again to access the account.
+                {t('security.activeSessions.revokeConfirm')}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => revokeSessionId && revokeSessionMutation.mutate(revokeSessionId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
-              Revoke Session
+              {t('security.activeSessions.revokeSession')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1547,19 +1558,19 @@ function SessionsList() {
               <LogOut className="size-7 text-destructive" />
             </div>
             <AlertDialogHeader className="flex-1 p-0">
-              <AlertDialogTitle className="text-xl">Revoke All Other Sessions</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">{t('security.activeSessions.revokeAllSessions')}</AlertDialogTitle>
               <AlertDialogDescription className="mt-1">
-                This will sign out all {otherSessions.length} other device{otherSessions.length !== 1 && 's'} from your account.
+                {t('security.activeSessions.revokeAllConfirm', { count: otherSessions.length })}
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => revokeAllMutation.mutate()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
-              Revoke All Sessions
+              {t('security.activeSessions.revokeAllSessions')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1656,6 +1667,7 @@ function SessionRow({
 // ============================================
 
 function SecurityChecklist() {
+  const { t } = useTranslation();
   const supportsPasskey = typeof window !== 'undefined' && browserSupportsWebAuthn();
 
   const { data: totpStatus } = useQuery({
@@ -1671,25 +1683,25 @@ function SecurityChecklist() {
 
   const checks = [
     {
-      label: 'Passkeys registered',
+      label: t('security.checklistItems.passkeys'),
       done: webauthnStatus?.hasPasskeys ?? false,
-      tip: 'Phishing-resistant login method',
+      tip: t('security.checklistItems.passkeysDesc'),
       icon: Fingerprint,
     },
     {
-      label: 'Two-factor authentication',
+      label: t('security.twoFactor.title'),
       done: totpStatus?.enabled ?? false,
-      tip: 'Adds an extra layer of security',
+      tip: t('security.twoFactor.inactiveDescription'),
       icon: Shield,
     },
     {
-      label: 'Strong password',
+      label: t('settings.tips.strongPassword'),
       done: true,
-      tip: '8+ characters with mixed case',
+      tip: t('settings.tips.strongPasswordDesc'),
       icon: Lock,
     },
     {
-      label: 'Review active sessions',
+      label: t('security.activeSessions.title'),
       done: true,
       tip: 'Check for unfamiliar devices',
       icon: Monitor,
@@ -1704,7 +1716,7 @@ function SecurityChecklist() {
       <div className="px-5 py-4 bg-gradient-to-r from-muted/30 to-transparent border-b border-border/40">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {completedCount} of {checks.length} complete
+            {t('security.completeCount', { current: completedCount, total: checks.length })}
           </span>
           <div className="w-24 h-1.5 bg-muted/50 rounded-full overflow-hidden">
             <div
@@ -1751,11 +1763,12 @@ function SecurityChecklist() {
 // ============================================
 
 function SecurityTips() {
+  const { t } = useTranslation();
   const tips = [
     {
       icon: Zap,
-      title: 'Quick Tip',
-      text: 'Enable both 2FA and passkeys for maximum security. They work together seamlessly.',
+      title: t('security.tips.quickTip'),
+      text: t('security.tips.enableBoth'),
       color: 'text-primary',
       bg: 'from-primary/10 to-primary/5',
     },
@@ -1791,6 +1804,7 @@ function SecurityTips() {
 // ============================================
 
 function LoadingState() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="flex flex-col items-center gap-6">
@@ -1802,7 +1816,7 @@ function LoadingState() {
           <div className="absolute inset-0 rounded-3xl border-2 border-primary/30 animate-ping" style={{ animationDuration: '2s' }} />
         </div>
         <div className="text-center">
-          <p className="font-medium text-foreground mb-1">Loading security settings</p>
+          <p className="font-medium text-foreground mb-1">{t('security.loading')}</p>
           <p className="text-sm text-muted-foreground">Please wait...</p>
         </div>
       </div>

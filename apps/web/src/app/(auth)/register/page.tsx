@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterInput } from '@localeflow/shared';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ import { Loader2, ArrowRight, User, Mail, Lock, Eye, EyeOff } from 'lucide-react
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const { t } = useTranslation();
   const { register: registerUser } = useAuth();
 
   const form = useForm<RegisterInput>({
@@ -39,8 +41,8 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterInput) => {
     try {
       await registerUser(data.email, data.password, data.name || undefined);
-      toast.success('Account created!', {
-        description: 'Welcome to Localeflow. Your account is ready.',
+      toast.success(t('auth.accountCreated'), {
+        description: t('auth.accountCreatedDescription'),
       });
     } catch (error) {
       // Try to map field-level errors to form fields first
@@ -49,7 +51,7 @@ export default function RegisterPage() {
         const message = error instanceof ApiError
           ? error.message
           : 'An unexpected error occurred. Please try again.';
-        toast.error('Registration failed', {
+        toast.error(t('auth.registrationFailed'), {
           description: message,
         });
       }
@@ -64,10 +66,10 @@ export default function RegisterPage() {
           className="text-[2rem] font-semibold tracking-tight text-foreground"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
-          Create your account
+          {t('auth.createAccount')}
         </h1>
         <p className="text-muted-foreground text-[15px] leading-relaxed">
-          Start managing your translations in minutes
+          {t('auth.startManaging')}
         </p>
       </div>
 
@@ -82,18 +84,18 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Full name
-                    <span className="ml-1 text-muted-foreground/60 font-normal">(optional)</span>
+                    {t('auth.fullName')}
+                    <span className="ml-1 text-muted-foreground/60 font-normal">{t('common.optional')}</span>
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                         focusedField === 'name' ? 'text-primary' : 'text-muted-foreground/50'
                       }`}>
-                        <User className="w-[18px] h-[18px]" />
+                        <User className="size-4.5" />
                       </div>
                       <Input
-                        placeholder="John Doe"
+                        placeholder={t('auth.fullNamePlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('name')}
                         onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
@@ -113,17 +115,17 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email address</FormLabel>
+                  <FormLabel>{t('auth.emailAddress')}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                         focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
                       }`}>
-                        <Mail className="w-[18px] h-[18px]" />
+                        <Mail className="size-4.5" />
                       </div>
                       <Input
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('email')}
                         onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
@@ -143,17 +145,17 @@ export default function RegisterPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('auth.password')}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                         focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
                       }`}>
-                        <Lock className="w-[18px] h-[18px]" />
+                        <Lock className="size-4.5" />
                       </div>
                       <Input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Create a strong password"
+                        placeholder={t('auth.createPassword')}
                         {...field}
                         onFocus={() => setFocusedField('password')}
                         onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
@@ -167,9 +169,9 @@ export default function RegisterPage() {
                         tabIndex={-1}
                       >
                         {showPassword ? (
-                          <EyeOff className="w-[18px] h-[18px]" />
+                          <EyeOff className="size-4.5" />
                         ) : (
-                          <Eye className="w-[18px] h-[18px]" />
+                          <Eye className="size-4.5" />
                         )}
                       </button>
                     </div>
@@ -188,13 +190,13 @@ export default function RegisterPage() {
           >
             {form.formState.isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
-                Creating account...
+                <Loader2 className="mr-2 size-4.5 animate-spin" />
+                {t('auth.creatingAccount')}
               </>
             ) : (
               <>
-                Create account
-                <ArrowRight className="ml-2 h-[18px] w-[18px]" />
+                {t('auth.createAnAccount')}
+                <ArrowRight className="ml-2 size-4.5" />
               </>
             )}
           </Button>
@@ -208,7 +210,7 @@ export default function RegisterPage() {
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-            Already have an account?
+            {t('auth.alreadyHaveAccount')}
           </span>
         </div>
       </div>
@@ -219,7 +221,7 @@ export default function RegisterPage() {
           href="/login"
           className="group inline-flex items-center gap-2 py-2.5 px-5 text-sm font-medium text-foreground rounded-xl border border-border/60 bg-card hover:bg-accent hover:border-border transition-all duration-200 touch-manipulation"
         >
-          Sign in instead
+          {t('auth.signInInstead')}
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
       </div>

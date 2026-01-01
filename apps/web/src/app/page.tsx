@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AuthRedirect } from '@/components/auth-redirect';
+import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
 import {
   Languages,
   ArrowRight,
@@ -30,57 +31,71 @@ const floatingLanguages = [
   { code: 'ZH', label: '中文', delay: '9s', duration: '26s', top: '70%', startX: '-18%' },
 ];
 
-const features = [
+// Feature config with typed translation keys
+interface FeatureConfig {
+  icon: typeof GitBranch;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  size: 'large' | 'normal';
+  gradient: string;
+}
+
+const featureConfig: FeatureConfig[] = [
   {
     icon: GitBranch,
-    title: 'Git-like branching',
-    description: 'Create branches for translations, review changes, and merge with confidence. Never lose work again.',
+    titleKey: tKey('landing.features.branching.title'),
+    descriptionKey: tKey('landing.features.branching.description'),
     size: 'large',
     gradient: 'from-primary/20 via-primary/5 to-transparent',
   },
   {
     icon: Users,
-    title: 'Team collaboration',
-    description: 'Invite translators, assign roles, and track progress in real-time.',
+    titleKey: tKey('landing.features.collaboration.title'),
+    descriptionKey: tKey('landing.features.collaboration.description'),
     size: 'normal',
     gradient: 'from-warm/20 via-warm/5 to-transparent',
   },
   {
     icon: Zap,
-    title: 'Lightning fast',
-    description: 'Optimized for performance with instant search and live updates.',
+    titleKey: tKey('landing.features.fast.title'),
+    descriptionKey: tKey('landing.features.fast.description'),
     size: 'normal',
     gradient: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
   },
   {
     icon: Shield,
-    title: 'Self-hosted & secure',
-    description: 'Your data stays on your infrastructure. Full control, always. No vendor lock-in.',
+    titleKey: tKey('landing.features.secure.title'),
+    descriptionKey: tKey('landing.features.secure.description'),
     size: 'large',
     gradient: 'from-blue-500/20 via-blue-500/5 to-transparent',
   },
   {
     icon: Globe,
-    title: 'Any language',
-    description: 'RTL, pluralization, and complex language rules supported out of the box.',
+    titleKey: tKey('landing.features.anyLanguage.title'),
+    descriptionKey: tKey('landing.features.anyLanguage.description'),
     size: 'normal',
     gradient: 'from-amber-500/20 via-amber-500/5 to-transparent',
   },
   {
     icon: Code2,
-    title: 'Developer-first',
-    description: 'CLI tools, SDKs, and APIs designed for modern workflows.',
+    titleKey: tKey('landing.features.developerFirst.title'),
+    descriptionKey: tKey('landing.features.developerFirst.description'),
     size: 'normal',
     gradient: 'from-pink-500/20 via-pink-500/5 to-transparent',
   },
 ];
 
-// Key benefits for developers
-const benefits = [
-  { label: 'Self-hosted', description: 'Your data, your servers' },
-  { label: 'Open Source', description: 'MIT licensed, forever free' },
-  { label: 'Git-like workflow', description: 'Branch, review, merge' },
-  { label: 'Developer-first', description: 'CLI, SDK, and API' },
+// Benefits config with typed translation keys
+interface BenefitConfig {
+  labelKey: TranslationKey;
+  descriptionKey: TranslationKey;
+}
+
+const benefitConfig: BenefitConfig[] = [
+  { labelKey: tKey('landing.benefits.selfHosted'), descriptionKey: tKey('landing.benefits.selfHostedDesc') },
+  { labelKey: tKey('landing.benefits.openSource'), descriptionKey: tKey('landing.benefits.openSourceDesc') },
+  { labelKey: tKey('landing.benefits.gitLike'), descriptionKey: tKey('landing.benefits.gitLikeDesc') },
+  { labelKey: tKey('landing.benefits.devFirst'), descriptionKey: tKey('landing.benefits.devFirstDesc') },
 ];
 
 // Mock translation editor preview data
@@ -212,6 +227,8 @@ function FloatingLanguageChip({ code, label, delay, duration, top, startX }: {
 }
 
 export default function Home() {
+  const { t, td } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Silent auth redirect for logged-in users */}
@@ -229,17 +246,17 @@ export default function Home() {
             <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-primary-foreground transition-all group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/25">
               <Languages className="size-5" />
             </div>
-            <span className="text-xl font-semibold tracking-tight">LocaleFlow</span>
+            <span className="text-xl font-semibold tracking-tight">{t('landing.brand')}</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="hidden sm:block">
               <Button variant="ghost" className="h-10">
-                Sign in
+                {t('landing.signIn')}
               </Button>
             </Link>
             <Link href="/register">
               <Button className="h-10 gap-2 shadow-lg shadow-primary/25">
-                Get started
+                {t('landing.getStarted')}
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
@@ -273,7 +290,7 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                 </span>
-                Open source and self-hosted
+                {t('landing.openSourceBadge')}
               </div>
             </div>
 
@@ -282,31 +299,30 @@ export default function Home() {
               className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight leading-[1.1] animate-fade-in-up stagger-1"
               style={{ fontFamily: 'var(--font-instrument-serif)' }}
             >
-              Localization that
+              {t('landing.headline')}
               <br />
               <span className="bg-gradient-to-r from-primary via-primary to-warm bg-clip-text text-transparent">
-                flows naturally
+                {t('landing.headlineHighlight')}
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-up stagger-2">
-              Manage translations with git-like branching. Collaborate with your team,
-              review changes, and ship localized products with confidence.
+              {t('landing.subheadline')}
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up stagger-3">
               <Link href="/register">
                 <Button size="lg" className="h-12 px-8 gap-2 text-base shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all">
-                  Start for free
+                  {t('landing.startForFree')}
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>
               <Link href="https://github.com/localeflow/localeflow" target="_blank">
                 <Button variant="outline" size="lg" className="h-12 px-8 gap-2 text-base group">
                   <Terminal className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                  View on GitHub
+                  {t('landing.viewOnGitHub')}
                 </Button>
               </Link>
             </div>
@@ -323,9 +339,9 @@ export default function Home() {
       <section className="py-12 lg:py-16 border-y border-border/50 bg-muted/20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {benefits.map((benefit, i) => (
+            {benefitConfig.map((benefit, i) => (
               <div
-                key={benefit.label}
+                key={benefit.labelKey}
                 className={cn(
                   "text-center animate-fade-in-up",
                   i === 0 && "stagger-1",
@@ -335,9 +351,9 @@ export default function Home() {
                 )}
               >
                 <div className="text-lg font-semibold text-foreground">
-                  {benefit.label}
+                  {td(benefit.labelKey)}
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">{benefit.description}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{td(benefit.descriptionKey)}</div>
               </div>
             ))}
           </div>
@@ -352,18 +368,18 @@ export default function Home() {
               className="text-3xl lg:text-5xl font-semibold tracking-tight"
               style={{ fontFamily: 'var(--font-instrument-serif)' }}
             >
-              Everything you need
+              {t('landing.features.title')}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              A complete localization platform designed for modern development workflows.
+              {t('landing.features.subtitle')}
             </p>
           </div>
 
           {/* Bento Grid - Asymmetric layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-            {features.map((feature, i) => (
+            {featureConfig.map((feature, i) => (
               <div
-                key={feature.title}
+                key={feature.titleKey}
                 className={cn(
                   "group relative island p-6 lg:p-8 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-fade-in-up",
                   feature.size === 'large' && "md:col-span-2 lg:col-span-1 lg:row-span-2",
@@ -402,13 +418,13 @@ export default function Home() {
                       "font-semibold",
                       feature.size === 'large' ? "text-xl lg:text-2xl" : "text-lg"
                     )}>
-                      {feature.title}
+                      {td(feature.titleKey)}
                     </h3>
                     <p className={cn(
                       "text-muted-foreground leading-relaxed",
                       feature.size === 'large' ? "text-base lg:text-lg" : "text-sm"
                     )}>
-                      {feature.description}
+                      {td(feature.descriptionKey)}
                     </p>
                   </div>
 
@@ -416,7 +432,7 @@ export default function Home() {
                   {feature.size === 'large' && (
                     <div className="hidden lg:flex items-center gap-2 pt-4 text-sm text-muted-foreground">
                       <ArrowUpRight className="size-4" />
-                      <span>Learn more</span>
+                      <span>{t('common.learnMore')}</span>
                     </div>
                   )}
                 </div>
@@ -444,25 +460,24 @@ export default function Home() {
                 className="text-2xl lg:text-3xl font-semibold mb-4"
                 style={{ fontFamily: 'var(--font-instrument-serif)' }}
               >
-                Built in the open
+                {t('landing.openSourceSection.title')}
               </h3>
 
               <p className="text-muted-foreground text-lg leading-relaxed mb-6 max-w-xl mx-auto">
-                LocaleFlow is an open source project built for learning and experimentation.
-                Explore the code, contribute ideas, or use it as a reference for your own projects.
+                {t('landing.openSourceSection.description')}
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link href="https://github.com/localeflow/localeflow" target="_blank">
                   <Button variant="outline" className="h-11 px-6 gap-2">
                     <Star className="size-4" />
-                    Star on GitHub
+                    {t('landing.openSourceSection.starOnGitHub')}
                   </Button>
                 </Link>
                 <Link href="https://github.com/localeflow/localeflow/issues" target="_blank">
                   <Button variant="ghost" className="h-11 px-6 gap-2">
                     <ArrowUpRight className="size-4" />
-                    Report an issue
+                    {t('landing.openSourceSection.reportIssue')}
                   </Button>
                 </Link>
               </div>
@@ -492,26 +507,25 @@ export default function Home() {
                   className="text-3xl lg:text-5xl font-semibold text-sidebar-foreground tracking-tight animate-fade-in-up"
                   style={{ fontFamily: 'var(--font-instrument-serif)' }}
                 >
-                  Ready to streamline your
+                  {t('landing.cta.title')}
                   <br />
                   <span className="bg-gradient-to-r from-warm to-primary bg-clip-text text-transparent">
-                    localization workflow?
+                    {t('landing.cta.titleHighlight')}
                   </span>
                 </h2>
                 <p className="text-sidebar-foreground/70 text-lg animate-fade-in-up stagger-1">
-                  Join teams who trust LocaleFlow for their translation management.
-                  Self-hosted, open source, and privacy-first.
+                  {t('landing.cta.description')}
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-fade-in-up stagger-2">
                   <Link href="/register">
                     <Button size="lg" className="h-12 px-8 gap-2 text-base bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90 shadow-xl">
-                      Get started free
+                      {t('landing.cta.getStartedFree')}
                       <ArrowRight className="size-4" />
                     </Button>
                   </Link>
                   <Link href="/docs">
                     <Button variant="outline" size="lg" className="h-12 px-8 text-base border-sidebar-foreground/20 text-sidebar-foreground hover:bg-sidebar-foreground/10">
-                      Read the docs
+                      {t('landing.cta.readTheDocs')}
                     </Button>
                   </Link>
                 </div>
@@ -531,39 +545,38 @@ export default function Home() {
                 <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-primary-foreground">
                   <Languages className="size-5" />
                 </div>
-                <span className="text-xl font-semibold">LocaleFlow</span>
+                <span className="text-xl font-semibold">{t('landing.brand')}</span>
               </Link>
               <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
-                Open source translation management platform for modern development teams.
-                Self-hosted, privacy-first.
+                {t('landing.footer.description')}
               </p>
             </div>
 
             {/* Project */}
             <div>
-              <h4 className="font-semibold mb-4">Project</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.project')}</h4>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link href="https://github.com/localeflow/localeflow" className="hover:text-foreground transition-colors">GitHub</Link></li>
-                <li><Link href="https://github.com/localeflow/localeflow/issues" className="hover:text-foreground transition-colors">Issues</Link></li>
-                <li><Link href="https://github.com/localeflow/localeflow/discussions" className="hover:text-foreground transition-colors">Discussions</Link></li>
+                <li><Link href="https://github.com/localeflow/localeflow" className="hover:text-foreground transition-colors">{t('landing.footer.github')}</Link></li>
+                <li><Link href="https://github.com/localeflow/localeflow/issues" className="hover:text-foreground transition-colors">{t('landing.footer.issues')}</Link></li>
+                <li><Link href="https://github.com/localeflow/localeflow/discussions" className="hover:text-foreground transition-colors">{t('landing.footer.discussions')}</Link></li>
               </ul>
             </div>
 
             {/* Resources */}
             <div>
-              <h4 className="font-semibold mb-4">Resources</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.resources')}</h4>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link href="/docs" className="hover:text-foreground transition-colors">Documentation</Link></li>
-                <li><Link href="https://github.com/localeflow/localeflow#readme" className="hover:text-foreground transition-colors">README</Link></li>
-                <li><Link href="https://github.com/localeflow/localeflow/blob/main/CONTRIBUTING.md" className="hover:text-foreground transition-colors">Contributing</Link></li>
+                <li><Link href="/docs" className="hover:text-foreground transition-colors">{t('landing.footer.documentation')}</Link></li>
+                <li><Link href="https://github.com/localeflow/localeflow#readme" className="hover:text-foreground transition-colors">{t('landing.footer.readme')}</Link></li>
+                <li><Link href="https://github.com/localeflow/localeflow/blob/main/CONTRIBUTING.md" className="hover:text-foreground transition-colors">{t('landing.footer.contributing')}</Link></li>
               </ul>
             </div>
 
             {/* Legal */}
             <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.legal')}</h4>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><Link href="https://github.com/localeflow/localeflow/blob/main/LICENSE" className="hover:text-foreground transition-colors">MIT License</Link></li>
+                <li><Link href="https://github.com/localeflow/localeflow/blob/main/LICENSE" className="hover:text-foreground transition-colors">{t('landing.footer.mitLicense')}</Link></li>
               </ul>
             </div>
           </div>
@@ -571,7 +584,7 @@ export default function Home() {
           {/* Bottom */}
           <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} LocaleFlow. Open source under MIT License.
+              {t('landing.footer.copyright', { year: new Date().getFullYear() })}
             </p>
             <div className="flex items-center gap-4">
               <Link href="https://github.com/localeflow" className="text-muted-foreground hover:text-foreground transition-colors">

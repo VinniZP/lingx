@@ -19,6 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface GlossaryPanelProps {
   projectId: string;
@@ -41,6 +42,7 @@ export function GlossaryPanel({
   onApplyMatch,
   isVisible = true,
 }: GlossaryPanelProps) {
+  const { t } = useTranslation();
   const [debouncedSourceText, setDebouncedSourceText] = useState(sourceText);
   const [appliedId, setAppliedId] = useState<string | null>(null);
 
@@ -89,17 +91,17 @@ export function GlossaryPanel({
       <div className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <BookOpen className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Glossary</span>
+          <span className="text-sm font-medium">{t('translations.glossaryPanel.title')}</span>
         </div>
         <div className="rounded-lg border border-dashed border-border p-4 text-center">
           <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
             <Sparkles className="size-5 text-muted-foreground" />
           </div>
           <p className="text-xs text-muted-foreground">
-            Enter source text to see
+            {t('translations.glossaryPanel.enterSourceText')}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-1">
-            matching terminology
+            {t('translations.glossaryPanel.matchingTerminology')}
           </p>
         </div>
       </div>
@@ -114,7 +116,7 @@ export function GlossaryPanel({
     <div className="p-4">
       <div className="flex items-center gap-2 mb-3">
         <BookOpen className="size-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Glossary</span>
+        <span className="text-sm font-medium">{t('translations.glossaryPanel.title')}</span>
         {isLoading && <Loader2 className="size-3 animate-spin text-muted-foreground" />}
         {matches.length > 0 && (
           <Badge variant="secondary" className="text-xs">
@@ -127,7 +129,7 @@ export function GlossaryPanel({
       {isLoading && matches.length === 0 && (
         <div className="rounded-lg border border-dashed border-border p-4 text-center">
           <Loader2 className="size-5 animate-spin text-muted-foreground mx-auto mb-2" />
-          <p className="text-xs text-muted-foreground">Searching glossary...</p>
+          <p className="text-xs text-muted-foreground">{t('translations.glossaryPanel.searchingGlossary')}</p>
         </div>
       )}
 
@@ -137,9 +139,9 @@ export function GlossaryPanel({
           <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
             <BookOpen className="size-5 text-muted-foreground" />
           </div>
-          <p className="text-xs text-muted-foreground">No terms found</p>
+          <p className="text-xs text-muted-foreground">{t('translations.glossaryPanel.noTermsFound')}</p>
           <p className="text-xs text-muted-foreground/70 mt-1">
-            Add terms in Settings → Glossary
+            {t('translations.glossaryPanel.addTermsHint')}
           </p>
         </div>
       )}
@@ -151,7 +153,7 @@ export function GlossaryPanel({
           {exactMatches.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Exact Matches
+                {t('translations.glossaryPanel.exactMatches')}
               </div>
               {exactMatches.map((match) => (
                 <TermCard
@@ -168,7 +170,7 @@ export function GlossaryPanel({
           {partialMatches.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Term Found in Text
+                {t('translations.glossaryPanel.termFoundInText')}
               </div>
               {partialMatches.map((match) => (
                 <TermCard
@@ -193,6 +195,7 @@ interface TermCardProps {
 }
 
 function TermCard({ match, onApply, isApplied }: TermCardProps) {
+  const { t } = useTranslation();
   const isExact = match.matchType === 'exact';
 
   // Format part of speech for display
@@ -217,7 +220,7 @@ function TermCard({ match, onApply, isApplied }: TermCardProps) {
                     Aa
                   </Badge>
                 </TooltipTrigger>
-                <TooltipContent>Case sensitive</TooltipContent>
+                <TooltipContent>{t('translations.glossaryPanel.caseSensitive')}</TooltipContent>
               </Tooltip>
             )}
           </div>
@@ -247,7 +250,7 @@ function TermCard({ match, onApply, isApplied }: TermCardProps) {
               : 'bg-primary/10 text-primary border border-primary/20'
           )}
         >
-          {isExact ? 'exact' : 'found'}
+          {isExact ? t('translations.glossaryPanel.exact') : t('translations.glossaryPanel.found')}
         </span>
       </div>
 
@@ -276,12 +279,12 @@ function TermCard({ match, onApply, isApplied }: TermCardProps) {
         {isApplied ? (
           <>
             <CheckCircle2 className="size-4 text-success" />
-            Applied
+            {t('translations.glossaryPanel.applied')}
           </>
         ) : (
           <>
             <Copy className="size-4" />
-            Apply Term
+            {t('translations.glossaryPanel.applyTerm')}
           </>
         )}
       </Button>

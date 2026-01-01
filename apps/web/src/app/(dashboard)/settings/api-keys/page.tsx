@@ -42,6 +42,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 /**
  * ApiKeysPage - Premium redesigned API keys management
@@ -54,6 +55,7 @@ import { cn } from '@/lib/utils';
  * - Consistent button styling (primary purple)
  */
 export default function ApiKeysPage() {
+  const { t } = useTranslation();
   const { isManager, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -84,14 +86,14 @@ export default function ApiKeysPage() {
     onSuccess: (data) => {
       setNewKey(data.key);
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
-      toast.success('API key created successfully', {
-        description: 'Copy it now - it won\'t be shown again.',
+      toast.success(t('apiKeys.createdSuccess'), {
+        description: t('apiKeys.copyWarning'),
       });
     },
     onError: (error: ApiError) => {
       // Only show toast if no field errors (field errors show in the dialog)
       if (!error.fieldErrors?.length) {
-        toast.error('Failed to create API key', {
+        toast.error(t('apiKeys.createFailed'), {
           description: error.message,
         });
       }
@@ -104,12 +106,12 @@ export default function ApiKeysPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
-      toast.success('API key revoked', {
-        description: 'The key can no longer be used for authentication.',
+      toast.success(t('apiKeys.revokedSuccess'), {
+        description: t('apiKeys.revokedDescription'),
       });
     },
     onError: (error: ApiError) => {
-      toast.error('Failed to revoke API key', {
+      toast.error(t('apiKeys.revokeFailed'), {
         description: error.message,
       });
     },
@@ -125,10 +127,10 @@ export default function ApiKeysPage() {
     try {
       await navigator.clipboard.writeText(newKey);
       setCopied(true);
-      toast.success('Copied to clipboard');
+      toast.success(t('apiKeys.copiedToClipboard'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy to clipboard');
+      toast.error(t('apiKeys.copyFailed'));
     }
   };
 
@@ -142,7 +144,7 @@ export default function ApiKeysPage() {
               <Languages className="w-5 h-5 text-primary animate-pulse" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t('apiKeys.loading')}</p>
         </div>
       </div>
     );
@@ -178,24 +180,24 @@ export default function ApiKeysPage() {
                 <ArrowLeft className="size-4" />
               </Link>
               <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight">
-                API Keys
+                {t('apiKeys.pageTitle')}
               </h1>
             </div>
             <p className="text-muted-foreground">
-              Generate and manage API keys for CLI and SDK authentication
+              {t('apiKeys.pageDescription')}
             </p>
           </div>
 
           {/* Stats */}
           <div className="flex items-center gap-6 sm:gap-8 pt-4 sm:pt-0 border-t sm:border-t-0 sm:border-l border-border sm:pl-8">
             <StatPill
-              label="Active"
+              label={t('apiKeys.stats.active')}
               value={isLoading ? '-' : activeKeys.length}
               highlight={activeKeys.length > 0}
             />
             <div className="w-px h-8 bg-border hidden sm:block" />
             <StatPill
-              label="Total"
+              label={t('apiKeys.stats.total')}
               value={isLoading ? '-' : apiKeys.length}
             />
           </div>
@@ -209,7 +211,7 @@ export default function ApiKeysPage() {
             data-testid="generate-key-button"
           >
             <Plus className="size-4" />
-            Generate New Key
+            {t('apiKeys.generateNew')}
           </Button>
         </div>
       </div>
@@ -223,9 +225,9 @@ export default function ApiKeysPage() {
                 <Key className="size-5 text-warm" />
               </div>
               <div>
-                <h3 className="font-semibold">New API Key Created</h3>
+                <h3 className="font-semibold">{t('apiKeys.newKeyCreated')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Copy this key now - it will not be shown again
+                  {t('apiKeys.copyKeyNow')}
                 </p>
               </div>
             </div>
@@ -262,7 +264,7 @@ export default function ApiKeysPage() {
 
           <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
             <AlertTriangle className="size-4 text-warm shrink-0" />
-            <span>Store this key securely. You will not be able to see it again.</span>
+            <span>{t('apiKeys.storeSecurely')}</span>
           </div>
         </div>
       )}
@@ -275,10 +277,10 @@ export default function ApiKeysPage() {
           <div className="space-y-3 animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Active Keys
+                {t('apiKeys.activeKeys')}
               </h2>
               <span className="text-xs text-muted-foreground">
-                {activeKeys.length} {activeKeys.length === 1 ? 'key' : 'keys'}
+                {activeKeys.length} {activeKeys.length === 1 ? t('apiKeys.key') : t('apiKeys.keys')}
               </span>
             </div>
 
@@ -293,13 +295,13 @@ export default function ApiKeysPage() {
                   <div className="size-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <Key className="size-6 text-muted-foreground" />
                   </div>
-                  <p className="text-muted-foreground mb-4">No active API keys</p>
+                  <p className="text-muted-foreground mb-4">{t('apiKeys.noActiveKeys')}</p>
                   <Button
                     variant="outline"
                     onClick={() => setShowCreateDialog(true)}
                     className="h-11"
                   >
-                    Generate your first key
+                    {t('apiKeys.generateFirst')}
                   </Button>
                 </div>
               ) : (
@@ -320,10 +322,10 @@ export default function ApiKeysPage() {
             <div className="space-y-3 animate-fade-in-up stagger-3">
               <div className="flex items-center justify-between px-1">
                 <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Revoked Keys
+                  {t('apiKeys.revokedKeys')}
                 </h2>
                 <span className="text-xs text-muted-foreground">
-                  {revokedKeys.length} {revokedKeys.length === 1 ? 'key' : 'keys'}
+                  {revokedKeys.length} {revokedKeys.length === 1 ? t('apiKeys.key') : t('apiKeys.keys')}
                 </span>
               </div>
 
@@ -337,7 +339,7 @@ export default function ApiKeysPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-medium truncate">{key.name}</p>
                         <Badge variant="destructive" className="text-[10px] font-medium">
-                          Revoked
+                          {t('apiKeys.revoked')}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground font-mono mt-0.5">
@@ -359,26 +361,26 @@ export default function ApiKeysPage() {
           {/* Security Tips */}
           <div className="space-y-3 animate-fade-in-up stagger-3">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              Security Best Practices
+              {t('apiKeys.securityTips.title')}
             </h2>
             <div className="island divide-y divide-border">
               <SecurityTip
                 icon={Shield}
                 status="info"
-                title="Keep Keys Secret"
-                description="Never commit API keys to version control"
+                title={t('apiKeys.securityTips.keepSecret')}
+                description={t('apiKeys.securityTips.keepSecretDesc')}
               />
               <SecurityTip
                 icon={RotateCcw}
                 status="warning"
-                title="Rotate Regularly"
-                description="Rotate keys every 90 days for better security"
+                title={t('apiKeys.securityTips.rotateRegularly')}
+                description={t('apiKeys.securityTips.rotateRegularlyDesc')}
               />
               <SecurityTip
                 icon={Clock}
                 status="good"
-                title="Monitor Usage"
-                description="Check 'Last Used' to detect unauthorized access"
+                title={t('apiKeys.securityTips.monitorUsage')}
+                description={t('apiKeys.securityTips.monitorUsageDesc')}
               />
             </div>
           </div>
@@ -386,26 +388,26 @@ export default function ApiKeysPage() {
           {/* Documentation Links */}
           <div className="space-y-3 animate-fade-in-up stagger-4">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-              Documentation
+              {t('apiKeys.docs.title')}
             </h2>
             <div className="island divide-y divide-border">
               <ResourceLink
                 href="https://docs.localeflow.dev/cli"
                 icon={Terminal}
-                title="CLI Setup Guide"
-                description="Configure the command-line tool"
+                title={t('apiKeys.docs.cliSetup')}
+                description={t('apiKeys.docs.cliSetupDesc')}
               />
               <ResourceLink
                 href="https://docs.localeflow.dev/sdk"
                 icon={BookOpen}
-                title="SDK Integration"
-                description="Integrate with your application"
+                title={t('apiKeys.docs.sdkIntegration')}
+                description={t('apiKeys.docs.sdkIntegrationDesc')}
               />
               <ResourceLink
                 href="https://docs.localeflow.dev/api"
                 icon={Key}
-                title="REST API Reference"
-                description="Full API documentation"
+                title={t('apiKeys.docs.apiReference')}
+                description={t('apiKeys.docs.apiReferenceDesc')}
               />
             </div>
           </div>
@@ -469,6 +471,7 @@ function ApiKeyRow({
   onRevoke: () => void;
   isRevoking: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="p-4 flex items-center gap-4 group">
       <div className="size-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
@@ -479,7 +482,7 @@ function ApiKeyRow({
         <div className="flex items-center gap-2">
           <p className="font-medium truncate">{apiKey.name}</p>
           <Badge className="bg-success/10 text-success border-success/20 text-[10px] font-medium">
-            Active
+            {t('apiKeys.stats.active')}
           </Badge>
         </div>
         <div className="flex items-center gap-3 mt-0.5">
@@ -487,10 +490,10 @@ function ApiKeyRow({
             {apiKey.keyPrefix}...
           </code>
           <span className="text-xs text-muted-foreground hidden sm:inline">
-            · Last used:{' '}
+            · {t('apiKeys.lastUsed')}{' '}
             {apiKey.lastUsedAt
               ? formatDistanceToNow(new Date(apiKey.lastUsedAt), { addSuffix: true })
-              : 'Never'}
+              : t('apiKeys.never')}
           </span>
         </div>
       </div>
@@ -513,7 +516,7 @@ function ApiKeyRow({
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Revoke API Key?</AlertDialogTitle>
+              <AlertDialogTitle>{t('apiKeys.revokeDialog.title')}</AlertDialogTitle>
               <AlertDialogDescription>
                 This will permanently revoke the API key{' '}
                 <strong>{apiKey.name}</strong>. Any applications using this key
@@ -522,12 +525,12 @@ function ApiKeyRow({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="h-11">Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="h-11">{t('apiKeys.revokeDialog.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={onRevoke}
                 className="h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {isRevoking ? 'Revoking...' : 'Revoke Key'}
+                {isRevoking ? t('apiKeys.revokeDialog.revoking') : t('apiKeys.revokeDialog.confirm')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

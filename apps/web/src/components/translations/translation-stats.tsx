@@ -4,6 +4,7 @@ import type { ProjectLanguage } from '@localeflow/shared';
 import { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { TrendingUp, Clock, Languages } from 'lucide-react';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 // Language flags mapping
 const LANGUAGE_FLAGS: Record<string, string> = {
@@ -34,6 +35,8 @@ export function TranslationStats({
   languages,
   getTranslationValue,
 }: TranslationStatsProps) {
+  const { t } = useTranslation();
+
   // Calculate stats per language
   const languageStats = languages.map((lang) => {
     const translatedCount = keys.filter(
@@ -70,12 +73,12 @@ export function TranslationStats({
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-lg flex items-center gap-2">
           <TrendingUp className="size-5 text-primary" />
-          Translation Coverage
+          {t('translations.stats.translationCoverage')}
         </h3>
         <div className="flex items-center gap-2">
           <div className="size-3 rounded-full bg-success" />
           <span className="text-sm text-muted-foreground">
-            {overallPercentage}% complete
+            {t('translations.stats.percentComplete', { percent: overallPercentage })}
           </span>
         </div>
       </div>
@@ -113,7 +116,7 @@ export function TranslationStats({
         <div className="pt-4 border-t border-border/50">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="size-4" />
-            <span>Last updated:</span>
+            <span>{t('translations.stats.lastUpdated')}</span>
             <span className="font-mono text-foreground">{recentKey.name}</span>
             <span>
               {new Date(recentKey.updatedAt).toLocaleDateString('en-US', {
@@ -131,15 +134,15 @@ export function TranslationStats({
       <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
         <div className="text-center">
           <div className="text-2xl font-bold text-foreground">{keys.length}</div>
-          <div className="text-xs text-muted-foreground">Total Keys</div>
+          <div className="text-xs text-muted-foreground">{t('translations.stats.totalKeys')}</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-foreground">{languages.length}</div>
-          <div className="text-xs text-muted-foreground">Languages</div>
+          <div className="text-xs text-muted-foreground">{t('translations.stats.languages')}</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-success">{overallPercentage}%</div>
-          <div className="text-xs text-muted-foreground">Complete</div>
+          <div className="text-xs text-muted-foreground">{t('translations.stats.complete')}</div>
         </div>
       </div>
     </div>

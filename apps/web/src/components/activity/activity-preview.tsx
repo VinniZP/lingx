@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useActivityChanges } from '@/hooks';
 import type { Activity, ActivityPreviewItem, ActivityChange } from '@localeflow/shared';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface ActivityPreviewProps {
   activity: Activity;
@@ -21,6 +22,7 @@ interface ActivityPreviewProps {
  * Preview content for activity HoverCard with GitHub-style diffs.
  */
 export function ActivityPreview({ activity, className }: ActivityPreviewProps) {
+  const { t } = useTranslation();
   const { metadata, count } = activity;
   const preview = metadata?.preview || [];
 
@@ -51,7 +53,7 @@ export function ActivityPreview({ activity, className }: ActivityPreviewProps) {
     return (
       <div className={cn('flex items-center justify-center gap-2 text-xs text-muted-foreground py-6', className)}>
         <Loader2 className="size-3.5 animate-spin" />
-        <span>Loading...</span>
+        <span>{t('activity.preview.loading')}</span>
       </div>
     );
   }
@@ -77,7 +79,7 @@ export function ActivityPreview({ activity, className }: ActivityPreviewProps) {
       {/* Remaining count */}
       {remainingChanges > 0 && (
         <div className="text-[11px] text-muted-foreground/70 text-center pt-1">
-          +{remainingChanges} more
+          {t('activity.preview.andMore', { count: remainingChanges })}
         </div>
       )}
     </div>
@@ -88,6 +90,7 @@ export function ActivityPreview({ activity, className }: ActivityPreviewProps) {
  * Mini GitHub-style diff item for preview.
  */
 function PreviewDiffItem({ item }: { item: ActivityPreviewItem }) {
+  const { t } = useTranslation();
   const truncate = (value: string | undefined, maxLength: number = 35) => {
     if (!value) return null;
     return value.length > maxLength ? `${value.slice(0, maxLength)}…` : value;
@@ -119,14 +122,14 @@ function PreviewDiffItem({ item }: { item: ActivityPreviewItem }) {
         {(item.oldValue || !isAddition) && (
           <div className="flex gap-1.5 px-2 py-0.5 bg-destructive/8 text-foreground/60">
             <span className="text-destructive/70 select-none">−</span>
-            <span className="truncate">{truncate(item.oldValue) || 'empty'}</span>
+            <span className="truncate">{truncate(item.oldValue) || t('activity.preview.empty')}</span>
           </div>
         )}
         {/* New value */}
         {(item.newValue || !isDeletion) && (
           <div className="flex gap-1.5 px-2 py-0.5 bg-success/8 text-foreground/80">
             <span className="text-success/70 select-none">+</span>
-            <span className="truncate">{truncate(item.newValue) || 'empty'}</span>
+            <span className="truncate">{truncate(item.newValue) || t('activity.preview.empty')}</span>
           </div>
         )}
       </div>
@@ -138,64 +141,65 @@ function PreviewDiffItem({ item }: { item: ActivityPreviewItem }) {
  * Metadata preview for non-groupable activities.
  */
 function ActivityMetadataPreview({ activity }: { activity: Activity }) {
+  const { t } = useTranslation();
   const { type, metadata, count } = activity;
 
   const items: Array<{ label: string; value: string }> = [];
 
   switch (type) {
     case 'branch_create':
-      if (metadata?.branchName) items.push({ label: 'Branch', value: metadata.branchName });
+      if (metadata?.branchName) items.push({ label: t('activity.preview.metadata.branch'), value: metadata.branchName });
       if (metadata?.sourceBranchName)
-        items.push({ label: 'From', value: metadata.sourceBranchName });
+        items.push({ label: t('activity.preview.metadata.from'), value: metadata.sourceBranchName });
       break;
 
     case 'branch_delete':
-      if (metadata?.branchName) items.push({ label: 'Branch', value: metadata.branchName });
+      if (metadata?.branchName) items.push({ label: t('activity.preview.metadata.branch'), value: metadata.branchName });
       break;
 
     case 'merge':
       if (metadata?.sourceBranchName)
-        items.push({ label: 'Source', value: metadata.sourceBranchName });
+        items.push({ label: t('activity.preview.metadata.source'), value: metadata.sourceBranchName });
       if (metadata?.targetBranchName)
-        items.push({ label: 'Target', value: metadata.targetBranchName });
+        items.push({ label: t('activity.preview.metadata.target'), value: metadata.targetBranchName });
       if (metadata?.conflictsResolved !== undefined)
-        items.push({ label: 'Conflicts resolved', value: String(metadata.conflictsResolved) });
+        items.push({ label: t('activity.preview.metadata.conflictsResolved'), value: String(metadata.conflictsResolved) });
       break;
 
     case 'import':
-      if (metadata?.fileName) items.push({ label: 'File', value: metadata.fileName });
-      if (metadata?.keyCount) items.push({ label: 'Keys', value: String(metadata.keyCount) });
+      if (metadata?.fileName) items.push({ label: t('activity.preview.metadata.file'), value: metadata.fileName });
+      if (metadata?.keyCount) items.push({ label: t('activity.preview.metadata.keys'), value: String(metadata.keyCount) });
       if (metadata?.languages?.length)
-        items.push({ label: 'Languages', value: metadata.languages.join(', ').toUpperCase() });
+        items.push({ label: t('activity.preview.metadata.languages'), value: metadata.languages.join(', ').toUpperCase() });
       break;
 
     case 'export':
-      if (metadata?.format) items.push({ label: 'Format', value: metadata.format });
-      if (metadata?.keyCount) items.push({ label: 'Keys', value: String(metadata.keyCount) });
+      if (metadata?.format) items.push({ label: t('activity.preview.metadata.format'), value: metadata.format });
+      if (metadata?.keyCount) items.push({ label: t('activity.preview.metadata.keys'), value: String(metadata.keyCount) });
       break;
 
     case 'project_settings':
       if (metadata?.changedFields?.length)
-        items.push({ label: 'Changed', value: metadata.changedFields.join(', ') });
+        items.push({ label: t('activity.preview.metadata.changed'), value: metadata.changedFields.join(', ') });
       break;
 
     case 'environment_create':
     case 'environment_delete':
       if (metadata?.environmentName)
-        items.push({ label: 'Environment', value: metadata.environmentName });
+        items.push({ label: t('activity.preview.metadata.environment'), value: metadata.environmentName });
       break;
 
     case 'environment_switch_branch':
       if (metadata?.environmentName)
-        items.push({ label: 'Environment', value: metadata.environmentName });
-      if (metadata?.oldBranchName) items.push({ label: 'From', value: metadata.oldBranchName });
-      if (metadata?.newBranchName) items.push({ label: 'To', value: metadata.newBranchName });
+        items.push({ label: t('activity.preview.metadata.environment'), value: metadata.environmentName });
+      if (metadata?.oldBranchName) items.push({ label: t('activity.preview.metadata.from'), value: metadata.oldBranchName });
+      if (metadata?.newBranchName) items.push({ label: t('activity.preview.metadata.to'), value: metadata.newBranchName });
       break;
 
     case 'ai_translate':
-      if (metadata?.keyCount) items.push({ label: 'Keys', value: String(metadata.keyCount) });
+      if (metadata?.keyCount) items.push({ label: t('activity.preview.metadata.keys'), value: String(metadata.keyCount) });
       if (metadata?.languages?.length)
-        items.push({ label: 'Languages', value: metadata.languages.join(', ').toUpperCase() });
+        items.push({ label: t('activity.preview.metadata.languages'), value: metadata.languages.join(', ').toUpperCase() });
       break;
   }
 
@@ -203,14 +207,14 @@ function ActivityMetadataPreview({ activity }: { activity: Activity }) {
   if (items.length === 0 && count > 0) {
     return (
       <div className="text-xs text-muted-foreground">
-        <p className="italic mb-2">Click "View all" to see {count} change{count !== 1 ? 's' : ''}</p>
+        <p className="italic mb-2">{t('activity.preview.viewAllHint', { count })}</p>
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="text-xs text-muted-foreground italic">No details available</div>
+      <div className="text-xs text-muted-foreground italic">{t('activity.preview.noDetails')}</div>
     );
   }
 

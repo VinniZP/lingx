@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Edit, Save, Loader2 } from 'lucide-react';
 import { TranslationMemoryPanel } from './translation-memory-panel';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 // Language flags mapping
 const LANGUAGE_FLAGS: Record<string, string> = {
@@ -50,6 +51,7 @@ export function TranslationEditor({
   hasUnsavedChanges,
   isSaving,
 }: TranslationEditorProps) {
+  const { t } = useTranslation();
   const [focusedLanguage, setFocusedLanguage] = useState<string | null>(null);
 
   // Get default language for TM source
@@ -70,7 +72,7 @@ export function TranslationEditor({
             <Edit className="size-7 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground">
-            Select a key from the list to edit translations
+            {t('translations.editor.selectKeyPrompt')}
           </p>
         </div>
       </div>
@@ -118,10 +120,10 @@ export function TranslationEditor({
               ) : (
                 <Save className="size-4" />
               )}
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? t('translations.editor.saving') : t('translations.editor.saveChanges')}
             </Button>
             <span className="text-xs text-muted-foreground">
-              Unsaved changes
+              {t('translations.editor.unsavedChanges')}
             </span>
           </div>
         )}
@@ -140,7 +142,7 @@ export function TranslationEditor({
                 <span className="font-medium text-sm">{lang.name}</span>
                 {lang.isDefault && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-warning/10 text-warning border border-warning/20">
-                    default
+                    {t('translations.editor.default')}
                   </span>
                 )}
               </div>
@@ -150,7 +152,7 @@ export function TranslationEditor({
                   onTranslationChange(translationKey.id, lang.code, e.target.value)
                 }
                 onFocus={() => setFocusedLanguage(lang.code)}
-                placeholder={`Enter ${lang.name} translation...`}
+                placeholder={t('translations.editor.enterTranslationPlaceholder', { language: lang.name })}
                 className={cn(
                   'min-h-[80px] resize-none',
                   !value && 'border-warning/30 bg-warning/5'

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, X, Edit2, ArrowRight, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import type { ConflictEntry } from '@localeflow/shared';
 import type { Resolution } from '@/lib/api';
 
@@ -25,6 +26,7 @@ export function ConflictResolver({
   onResolve,
   onClearResolution,
 }: ConflictResolverProps) {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [activeConflict, setActiveConflict] = useState<string | null>(
     conflicts[0]?.key || null
@@ -80,7 +82,7 @@ export function ConflictResolver({
         <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-slate-700">
-              Conflicts to Resolve
+              {t('branch.conflictResolver.conflictsToResolve')}
             </h3>
             <span className="text-sm font-medium text-slate-600">
               {resolvedCount}/{totalCount}
@@ -103,12 +105,13 @@ export function ConflictResolver({
               className="h-11 w-11 shrink-0 touch-manipulation"
               onClick={goToPrevConflict}
               disabled={currentIndex === 0}
+              aria-label={t('branch.conflictResolver.previousConflict')}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1 text-center">
               <span className="text-sm text-slate-600">
-                Conflict {currentIndex + 1} of {totalCount}
+                {t('branch.conflictResolver.conflictOf', { current: currentIndex + 1, total: totalCount })}
               </span>
               <div className="font-mono text-sm font-semibold text-amber-700 truncate">
                 {currentConflict.key}
@@ -120,6 +123,7 @@ export function ConflictResolver({
               className="h-11 w-11 shrink-0 touch-manipulation"
               onClick={goToNextConflict}
               disabled={currentIndex === conflicts.length - 1}
+              aria-label={t('branch.conflictResolver.nextConflict')}
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -135,7 +139,7 @@ export function ConflictResolver({
                 <span className="truncate">{currentConflict.key}</span>
                 {resolutions.has(currentConflict.key) && (
                   <Badge className="bg-emerald-500 text-white shrink-0 ml-auto">
-                    Resolved
+                    {t('branch.conflictResolver.resolved')}
                   </Badge>
                 )}
               </CardTitle>
@@ -145,11 +149,11 @@ export function ConflictResolver({
                 <TabsList className="grid w-full grid-cols-2 h-11">
                   <TabsTrigger value="compare" className="gap-2 h-full touch-manipulation">
                     <ArrowRight className="h-4 w-4" />
-                    Compare
+                    {t('branch.conflictResolver.compare')}
                   </TabsTrigger>
                   <TabsTrigger value="custom" className="gap-2 h-full touch-manipulation">
                     <Edit2 className="h-4 w-4" />
-                    Custom
+                    {t('branch.conflictResolver.custom')}
                   </TabsTrigger>
                 </TabsList>
 
@@ -165,7 +169,7 @@ export function ConflictResolver({
                   >
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-semibold text-sm text-amber-700">
-                        Source (Incoming)
+                        {t('branch.conflictResolver.sourceIncoming')}
                       </h4>
                     </div>
                     <div className="space-y-3 mb-4">
@@ -204,10 +208,10 @@ export function ConflictResolver({
                       'source' ? (
                         <>
                           <Check className="h-4 w-4 mr-2" />
-                          Selected
+                          {t('branch.conflictResolver.selected')}
                         </>
                       ) : (
-                        'Use Source'
+                        t('branch.conflictResolver.useSource')
                       )}
                     </Button>
                   </div>
@@ -223,7 +227,7 @@ export function ConflictResolver({
                   >
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-semibold text-sm text-slate-600">
-                        Target (Current)
+                        {t('branch.conflictResolver.targetCurrent')}
                       </h4>
                     </div>
                     <div className="space-y-3 mb-4">
@@ -262,10 +266,10 @@ export function ConflictResolver({
                       'target' ? (
                         <>
                           <Check className="h-4 w-4 mr-2" />
-                          Selected
+                          {t('branch.conflictResolver.selected')}
                         </>
                       ) : (
-                        'Keep Target'
+                        t('branch.conflictResolver.keepTarget')
                       )}
                     </Button>
                   </div>
@@ -278,15 +282,14 @@ export function ConflictResolver({
                       className="w-full h-11 text-slate-500 hover:text-slate-700 touch-manipulation"
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Clear Resolution
+                      {t('branch.conflictResolver.clearResolution')}
                     </Button>
                   )}
                 </TabsContent>
 
                 <TabsContent value="custom" className="space-y-4">
                   <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    Create a custom resolution by editing values for each
-                    language.
+                    {t('branch.conflictResolver.customDescription')}
                   </p>
 
                   {!Object.keys(customValues).length ? (
@@ -297,7 +300,7 @@ export function ConflictResolver({
                         className="w-full h-11 touch-manipulation"
                       >
                         <Edit2 className="h-4 w-4 mr-2" />
-                        Start with Source Values
+                        {t('branch.conflictResolver.startWithSource')}
                       </Button>
                       <Button
                         variant="outline"
@@ -311,7 +314,7 @@ export function ConflictResolver({
                         className="w-full h-11 touch-manipulation"
                       >
                         <Edit2 className="h-4 w-4 mr-2" />
-                        Start with Target Values
+                        {t('branch.conflictResolver.startWithTarget')}
                       </Button>
                     </div>
                   ) : (
@@ -335,7 +338,7 @@ export function ConflictResolver({
                                 }))
                               }
                               className="mt-1.5 font-mono h-11"
-                              placeholder={`Enter ${lang} translation...`}
+                              placeholder={t('branch.conflictResolver.enterTranslation', { lang })}
                             />
                           </div>
                         ))}
@@ -348,14 +351,14 @@ export function ConflictResolver({
                           className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 touch-manipulation"
                         >
                           <Check className="h-4 w-4 mr-2" />
-                          Apply Custom Values
+                          {t('branch.conflictResolver.applyCustomValues')}
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => setCustomValues({})}
                           className="w-full h-11 touch-manipulation"
                         >
-                          Reset
+                          {t('branch.conflictResolver.reset')}
                         </Button>
                       </div>
                     </>
@@ -366,7 +369,7 @@ export function ConflictResolver({
                     <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                       <div className="flex items-center gap-2 text-emerald-700 font-medium text-sm">
                         <Check className="h-4 w-4" />
-                        Custom resolution applied
+                        {t('branch.conflictResolver.customResolutionApplied')}
                       </div>
                     </div>
                   )}
@@ -382,10 +385,10 @@ export function ConflictResolver({
             <CardContent className="py-12 text-center">
               <Check className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-700">
-                No Conflicts
+                {t('branch.conflictResolver.noConflicts')}
               </h3>
               <p className="text-slate-500 mt-1">
-                There are no conflicts to resolve.
+                {t('branch.conflictResolver.noConflictsDescription')}
               </p>
             </CardContent>
           </Card>
@@ -401,7 +404,7 @@ export function ConflictResolver({
       <div className="w-72 shrink-0">
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-slate-700 mb-2">
-            Conflicts to Resolve
+            {t('branch.conflictResolver.conflictsToResolve')}
           </h3>
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -463,11 +466,11 @@ export function ConflictResolver({
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="compare" className="gap-2">
                   <ArrowRight className="h-4 w-4" />
-                  Compare
+                  {t('branch.conflictResolver.compare')}
                 </TabsTrigger>
                 <TabsTrigger value="custom" className="gap-2">
                   <Edit2 className="h-4 w-4" />
-                  Custom Edit
+                  {t('branch.conflictResolver.customEdit')}
                 </TabsTrigger>
               </TabsList>
 
@@ -484,7 +487,7 @@ export function ConflictResolver({
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-semibold text-sm text-amber-700">
-                        Source (Incoming)
+                        {t('branch.conflictResolver.sourceIncoming')}
                       </h4>
                       <Button
                         size="sm"
@@ -506,10 +509,10 @@ export function ConflictResolver({
                         'source' ? (
                           <>
                             <Check className="h-4 w-4 mr-1" />
-                            Selected
+                            {t('branch.conflictResolver.selected')}
                           </>
                         ) : (
-                          'Use Source'
+                          t('branch.conflictResolver.useSource')
                         )}
                       </Button>
                     </div>
@@ -543,7 +546,7 @@ export function ConflictResolver({
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-semibold text-sm text-slate-600">
-                        Target (Current)
+                        {t('branch.conflictResolver.targetCurrent')}
                       </h4>
                       <Button
                         size="sm"
@@ -565,10 +568,10 @@ export function ConflictResolver({
                         'target' ? (
                           <>
                             <Check className="h-4 w-4 mr-1" />
-                            Selected
+                            {t('branch.conflictResolver.selected')}
                           </>
                         ) : (
-                          'Keep Target'
+                          t('branch.conflictResolver.keepTarget')
                         )}
                       </Button>
                     </div>
@@ -602,7 +605,7 @@ export function ConflictResolver({
                       className="text-slate-500 hover:text-slate-700"
                     >
                       <X className="h-4 w-4 mr-1" />
-                      Clear Resolution
+                      {t('branch.conflictResolver.clearResolution')}
                     </Button>
                   </div>
                 )}
@@ -610,8 +613,7 @@ export function ConflictResolver({
 
               <TabsContent value="custom" className="space-y-4">
                 <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  Create a custom resolution by editing values for each
-                  language. Start with source values or enter your own.
+                  {t('branch.conflictResolver.customDescriptionDesktop')}
                 </p>
 
                 {!Object.keys(customValues).length ? (
@@ -622,7 +624,7 @@ export function ConflictResolver({
                       className="flex-1"
                     >
                       <Edit2 className="h-4 w-4 mr-2" />
-                      Start with Source Values
+                      {t('branch.conflictResolver.startWithSource')}
                     </Button>
                     <Button
                       variant="outline"
@@ -636,7 +638,7 @@ export function ConflictResolver({
                       className="flex-1"
                     >
                       <Edit2 className="h-4 w-4 mr-2" />
-                      Start with Target Values
+                      {t('branch.conflictResolver.startWithTarget')}
                     </Button>
                   </div>
                 ) : (
@@ -660,7 +662,7 @@ export function ConflictResolver({
                               }))
                             }
                             className="mt-1.5 font-mono"
-                            placeholder={`Enter ${lang} translation...`}
+                            placeholder={t('branch.conflictResolver.enterTranslation', { lang })}
                           />
                         </div>
                       ))}
@@ -673,13 +675,13 @@ export function ConflictResolver({
                         className="bg-indigo-600 hover:bg-indigo-700"
                       >
                         <Check className="h-4 w-4 mr-2" />
-                        Apply Custom Values
+                        {t('branch.conflictResolver.applyCustomValues')}
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => setCustomValues({})}
                       >
-                        Reset
+                        {t('branch.conflictResolver.reset')}
                       </Button>
                     </div>
                   </>
@@ -690,7 +692,7 @@ export function ConflictResolver({
                   <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                     <div className="flex items-center gap-2 text-emerald-700 font-medium text-sm">
                       <Check className="h-4 w-4" />
-                      Custom resolution applied
+                      {t('branch.conflictResolver.customResolutionApplied')}
                     </div>
                   </div>
                 )}
@@ -706,10 +708,10 @@ export function ConflictResolver({
           <CardContent className="py-12 text-center">
             <Check className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-700">
-              No Conflicts
+              {t('branch.conflictResolver.noConflicts')}
             </h3>
             <p className="text-slate-500 mt-1">
-              There are no conflicts to resolve.
+              {t('branch.conflictResolver.noConflictsDescription')}
             </p>
           </CardContent>
         </Card>

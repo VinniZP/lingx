@@ -24,6 +24,7 @@ import {
 
 import type { TranslationKey } from '@/lib/api';
 import { Kbd } from '@/components/ui/kbd';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface TranslationCommandPaletteProps {
   open: boolean;
@@ -60,6 +61,7 @@ export function TranslationCommandPalette({
   onRejectKey,
   hasMT,
 }: TranslationCommandPaletteProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   // Get current key and translation
@@ -112,7 +114,7 @@ export function TranslationCommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Search keys or type a command..."
+        placeholder={t('translations.commandPalette.searchPlaceholder')}
         value={search}
         onValueChange={setSearch}
       />
@@ -122,13 +124,13 @@ export function TranslationCommandPalette({
         {/* Quick Actions - only show when a key is expanded */}
         {expandedKeyId && (
           <>
-            <CommandGroup heading="Quick Actions">
+            <CommandGroup heading={t('translations.commandPalette.quickActions')}>
               {hasMT && canDoLanguageActions && (
                 <CommandItem
                   onSelect={() => handleAction(() => onFetchMT(focusedLanguage!))}
                 >
                   <Zap className="text-primary" />
-                  <span>Translate current field</span>
+                  <span>{t('translations.commandPalette.translateCurrentField')}</span>
                   <CommandShortcut><Kbd>M</Kbd></CommandShortcut>
                 </CommandItem>
               )}
@@ -138,7 +140,7 @@ export function TranslationCommandPalette({
                   onSelect={() => handleAction(onFetchMTAll)}
                 >
                   <Languages className="text-primary" />
-                  <span>Translate all languages</span>
+                  <span>{t('translations.commandPalette.translateAllLanguages')}</span>
                 </CommandItem>
               )}
 
@@ -147,7 +149,7 @@ export function TranslationCommandPalette({
                   onSelect={() => handleAction(() => onCopyFromSource(focusedLanguage!))}
                 >
                   <Copy />
-                  <span>Copy from source</span>
+                  <span>{t('translations.commandPalette.copyFromSource')}</span>
                   <CommandShortcut><Kbd>D</Kbd></CommandShortcut>
                 </CommandItem>
               )}
@@ -158,13 +160,13 @@ export function TranslationCommandPalette({
                     onSelect={() => handleAction(() => onApprove(currentTranslation.id))}
                   >
                     <ThumbsUp className="text-success" />
-                    <span>Approve translation</span>
+                    <span>{t('translations.commandPalette.approveTranslation')}</span>
                   </CommandItem>
                   <CommandItem
                     onSelect={() => handleAction(() => onReject(currentTranslation.id))}
                   >
                     <ThumbsDown className="text-destructive" />
-                    <span>Reject translation</span>
+                    <span>{t('translations.commandPalette.rejectTranslation')}</span>
                   </CommandItem>
                 </>
               )}
@@ -173,22 +175,22 @@ export function TranslationCommandPalette({
               {keyTranslationsWithValues.length > 1 && (
                 <>
                   <CommandItem
-                    onSelect={() => handleAction(() => onApproveKey(keyTranslationsWithValues.map(t => t.id)))}
+                    onSelect={() => handleAction(() => onApproveKey(keyTranslationsWithValues.map(tr => tr.id)))}
                   >
                     <CheckCheck className="text-success" />
                     <div className="flex items-center gap-2">
-                      <span>Approve all translations</span>
+                      <span>{t('translations.commandPalette.approveAllTranslations')}</span>
                       <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-success/10 text-success text-[10px] font-semibold">
                         {keyTranslationsWithValues.length}
                       </span>
                     </div>
                   </CommandItem>
                   <CommandItem
-                    onSelect={() => handleAction(() => onRejectKey(keyTranslationsWithValues.map(t => t.id)))}
+                    onSelect={() => handleAction(() => onRejectKey(keyTranslationsWithValues.map(tr => tr.id)))}
                   >
                     <XCircle className="text-destructive" />
                     <div className="flex items-center gap-2">
-                      <span>Reject all translations</span>
+                      <span>{t('translations.commandPalette.rejectAllTranslations')}</span>
                       <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-destructive/10 text-destructive text-[10px] font-semibold">
                         {keyTranslationsWithValues.length}
                       </span>
@@ -202,7 +204,7 @@ export function TranslationCommandPalette({
         )}
 
         {/* Key Search */}
-        <CommandGroup heading="Jump to Key">
+        <CommandGroup heading={t('translations.commandPalette.jumpToKey')}>
           {filteredKeys.map((key) => (
             <CommandItem
               key={key.id}

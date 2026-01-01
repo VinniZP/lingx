@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils';
 
 export default function TwoFactorPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { pendingTwoFactor, verifyTwoFactor, verifyBackupCode, cancelTwoFactor } = useAuth();
 
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -92,14 +94,14 @@ export default function TwoFactorPage() {
       if (useBackupCode) {
         const codesRemaining = await verifyBackupCode(backupCode.toUpperCase(), trustDevice);
         if (codesRemaining <= 2) {
-          toast.warning(`Only ${codesRemaining} backup codes remaining. Consider regenerating them.`);
+          toast.warning(t('twoFactor.codesRemaining', { count: codesRemaining }));
         } else {
           toast.success('Welcome back!');
         }
       } else {
         const codeToVerify = fullCode || code.join('');
         if (codeToVerify.length !== 6) {
-          setError('Please enter all 6 digits');
+          setError(t('twoFactor.enterAllDigits'));
           setIsLoading(false);
           return;
         }
@@ -112,7 +114,7 @@ export default function TwoFactorPage() {
         const fieldErrorMsg = err.fieldErrors?.[0]?.message;
         setError(fieldErrorMsg || err.message);
       } else {
-        setError('Verification failed. Please try again.');
+        setError(t('twoFactor.verificationFailed'));
       }
       // Reset code on error
       if (!useBackupCode) {
@@ -136,7 +138,7 @@ export default function TwoFactorPage() {
         className="group inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
       >
         <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
-        <span>Back to login</span>
+        <span>{t('twoFactor.backToLogin')}</span>
       </button>
 
       {/* Header */}
@@ -145,12 +147,12 @@ export default function TwoFactorPage() {
           className="text-[2rem] font-semibold tracking-tight text-foreground"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
-          {useBackupCode ? 'Backup code' : 'Two-factor authentication'}
+          {useBackupCode ? t('twoFactor.backupCodeTitle') : t('twoFactor.title')}
         </h1>
         <p className="text-muted-foreground text-[15px] leading-relaxed">
           {useBackupCode
-            ? 'Enter one of your backup codes to sign in'
-            : 'Enter the 6-digit code from your authenticator app'}
+            ? t('twoFactor.enterBackupCode')
+            : t('twoFactor.enterCode')}
         </p>
       </div>
 
@@ -167,11 +169,11 @@ export default function TwoFactorPage() {
         {useBackupCode ? (
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              Backup code
+              {t('twoFactor.backupCode')}
             </label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50">
-                <KeyRound className="w-[18px] h-[18px]" />
+                <KeyRound className="size-4.5" />
               </div>
               <input
                 type="text"
@@ -180,7 +182,7 @@ export default function TwoFactorPage() {
                   setBackupCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8));
                   setError(null);
                 }}
-                placeholder="XXXXXXXX"
+                placeholder={t('twoFactor.backupCodePlaceholder')}
                 className="h-12 w-full pl-12 pr-4 bg-card border border-border/60 rounded-xl text-[15px] font-mono tracking-widest placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200"
                 autoFocus
                 disabled={isLoading}
@@ -190,7 +192,7 @@ export default function TwoFactorPage() {
         ) : (
           <div>
             <label className="text-sm font-medium text-foreground mb-3 block">
-              Verification code
+              {t('twoFactor.verificationCode')}
             </label>
             <div className="flex gap-2 sm:gap-3" onPaste={handlePaste}>
               {code.map((digit, index) => (
@@ -226,10 +228,10 @@ export default function TwoFactorPage() {
           />
           <div className="flex-1">
             <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors duration-200">
-              Remember this device
+              {t('twoFactor.rememberDevice')}
             </span>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Skip 2FA for 30 days on this device
+              {t('twoFactor.rememberDeviceDescription')}
             </p>
           </div>
         </label>
@@ -242,13 +244,13 @@ export default function TwoFactorPage() {
         >
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-[18px] w-[18px] animate-spin" />
-              Verifying...
+              <Loader2 className="mr-2 size-4.5 animate-spin" />
+              {t('twoFactor.verifying')}
             </>
           ) : (
             <>
-              Verify & Sign In
-              <ArrowRight className="ml-2 h-[18px] w-[18px]" />
+              {t('twoFactor.verifyAndSignIn')}
+              <ArrowRight className="ml-2 size-4.5" />
             </>
           )}
         </Button>
@@ -261,7 +263,7 @@ export default function TwoFactorPage() {
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-            {useBackupCode ? 'Have your app?' : 'Lost access?'}
+            {useBackupCode ? t('twoFactor.haveYourApp') : t('twoFactor.lostAccess')}
           </span>
         </div>
       </div>
@@ -279,13 +281,13 @@ export default function TwoFactorPage() {
         >
           {useBackupCode ? (
             <>
-              Use authenticator app
+              {t('twoFactor.useAuthenticatorApp')}
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </>
           ) : (
             <>
               <KeyRound className="h-4 w-4" />
-              Use a backup code
+              {t('twoFactor.useBackupCode')}
             </>
           )}
         </button>
@@ -293,9 +295,9 @@ export default function TwoFactorPage() {
 
       {/* Help text */}
       <p className="text-center text-sm text-muted-foreground">
-        Having trouble?{' '}
+        {t('twoFactor.havingTrouble')}{' '}
         <Link href="/help" className="text-primary hover:underline font-medium">
-          Get help
+          {t('twoFactor.getHelp')}
         </Link>
       </p>
     </div>

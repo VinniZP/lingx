@@ -17,6 +17,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import type {
   BranchDiffResponse,
   DiffEntry,
@@ -30,6 +31,7 @@ interface DiffViewProps {
 }
 
 export function DiffView({ diff, onConflictSelect }: DiffViewProps) {
+  const { t } = useTranslation();
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
@@ -57,7 +59,7 @@ export function DiffView({ diff, onConflictSelect }: DiffViewProps) {
       {/* Conflicts Section - Most important, shown first */}
       {diff.conflicts.length > 0 && (
         <DiffSection
-          title="Conflicts"
+          title={t('branch.diffView.conflicts')}
           count={diff.conflicts.length}
           icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
           isExpanded={expandedSections.conflicts}
@@ -77,7 +79,7 @@ export function DiffView({ diff, onConflictSelect }: DiffViewProps) {
       {/* Added Section */}
       {diff.added.length > 0 && (
         <DiffSection
-          title="Added"
+          title={t('branch.diffView.added')}
           count={diff.added.length}
           icon={<Plus className="h-4 w-4 text-emerald-600" />}
           isExpanded={expandedSections.added}
@@ -93,7 +95,7 @@ export function DiffView({ diff, onConflictSelect }: DiffViewProps) {
       {/* Modified Section */}
       {diff.modified.length > 0 && (
         <DiffSection
-          title="Modified"
+          title={t('branch.diffView.modified')}
           count={diff.modified.length}
           icon={<Pencil className="h-4 w-4 text-violet-600" />}
           isExpanded={expandedSections.modified}
@@ -109,7 +111,7 @@ export function DiffView({ diff, onConflictSelect }: DiffViewProps) {
       {/* Deleted Section */}
       {diff.deleted.length > 0 && (
         <DiffSection
-          title="Deleted"
+          title={t('branch.diffView.deleted')}
           count={diff.deleted.length}
           icon={<Trash2 className="h-4 w-4 text-rose-600" />}
           isExpanded={expandedSections.deleted}
@@ -130,10 +132,10 @@ export function DiffView({ diff, onConflictSelect }: DiffViewProps) {
               <ChevronRight className="h-12 w-12 mx-auto opacity-50" />
             </div>
             <p className="text-slate-600 font-medium">
-              No differences found between branches.
+              {t('branch.diffView.noDifferences')}
             </p>
             <p className="text-slate-500 text-sm mt-1">
-              Both branches contain identical translations.
+              {t('branch.diffView.branchesIdentical')}
             </p>
           </CardContent>
         </Card>
@@ -236,6 +238,7 @@ function AddedCard({ entry }: { entry: DiffEntry }) {
 }
 
 function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
 
   return (
@@ -251,7 +254,7 @@ function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
         <div className="rounded-md bg-gradient-to-br from-violet-50 to-indigo-50 p-3 border-l-4 border-violet-400">
           <div className="text-xs font-medium text-violet-600 mb-2 uppercase tracking-wide flex items-center gap-2">
             {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-violet-500" />}
-            Source (New)
+            {t('branch.diffView.sourceNew')}
           </div>
           <div className="space-y-2">
             {Object.entries(entry.source).map(([lang, value]) => (
@@ -272,7 +275,7 @@ function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
         <div className="rounded-md bg-slate-50 p-3 border-l-4 border-slate-300">
           <div className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
             {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />}
-            Target (Current)
+            {t('branch.diffView.targetCurrent')}
           </div>
           <div className="space-y-2">
             {Object.entries(entry.target).map(([lang, value]) => (
@@ -324,6 +327,7 @@ function ConflictCard({
   conflict: ConflictEntry;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
 
   return (
@@ -338,6 +342,7 @@ function ConflictCard({
           onSelect();
         }
       }}
+      aria-label={t('branch.diffView.selectConflict', { key: conflict.key })}
     >
       <div className="font-mono text-sm font-semibold text-amber-700 flex items-center gap-2 mb-3">
         <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -350,7 +355,7 @@ function ConflictCard({
         <div className="rounded-md bg-gradient-to-br from-amber-50 to-orange-50 p-3 border border-amber-200 border-l-4 border-l-amber-400">
           <div className="text-xs font-medium text-amber-600 mb-2 uppercase tracking-wide flex items-center gap-2">
             {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />}
-            Source (Incoming)
+            {t('branch.diffView.sourceIncoming')}
           </div>
           <div className="space-y-2">
             {Object.entries(conflict.source).map(([lang, value]) => (
@@ -371,7 +376,7 @@ function ConflictCard({
         <div className="rounded-md bg-slate-50 p-3 border border-slate-200 border-l-4 border-l-slate-300">
           <div className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
             {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />}
-            Target (Current)
+            {t('branch.diffView.targetCurrent')}
           </div>
           <div className="space-y-2">
             {Object.entries(conflict.target).map(([lang, value]) => (
@@ -392,7 +397,7 @@ function ConflictCard({
       {/* Touch-friendly action hint */}
       <div className="mt-3 flex items-center gap-2 text-xs text-amber-600">
         <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-100 min-h-[32px]">
-          {isMobile ? 'Tap to resolve' : 'Click to resolve this conflict'}
+          {isMobile ? t('branch.diffView.tapToResolve') : t('branch.diffView.clickToResolve')}
         </span>
       </div>
     </div>

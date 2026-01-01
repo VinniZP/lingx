@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Check, ChevronDown, Globe } from 'lucide-react';
-import { useLanguage } from '@localeflow/sdk-nextjs';
+import { useLanguage, useTranslation } from '@localeflow/sdk-nextjs';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -43,6 +43,7 @@ export function LanguagePicker({
   align = 'end',
   side = 'bottom',
 }: LanguagePickerProps) {
+  const { t } = useTranslation();
   const { language, setLanguage, isChanging, availableLanguages } = useLanguage();
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -125,7 +126,7 @@ export function LanguagePicker({
           <div className="flex items-center gap-2">
             <Globe className="size-4 text-primary" />
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Language
+              {t('nav.language')}
             </span>
           </div>
         </div>

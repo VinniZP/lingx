@@ -1,8 +1,9 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { profileApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,7 @@ import {
 type VerificationState = 'loading' | 'success' | 'error';
 
 function VerifyEmailContent() {
-  const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
@@ -27,7 +28,7 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) {
       setState('error');
-      setErrorMessage('Invalid verification link. No token provided.');
+      setErrorMessage(t('verifyEmail.invalidLink'));
       return;
     }
 
@@ -41,13 +42,13 @@ function VerifyEmailContent() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : 'Failed to verify email. The link may have expired.'
+            : t('verifyEmail.expiredLink')
         );
       }
     }
 
     verifyEmail();
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div className="island p-8 text-center">
@@ -56,9 +57,9 @@ function VerifyEmailContent() {
           <div className="size-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
             <Loader2 className="size-8 text-primary animate-spin" />
           </div>
-          <h1 className="text-2xl font-semibold mb-2">Verifying Email</h1>
+          <h1 className="text-2xl font-semibold mb-2">{t('verifyEmail.verifying')}</h1>
           <p className="text-muted-foreground">
-            Please wait while we verify your email address...
+            {t('verifyEmail.pleaseWait')}
           </p>
         </div>
       )}
@@ -68,9 +69,9 @@ function VerifyEmailContent() {
           <div className="size-16 mx-auto rounded-2xl bg-success/10 flex items-center justify-center mb-6">
             <CheckCircle2 className="size-8 text-success" />
           </div>
-          <h1 className="text-2xl font-semibold mb-2">Email Verified!</h1>
+          <h1 className="text-2xl font-semibold mb-2">{t('verifyEmail.verified')}</h1>
           <p className="text-muted-foreground mb-2">
-            Your email has been successfully changed to:
+            {t('verifyEmail.successMessage')}
           </p>
           <p className="font-medium text-lg mb-6 flex items-center justify-center gap-2">
             <Mail className="size-5 text-primary" />
@@ -78,7 +79,7 @@ function VerifyEmailContent() {
           </p>
           <Button asChild className="gap-2">
             <Link href="/settings/profile">
-              Go to Profile
+              {t('verifyEmail.goToProfile')}
               <ArrowRight className="size-4" />
             </Link>
           </Button>
@@ -90,14 +91,14 @@ function VerifyEmailContent() {
           <div className="size-16 mx-auto rounded-2xl bg-destructive/10 flex items-center justify-center mb-6">
             <XCircle className="size-8 text-destructive" />
           </div>
-          <h1 className="text-2xl font-semibold mb-2">Verification Failed</h1>
+          <h1 className="text-2xl font-semibold mb-2">{t('verifyEmail.failed')}</h1>
           <p className="text-muted-foreground mb-6">{errorMessage}</p>
           <div className="flex flex-col gap-3">
             <Button asChild variant="outline">
-              <Link href="/settings/profile">Go to Profile</Link>
+              <Link href="/settings/profile">{t('verifyEmail.goToProfile')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/login">Go to Login</Link>
+              <Link href="/login">{t('verifyEmail.goToLogin')}</Link>
             </Button>
           </div>
         </div>
@@ -107,14 +108,15 @@ function VerifyEmailContent() {
 }
 
 function LoadingFallback() {
+  const { t } = useTranslation();
   return (
     <div className="island p-8 text-center">
       <div className="animate-fade-in-up">
         <div className="size-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
           <Loader2 className="size-8 text-primary animate-spin" />
         </div>
-        <h1 className="text-2xl font-semibold mb-2">Loading</h1>
-        <p className="text-muted-foreground">Please wait...</p>
+        <h1 className="text-2xl font-semibold mb-2">{t('verifyEmail.loading')}</h1>
+        <p className="text-muted-foreground">{t('verifyEmail.loadingMessage')}</p>
       </div>
     </div>
   );

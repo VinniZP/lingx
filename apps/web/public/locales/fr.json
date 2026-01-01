@@ -1,42 +1,13 @@
 {
   "common": {
-    "welcome": "Bienvenue sur LocaleFlow !",
-    "hello": "Bonjour, {name} !",
     "loading": "Chargement...",
-    "save": "Enregistrer",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "viewAll": "Voir tout",
     "languages": "{count, plural, one {# langue} other {# langues}}"
   },
-  "cart": {
-    "items": "{count, plural, =0 {Aucun article} one {1 article} other {{count} articles}} dans le panier",
-    "total": "Total : {amount, number, ::currency/EUR}"
-  },
-  "nav": {
-    "home": "Accueil",
-    "about": "À propos",
-    "contact": "Contact",
-    "settings": "Paramètres"
-  },
   "auth": {
-    "login": "Se connecter",
-    "logout": "Se déconnecter",
-    "register": "S'inscrire",
     "forgotPassword": "Mot de passe oublié ?"
-  },
-  "form": {
-    "email": "Adresse e-mail",
-    "password": "Mot de passe",
-    "required": "Ce champ est obligatoire"
-  },
-  "messages": {
-    "success": "Opération terminée avec succès",
-    "error": "Une erreur est survenue. Veuillez réessayer.",
-    "notFound": "Page non trouvée"
-  },
-  "datetime": {
-    "lastUpdated": "Dernière mise à jour : {date, date, medium}"
   },
   "dashboard": {
     "greeting": {
@@ -58,9 +29,6 @@
       "cta": "Commencer"
     },
     "recentProjects": "Projets Récents",
-    "noProjects": "Pas encore de projets",
-    "createFirst": "Créez votre premier projet",
-    "addAnother": "Ajouter un autre projet",
     "quickActions": "Actions Rapides",
     "import": {
       "title": "Importer des traductions",
@@ -81,11 +49,6 @@
     "cli": {
       "title": "CLI Disponible",
       "description": "Synchronisez les traductions depuis votre terminal"
-    },
-    "activity": {
-      "title": "Activité Récente",
-      "period": "Dernières 24 heures",
-      "empty": "L'activité apparaîtra ici pendant que vous travaillez"
     },
     "resources": {
       "title": "Ressources",
@@ -124,7 +87,6 @@
       "noResultsHint": "Essayez d'ajuster votre recherche"
     },
     "filters": "Filtres",
-    "newProject": "Nouveau Projet",
     "empty": {
       "title": "Pas encore de projets",
       "description": "Créez votre premier projet pour commencer à gérer les traductions avec contrôle de version et collaboration.",

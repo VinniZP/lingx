@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createSpaceSchema, type CreateSpaceInput } from '@localeflow/shared';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 import { spaceApi, ApiError } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ export function CreateSpaceDialog({
   onOpenChange,
   projectId,
 }: CreateSpaceDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const form = useForm<CreateSpaceInput>({
@@ -71,14 +73,14 @@ export function CreateSpaceDialog({
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['spaces', projectId] });
       queryClient.invalidateQueries({ queryKey: ['project-tree', projectId] });
-      toast.success('Space created', {
-        description: `"${variables.name}" space has been created with a main branch.`,
+      toast.success(t('dialogs.createSpace.success'), {
+        description: t('dialogs.createSpace.successDescription', { name: variables.name }),
       });
       onOpenChange(false);
     },
     onError: (error: ApiError) => {
       if (!handleApiFieldErrors(error, form.setError)) {
-        toast.error('Failed to create space', {
+        toast.error(t('dialogs.createSpace.failed'), {
           description: error.message,
         });
       }
@@ -122,10 +124,10 @@ export function CreateSpaceDialog({
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight">
-                  New Space
+                  {t('dialogs.createSpace.title')}
                 </DialogTitle>
                 <DialogDescription className="mt-1">
-                  Organize translations by feature or platform
+                  {t('dialogs.createSpace.description')}
                 </DialogDescription>
               </div>
             </div>
@@ -142,10 +144,10 @@ export function CreateSpaceDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Space Name</FormLabel>
+                    <FormLabel>{t('dialogs.createSpace.nameLabel')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Web App, Mobile, Marketing"
+                        placeholder={t('dialogs.createSpace.namePlaceholder')}
                         autoFocus
                         {...field}
                         onChange={(e) => handleNameChange(e.target.value)}
@@ -162,16 +164,16 @@ export function CreateSpaceDialog({
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Slug</FormLabel>
+                    <FormLabel>{t('dialogs.createSpace.slugLabel')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="web-app"
+                        placeholder={t('dialogs.createSpace.slugPlaceholder')}
                         className="font-mono"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      URL-safe identifier for your space
+                      {t('dialogs.createSpace.slugDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -185,11 +187,11 @@ export function CreateSpaceDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Description <span className="text-muted-foreground font-normal">(optional)</span>
+                      {t('dialogs.createSpace.descriptionLabel')} <span className="text-muted-foreground font-normal">{t('common.optional')}</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="What translations does this space contain?"
+                        placeholder={t('dialogs.createSpace.descriptionPlaceholder')}
                         rows={2}
                         {...field}
                       />
@@ -205,8 +207,8 @@ export function CreateSpaceDialog({
                   <Sparkles className="size-4 text-info" />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  <p className="font-medium text-foreground mb-0.5">Auto-created branch</p>
-                  <p>A &quot;main&quot; branch will be created automatically as your default branch.</p>
+                  <p className="font-medium text-foreground mb-0.5">{t('dialogs.createSpace.autoCreatedBranch')}</p>
+                  <p>{t('dialogs.createSpace.autoCreatedBranchNote')}</p>
                 </div>
               </div>
             </div>
@@ -219,7 +221,7 @@ export function CreateSpaceDialog({
                 onClick={() => handleOpenChange(false)}
                 className="h-11 flex-1 sm:flex-none"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -229,12 +231,12 @@ export function CreateSpaceDialog({
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Creating...
+                    {t('dialogs.createSpace.creating')}
                   </>
                 ) : (
                   <>
                     <Layers className="size-4" />
-                    Create Space
+                    {t('dialogs.createSpace.createButton')}
                   </>
                 )}
               </Button>

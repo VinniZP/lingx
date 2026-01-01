@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Check, X, Database, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
+import { useTranslation } from '@localeflow/sdk-nextjs';
 
 interface InlineSuggestionProps {
   suggestions: UnifiedSuggestion[];
@@ -21,6 +22,7 @@ export function InlineSuggestion({
   onApply,
   onDismiss,
 }: InlineSuggestionProps) {
+  const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
   const [appliedId, setAppliedId] = useState<string | null>(null);
 
@@ -98,12 +100,12 @@ export function InlineSuggestion({
                 </span>
                 {suggestion.source && (
                   <span className="text-[10px] text-muted-foreground truncate">
-                    from {suggestion.source}
+                    {t('translations.inlineSuggestion.from', { source: suggestion.source })}
                   </span>
                 )}
                 {suggestion.cached && (
                   <span className="text-[10px] text-muted-foreground">
-                    cached
+                    {t('translations.inlineSuggestion.cached')}
                   </span>
                 )}
               </div>
@@ -119,7 +121,7 @@ export function InlineSuggestion({
               {isApplied ? (
                 <div className="flex items-center gap-1.5 text-success text-xs font-medium px-2">
                   <Check className="size-3.5" />
-                  Applied
+                  {t('translations.inlineSuggestion.applied')}
                 </div>
               ) : (
                 <>
@@ -130,13 +132,14 @@ export function InlineSuggestion({
                     onClick={() => handleApply(suggestion)}
                   >
                     <Check className="size-3.5" />
-                    Apply
+                    {t('translations.inlineSuggestion.apply')}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="h-7 px-1.5 text-muted-foreground hover:text-foreground"
                     onClick={onDismiss}
+                    aria-label={t('translations.inlineSuggestion.dismiss')}
                   >
                     <X className="size-3.5" />
                   </Button>
@@ -160,13 +163,12 @@ export function InlineSuggestion({
           {showAll ? (
             <>
               <ChevronUp className="size-3.5" />
-              Show less
+              {t('translations.inlineSuggestion.showLess')}
             </>
           ) : (
             <>
               <ChevronDown className="size-3.5" />
-              {sortedSuggestions.length - 1} more suggestion
-              {sortedSuggestions.length - 1 > 1 ? 's' : ''}
+              {t('translations.inlineSuggestion.moreSuggestions', { count: sortedSuggestions.length - 1 })}
             </>
           )}
         </button>

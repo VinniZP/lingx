@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { QualityIssue, QualityCheckResult } from '@localeflow/shared';
+import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
 
 interface QualityIssuesProps {
   issues: QualityIssue[];
@@ -21,30 +22,31 @@ const severityConfig = {
     icon: AlertCircle,
     className: 'text-destructive',
     bgClassName: 'bg-destructive/10',
-    label: 'Error',
+    labelKey: tKey('translations.qualityIssues.error'),
   },
   warning: {
     icon: AlertTriangle,
     className: 'text-warning',
     bgClassName: 'bg-warning/10',
-    label: 'Warning',
+    labelKey: tKey('translations.qualityIssues.warning'),
   },
   info: {
     icon: Info,
     className: 'text-muted-foreground',
     bgClassName: 'bg-muted',
-    label: 'Info',
+    labelKey: tKey('translations.qualityIssues.info'),
   },
 } as const;
 
-const issueTypeLabels: Record<string, string> = {
-  placeholder_missing: 'Missing placeholder',
-  placeholder_extra: 'Extra placeholder',
-  whitespace_leading: 'Leading whitespace',
-  whitespace_trailing: 'Trailing whitespace',
-  whitespace_double: 'Double spaces',
-  whitespace_tab: 'Tab character',
-  punctuation_mismatch: 'Punctuation mismatch',
+// Issue type label keys for i18n with tKey() for static extraction
+const issueTypeLabelKeys: Record<string, TranslationKey> = {
+  placeholder_missing: tKey('translations.qualityIssues.placeholderMissing'),
+  placeholder_extra: tKey('translations.qualityIssues.placeholderExtra'),
+  whitespace_leading: tKey('translations.qualityIssues.whitespaceLeading'),
+  whitespace_trailing: tKey('translations.qualityIssues.whitespaceTrailing'),
+  whitespace_double: tKey('translations.qualityIssues.whitespaceDouble'),
+  whitespace_tab: tKey('translations.qualityIssues.whitespaceTab'),
+  punctuation_mismatch: tKey('translations.qualityIssues.punctuationMismatch'),
 };
 
 /**
@@ -52,6 +54,8 @@ const issueTypeLabels: Record<string, string> = {
  * Used inline in translation editors to show placeholder, whitespace, and punctuation issues.
  */
 export function QualityIssues({ issues, className, compact = false }: QualityIssuesProps) {
+  const { t, td } = useTranslation();
+
   if (!issues || issues.length === 0) {
     return null;
   }
@@ -86,7 +90,7 @@ export function QualityIssues({ issues, className, compact = false }: QualityIss
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
           <div className="space-y-1">
-            <p className="font-medium">Quality Issues ({total})</p>
+            <p className="font-medium">{t('translations.qualityIssues.title', { count: total })}</p>
             <ul className="text-xs space-y-0.5">
               {issues.map((issue, idx) => (
                 <li key={idx} className="flex items-start gap-1.5">
@@ -109,6 +113,7 @@ export function QualityIssues({ issues, className, compact = false }: QualityIss
       {issues.map((issue, idx) => {
         const config = severityConfig[issue.severity];
         const Icon = config.icon;
+        const labelKey = issueTypeLabelKeys[issue.type];
 
         return (
           <Tooltip key={idx}>
@@ -126,7 +131,7 @@ export function QualityIssues({ issues, className, compact = false }: QualityIss
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-xs">
               <div className="space-y-0.5">
-                <p className="font-medium text-xs">{issueTypeLabels[issue.type] || issue.type}</p>
+                <p className="font-medium text-xs">{labelKey ? td(labelKey) : issue.type}</p>
                 <p className="text-xs text-muted-foreground">{issue.message}</p>
                 {issue.context?.placeholder && (
                   <p className="text-xs font-mono text-muted-foreground">
