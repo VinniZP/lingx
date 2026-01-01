@@ -30,24 +30,8 @@ import { toast } from 'sonner';
 import { ArrowLeft, Globe2, Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { AVAILABLE_LANGUAGES, getLanguageByCode } from '@/lib/languages';
 import { useTranslation } from '@localeflow/sdk-nextjs';
-
-const AVAILABLE_LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
-  { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
-  { code: 'ko', name: 'Korean', flag: '🇰🇷' },
-  { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
-  { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
-  { code: 'ru', name: 'Russian', flag: '🇷🇺' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'uk', name: 'Ukrainian', flag: '🇺🇦' },
-];
 
 export default function NewProjectPage() {
   const { t } = useTranslation();
@@ -276,7 +260,7 @@ export default function NewProjectPage() {
                     </FormControl>
                     <SelectContent>
                       {(selectedLanguages || []).map((code) => {
-                        const lang = AVAILABLE_LANGUAGES.find((l) => l.code === code);
+                        const lang = getLanguageByCode(code);
                         return (
                           <SelectItem key={code} value={code}>
                             <span className="flex items-center gap-2">

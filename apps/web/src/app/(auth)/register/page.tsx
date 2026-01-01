@@ -50,7 +50,7 @@ export default function RegisterPage() {
         // Only show toast for non-field errors (network issues, 500s, etc.)
         const message = error instanceof ApiError
           ? error.message
-          : 'An unexpected error occurred. Please try again.';
+          : t('auth.unexpectedError');
         toast.error(t('auth.registrationFailed'), {
           description: message,
         });
@@ -206,7 +206,7 @@ export default function RegisterPage() {
       {/* Divider */}
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent" />
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">

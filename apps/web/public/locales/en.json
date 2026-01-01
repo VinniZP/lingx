@@ -838,6 +838,31 @@
     }
   },
   "translations": {
+    "title": "Translations",
+    "searchPlaceholder": "Search keys...",
+    "loading": "Loading translations...",
+    "noResults": "No keys match your search or filter.",
+    "empty": {
+      "title": "No translation keys yet",
+      "description": "Create your first translation key to start localizing.",
+      "createFirst": "Create First Key"
+    },
+    "batch": {
+      "keysSelected": "{count, plural, one {# key} other {# keys}} selected",
+      "approveAll": "Approve All",
+      "rejectAll": "Reject All"
+    },
+    "toasts": {
+      "failedToSave": "Failed to save translation",
+      "failedToApprove": "Failed to update approval status",
+      "noTranslationsToUpdate": "No translations to update",
+      "translationsUpdated": "{count} translations {status}",
+      "failedToUpdateTranslations": "Failed to update translations",
+      "translationsApproved": "{count} translations approved",
+      "translationsRejected": "{count} translations rejected",
+      "failedToApproveTranslations": "Failed to approve translations",
+      "failedToRejectTranslations": "Failed to reject translations"
+    },
     "keyboard": {
       "navigate": "↑↓ Navigate keys",
       "switchFields": "Tab Switch fields",
@@ -971,8 +996,9 @@
       "percentComplete": "{percent}% complete",
       "lastUpdated": "Last updated:",
       "totalKeys": "Total Keys",
-      "languages": "Languages",
-      "complete": "Complete"
+      "complete": "Complete",
+      "keys": "keys",
+      "languages": "languages"
     }
   },
   "environments": {

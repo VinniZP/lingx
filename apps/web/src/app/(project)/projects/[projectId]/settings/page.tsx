@@ -41,23 +41,7 @@ import {
 import { toast } from 'sonner';
 import { Trash2, Globe2, Check, Loader2, FileText, Hash, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const AVAILABLE_LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
-  { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
-  { code: 'ko', name: 'Korean', flag: '🇰🇷' },
-  { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
-  { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
-  { code: 'ru', name: 'Russian', flag: '🇷🇺' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'uk', name: 'Ukrainian', flag: '🇺🇦' },
-];
+import { AVAILABLE_LANGUAGES, getLanguageByCode } from '@/lib/languages';
 
 const settingsSchema = z.object({
   name: z
@@ -333,7 +317,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                             </FormControl>
                             <SelectContent>
                               {(selectedLanguages || []).map((code) => {
-                                const lang = AVAILABLE_LANGUAGES.find((l) => l.code === code);
+                                const lang = getLanguageByCode(code);
                                 return (
                                   <SelectItem key={code} value={code}>
                                     <span className="flex items-center gap-2">

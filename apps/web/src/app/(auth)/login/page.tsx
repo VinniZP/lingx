@@ -239,7 +239,7 @@ export default function LoginPage() {
       {/* Divider */}
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent" />
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
