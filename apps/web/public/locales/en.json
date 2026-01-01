@@ -507,7 +507,24 @@
       "submit": "Send Verification"
     },
     "loading": "Loading profile...",
-    "loadingMessage": "Just a moment"
+    "loadingMessage": "Just a moment",
+    "toasts": {
+      "profileUpdated": "Profile updated",
+      "avatarUpdated": "Avatar updated",
+      "avatarRemoved": "Avatar removed",
+      "avatarRemoveFailed": "Failed to remove avatar",
+      "preferencesSaved": "Preferences saved",
+      "preferencesSaveFailed": "Failed to save preferences",
+      "verificationEmailSent": "Verification email sent! Check your new email address.",
+      "emailChangeCancelled": "Email change cancelled",
+      "copiedToClipboard": "Copied to clipboard",
+      "invalidImageFile": "Please upload an image file",
+      "fileTooLarge": "File size must be less than 5MB"
+    },
+    "avatarActions": {
+      "uploadPhoto": "Upload photo",
+      "removePhoto": "Remove photo"
+    }
   },
   "security": {
     "title": "Security Settings",
@@ -529,15 +546,29 @@
       "otherSessions": "{count, plural, one {# other session} other {# other sessions}}",
       "revokeAll": "Revoke All",
       "noOtherSessions": "No other active sessions",
+      "noActiveSessions": "No active sessions",
       "sessionsAppearHere": "Sessions will appear here",
       "revokeConfirm": "This will sign out the device. They'll need to log in again to access the account.",
       "revokeSession": "Revoke Session",
       "revokeAllConfirm": "This will sign out all {count} other device(s) from your account.",
       "revokeAllSessions": "Revoke All Sessions",
-      "failedToLoad": "Failed to load sessions"
+      "failedToLoad": "Failed to load sessions",
+      "tryAgainLater": "Please try again later",
+      "sessionRevoked": "Session revoked",
+      "sessionRevokeFailed": "Failed to revoke session",
+      "sessionsRevokeFailed": "Failed to revoke sessions",
+      "unknownDevice": "Unknown Device",
+      "current": "Current",
+      "activeNow": "Active now"
     },
     "securityChecklist": "Security Checklist",
     "securityScore": "Security Score",
+    "scoreLevel": {
+      "excellent": "Excellent",
+      "strong": "Strong",
+      "moderate": "Moderate",
+      "needsImprovement": "Needs Improvement"
+    },
     "twoFactor": {
       "title": "Two-Factor Authentication",
       "active": "Active",
@@ -570,11 +601,27 @@
         "description": "Save these codes in a safe place. Each code can only be used once.",
         "download": "Download as Text File",
         "saved": "I've Saved My Codes"
-      }
+      },
+      "remaining": "remaining",
+      "devices": "devices",
+      "considerRegenerating": "Consider regenerating",
+      "disabled": "Two-factor authentication disabled",
+      "disableFailed": "Failed to disable 2FA",
+      "regenerateFailed": "Failed to regenerate backup codes",
+      "codesDownloaded": "Backup codes downloaded"
     },
     "passkeys": {
       "title": "Passkeys",
       "description": "Sign in without passwords using biometrics or security keys",
+      "toasts": {
+        "passkeyAdded": "Passkey added successfully",
+        "passkeyAddFailed": "Failed to add passkey",
+        "passkeyDeleted": "Passkey deleted",
+        "passkeyDeleteFailed": "Failed to delete passkey",
+        "passwordlessEnabled": "You are now passwordless!",
+        "passwordlessEnabledDescription": "Use your passkeys to sign in from now on.",
+        "passwordlessFailed": "Failed to go passwordless"
+      },
       "notSupported": "Passkey Not Supported",
       "notSupportedDescription": "Your browser doesn't support passkeys. Try using a modern browser like Chrome, Safari, or Edge.",
       "addPasskey": "Add Passkey",
@@ -1032,6 +1079,7 @@
     "justNow": "Just now",
     "minutesAgo": "{count} min ago",
     "hoursAgo": "{count, plural, one {# hour ago} other {# hours ago}}",
+    "today": "Today",
     "yesterday": "Yesterday",
     "daysAgo": "{count} days ago",
     "date": "{date}"

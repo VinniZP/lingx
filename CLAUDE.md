@@ -107,6 +107,24 @@ When implementing UI components, ALWAYS use `Skill(frontend-design)` for premium
 
 ---
 
+## Tailwind CSS v4 Syntax
+
+Spacing scale: value × 4px (e.g., 50 = 200px, 200 = 800px, 250 = 1000px)
+
+Fractional values supported: 0.5 = 2px, 1.5 = 6px, 2.5 = 10px
+
+Syntax changes from v3:
+- `bg-gradient-to-*` → `bg-linear-to-*`
+- `shadow-color/[0.03]` → `shadow-color/3` (opacity without brackets)
+- `bg-opacity-50` → `bg-black/50` (slash syntax)
+- `text-opacity-50` → `text-white/50`
+- `w-[200px]` → `w-50` (prefer scale over arbitrary)
+- `w-[800px] h-[800px]` → `size-200` (combined size utility)
+- `min-w-[200px]` → `min-w-50`
+- `w-[1000px]` → `w-250`
+
+---
+
 ## Current Placeholder Data
 These UI elements use fake data and need API implementation:
 - Dashboard: completion rate (87%), activity feed
