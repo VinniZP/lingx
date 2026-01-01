@@ -81,7 +81,7 @@ function getLanguageTranslations(
  * <LocaleflowProvider
  *   defaultLanguage="en"
  *   localePath="/locales"
- *   apiUrl="https://api.localeflow.io"
+ *   apiUrl="https://api.localeflow.dev"
  *   project="my-project"
  *   space="main"
  *   environment="production"

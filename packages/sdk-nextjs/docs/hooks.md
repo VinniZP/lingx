@@ -1,0 +1,362 @@
+# Hooks Reference
+
+The SDK provides four hooks for accessing translations and managing language state.
+
+## Architecture Overview
+
+```mermaid
+flowchart TB
+    subgraph Provider["LocaleflowProvider"]
+        Context[LocaleflowContext]
+        Client[LocaleflowClient]
+        Detector[LanguageDetectorService]
+    end
+
+    subgraph Hooks["Available Hooks"]
+        direction LR
+        useT[useTranslation]
+        useL[useLanguage]
+        useN[useNamespace]
+        useLF[useLocaleflow]
+    end
+
+    Context --> useT
+    Context --> useL
+    Context --> useN
+    Context --> useLF
+
+    useT -->|"t(), td()"| UI[Component UI]
+    useL -->|"setLanguage()"| Context
+    useN -->|"loadNamespace()"| Client
+
+    style useT fill:#10b981,color:#fff
+    style useL fill:#6366f1,color:#fff
+    style useN fill:#f59e0b,color:#fff
+    style useLF fill:#8b5cf6,color:#fff
+```
+
+### Hook Selection Guide
+
+```mermaid
+flowchart TD
+    A[What do you need?] --> B{Translate text?}
+    B -->|Yes| C[useTranslation]
+    B -->|No| D{Switch language?}
+    D -->|Yes| E[useLanguage]
+    D -->|No| F{Lazy-load namespace?}
+    F -->|Yes| G[useNamespace]
+    F -->|No| H{Full context access?}
+    H -->|Yes| I[useLocaleflow]
+    H -->|No| J[No hook needed]
+
+    style C fill:#10b981,color:#fff
+    style E fill:#6366f1,color:#fff
+    style G fill:#f59e0b,color:#fff
+    style I fill:#8b5cf6,color:#fff
+```
+
+## useTranslation
+
+The main hook for translating strings. Provides both static (`t`) and dynamic (`td`) translation functions.
+
+### Basic Usage
+
+```tsx
+'use client';
+
+import { useTranslation } from '@localeflow/sdk-nextjs';
+
+function MyComponent() {
+  const { t, td, ready, error } = useTranslation();
+
+  return <h1>{t('greeting', { name: 'World' })}</h1>;
+}
+```
+
+### Return Value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `t` | `(key: string, values?) => string` | Translate with string literal keys |
+| `td` | `(key: TranslationKey, values?) => string` | Translate with dynamic keys from `tKey()` |
+| `ready` | `boolean` | Always `true` (non-blocking) |
+| `error` | `Error \| null` | Any loading error |
+
+### The `t()` Function
+
+Use `t()` for direct string literal keys:
+
+```tsx
+// Simple translation
+t('welcome')
+
+// With interpolation
+t('greeting', { name: 'John' })
+
+// With ICU pluralization
+t('items', { count: 5 })
+
+// Nested keys (dot notation)
+t('auth.login.title')
+```
+
+### The `td()` Function and `tKey()`
+
+Use `td()` for dynamic keys stored in variables, arrays, or objects. Pair with `tKey()` for type safety and static extraction:
+
+```tsx
+import { useTranslation, tKey } from '@localeflow/sdk-nextjs';
+
+// Define keys with tKey() for extraction
+const navItems = [
+  { path: '/', labelKey: tKey('nav.home') },
+  { path: '/about', labelKey: tKey('nav.about') },
+  { path: '/contact', labelKey: tKey('nav.contact') },
+];
+
+function Navigation() {
+  const { td } = useTranslation();
+
+  return (
+    <nav>
+      {navItems.map((item) => (
+        <a key={item.path} href={item.path}>
+          {td(item.labelKey)}  {/* Use td() for dynamic keys */}
+        </a>
+      ))}
+    </nav>
+  );
+}
+```
+
+Why `tKey()` + `td()`?
+- **Static extraction**: Build tools can find `tKey()` calls to extract translation keys
+- **Type safety**: `td()` only accepts `TranslationKey` (from `tKey()`), preventing accidental dynamic strings
+- **Runtime flexibility**: Keys from variables work correctly at runtime
+
+### With Namespace
+
+Scope translations to a namespace:
+
+```tsx
+const { t } = useTranslation('auth');
+
+// Looks up 'auth:login.title'
+t('login.title')
+
+// Falls back to 'login.title' if namespaced key not found
+```
+
+---
+
+## useLanguage
+
+Hook for language management and switching.
+
+### Basic Usage
+
+```tsx
+'use client';
+
+import { useLanguage } from '@localeflow/sdk-nextjs';
+
+function LanguageSelector() {
+  const { language, setLanguage, availableLanguages, isChanging } = useLanguage();
+
+  return (
+    <select
+      value={language}
+      onChange={(e) => setLanguage(e.target.value)}
+      disabled={isChanging}
+    >
+      {availableLanguages.map((lang) => (
+        <option key={lang} value={lang}>
+          {lang.toUpperCase()}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+### Return Value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `language` | `string` | Current language code |
+| `setLanguage` | `(lang: string) => Promise<void>` | Switch language (async) |
+| `availableLanguages` | `string[]` | All supported languages |
+| `isChanging` | `boolean` | `true` during language switch |
+
+### Language Switching
+
+```tsx
+const { setLanguage, isChanging } = useLanguage();
+
+// Switch language (non-blocking)
+await setLanguage('de');
+
+// Language is now 'de' and all t() calls use German translations
+```
+
+With multi-language `staticData`, switching is instant. Otherwise, translations are fetched asynchronously.
+
+---
+
+## useNamespace
+
+Hook for lazy-loading translation namespaces. Use for code-splitting translations by feature or route.
+
+### Basic Usage
+
+```tsx
+'use client';
+
+import { useNamespace, useTranslation } from '@localeflow/sdk-nextjs';
+
+function CheckoutPage() {
+  const { isLoaded, isLoading } = useNamespace('checkout', { autoLoad: true });
+  const { t } = useTranslation('checkout');
+
+  if (isLoading) return <LoadingSpinner />;
+  if (!isLoaded) return <ErrorMessage />;
+
+  return <div>{t('summary.title')}</div>;
+}
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `autoLoad` | `boolean` | `false` | Automatically load namespace on mount |
+
+### Return Value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `namespace` | `string` | The namespace name |
+| `loadNamespace` | `() => Promise<void>` | Manually trigger loading |
+| `isLoaded` | `boolean` | Whether namespace is loaded |
+| `isLoading` | `boolean` | Whether currently loading |
+
+### Manual Loading
+
+```tsx
+const { isLoaded, loadNamespace } = useNamespace('checkout');
+
+// Load on user action
+<button onClick={loadNamespace} disabled={isLoaded}>
+  Load Checkout Translations
+</button>
+```
+
+### Use Case: Route-Based Code Splitting
+
+```tsx
+// app/checkout/page.tsx
+'use client';
+
+import { useNamespace, useTranslation } from '@localeflow/sdk-nextjs';
+
+export default function CheckoutPage() {
+  // Auto-load checkout namespace when this route is accessed
+  const { isLoaded, isLoading } = useNamespace('checkout', { autoLoad: true });
+  const { t } = useTranslation('checkout');
+
+  if (isLoading) return <Loading />;
+
+  return (
+    <div>
+      <h1>{t('title')}</h1>
+      <p>{t('description')}</p>
+    </div>
+  );
+}
+```
+
+---
+
+## useLocaleflow
+
+Low-level hook providing full context access. Use when you need everything.
+
+### Basic Usage
+
+```tsx
+'use client';
+
+import { useLocaleflow } from '@localeflow/sdk-nextjs';
+
+function DebugPanel() {
+  const {
+    language,
+    setLanguage,
+    availableLanguages,
+    isChanging,
+    isLoading,
+    translations,
+    loadedNamespaces,
+    loadNamespace,
+    ready,
+    error,
+    t,
+    config,
+  } = useLocaleflow();
+
+  return (
+    <pre>
+      {JSON.stringify({
+        language,
+        availableLanguages,
+        isChanging,
+        isLoading,
+        loadedNamespaces: [...loadedNamespaces],
+        ready,
+        error: error?.message,
+      }, null, 2)}
+    </pre>
+  );
+}
+```
+
+### Return Value
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `language` | `string` | Current language code |
+| `setLanguage` | `(lang: string) => Promise<void>` | Switch language |
+| `availableLanguages` | `string[]` | Supported languages |
+| `isChanging` | `boolean` | During language switch |
+| `isLoading` | `boolean` | During initial load |
+| `translations` | `TranslationBundle` | All translations for current language |
+| `loadedNamespaces` | `Set<string>` | Currently loaded namespaces |
+| `loadNamespace` | `(ns: string) => Promise<void>` | Load a namespace |
+| `ready` | `boolean` | Always `true` |
+| `error` | `Error \| null` | Any error |
+| `t` | `TranslationFunction` | Translate function |
+| `config` | `LocaleflowConfig` | Provider configuration |
+
+---
+
+## TypeScript Types
+
+All hooks are fully typed. Import types as needed:
+
+```tsx
+import type {
+  UseTranslationReturn,
+  UseLanguageReturn,
+  UseNamespaceReturn,
+  LocaleflowContextValue,
+  TranslationFunction,
+  TranslationKey,
+  TranslationValues,
+} from '@localeflow/sdk-nextjs';
+```
+
+## Related
+
+- [ICU MessageFormat](./icu-format.md) - Formatting syntax for `t()` values
+- [Components](./components.md) - Built-in UI components
+- [Advanced](./advanced.md) - Performance and TypeScript tips
