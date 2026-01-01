@@ -25,7 +25,12 @@
     "saving": "Saving...",
     "saveChanges": "Save Changes",
     "deleting": "Deleting...",
-    "pleaseWait": "Please wait..."
+    "pleaseWait": "Please wait...",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}"
+    }
   },
   "auth": {
     "forgotPassword": "Forgot password?",
@@ -198,9 +203,6 @@
   },
   "activity": {
     "title": "Recent Activity",
-    "lastDay": "Last 24 hours",
-    "lastWeek": "Last 7 days",
-    "empty": "Activity will appear here as you work",
     "noRecent": "No recent activity",
     "viewAll": "View all changes",
     "preview": {
@@ -226,9 +228,9 @@
     },
     "modal": {
       "auditTrail": "Audit Trail",
+      "noChangesHint": "This activity doesn't have granular change tracking.",
       "loadMore": "Load more",
       "noChanges": "No detailed changes recorded",
-      "noChangesHint": "This activity doesn't have granular change tracking.",
       "empty": "Empty"
     },
     "viewAllChanges": "View all {count} changes",
@@ -253,7 +255,10 @@
       "aiTranslate": "AI translated {count, plural, one {# key} other {# keys}}",
       "aiTranslateWithLanguages": "AI translated {count, plural, one {# key} other {# keys}} to {languages}",
       "default": "Activity recorded"
-    }
+    },
+    "lastDay": "Last 24 hours",
+    "lastWeek": "Last 7 days",
+    "empty": "Activity will appear here as you work"
   },
   "nav": {
     "language": "Language",
@@ -391,10 +396,6 @@
   },
   "settings": {
     "title": "Account Settings",
-    "joined": "Joined",
-    "accountHealth": "Account Health",
-    "excellent": "Excellent",
-    "accountSettings": "Account Settings",
     "apiKeys": {
       "title": "API Keys",
       "description": "Generate and manage API keys for CLI and SDK authentication"
@@ -425,22 +426,17 @@
       "cliGuide": "CLI Guide",
       "cliGuideDesc": "Set up the command-line tool"
     },
-    "backToSettings": "Back to Settings"
+    "backToSettings": "Back to Settings",
+    "joined": "Joined",
+    "accountHealth": "Account Health",
+    "excellent": "Excellent",
+    "accountSettings": "Account Settings"
   },
   "profile": {
     "title": "Profile Details",
     "description": "Manage your personal information and preferences",
     "memberSince": "Member since",
     "accountStatus": "Account status",
-    "noName": "No name set",
-    "avatar": "Profile Photo",
-    "avatarDescription": "Upload a photo to personalize your account",
-    "uploadAvatar": "Upload Photo",
-    "avatarRequirements": "JPG, PNG or GIF. Max 5MB. Recommended 256x256px.",
-    "uploadNew": "Upload New",
-    "removeAvatar": "Remove",
-    "personalInfo": "Personal Information",
-    "personalInfoDescription": "Update your name and email address",
     "displayName": "Display Name",
     "displayNamePlaceholder": "Enter your name",
     "displayNameHint": "This is how you'll appear throughout the app",
@@ -449,9 +445,6 @@
     "emailChangeHint": "Changing your email requires verification",
     "discard": "Discard",
     "saveChanges": "Save Changes",
-    "emailChangePending": "Email Change Pending",
-    "verificationSentTo": "Verification sent to",
-    "cancelEmailChange": "Cancel Change",
     "preferences": {
       "title": "Preferences",
       "description": "Customize your experience",
@@ -508,6 +501,18 @@
     },
     "loading": "Loading profile...",
     "loadingMessage": "Just a moment",
+    "noName": "No name set",
+    "avatar": "Profile Photo",
+    "avatarDescription": "Upload a photo to personalize your account",
+    "uploadAvatar": "Upload Photo",
+    "avatarRequirements": "JPG, PNG or GIF. Max 5MB. Recommended 256x256px.",
+    "uploadNew": "Upload New",
+    "removeAvatar": "Remove",
+    "personalInfo": "Personal Information",
+    "personalInfoDescription": "Update your name and email address",
+    "emailChangePending": "Email Change Pending",
+    "verificationSentTo": "Verification sent to",
+    "cancelEmailChange": "Cancel Change",
     "toasts": {
       "profileUpdated": "Profile updated",
       "avatarUpdated": "Avatar updated",
@@ -546,29 +551,23 @@
       "otherSessions": "{count, plural, one {# other session} other {# other sessions}}",
       "revokeAll": "Revoke All",
       "noOtherSessions": "No other active sessions",
-      "noActiveSessions": "No active sessions",
       "sessionsAppearHere": "Sessions will appear here",
       "revokeConfirm": "This will sign out the device. They'll need to log in again to access the account.",
       "revokeSession": "Revoke Session",
       "revokeAllConfirm": "This will sign out all {count} other device(s) from your account.",
       "revokeAllSessions": "Revoke All Sessions",
       "failedToLoad": "Failed to load sessions",
+      "noActiveSessions": "No active sessions",
       "tryAgainLater": "Please try again later",
       "sessionRevoked": "Session revoked",
-      "sessionRevokeFailed": "Failed to revoke session",
       "sessionsRevokeFailed": "Failed to revoke sessions",
       "unknownDevice": "Unknown Device",
       "current": "Current",
-      "activeNow": "Active now"
+      "activeNow": "Active now",
+      "sessionRevokeFailed": "Failed to revoke session"
     },
     "securityChecklist": "Security Checklist",
     "securityScore": "Security Score",
-    "scoreLevel": {
-      "excellent": "Excellent",
-      "strong": "Strong",
-      "moderate": "Moderate",
-      "needsImprovement": "Needs Improvement"
-    },
     "twoFactor": {
       "title": "Two-Factor Authentication",
       "active": "Active",
@@ -613,15 +612,6 @@
     "passkeys": {
       "title": "Passkeys",
       "description": "Sign in without passwords using biometrics or security keys",
-      "toasts": {
-        "passkeyAdded": "Passkey added successfully",
-        "passkeyAddFailed": "Failed to add passkey",
-        "passkeyDeleted": "Passkey deleted",
-        "passkeyDeleteFailed": "Failed to delete passkey",
-        "passwordlessEnabled": "You are now passwordless!",
-        "passwordlessEnabledDescription": "Use your passkeys to sign in from now on.",
-        "passwordlessFailed": "Failed to go passwordless"
-      },
       "notSupported": "Passkey Not Supported",
       "notSupportedDescription": "Your browser doesn't support passkeys. Try using a modern browser like Chrome, Safari, or Edge.",
       "addPasskey": "Add Passkey",
@@ -659,6 +649,15 @@
         "passkeyCount": "You have {count} passkey(s) registered, which is enough for passwordless.",
         "warning": "Make sure you have access to your passkeys on multiple devices before proceeding.",
         "submit": "Remove Password"
+      },
+      "toasts": {
+        "passkeyAdded": "Passkey added successfully",
+        "passkeyAddFailed": "Failed to add passkey",
+        "passkeyDeleted": "Passkey deleted",
+        "passkeyDeleteFailed": "Failed to delete passkey",
+        "passwordlessEnabled": "You are now passwordless!",
+        "passwordlessEnabledDescription": "Use your passkeys to sign in from now on.",
+        "passwordlessFailed": "Failed to go passwordless"
       }
     },
     "checklistItems": {
@@ -670,6 +669,12 @@
     "tips": {
       "quickTip": "Quick Tip",
       "enableBoth": "Enable both 2FA and passkeys for maximum security. They work together seamlessly."
+    },
+    "scoreLevel": {
+      "excellent": "Excellent",
+      "strong": "Strong",
+      "moderate": "Moderate",
+      "needsImprovement": "Needs Improvement"
     }
   },
   "apiKeys": {
@@ -771,13 +776,8 @@
     "deleteConfirm": {
       "deleteProject": "Delete Project?",
       "deleteEnvironment": "Delete Environment?",
-      "deleteEntry": "Delete Entry?",
-      "deleteTag": "Delete Tag?",
       "removeIntegration": "Remove {name}?",
       "removeIntegrationDescription": "This will remove the API key and disable {name} for this project. You can add it again later."
-    },
-    "createTag": {
-      "title": "Create Tag"
     },
     "createSpace": {
       "title": "New Space",
@@ -838,31 +838,6 @@
     }
   },
   "translations": {
-    "title": "Translations",
-    "searchPlaceholder": "Search keys...",
-    "loading": "Loading translations...",
-    "noResults": "No keys match your search or filter.",
-    "empty": {
-      "title": "No translation keys yet",
-      "description": "Create your first translation key to start localizing.",
-      "createFirst": "Create First Key"
-    },
-    "batch": {
-      "keysSelected": "{count, plural, one {# key} other {# keys}} selected",
-      "approveAll": "Approve All",
-      "rejectAll": "Reject All"
-    },
-    "toasts": {
-      "failedToSave": "Failed to save translation",
-      "failedToApprove": "Failed to update approval status",
-      "noTranslationsToUpdate": "No translations to update",
-      "translationsUpdated": "{count} translations {status}",
-      "failedToUpdateTranslations": "Failed to update translations",
-      "translationsApproved": "{count} translations approved",
-      "translationsRejected": "{count} translations rejected",
-      "failedToApproveTranslations": "Failed to approve translations",
-      "failedToRejectTranslations": "Failed to reject translations"
-    },
     "keyboard": {
       "navigate": "↑↓ Navigate keys",
       "switchFields": "Tab Switch fields",
@@ -996,9 +971,34 @@
       "percentComplete": "{percent}% complete",
       "lastUpdated": "Last updated:",
       "totalKeys": "Total Keys",
+      "languages": "Languages",
       "complete": "Complete",
-      "keys": "keys",
-      "languages": "languages"
+      "keys": "keys"
+    },
+    "title": "Translations",
+    "searchPlaceholder": "Search keys...",
+    "loading": "Loading translations...",
+    "noResults": "No keys match your search or filter.",
+    "empty": {
+      "title": "No translation keys yet",
+      "description": "Create your first translation key to start localizing.",
+      "createFirst": "Create First Key"
+    },
+    "batch": {
+      "keysSelected": "{count, plural, one {# key} other {# keys}} selected",
+      "approveAll": "Approve All",
+      "rejectAll": "Reject All"
+    },
+    "toasts": {
+      "failedToSave": "Failed to save translation",
+      "failedToApprove": "Failed to update approval status",
+      "noTranslationsToUpdate": "No translations to update",
+      "translationsUpdated": "{count} translations {status}",
+      "failedToUpdateTranslations": "Failed to update translations",
+      "translationsApproved": "{count} translations approved",
+      "translationsRejected": "{count} translations rejected",
+      "failedToApproveTranslations": "Failed to approve translations",
+      "failedToRejectTranslations": "Failed to reject translations"
     }
   },
   "environments": {
@@ -1105,10 +1105,10 @@
     "justNow": "Just now",
     "minutesAgo": "{count} min ago",
     "hoursAgo": "{count, plural, one {# hour ago} other {# hours ago}}",
-    "today": "Today",
     "yesterday": "Yesterday",
     "daysAgo": "{count} days ago",
-    "date": "{date}"
+    "date": "{date}",
+    "today": "Today"
   },
   "projectDetail": {
     "notFound": "Project not found.",
@@ -1360,6 +1360,159 @@
       "tapToResolve": "Tap to resolve",
       "clickToResolve": "Click to resolve this conflict",
       "selectConflict": "Select conflict for key {key}"
+    }
+  },
+  "glossary": {
+    "stats": {
+      "title": "Overview",
+      "description": "Glossary statistics and insights",
+      "totalTerms": "Total Terms",
+      "translationsAcross": "{count} translations across languages",
+      "active": "Active",
+      "languagePairs": "Language Pairs",
+      "activeCombinations": "Active translation combinations",
+      "pairs": "Pairs",
+      "tagsDefined": "Tags Defined",
+      "organizationalCategories": "Organizational categories",
+      "categories": "Categories"
+    },
+    "terminology": {
+      "title": "Terminology",
+      "description": "Manage your glossary entries",
+      "export": "Export",
+      "exportAsCsv": "Export as CSV",
+      "exportAsTbx": "Export as TBX",
+      "import": "Import",
+      "addTerm": "Add Term"
+    },
+    "filters": {
+      "searchPlaceholder": "Search terms...",
+      "language": "Language",
+      "domain": "Domain",
+      "tag": "Tag",
+      "entriesCount": "{count, plural, one {# entry} other {# entries}}"
+    },
+    "list": {
+      "loading": "Loading entries...",
+      "noMatching": "No matching entries",
+      "startBuilding": "Start building your glossary",
+      "adjustFilters": "Try adjusting your filters to find what you're looking for",
+      "addTerminology": "Add terminology to ensure consistent translations across your project",
+      "addFirstTerm": "Add First Term"
+    },
+    "entry": {
+      "moreTranslations": "+{count} more"
+    },
+    "tags": {
+      "title": "Tags",
+      "description": "Organize terms by category",
+      "addTag": "Add Tag",
+      "noTagsYet": "No tags yet",
+      "createToOrganize": "Create tags to categorize and organize your terminology",
+      "createFirstTag": "Create First Tag"
+    },
+    "providerSync": {
+      "title": "Provider Sync",
+      "description": "Sync glossary to translation providers",
+      "consistency": "Terminology Consistency",
+      "consistencyDescription": "Sync your glossary to machine translation providers to ensure consistent terminology. Your terms will be applied automatically during translations.",
+      "activeSyncs": "Active Syncs",
+      "connected": "{count} connected",
+      "termsSynced": "{count} terms synced",
+      "noSyncs": "No syncs configured",
+      "connectBelow": "Connect your glossary to a provider below",
+      "quickSync": "Quick Sync",
+      "syncToDeepL": "Sync to DeepL",
+      "syncToGoogle": "Sync to Google"
+    },
+    "dialog": {
+      "editTerm": "Edit Term",
+      "addNewTerm": "Add New Term",
+      "editDescription": "Update the glossary entry details and translations",
+      "addDescription": "Add a new term to your project glossary for consistent translations",
+      "termInformation": "Term Information",
+      "sourceTerm": "Source Term",
+      "sourceTermPlaceholder": "e.g. API, Dashboard, Settings",
+      "sourceLanguage": "Source Language",
+      "selectLanguage": "Select language",
+      "classification": "Classification",
+      "partOfSpeech": "Part of Speech",
+      "selectType": "Select type",
+      "noneSpecified": "None specified",
+      "domain": "Domain",
+      "domainPlaceholder": "e.g. technical, legal, medical",
+      "additionalDetails": "Additional Details",
+      "usageContext": "Usage Context",
+      "contextPlaceholder": "Provide an example sentence or describe where this term is used...",
+      "translatorNotes": "Translator Notes",
+      "notesPlaceholder": "Add guidance or special instructions for translators...",
+      "caseSensitive": "Case Sensitive Matching",
+      "caseSensitiveDescription": "Require exact letter casing when matching this term",
+      "tags": "Tags",
+      "tagsSelected": "{count} selected",
+      "changesApplyToAll": "Changes will apply to all translations",
+      "termAvailableForMatching": "Term will be available for matching",
+      "saveChanges": "Save Changes",
+      "addTerm": "Add Term"
+    },
+    "tagDialog": {
+      "title": "Create Tag",
+      "description": "Add a new tag to organize your glossary",
+      "namePlaceholder": "e.g. Technical, Legal",
+      "createTag": "Create Tag"
+    },
+    "import": {
+      "title": "Import Glossary",
+      "description": "Import terminology from industry-standard file formats",
+      "fileFormat": "File Format",
+      "csvDescription": "Comma-separated values",
+      "tbxDescription": "TermBase eXchange (ISO)",
+      "options": "Import Options",
+      "overwriteExisting": "Overwrite Existing Terms",
+      "overwriteDescription": "Update terms that already exist in your glossary",
+      "clickToSelect": "Click to select file",
+      "dragAndDrop": "or drag and drop your {format} file here",
+      "accepts": "Accepts {format} files",
+      "selectFile": "Select File"
+    },
+    "deleteEntry": {
+      "title": "Delete Entry",
+      "description": "This will permanently delete \"{term}\" and all its translations. This action cannot be undone."
+    },
+    "deleteTag": {
+      "title": "Delete Tag",
+      "description": "This will remove the tag \"{name}\" from all entries. The entries themselves will not be deleted."
+    },
+    "toasts": {
+      "entryUpdated": "Entry updated",
+      "entryCreated": "Entry created",
+      "entryFailed": "Failed to save entry",
+      "entryDeleted": "Entry deleted",
+      "deleteFailed": "Failed to delete entry",
+      "tagCreated": "Tag created",
+      "tagFailed": "Failed to create tag",
+      "tagDeleted": "Tag deleted",
+      "deleteTagFailed": "Failed to delete tag",
+      "importSuccess": "Glossary imported successfully",
+      "importFailed": "Failed to import glossary",
+      "exportSuccess": "Glossary exported",
+      "exportFailed": "Failed to export glossary",
+      "syncSuccess": "Glossary synced to {provider}",
+      "syncFailed": "Failed to sync glossary",
+      "syncDeleted": "Synced glossary deleted from provider",
+      "syncDeleteFailed": "Failed to delete synced glossary"
+    },
+    "partOfSpeech": {
+      "noun": "Noun",
+      "verb": "Verb",
+      "adjective": "Adjective",
+      "adverb": "Adverb",
+      "pronoun": "Pronoun",
+      "preposition": "Preposition",
+      "conjunction": "Conjunction",
+      "interjection": "Interjection",
+      "determiner": "Determiner",
+      "other": "Other"
     }
   }
 }
