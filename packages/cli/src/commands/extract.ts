@@ -6,6 +6,7 @@ import { glob } from 'glob';
 import { loadConfig } from '../lib/config.js';
 import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
 import { createFormatter } from '../lib/formatter/index.js';
+import { regenerateTypesIfEnabled } from './types.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 import chalk from 'chalk';
@@ -186,6 +187,9 @@ async function extract(options: ExtractOptions): Promise<void> {
     if (options.clean) {
       await cleanUnusedKeys(cwd, config, uniqueKeys, options.locale);
     }
+
+    // Regenerate types if enabled
+    await regenerateTypesIfEnabled(cwd);
   } catch (error) {
     spinner.fail('Extraction failed');
     throw error;

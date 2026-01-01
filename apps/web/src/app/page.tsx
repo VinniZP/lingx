@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AuthRedirect } from '@/components/auth-redirect';
-import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
 import {
   Languages,
   ArrowRight,
@@ -34,8 +34,8 @@ const floatingLanguages = [
 // Feature config with typed translation keys
 interface FeatureConfig {
   icon: typeof GitBranch;
-  titleKey: TranslationKey;
-  descriptionKey: TranslationKey;
+  titleKey: TKey;
+  descriptionKey: TKey;
   size: 'large' | 'normal';
   gradient: string;
 }
@@ -87,8 +87,8 @@ const featureConfig: FeatureConfig[] = [
 
 // Benefits config with typed translation keys
 interface BenefitConfig {
-  labelKey: TranslationKey;
-  descriptionKey: TranslationKey;
+  labelKey: TKey;
+  descriptionKey: TKey;
 }
 
 const benefitConfig: BenefitConfig[] = [

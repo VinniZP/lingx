@@ -10,7 +10,7 @@ Modern i18n SDK for Next.js 15+ and React 19+ with full ICU MessageFormat suppor
 - **Multi-language bundles** - Instant language switching without network requests
 - **9 language detectors** - Cookie, localStorage, navigator, path, query string, and more
 - **Namespace lazy-loading** - Code-split translations by route/feature
-- **TypeScript-first** - Full type definitions and branded translation keys
+- **Type-safe translations** - Generate types for autocomplete, validation, and ICU parameter types
 
 ## Installation
 
@@ -123,13 +123,23 @@ export default async function Page({ params }: { params: { lang: string } }) {
 
 | Utility | Description |
 |---------|-------------|
-| `tKey(key)` | Mark keys for static extraction |
+| `tKey(key)` | Type-safe key for static extraction |
+| `tKeyUnsafe(key)` | Escape hatch for dynamic keys |
+
+### Types
+
+| Type | Description |
+|------|-------------|
+| `TKey` | Convenience alias for `TranslationKey<TranslationKeys>` |
+| `TranslationKeys` | Union of all valid keys (when types generated) |
+| `TranslationParams` | ICU parameter types per key |
 
 ## Documentation
 
 | Guide | Description |
 |-------|-------------|
 | [Getting Started](./docs/getting-started.md) | Installation and basic setup |
+| [Type-Safe Translations](./docs/type-safety.md) | Generate types for autocomplete and validation |
 | [Provider Configuration](./docs/provider.md) | All provider options and loading strategies |
 | [Hooks Reference](./docs/hooks.md) | Complete hooks API |
 | [Components](./docs/components.md) | Built-in and custom components |
@@ -161,21 +171,40 @@ t('pronoun', { gender: 'female' })  // "She"
 
 ## TypeScript
 
-```tsx
-import type {
-  LocaleflowProviderProps,
-  UseTranslationReturn,
-  UseLanguageReturn,
-  TranslationKey,
-} from '@localeflow/sdk-nextjs';
+### Generate Types
 
-import { tKey } from '@localeflow/sdk-nextjs';
+Run the CLI to generate TypeScript types from your translation files:
 
-// Type-safe dynamic keys
-const keys = [tKey('nav.home'), tKey('nav.about')];
-const { td } = useTranslation();
-keys.map(key => td(key));  // Type-safe!
+```bash
+localeflow types
 ```
+
+This creates a `.d.ts` file with autocomplete for all keys and ICU parameter types.
+
+### Usage
+
+```tsx
+import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+
+// Type your interfaces
+interface NavItem {
+  href: string;
+  labelKey: TKey;
+}
+
+// TypeScript validates keys exist
+const navItems: NavItem[] = [
+  { href: '/', labelKey: tKey('nav.home') },
+  { href: '/about', labelKey: tKey('nav.about') },
+];
+
+// Translate with full type safety
+const { t, td } = useTranslation();
+t('greeting', { name: 'World' });  // ✓ Params typed
+navItems.map(item => td(item.labelKey));  // ✓ Type-safe!
+```
+
+See [Type-Safe Translations](./docs/type-safety.md) for setup details.
 
 ## License
 

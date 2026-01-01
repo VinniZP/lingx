@@ -30,10 +30,16 @@ export type {
   CacheOptions,
   DetectionConfig,
   TranslationKey,
+  TKey,
+  // Type-safe translation types (augmented by generated types)
+  TranslationResources,
+  TranslationKeys,
+  TranslationParams,
+  TranslationParamsFor,
 } from './types';
 
-// Translation Key Marker (for static extraction)
-export { tKey } from './types';
+// Translation Key Functions
+export { tKey, tKeyUnsafe } from './types';
 
 // Language Detection
 export {

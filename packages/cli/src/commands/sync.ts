@@ -9,6 +9,7 @@ import {
   computeTranslationDiff,
 } from '../lib/translation-io.js';
 import { resolveConflicts } from '../utils/conflict-resolver.js';
+import { regenerateTypesIfEnabled } from './types.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 import chalk from 'chalk';
@@ -226,6 +227,9 @@ async function sync(options: SyncOptions): Promise<void> {
     if (conflictsToRemote > 0) {
       logger.info(`  ${conflictsToRemote} conflict(s) resolved → downloaded remote`);
     }
+
+    // Regenerate types if enabled
+    await regenerateTypesIfEnabled(cwd);
   } catch (error) {
     spinner.fail('Sync failed');
     throw error;

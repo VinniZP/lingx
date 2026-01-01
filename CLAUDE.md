@@ -26,6 +26,25 @@
 - `docs/adr/` - Architecture Decision Records
 - `docs/TODO-API-FEATURES.md` - UI features needing API implementation
 
+### SDK Documentation (`packages/sdk-nextjs/docs/`)
+- `getting-started.md` - Installation and basic setup
+- `type-safety.md` - Type generation, TKey, tKey(), tKeyUnsafe()
+- `hooks.md` - useTranslation, useLanguage, useNamespace, useLocaleflow
+- `provider.md` - LocaleflowProvider configuration
+- `icu-format.md` - ICU MessageFormat (plurals, numbers, dates, selects)
+- `server-side.md` - Server Components and App Router
+- `language-detection.md` - 9 built-in detectors
+- `advanced.md` - Caching, performance, TypeScript
+- `components.md` - LanguageSwitcher and custom components
+- `troubleshooting.md` - Common issues and solutions
+
+### CLI Documentation (`packages/cli/`)
+- `localeflow extract` - Extract translation keys from source
+- `localeflow pull` - Pull translations from API
+- `localeflow push` - Push translations to API
+- `localeflow sync` - Bidirectional sync
+- `localeflow types` - Generate TypeScript types from translations
+
 ---
 
 ## Design System (Premium Styling)
@@ -122,6 +141,64 @@ Syntax changes from v3:
 - `w-[800px] h-[800px]` → `size-200` (combined size utility)
 - `min-w-[200px]` → `min-w-50`
 - `w-[1000px]` → `w-250`
+
+---
+
+## i18n Patterns (Type-Safe Translations)
+
+### Type Generation
+Run `localeflow types` to generate TypeScript types from translation files. This provides:
+- Autocomplete for all translation keys
+- Compile-time validation of keys
+- ICU parameter type inference (plural → number, date → Date)
+
+### Key Types
+```tsx
+import { tKey, tKeyUnsafe, type TKey } from '@localeflow/sdk-nextjs';
+
+// TKey - convenience type for typed translation keys
+interface NavItem {
+  href: string;
+  labelKey: TKey;
+}
+
+// tKey() - strict, validates key exists
+const items: NavItem[] = [
+  { href: '/', labelKey: tKey('nav.home') },
+];
+
+// tKeyUnsafe() - escape hatch for dynamic keys
+const dynamicKey = tKeyUnsafe(`${section}.title`);
+```
+
+### Translation Functions
+```tsx
+const { t, td } = useTranslation();
+
+// t() - for string literal keys
+t('greeting', { name: 'World' });
+
+// td() - for dynamic keys (from tKey())
+items.map(item => td(item.labelKey));
+```
+
+### Configuration
+```typescript
+// localeflow.config.ts
+export default {
+  paths: {
+    translations: './public/locales',
+    source: './src',
+  },
+  types: {
+    enabled: true,
+    output: './src/localeflow.d.ts',
+    sourceLocale: 'en',
+  },
+};
+```
+
+See `packages/sdk-nextjs/docs/type-safety.md` for full documentation.
 
 ---
 

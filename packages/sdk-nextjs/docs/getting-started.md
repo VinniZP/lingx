@@ -104,7 +104,18 @@ export default function HomePage() {
 }
 ```
 
-### 4. Add Language Switching
+### 4. Generate Types (Optional)
+
+For TypeScript autocomplete and validation, generate types from your translations:
+
+```bash
+# Create localeflow.config.ts first, then run:
+localeflow types
+```
+
+This creates a `.d.ts` file that provides autocomplete for translation keys and validates ICU parameters. See [Type-Safe Translations](./type-safety.md) for setup details.
+
+### 5. Add Language Switching
 
 Use the `LanguageSwitcher` component or build your own:
 
@@ -155,6 +166,7 @@ export function CustomLanguageSwitcher() {
 
 ## Next Steps
 
+- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete and validation
 - [Provider Configuration](./provider.md) - Learn about all provider options
 - [Hooks Reference](./hooks.md) - Explore all available hooks
 - [ICU MessageFormat](./icu-format.md) - Master pluralization and formatting

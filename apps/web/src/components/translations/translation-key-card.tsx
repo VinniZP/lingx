@@ -29,11 +29,11 @@ import { InlineSuggestion } from './inline-suggestion';
 import { QualityIssues } from './quality-issues';
 import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
-import { useTranslation, tKey, type TranslationKey as TKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@localeflow/sdk-nextjs';
 
 const approvalStatusConfig: Record<
   ApprovalStatus,
-  { labelKey: TKey; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }
+  { labelKey: TKey<TranslationKeys>; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }
 > = {
   PENDING: { labelKey: tKey('translations.keyCard.pending'), variant: 'secondary', icon: Clock },
   APPROVED: { labelKey: tKey('translations.keyCard.approved'), variant: 'success', icon: CheckCircle },

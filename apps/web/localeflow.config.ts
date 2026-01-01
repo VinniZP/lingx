@@ -28,6 +28,12 @@ const config: LocaleflowConfig = {
     patterns: ['**/*.tsx', '**/*.ts'],
     exclude: ['**/*.test.ts', '**/*.spec.ts'],
     functions: ['t', 'useTranslation'],
+    markerFunctions: ['tKey'],
+  },
+  types: {
+    enabled: true,
+    output: './src/localeflow.d.ts',
+    sourceLocale: 'en',
   },
 };
 

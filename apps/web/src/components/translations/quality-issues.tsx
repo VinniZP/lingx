@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { QualityIssue, QualityCheckResult } from '@localeflow/shared';
-import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
 
 interface QualityIssuesProps {
   issues: QualityIssue[];
@@ -39,7 +39,7 @@ const severityConfig = {
 } as const;
 
 // Issue type label keys for i18n with tKey() for static extraction
-const issueTypeLabelKeys: Record<string, TranslationKey> = {
+const issueTypeLabelKeys: Record<string, TKey> = {
   placeholder_missing: tKey('translations.qualityIssues.placeholderMissing'),
   placeholder_extra: tKey('translations.qualityIssues.placeholderExtra'),
   whitespace_leading: tKey('translations.qualityIssues.whitespaceLeading'),

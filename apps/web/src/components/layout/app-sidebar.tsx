@@ -36,12 +36,12 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { LanguagePickerCompact } from '@/components/language-picker';
-import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
 
 interface NavItem {
   href: string;
   icon: LucideIcon;
-  labelKey: TranslationKey;
+  labelKey: TKey;
   requiresManager?: boolean;
 }
 

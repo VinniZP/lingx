@@ -1,4 +1,4 @@
-import { tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@localeflow/sdk-nextjs';
 
 // Translation keys for relative time - wrapped with tKey for static extraction
 // Uses existing keys from time.* namespace in locales
@@ -12,16 +12,16 @@ export const dateKeys = {
 } as const;
 
 export type RelativeTimeResult =
-  | { type: 'justNow'; key: TranslationKey }
-  | { type: 'minutesAgo'; key: TranslationKey; value: number }
-  | { type: 'hoursAgo'; key: TranslationKey; value: number }
-  | { type: 'daysAgo'; key: TranslationKey; value: number }
+  | { type: 'justNow'; key: TKey }
+  | { type: 'minutesAgo'; key: TKey; value: number }
+  | { type: 'hoursAgo'; key: TKey; value: number }
+  | { type: 'daysAgo'; key: TKey; value: number }
   | { type: 'date'; formatted: string };
 
 export type FormatDateResult =
-  | { type: 'today'; key: TranslationKey }
-  | { type: 'yesterday'; key: TranslationKey }
-  | { type: 'daysAgo'; key: TranslationKey; value: number }
+  | { type: 'today'; key: TKey }
+  | { type: 'yesterday'; key: TKey }
+  | { type: 'daysAgo'; key: TKey; value: number }
   | { type: 'date'; formatted: string };
 
 /**

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@localeflow/sdk-nextjs';
 import type { PartOfSpeech } from '@/lib/api';
 
 // Form schemas - validation messages use i18n keys for runtime translation
@@ -31,7 +31,7 @@ export type TagFormData = z.infer<typeof tagFormSchema>;
 // Part of speech option interface with typed translation key
 export interface PartOfSpeechOption {
   value: PartOfSpeech;
-  labelKey: TranslationKey;
+  labelKey: TKey;
 }
 
 // Part of speech options with tKey for static extraction

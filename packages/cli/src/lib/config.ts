@@ -36,6 +36,15 @@ export interface LocaleflowConfig {
     /** Marker functions for key extraction (e.g., tKey). Default: ['tKey'] */
     markerFunctions?: string[];
   };
+  /** TypeScript type generation configuration */
+  types?: {
+    /** Enable automatic type generation. Default: true */
+    enabled: boolean;
+    /** Output path for generated type file. Default: './src/localeflow.d.ts' */
+    output: string;
+    /** Source locale to use for type generation. Default: 'en' */
+    sourceLocale: string;
+  };
 }
 
 export const DEFAULT_CONFIG: LocaleflowConfig = {
@@ -65,6 +74,11 @@ export const DEFAULT_CONFIG: LocaleflowConfig = {
     exclude: ['**/*.test.ts', '**/*.spec.ts'],
     functions: ['t', 'useTranslation'],
     markerFunctions: ['tKey'],
+  },
+  types: {
+    enabled: true,
+    output: './src/localeflow.d.ts',
+    sourceLocale: 'en',
   },
 };
 
@@ -111,6 +125,9 @@ function mergeConfig(
     pull: { ...defaults.pull, ...overrides.pull },
     push: { ...defaults.push, ...overrides.push },
     extract: { ...defaults.extract, ...overrides.extract },
+    types: overrides.types
+      ? { ...defaults.types, ...overrides.types }
+      : defaults.types,
   };
 }
 

@@ -41,6 +41,7 @@
     "@inquirer/prompts": "^8.1.0",
     "@localeflow/shared": "workspace:*",
     "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
     "commander": "^14.0.2",
     "conf": "^15.0.2",
     "glob": "^13.0.0",

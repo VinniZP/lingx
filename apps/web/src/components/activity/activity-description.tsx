@@ -5,13 +5,13 @@
  * Returns translation keys with parameters for caller to translate.
  */
 import type { Activity, ActivityType } from '@localeflow/shared';
-import { tKey, type TranslationKey, type TranslationValues, type DynamicTranslationFunction } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey, type TranslationValues, type DynamicTranslationFunction } from '@localeflow/sdk-nextjs';
 
 /**
  * Translation key with optional interpolation parameters.
  */
 export type TranslationKeyObj = {
-  key: TranslationKey;
+  key: TKey;
   params?: TranslationValues;
 };
 

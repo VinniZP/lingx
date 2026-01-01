@@ -198,6 +198,37 @@ Namespaces are merged into the main translation bundle:
 
 ## TypeScript Integration
 
+### Type-Safe Translations
+
+For compile-time validation of translation keys and ICU parameters, see the dedicated [Type-Safe Translations](./type-safety.md) guide. It covers:
+
+- Generating types with `localeflow types`
+- The `TKey` convenience type
+- `tKey()` for strict keys, `tKeyUnsafe()` for dynamic keys
+- ICU parameter type inference (plural → number, date → Date, etc.)
+- Module augmentation patterns
+
+### Quick Example
+
+```tsx
+import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+
+// Type your interfaces with TKey
+interface MenuItem {
+  id: string;
+  labelKey: TKey;
+}
+
+const MENU_ITEMS: MenuItem[] = [
+  { id: 'home', labelKey: tKey('menu.home') },
+  { id: 'about', labelKey: tKey('menu.about') },
+];
+
+// TypeScript validates keys exist (when types are generated)
+tKey('menu.home');    // OK
+tKey('invalid.key');  // TypeScript error!
+```
+
 ### Type Exports
 
 ```tsx
@@ -215,7 +246,10 @@ import type {
   // Translation types
   TranslationFunction,
   DynamicTranslationFunction,
+  TKey,                 // Convenience alias for TranslationKey<TranslationKeys>
   TranslationKey,
+  TranslationKeys,      // Union of valid keys (when types generated)
+  TranslationParams,    // ICU params per key (when types generated)
   TranslationValues,
   TranslationBundle,
   MultiLanguageBundle,
@@ -229,51 +263,6 @@ import type {
   CacheOptions,
   CacheEntry,
 } from '@localeflow/sdk-nextjs';
-```
-
-### Type-Safe Dynamic Keys
-
-Use `tKey()` and `td()` for type-safe dynamic translations:
-
-```tsx
-import { tKey, useTranslation } from '@localeflow/sdk-nextjs';
-
-// Define keys with tKey() - enables static extraction
-const MENU_ITEMS = [
-  { id: 'home', labelKey: tKey('menu.home') },
-  { id: 'about', labelKey: tKey('menu.about') },
-] as const;
-
-function Menu() {
-  const { td } = useTranslation();
-
-  return (
-    <nav>
-      {MENU_ITEMS.map((item) => (
-        <a key={item.id}>
-          {td(item.labelKey)}  {/* Type-safe */}
-        </a>
-      ))}
-    </nav>
-  );
-}
-```
-
-### TranslationKey Brand
-
-The `TranslationKey` type is a branded string:
-
-```tsx
-type TranslationKey<T extends string = string> = T & {
-  readonly [TranslationKeyBrand]: true;
-};
-
-// Only tKey() creates TranslationKey
-const key = tKey('menu.home');  // TranslationKey<'menu.home'>
-
-// td() only accepts TranslationKey
-td(key);        // OK
-td('menu.home'); // TypeScript error!
 ```
 
 ## Error Handling
@@ -408,6 +397,7 @@ Retry uses exponential backoff with jitter:
 
 ## Related
 
+- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete and validation
 - [Provider Configuration](./provider.md) - Configuration options
 - [ICU MessageFormat](./icu-format.md) - Formatting performance
 - [Troubleshooting](./troubleshooting.md) - Common issues

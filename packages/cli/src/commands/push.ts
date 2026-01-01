@@ -6,6 +6,7 @@ import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
 import { readTranslationFiles, computeTranslationDiff } from '../lib/translation-io.js';
 import { resolveConflicts, type TranslationConflict } from '../utils/conflict-resolver.js';
+import { regenerateTypesIfEnabled } from './types.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 
@@ -247,6 +248,9 @@ async function push(options: PushOptions): Promise<void> {
         logger.info(`  ${lang}: ${Object.keys(pushPayload[lang]).length} keys`);
       }
     }
+
+    // Regenerate types if enabled
+    await regenerateTypesIfEnabled(cwd);
   } catch (error) {
     spinner.fail('Failed to push translations');
     throw error;

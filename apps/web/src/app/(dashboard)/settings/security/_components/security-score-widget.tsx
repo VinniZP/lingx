@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { totpApi, webauthnApi } from '@/lib/api';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
@@ -23,7 +23,7 @@ const SECURITY_LEVELS = [
   { threshold: 0, key: tKey('security.scoreLevel.needsImprovement'), color: 'text-destructive' },
 ] as const;
 
-function getSecurityLevel(percentage: number): { key: TranslationKey; color: string } {
+function getSecurityLevel(percentage: number): { key: TKey; color: string } {
   for (const level of SECURITY_LEVELS) {
     if (percentage >= level.threshold) {
       return { key: level.key, color: level.color };

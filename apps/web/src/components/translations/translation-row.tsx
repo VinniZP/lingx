@@ -13,12 +13,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useTranslation, tKey, type TranslationKey as TKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@localeflow/sdk-nextjs';
 
 type TranslationStatus = 'translated' | 'modified' | 'missing';
 
 // Approval status config with tKey() wrapped labels for static extraction
-const approvalStatusConfig: Record<ApprovalStatus, { labelKey: TKey; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }> = {
+const approvalStatusConfig: Record<ApprovalStatus, { labelKey: TKey<TranslationKeys>; variant: 'default' | 'secondary' | 'success' | 'destructive'; icon: typeof Clock }> = {
   PENDING: { labelKey: tKey('translations.row.pending'), variant: 'secondary', icon: Clock },
   APPROVED: { labelKey: tKey('translations.row.approved'), variant: 'success', icon: CheckCircle },
   REJECTED: { labelKey: tKey('translations.row.rejected'), variant: 'destructive', icon: XCircle },

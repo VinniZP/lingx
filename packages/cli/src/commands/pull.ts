@@ -5,6 +5,7 @@ import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
 import { writeTranslationFile } from '../lib/translation-io.js';
+import { regenerateTypesIfEnabled } from './types.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 
@@ -126,6 +127,9 @@ async function pull(options: PullOptions): Promise<void> {
         logger.info(`  ${lang}: ${keyCount} keys`);
       }
     }
+
+    // Regenerate types if enabled
+    await regenerateTypesIfEnabled(cwd);
   } catch (error) {
     spinner.fail('Failed to pull translations');
     throw error;

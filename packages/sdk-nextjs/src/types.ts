@@ -8,6 +8,58 @@ export type { DetectionConfig } from './detection/types.js';
 // ============================================
 
 /**
+ * Translation resources interface for type augmentation.
+ *
+ * When you run `localeflow types`, the generated .d.ts file merges with
+ * this interface to provide type-safe translation keys.
+ *
+ * @example Generated types:
+ * ```typescript
+ * // In localeflow.d.ts (generated)
+ * declare module '@localeflow/sdk-nextjs' {
+ *   interface TranslationResources {
+ *     keys: 'auth.login.title' | 'common.greeting' | 'common.items';
+ *   }
+ * }
+ * ```
+ */
+export interface TranslationResources {
+  // When empty, keys defaults to string (no type generation)
+}
+
+/**
+ * All available translation keys.
+ *
+ * When TranslationResources.keys is defined (via type generation),
+ * this becomes a strict union of valid keys with autocomplete.
+ * Otherwise, defaults to `string` for untyped usage.
+ */
+export type TranslationKeys = TranslationResources extends { keys: infer K }
+  ? K extends string
+    ? K
+    : string
+  : string;
+
+/**
+ * ICU parameter types for translation keys that require parameters.
+ *
+ * This interface is augmented by the generated types file.
+ * Keys not listed here don't require parameters.
+ *
+ * @example Generated types:
+ * ```typescript
+ * // In localeflow.d.ts (generated)
+ * declare module '@localeflow/sdk-nextjs' {
+ *   interface TranslationParams {
+ *     'common.greeting': { name: string | number };
+ *     'common.items': { count: number };
+ *   }
+ * }
+ * ```
+ */
+export interface TranslationParams {}
+
+/**
  * Branded type for translation keys.
  * Keys wrapped with tKey() get this type, allowing them to be used with t().
  * Plain strings widened to `string` type will fail TypeScript checks.
@@ -18,11 +70,29 @@ export type TranslationKey<T extends string = string> = T & {
 };
 
 /**
- * Marks a string as a translation key for static extraction.
+ * Convenience type alias for TranslationKey with generated keys.
  *
- * Use this when storing keys in variables, arrays, or objects that will
- * later be passed to td(). The CLI can statically extract tKey() calls
- * while td() allows dynamic usage at runtime.
+ * Use this instead of `TranslationKey<TranslationKeys>` for cleaner code.
+ *
+ * @example
+ * ```typescript
+ * interface NavItem {
+ *   href: string;
+ *   labelKey: TKey; // Same as TranslationKey<TranslationKeys>
+ * }
+ *
+ * const items: NavItem[] = [
+ *   { href: '/', labelKey: tKey('nav.home') },
+ * ];
+ * ```
+ */
+export type TKey = TranslationKey<TranslationKeys>;
+
+/**
+ * Marks a string as a type-safe translation key for static extraction.
+ *
+ * When type generation is enabled (`localeflow types`), this function
+ * only accepts valid translation keys and provides autocomplete.
  *
  * @example
  * ```typescript
@@ -32,17 +102,40 @@ export type TranslationKey<T extends string = string> = T & {
  *   { path: '/about', labelKey: tKey('nav.about') },
  * ];
  *
+ * // TypeScript will error if the key doesn't exist
+ * tKey('invalid.key'); // Error: Argument of type '"invalid.key"' is not assignable
+ *
  * // Use td() for dynamic usage - extractor won't error
  * navItems.map(item => (
  *   <Link to={item.path}>{td(item.labelKey)}</Link>
  * ));
- *
- * // td() ONLY accepts TranslationKey (from tKey)
- * // This prevents accidentally using plain strings dynamically
  * ```
  */
-export const tKey = <T extends string>(key: T): TranslationKey<T> =>
-  key as TranslationKey<T>;
+export const tKey = <K extends TranslationKeys>(key: K): TranslationKey<K> =>
+  key as TranslationKey<K>;
+
+/**
+ * Escape hatch for dynamic translation keys.
+ *
+ * Use this when you need to use a key that isn't statically known,
+ * such as keys constructed at runtime or from external sources.
+ *
+ * WARNING: Keys passed to tKeyUnsafe() are not validated at compile time.
+ * Use tKey() whenever possible for type safety.
+ *
+ * @example
+ * ```typescript
+ * // Dynamic key construction (not type-safe)
+ * const section = getSectionFromRoute();
+ * const key = tKeyUnsafe(`${section}.title`);
+ *
+ * // Keys from external sources
+ * const apiKey = response.translationKey;
+ * td(tKeyUnsafe(apiKey));
+ * ```
+ */
+export const tKeyUnsafe = (key: string): TranslationKey<string> =>
+  key as TranslationKey<string>;
 
 /**
  * Configuration for LocaleflowProvider
@@ -125,17 +218,44 @@ export interface LocaleflowProviderProps extends LocaleflowConfig {
 export type TranslationValues = Record<string, string | number | Date>;
 
 /**
- * Translation function with ICU MessageFormat support.
- * Accepts string literals directly for static key usage.
+ * Helper type to get the parameter type for a translation key.
+ * Returns the specific params if the key is in TranslationParams,
+ * otherwise returns optional TranslationValues.
  */
-export type TranslationFunction = (
-  key: string,
-  values?: TranslationValues
+export type TranslationParamsFor<K extends TranslationKeys> =
+  K extends keyof TranslationParams
+    ? TranslationParams[K]
+    : TranslationValues | undefined;
+
+/**
+ * Type-safe translation function with ICU MessageFormat support.
+ *
+ * When type generation is enabled (`localeflow types`), this function:
+ * - Only accepts valid translation keys (autocomplete works)
+ * - Requires correct parameter types for ICU formatted strings
+ * - Shows translation text in JSDoc on hover
+ *
+ * @example
+ * ```tsx
+ * // With generated types
+ * t('common.greeting', { name: 'World' }); // ✓ Typed params
+ * t('common.items', { count: 5 });          // ✓ count must be number
+ * t('invalid.key');                          // ✗ TypeScript error
+ * ```
+ */
+export type TranslationFunction = <K extends TranslationKeys>(
+  key: K,
+  ...args: K extends keyof TranslationParams
+    ? [params: TranslationParams[K]]
+    : [params?: TranslationValues]
 ) => string;
 
 /**
  * Dynamic translation function for TranslationKey branded strings.
  * Use this when translating keys stored in variables/arrays (wrapped with tKey).
+ *
+ * When type generation is enabled, this function respects the same
+ * type constraints as the regular `t()` function.
  *
  * @example
  * ```typescript
@@ -146,11 +266,17 @@ export type TranslationFunction = (
  *
  * // Use td() for keys from variables
  * items.map(item => td(item.labelKey));
+ *
+ * // With ICU parameters
+ * const greeting = tKey('common.greeting');
+ * td(greeting, { name: 'World' });
  * ```
  */
-export type DynamicTranslationFunction = <T extends string>(
-  key: TranslationKey<T>,
-  values?: TranslationValues
+export type DynamicTranslationFunction = <K extends TranslationKeys>(
+  key: TranslationKey<K>,
+  ...args: K extends keyof TranslationParams
+    ? [params: TranslationParams[K]]
+    : [params?: TranslationValues]
 ) => string;
 
 /**

@@ -4,6 +4,8 @@ import type {
   TranslationBundle,
   NestedTranslationValue,
   MultiLanguageBundle,
+  TranslationKeys,
+  TranslationParams,
 } from '../types';
 import { getServerConfig } from './config';
 import { ICUFormatter, hasICUSyntax } from '../client/icu-formatter';
@@ -188,20 +190,29 @@ export async function getTranslations(
   /**
    * Translation function with namespace support and ICU formatting.
    * Supports nested keys using dot notation (e.g., "common.welcome").
+   *
+   * When type generation is enabled, this function:
+   * - Only accepts valid translation keys
+   * - Requires correct parameter types for ICU formatted strings
    */
-  const t: TranslationFunction = (
-    key: string,
-    values?: TranslationValues
+  const t = (<K extends TranslationKeys>(
+    key: K,
+    ...args: K extends keyof TranslationParams
+      ? [params: TranslationParams[K]]
+      : [params?: TranslationValues]
   ): string => {
+    const values = args[0] as TranslationValues | undefined;
+    const keyString = key as string;
+
     // Build full key with namespace prefix if provided
-    const fullKey = namespace ? `${namespace}:${key}` : key;
+    const fullKey = namespace ? `${namespace}:${keyString}` : keyString;
 
     // Look up translation using nested key support
     let translation = getNestedValue(translations, fullKey);
 
     // If not found with namespace, try without (for common keys)
     if (!translation && namespace) {
-      translation = getNestedValue(translations, key);
+      translation = getNestedValue(translations, keyString);
     }
 
     // Return key if not found
@@ -226,7 +237,7 @@ export async function getTranslations(
 
     // Full ICU MessageFormat parsing
     return formatter.format(translation, values);
-  };
+  }) as TranslationFunction;
 
   return {
     t,

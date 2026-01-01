@@ -77,10 +77,12 @@ function MyComponent() {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `t` | `(key: string, values?) => string` | Translate with string literal keys |
-| `td` | `(key: TranslationKey, values?) => string` | Translate with dynamic keys from `tKey()` |
+| `t` | `(key: TranslationKeys, values?) => string` | Translate with string literal keys |
+| `td` | `(key: TKey, values?) => string` | Translate with dynamic keys from `tKey()` |
 | `ready` | `boolean` | Always `true` (non-blocking) |
 | `error` | `Error \| null` | Any loading error |
+
+> **Tip**: With [type generation](./type-safety.md), `t()` and `td()` provide autocomplete for valid keys and validate ICU parameter types.
 
 ### The `t()` Function
 
@@ -105,10 +107,16 @@ t('auth.login.title')
 Use `td()` for dynamic keys stored in variables, arrays, or objects. Pair with `tKey()` for type safety and static extraction:
 
 ```tsx
-import { useTranslation, tKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
+
+// Type your objects with TKey for type-safe key storage
+interface NavItem {
+  path: string;
+  labelKey: TKey;
+}
 
 // Define keys with tKey() for extraction
-const navItems = [
+const navItems: NavItem[] = [
   { path: '/', labelKey: tKey('nav.home') },
   { path: '/about', labelKey: tKey('nav.about') },
   { path: '/contact', labelKey: tKey('nav.contact') },
@@ -131,8 +139,10 @@ function Navigation() {
 
 Why `tKey()` + `td()`?
 - **Static extraction**: Build tools can find `tKey()` calls to extract translation keys
-- **Type safety**: `td()` only accepts `TranslationKey` (from `tKey()`), preventing accidental dynamic strings
+- **Type safety**: `td()` only accepts `TKey` (from `tKey()`), preventing accidental dynamic strings
 - **Runtime flexibility**: Keys from variables work correctly at runtime
+
+> See [Type-Safe Translations](./type-safety.md) for advanced patterns with `TKey`, `tKeyUnsafe()`, and ICU parameter types.
 
 ### With Namespace
 
@@ -345,18 +355,31 @@ All hooks are fully typed. Import types as needed:
 
 ```tsx
 import type {
+  // Hook return types
   UseTranslationReturn,
   UseLanguageReturn,
   UseNamespaceReturn,
   LocaleflowContextValue,
+
+  // Translation function types
   TranslationFunction,
-  TranslationKey,
+  DynamicTranslationFunction,
+
+  // Key types (for type-safe translations)
+  TKey,                  // Convenience alias for TranslationKey<TranslationKeys>
+  TranslationKey,        // Branded string type
+  TranslationKeys,       // Union of all valid keys (when types generated)
+  TranslationParams,     // ICU parameter types per key
+
+  // Value types
   TranslationValues,
+  TranslationParamsFor,  // Get params for a specific key
 } from '@localeflow/sdk-nextjs';
 ```
 
 ## Related
 
+- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete and validation
 - [ICU MessageFormat](./icu-format.md) - Formatting syntax for `t()` values
 - [Components](./components.md) - Built-in UI components
 - [Advanced](./advanced.md) - Performance and TypeScript tips
