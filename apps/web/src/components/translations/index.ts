@@ -1,5 +1,4 @@
 export { TranslationKeyCard } from './translation-key-card';
-export { TranslationEditor } from './translation-editor';
 export { TranslationStats } from './translation-stats';
 export { TranslationRow } from './translation-row';
 export { LanguageToggle } from './language-toggle';
@@ -10,3 +9,5 @@ export { InlineSuggestion } from './inline-suggestion';
 export { TranslationCommandPalette } from './translation-command-palette';
 export { QualityIssues, QualityBadge } from './quality-issues';
 export { RelatedKeysSection } from './related-keys-section';
+export { QualityIssuesInline } from './quality-issues-inline';
+export { QualityScoreBadge, QualityScoreBadgeSkeleton } from './quality-score-badge';

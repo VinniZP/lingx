@@ -73,7 +73,8 @@
       "translationsApproved": "{count} переводов одобрено",
       "translationsRejected": "{count} переводов отклонено",
       "failedToApproveTranslations": "Не удалось одобрить переводы",
-      "failedToRejectTranslations": "Не удалось отклонить переводы"
+      "failedToRejectTranslations": "Не удалось отклонить переводы",
+      "invalidICUSyntax": "Неправильный ICU синтаксис"
     },
     "commandPalette": {
       "translateCurrentField": "Перевести текущее поле",
@@ -442,7 +443,8 @@
     "languages": "{count, plural, one {# язык} few {# языка} many {# языков} other {# языков}}",
     "delete": "Удалить",
     "close": "Закрыть",
-    "viewAll": "Показать все"
+    "viewAll": "Показать все",
+    "save": "Сохранить"
   },
   "twoFactorSetup": {
     "steps": {
@@ -1039,7 +1041,42 @@
     "accountHealth": "Состояние аккаунта",
     "excellent": "Отлично",
     "accountSettings": "Настройки аккаунта",
-    "backToSettings": "Назад к настройкам"
+    "backToSettings": "Назад к настройкам",
+    "quality": {
+      "saved": "Настройки качества сохранены",
+      "saveFailed": "Не удалось сохранить настройки качества",
+      "title": "Оценка качества",
+      "description": "Настройка автоматической оценки качества переводов",
+      "triggers": {
+        "title": "Триггеры оценки",
+        "description": "Когда автоматически оценивать переводы",
+        "afterAI": "Оценивать после AI перевода",
+        "afterAIDescription": "Автоматически оценивать переводы созданные AI",
+        "beforeMerge": "Оценивать перед слиянием",
+        "beforeMergeDescription": "Требовать проверку качества перед слиянием веток"
+      },
+      "thresholds": {
+        "title": "Пороги качества",
+        "description": "Пороговые значения оценки для автоматизированных рабочих процессов",
+        "autoApprove": "Порог автоутверждения",
+        "autoApproveDescription": "Автоматически утверждать переводы с оценкой ≥ этого значения",
+        "flag": "Порог маркировки",
+        "flagDescription": "Маркировать переводы с оценкой < этого значения для проверки"
+      },
+      "ai": {
+        "title": "AI оценка",
+        "description": "Использовать AI для оценки качества перевода (точность, беглость, терминология)",
+        "enabled": "Включить AI оценку",
+        "enabledDescription": "Использовать AI для оценки сложных проблем качества",
+        "provider": "AI провайдер",
+        "providerPlaceholder": "Выберите провайдера",
+        "providerDescription": "AI провайдер для оценки качества",
+        "useProjectDefault": "Использовать настройки проекта",
+        "model": "AI модель",
+        "modelPlaceholder": "например, claude-sonnet-4-5",
+        "modelDescription": "Конкретная модель для использования при оценке"
+      }
+    }
   },
   "security": {
     "twoFactor": {
@@ -1394,5 +1431,22 @@
     "connected": "Подключено",
     "getOneHere": "Получить здесь",
     "enableProvider": "Включить провайдера"
+  },
+  "quality": {
+    "bulkEvaluation": {
+      "queued": "Оценка качества поставлена в очередь",
+      "jobId": "ID задачи: {jobId}",
+      "failed": "Не удалось поставить оценку качества в очередь",
+      "title": "Оценить качество перевода",
+      "descriptionSelected": "Оценить качество для {count} выбранных переводов",
+      "descriptionAll": "Оценить качество всех переводов в этой ветке",
+      "forceAI": "Принудительная AI оценка",
+      "forceAIDescription": "Пропустить эвристику и использовать AI для всех переводов (выше стоимость)",
+      "infoHeuristic": "Бесплатные эвристические проверки (ICU, заполнители, длина)",
+      "infoAI": "AI оценка для сложных проблем качества",
+      "infoProcessing": "Обработка происходит в фоновом режиме",
+      "queuing": "Постановка в очередь...",
+      "evaluate": "Оценить качество"
+    }
   }
 }

@@ -88,7 +88,7 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
           break;
 
         case 'bulk-translate-ui':
-          await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job);
+          await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job, qualityService);
           break;
 
         case 'quality-batch':
@@ -380,7 +380,8 @@ async function handleBulkTranslateUI(
   mtService: MTService,
   aiService: AITranslationService,
   translationService: TranslationService,
-  job: Job<MTJobData>
+  job: Job<MTJobData>,
+  qualityService?: QualityEstimationService
 ): Promise<{ translated: number; skipped: number; failed: number; errors: Array<{ keyId: string; keyName: string; language: string; error: string }> }> {
   const { projectId, branchId, keyIds, targetLanguages, translationProvider } = job.data;
 
@@ -491,8 +492,26 @@ async function handleBulkTranslateUI(
         }
 
         // Save the translation
-        await translationService.setTranslation(key.id, targetLang, translatedText);
+        const savedTranslation = await translationService.setTranslation(key.id, targetLang, translatedText);
         translated++;
+
+        // Auto-score after AI translation if enabled
+        if (provider === 'AI' && qualityService && savedTranslation) {
+          try {
+            // Check if quality scoring is enabled for this project
+            const qualityConfig = await qualityService.getConfig(projectId);
+
+            if (qualityConfig.scoreAfterAITranslation) {
+              // Queue quality evaluation (non-blocking)
+              qualityService.evaluate(savedTranslation.id).catch(err => {
+                console.error(`[MTWorker] Quality evaluation failed for translation ${savedTranslation.id}:`, err.message);
+              });
+            }
+          } catch (err) {
+            // Don't fail the translation if quality scoring fails
+            console.error(`[MTWorker] Failed to queue quality evaluation:`, err instanceof Error ? err.message : 'Unknown error');
+          }
+        }
       } catch (error) {
         failed++;
         errors.push({

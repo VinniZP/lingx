@@ -73,7 +73,8 @@
     "cancel": "Annuler",
     "languages": "{count, plural, one {# langue} other {# langues}}",
     "delete": "Supprimer",
-    "viewAll": "Voir tout"
+    "viewAll": "Voir tout",
+    "save": "Enregistrer"
   },
   "projects": {
     "search": {
@@ -101,6 +102,65 @@
   "apiKeys": {
     "revokeDialog": {
       "cancel": "Annuler"
+    }
+  },
+  "settings": {
+    "quality": {
+      "saved": "",
+      "saveFailed": "",
+      "title": "",
+      "description": "",
+      "triggers": {
+        "title": "",
+        "description": "When to automatically score translations",
+        "afterAI": "Score after AI translation",
+        "afterAIDescription": "Automatically score translations created by AI",
+        "beforeMerge": "Score before merge",
+        "beforeMergeDescription": "Require quality check before merging branches"
+      },
+      "thresholds": {
+        "title": "Quality Thresholds",
+        "description": "Score thresholds for automated workflows",
+        "autoApprove": "Auto-approve threshold",
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "flag": "Flag threshold",
+        "flagDescription": "Flag translations with score < this value for review"
+      },
+      "ai": {
+        "title": "AI Evaluation",
+        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
+        "enabled": "Enable AI evaluation",
+        "enabledDescription": "Use AI to evaluate complex quality issues",
+        "provider": "AI Provider",
+        "providerPlaceholder": "Select provider",
+        "providerDescription": "AI provider for quality evaluation",
+        "useProjectDefault": "Use project default",
+        "model": "AI Model",
+        "modelPlaceholder": "e.g., claude-sonnet-4-5",
+        "modelDescription": "Specific model to use for evaluation"
+      }
+    }
+  },
+  "translations": {
+    "toasts": {
+      "invalidICUSyntax": "Invalid ICU syntax"
+    }
+  },
+  "quality": {
+    "bulkEvaluation": {
+      "queued": "Quality evaluation queued",
+      "jobId": "Job ID: {jobId}",
+      "failed": "Failed to queue quality evaluation",
+      "title": "Evaluate Translation Quality",
+      "descriptionSelected": "Evaluate quality for {count} selected translations",
+      "descriptionAll": "Evaluate quality for all translations in this branch",
+      "forceAI": "Force AI evaluation",
+      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
+      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
+      "infoAI": "AI evaluation for complex quality issues",
+      "infoProcessing": "Processing happens in the background",
+      "queuing": "Queuing...",
+      "evaluate": "Evaluate Quality"
     }
   }
 }

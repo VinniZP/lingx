@@ -73,7 +73,8 @@
       "translationsApproved": "{count} перекладів схвалено",
       "translationsRejected": "{count} перекладів відхилено",
       "failedToApproveTranslations": "Не вдалося схвалити переклади",
-      "failedToRejectTranslations": "Не вдалося відхилити переклади"
+      "failedToRejectTranslations": "Не вдалося відхилити переклади",
+      "invalidICUSyntax": "Неправильний ICU синтакс"
     },
     "commandPalette": {
       "translateCurrentField": "Перекласти поточне поле",
@@ -442,7 +443,8 @@
     "languages": "{count, plural, one {# мова} few {# мови} many {# мов} other {# мов}}",
     "delete": "Видалити",
     "close": "Закрити",
-    "viewAll": "Показати все"
+    "viewAll": "Показати все",
+    "save": "Зберегти"
   },
   "twoFactorSetup": {
     "steps": {
@@ -1039,7 +1041,42 @@
     "accountHealth": "Стан облікового запису",
     "excellent": "Відмінно",
     "accountSettings": "Налаштування облікового запису",
-    "backToSettings": "Назад до налаштувань"
+    "backToSettings": "Назад до налаштувань",
+    "quality": {
+      "saved": "Налаштування якості збережено",
+      "saveFailed": "Не вдалося зберегти налаштування якості",
+      "title": "Оцінка якості",
+      "description": "Налаштування автоматичної оцінки якості перекладів",
+      "triggers": {
+        "title": "Тригери оцінки",
+        "description": "Коли автоматично оцінювати переклади",
+        "afterAI": "Оцінювати після AI перекладу",
+        "afterAIDescription": "Автоматично оцінювати переклади створені AI",
+        "beforeMerge": "Оцінювати перед злиттям",
+        "beforeMergeDescription": "Вимагати перевірку якості перед злиттям гілок"
+      },
+      "thresholds": {
+        "title": "Пороги якості",
+        "description": "Порогові значення оцінки для автоматизованих робочих процесів",
+        "autoApprove": "Поріг автозатвердження",
+        "autoApproveDescription": "Автоматично затверджувати переклади з оцінкою ≥ цього значення",
+        "flag": "Поріг позначення",
+        "flagDescription": "Позначати переклади з оцінкою < цього значення для перевірки"
+      },
+      "ai": {
+        "title": "AI оцінка",
+        "description": "Використовувати AI для оцінки якості перекладу (точність, плавність, термінологія)",
+        "enabled": "Увімкнути AI оцінку",
+        "enabledDescription": "Використовувати AI для оцінки складних проблем якості",
+        "provider": "AI провайдер",
+        "providerPlaceholder": "Оберіть провайдера",
+        "providerDescription": "AI провайдер для оцінки якості",
+        "useProjectDefault": "Використовувати налаштування проекту",
+        "model": "AI модель",
+        "modelPlaceholder": "наприклад, claude-sonnet-4-5",
+        "modelDescription": "Конкретна модель для використання при оцінці"
+      }
+    }
   },
   "security": {
     "twoFactor": {
@@ -1394,5 +1431,22 @@
     "connected": "Підключено",
     "getOneHere": "Отримати тут",
     "enableProvider": "Увімкнути провайдера"
+  },
+  "quality": {
+    "bulkEvaluation": {
+      "queued": "Оцінку якості поставлено в чергу",
+      "jobId": "ID завдання: {jobId}",
+      "failed": "Не вдалося поставити оцінку якості в чергу",
+      "title": "Оцінити якість перекладу",
+      "descriptionSelected": "Оцінити якість для {count} вибраних перекладів",
+      "descriptionAll": "Оцінити якість всіх перекладів в цій гілці",
+      "forceAI": "Примусова AI оцінка",
+      "forceAIDescription": "Пропустити евристику та використовувати AI для всіх перекладів (вища вартість)",
+      "infoHeuristic": "Безкоштовні евристичні перевірки (ICU, заповнювачі, довжина)",
+      "infoAI": "AI оцінка для складних проблем якості",
+      "infoProcessing": "Обробка відбувається у фоновому режимі",
+      "queuing": "Постановка в чергу...",
+      "evaluate": "Оцінити якість"
+    }
   }
 }

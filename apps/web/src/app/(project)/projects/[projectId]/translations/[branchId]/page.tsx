@@ -6,6 +6,10 @@ import type { TranslationKey } from '@/lib/api';
 import { KeyFormDialog } from '@/components/key-form-dialog';
 import { TranslationCommandPalette } from '@/components/translations';
 import { BulkTranslateProgress } from '@/components/bulk-translate-progress';
+import { QualityFilter } from '@/components/translations/quality-filter';
+import { BulkQualityEvaluationDialog } from '@/components/translations/bulk-quality-evaluation-dialog';
+import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useKeySuggestions, useKeyboardNavigation, useRecordTMUsage } from '@/hooks';
 import { useBulkTranslateJob } from '@/hooks/use-bulk-translate-job';
@@ -48,6 +52,8 @@ export default function TranslationsPage({ params }: PageProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [bulkTranslateDialogOpen, setBulkTranslateDialogOpen] = useState(false);
   const [bulkTranslateProvider, setBulkTranslateProvider] = useState<'MT' | 'AI' | null>(null);
+  const [qualityFilter, setQualityFilter] = useState<'all' | 'excellent' | 'good' | 'needsReview' | 'unscored'>('all');
+  const [bulkQualityDialogOpen, setBulkQualityDialogOpen] = useState(false);
 
   // Data hook
   const {
@@ -69,6 +75,7 @@ export default function TranslationsPage({ params }: PageProps) {
   const {
     savingKeys,
     savedKeys,
+    validationErrors,
     approvingTranslations,
     isBatchApproving,
     isBulkDeleting,
@@ -309,6 +316,22 @@ export default function TranslationsPage({ params }: PageProps) {
           namespaces={namespaces}
         />
 
+        {/* Quality Filter and Bulk Evaluation */}
+        {keys.length > 0 && (
+          <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between gap-4">
+            <QualityFilter value={qualityFilter} onChange={setQualityFilter} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setBulkQualityDialogOpen(true)}
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <Sparkles className="size-4" />
+              Evaluate Quality
+            </Button>
+          </div>
+        )}
+
         {selectedKeys.size > 0 && canApprove && (
           <BatchActionsBar
             selectedCount={selectedKeys.size}
@@ -338,6 +361,7 @@ export default function TranslationsPage({ params }: PageProps) {
           onTranslationChange={handleTranslationChange}
           savingKeys={savingKeys}
           savedKeys={savedKeys}
+          validationErrors={validationErrors}
           canApprove={canApprove}
           onApprove={handleApprove}
           approvingTranslations={approvingTranslations}
@@ -431,6 +455,13 @@ export default function TranslationsPage({ params }: PageProps) {
         result={bulkTranslateJob.result}
         error={bulkTranslateJob.error}
         onCancel={bulkTranslateJob.cancel}
+      />
+
+      {/* Bulk Quality Evaluation Dialog */}
+      <BulkQualityEvaluationDialog
+        open={bulkQualityDialogOpen}
+        onOpenChange={setBulkQualityDialogOpen}
+        branchId={branchId}
       />
     </div>
   );
