@@ -7,7 +7,9 @@ import { createSyncCommand } from './commands/sync.js';
 import { createExtractCommand } from './commands/extract.js';
 import { createCheckCommand } from './commands/check.js';
 import { createBranchCommand } from './commands/branch/index.js';
+import { createKeyCommand } from './commands/key/index.js';
 import { createTypesCommand } from './commands/types.js';
+import { createContextCommand } from './commands/context.js';
 
 const VERSION = '0.0.0';
 
@@ -28,7 +30,9 @@ export function createCLI(): Command {
   program.addCommand(createExtractCommand());
   program.addCommand(createCheckCommand());
   program.addCommand(createBranchCommand());
+  program.addCommand(createKeyCommand());
   program.addCommand(createTypesCommand());
+  program.addCommand(createContextCommand());
 
   return program;
 }

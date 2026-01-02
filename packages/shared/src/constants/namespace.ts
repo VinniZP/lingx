@@ -51,3 +51,19 @@ export function parseNamespacedKey(combinedKey: string): { namespace: string | n
 export function toUserKey(namespace: string | null, key: string): string {
   return namespace ? `${namespace}${NS_USER_DELIMITER}${key}` : key;
 }
+
+/**
+ * Parse user-facing key format (namespace:key) into components
+ * @param userKey - Key in format "namespace:key" or just "key"
+ * @returns Object with namespace (null for root) and key
+ */
+export function parseUserKey(userKey: string): { namespace: string | null; key: string } {
+  const delimIndex = userKey.indexOf(NS_USER_DELIMITER);
+  if (delimIndex === -1) {
+    return { namespace: null, key: userKey };
+  }
+  return {
+    namespace: userKey.slice(0, delimIndex),
+    key: userKey.slice(delimIndex + 1),
+  };
+}
