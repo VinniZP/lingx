@@ -1,5 +1,8 @@
 # Lingx
 
+[![CI](https://github.com/VinniZP/lingx/actions/workflows/ci.yml/badge.svg)](https://github.com/VinniZP/lingx/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A self-hosted, developer-friendly localization management platform with git-like branching for translations.
 
 ## Features
@@ -17,13 +20,13 @@ A self-hosted, developer-friendly localization management platform with git-like
 
 - Docker and Docker Compose
 - Node.js 20+ (for CLI/SDK development)
-- pnpm 8+
+- pnpm 10+
 
 ### Run with Docker
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/lingx.git
+git clone https://github.com/VinniZP/lingx.git
 cd lingx
 
 # Create environment file
@@ -153,12 +156,17 @@ function MyComponent() {
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Getting Help
+
+- **Questions**: [GitHub Discussions](https://github.com/VinniZP/lingx/discussions)
+- **Bug Reports**: [Open an Issue](https://github.com/VinniZP/lingx/issues/new?template=bug_report.yml)
+- **Feature Requests**: [Open an Issue](https://github.com/VinniZP/lingx/issues/new?template=feature_request.yml)
+- **Security Issues**: See [SECURITY.md](SECURITY.md)
 
 ## License
 
-MIT
+MIT - see [LICENSE](LICENSE) for details.

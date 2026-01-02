@@ -1,0 +1,76 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature! Please fill out the form below.
+
+  - type: checkboxes
+    id: existing-issue
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if a feature request already exists.
+      options:
+        - label: I have searched the existing issues
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of Lingx would this affect?
+      options:
+        - API
+        - Web App
+        - CLI
+        - SDK (Next.js)
+        - SDK (Angular)
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? Is it related to a frustration?
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see.
+      placeholder: I would like...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: I've also considered...
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to contribute this feature?
+      description: Let us know if you'd like to implement this yourself.
+      options:
+        - "Yes, I can submit a PR"
+        - "Yes, with guidance"
+        - "No, but I can help test"
+        - "No"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples about the feature request here.
