@@ -4,7 +4,7 @@ import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectApi, UpdateProjectInput, ApiError } from '@/lib/api';
@@ -94,8 +94,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
     }
   }, [project, form]);
 
-  const selectedLanguages = form.watch('languages');
-  const defaultLanguage = form.watch('defaultLanguage');
+  const selectedLanguages = useWatch({ control: form.control, name: 'languages' });
+  const defaultLanguage = useWatch({ control: form.control, name: 'defaultLanguage' });
 
   const updateMutation = useMutation({
     mutationFn: (data: UpdateProjectInput) => projectApi.update(projectId, data),

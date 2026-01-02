@@ -33,7 +33,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -258,6 +257,7 @@ export function ProjectSidebar({
   });
 
   // Get all branches across all spaces for merge dialog
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- Optional chaining in deps is intentional
   const allBranches = React.useMemo(() => {
     if (!tree?.spaces) return [];
     return tree.spaces.flatMap((space) => space.branches);

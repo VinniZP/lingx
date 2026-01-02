@@ -54,6 +54,25 @@ export function getProviderLogo(provider: AIProvider) {
   }
 }
 
+/**
+ * ProviderLogoIcon - renders the provider logo directly without creating component during render
+ * Use this instead of getProviderLogo() to avoid React Compiler warnings
+ */
+export function ProviderLogoIcon({ provider, className }: { provider: AIProvider; className?: string }) {
+  switch (provider) {
+    case 'OPENAI':
+      return <OpenAILogo className={className} />;
+    case 'ANTHROPIC':
+      return <AnthropicLogo className={className} />;
+    case 'GOOGLE_AI':
+      return <GoogleAILogo className={className} />;
+    case 'MISTRAL':
+      return <MistralLogo className={className} />;
+    default:
+      return <OpenAILogo className={className} />;
+  }
+}
+
 export function getProviderColor(provider: AIProvider) {
   switch (provider) {
     case 'OPENAI':

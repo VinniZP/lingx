@@ -63,7 +63,6 @@ export function QualityIssues({ issues, className, compact = false }: QualityIss
   // Group by severity for compact mode
   const errorCount = issues.filter((i) => i.severity === 'error').length;
   const warningCount = issues.filter((i) => i.severity === 'warning').length;
-  const infoCount = issues.filter((i) => i.severity === 'info').length;
 
   // Compact mode: show single icon with highest severity
   if (compact) {

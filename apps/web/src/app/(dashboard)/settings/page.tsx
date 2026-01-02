@@ -12,15 +12,14 @@ import {
   Mail,
   Calendar,
   ChevronRight,
-  Fingerprint,
   ShieldCheck,
   Lock,
-  Languages,
   Settings,
   Sparkles,
   ExternalLink,
   Zap,
   BookOpen,
+  Fingerprint,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

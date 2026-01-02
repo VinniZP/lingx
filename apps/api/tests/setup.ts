@@ -56,7 +56,8 @@ async function applyMigrations(): Promise<void> {
     // If migrations fail, try db push for development
     console.log('⚠️  migrate deploy failed, trying db push...');
     try {
-      execSync('npx prisma db push --skip-generate', {
+      // For tests, accept data loss (safe for test databases)
+      execSync('npx prisma db push --accept-data-loss', {
         env: {
           ...process.env,
           DATABASE_URL: process.env.TEST_DATABASE_URL,

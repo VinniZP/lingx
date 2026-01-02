@@ -23,6 +23,7 @@ export type { DetectionConfig } from './detection/types.js';
  * }
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TranslationResources {
   // When empty, keys defaults to string (no type generation)
 }
@@ -44,6 +45,7 @@ export interface TranslationResources {
  * }
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface NamespaceKeys {
   // When empty, namespace-specific typing is disabled
 }
@@ -97,6 +99,7 @@ export type TranslationKeysFor<NS extends string | undefined> =
  * }
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TranslationParams {}
 
 /**

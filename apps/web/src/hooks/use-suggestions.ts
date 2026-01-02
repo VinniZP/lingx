@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslationMemorySearch, type TMMatch } from './use-translation-memory';
 import { useMTTranslate, useMTTranslateWithContext, useMTConfigs, getProviderDisplayName } from './use-machine-translation';
 import { useAITranslate, useAIConfigs, getAIProviderDisplayName, getModelDisplayName } from './use-ai-translation';
-import type { MTProvider, AIProvider } from '@/lib/api';
 
 /**
  * Unified suggestion type that can represent TM, MT, and AI suggestions.
@@ -70,19 +68,8 @@ export function useSuggestions({
   // MT translate mutation
   const mtTranslate = useMTTranslate(projectId);
 
-  // Fetch TM matches for all target languages
-  // We search once with source text and get matches for all languages
-  const tmSearchParams = useMemo(() => {
-    if (!enabled || !sourceText || sourceText.length < 3) return null;
-    return {
-      sourceText,
-      sourceLanguage,
-      // We'll filter by targetLanguage client-side since TM stores per language pair
-      targetLanguage: targetLanguages[0] || '', // Need at least one
-      minSimilarity: 0.6,
-      limit: 5,
-    };
-  }, [enabled, sourceText, sourceLanguage, targetLanguages]);
+  // TM search params (for future TM integration)
+  // Currently unused but keeping structure for when TM API is implemented
 
   // Fetch TM for each target language
   const tmQueries = targetLanguages.map(lang => {

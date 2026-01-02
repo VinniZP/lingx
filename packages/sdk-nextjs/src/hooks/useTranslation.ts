@@ -66,7 +66,7 @@ export function useTranslation<NS extends keyof NamespaceKeys>(
 ): UseNamespacedTranslationReturn<NS & string>;
 export function useTranslation(namespace?: string): UseTranslationReturn | UseNamespacedTranslationReturn<string> {
   const context = useLingxContext();
-  const { translations, ready, error, t: contextT, loadNamespace, loadedNamespaces, language } = context;
+  const { ready, error, t: contextT, loadNamespace, loadedNamespaces, language } = context;
 
   // Load namespace on mount if provided and not already loaded
   // Also re-check when language changes (loadedNamespaces is cleared on language change)

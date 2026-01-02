@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createKeySchema, updateKeySchema, type CreateKeyInput, type UpdateKeyInput } from '@lingx/shared';
+import { createKeySchema, type CreateKeyInput, type UpdateKeyInput } from '@lingx/shared';
 import {
   translationApi,
   TranslationKey,

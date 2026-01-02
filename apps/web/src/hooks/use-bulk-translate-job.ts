@@ -207,7 +207,7 @@ export function useBulkTranslateJob({
       try {
         await jobsApi.cancel(jobId);
         toast.info(t('translations.toasts.jobCancelled'));
-      } catch (e) {
+      } catch {
         // Ignore cancel errors
       }
     }

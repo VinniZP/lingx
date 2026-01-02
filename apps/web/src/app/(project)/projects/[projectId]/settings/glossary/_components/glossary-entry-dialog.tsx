@@ -39,7 +39,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { GlossaryEntry, GlossaryTag, PartOfSpeech } from '@/lib/api';
+import type { GlossaryEntry, GlossaryTag } from '@/lib/api';
 import type { ProjectLanguage } from '@lingx/shared';
 import { entryFormSchema, PART_OF_SPEECH_OPTIONS, type EntryFormData } from './constants';
 import { useCallback, useEffect } from 'react';

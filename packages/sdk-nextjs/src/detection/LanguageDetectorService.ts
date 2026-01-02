@@ -111,7 +111,8 @@ export class LanguageDetectorService {
    * Clear cached language from all cache locations
    */
   clearCache(supportedLanguages: string[] = []): void {
-    const options = this.buildOptions(supportedLanguages, '');
+    // Call buildOptions for side effects (validation), but we don't need the result here
+    this.buildOptions(supportedLanguages, '');
 
     for (const name of this.config.caches) {
       const detector = this.detectors.get(name);

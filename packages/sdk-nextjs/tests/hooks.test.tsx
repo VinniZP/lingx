@@ -309,12 +309,12 @@ describe('useNamespace', () => {
   });
 
   it('should load namespace on demand', async () => {
-    // Namespace fetch returns additional translations
+    // Namespace fetch returns translations (without namespace prefix - client adds prefix)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
         Promise.resolve({
-          'checkout:cart.total': 'Total: $100',
+          'cart.total': 'Total: $100',
         }),
     });
 
