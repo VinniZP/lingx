@@ -52,12 +52,34 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm --filter @lingx/api db:generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+
       - name: Type check
         run: pnpm typecheck
 
   test:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/lingx_test
+      TEST_DATABASE_URL: postgresql://test:test@localhost:5432/lingx_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: lingx_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,6 +95,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @lingx/api db:generate
+
+      - name: Run database migrations
+        run: pnpm --filter @lingx/api db:push
 
       - name: Run tests
         run: pnpm test
@@ -95,6 +123,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @lingx/api db:generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
 
       - name: Build
         run: pnpm build
