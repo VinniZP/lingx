@@ -243,7 +243,7 @@ export default function GlossarySettingsPage({ params }: PageProps) {
   // Show loading state while translations are loading
   if (!ready) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <LoadingPulse />
       </div>
     );

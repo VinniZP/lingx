@@ -1,6 +1,6 @@
 # Lingx Roadmap
 
-> **Updated**: 2026-01-01 (Phase 8 complete - Moving to Phase 9)
+> **Updated**: 2026-01-02 (Phase 8 complete - Now on Phase 9: AI & Context)
 
 ---
 
@@ -76,9 +76,9 @@
 
 ---
 
-## Current Development
+## Completed Phases (continued)
 
-### Phase 8: Translation Productivity 🚧
+### Phase 8: Translation Productivity ✅
 - [x] **Translation memory** (pg_trgm fuzzy matching, auto-index approved translations, sidebar panel with TM/AI/MT placeholders)
 - [x] **Server-side filtering** (all/missing/complete/pending/approved/rejected with proper pagination)
 - [x] **Translation editor UX redesign**
@@ -124,10 +124,14 @@
   - [x] Internal delimiter format (U+001F) for clean key separation
   - [x] Comprehensive SDK documentation update
 
-### Phase 9: AI & Context 📋
+---
+
+## Current Development
+
+### Phase 9: AI & Context 🚧
 - [ ] **AI-powered translation with context** (near-keys, glossary, domain)
 - [ ] **MCP Server** (Lingx as AI tool via Model Context Protocol)
-- [ ] Near-key context detection (unique feature)
+- [x] **Near-key context detection** (unique feature - source file, component, semantic relationships)
 - [ ] **AI quality estimation** (auto-score translations)
 - [ ] Screenshot context system
 - [ ] Additional file formats (XLIFF, Gettext, etc.)
@@ -154,19 +158,16 @@
 
 ## Current Focus
 
-**Phase 8: Translation Productivity**
+**Phase 9: AI & Context**
 
 | Priority | Deliverable | Status |
 |----------|-------------|--------|
-| High | Translation memory | ✅ Complete |
-| High | Server-side filtering | ✅ Complete |
-| High | Translation editor UX redesign | ✅ Complete |
-| High | Machine translation (DeepL, Google) | ✅ Complete |
-| High | Glossary/termbase management | ✅ Complete |
-| Medium | Extended quality checks | ✅ Complete |
-| Medium | Interactive conflict resolution | ✅ Complete |
-| Low | Translation length prediction | ✅ Complete |
-| Medium | Namespace support (SDK & CLI) | ✅ Complete |
+| High | AI-powered translation with context | 📋 Planned |
+| High | MCP Server (Model Context Protocol) | 📋 Planned |
+| High | Near-key context detection | ✅ Complete |
+| Medium | AI quality estimation | 📋 Planned |
+| Medium | Screenshot context system | 📋 Planned |
+| Low | Additional file formats (XLIFF, Gettext) | 📋 Planned |
 
 ---
 

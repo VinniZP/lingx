@@ -1,11 +1,14 @@
 'use client';
 
 import { use, useState, useCallback } from 'react';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import type { TranslationKey } from '@/lib/api';
 import { KeyFormDialog } from '@/components/key-form-dialog';
 import { TranslationCommandPalette } from '@/components/translations';
+import { BulkTranslateProgress } from '@/components/bulk-translate-progress';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useKeySuggestions, useKeyboardNavigation, useRecordTMUsage } from '@/hooks';
+import { useBulkTranslateJob } from '@/hooks/use-bulk-translate-job';
 import {
   PaginationBar,
   BatchActionsBar,
@@ -32,14 +35,19 @@ export default function TranslationsPage({ params }: PageProps) {
   const { projectId, branchId } = use(params);
   const isMobile = useIsMobile();
 
+  // URL-synced state (nuqs)
+  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [filter, setFilter] = useQueryState('filter', parseAsString.withDefault('all'));
+  const [namespace, setNamespace] = useQueryState('ns', parseAsString.withDefault(''));
+
   // UI state
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState<FilterType>('all');
   const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [editingKey, setEditingKey] = useState<TranslationKey | undefined>();
   const [expandedKeyId, setExpandedKeyId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [bulkTranslateDialogOpen, setBulkTranslateDialogOpen] = useState(false);
+  const [bulkTranslateProvider, setBulkTranslateProvider] = useState<'MT' | 'AI' | null>(null);
 
   // Data hook
   const {
@@ -53,8 +61,9 @@ export default function TranslationsPage({ params }: PageProps) {
     canApprove,
     currentBranchInfo,
     completionStats,
+    namespaces,
     isLoading,
-  } = useTranslationsPageData({ projectId, branchId, search, page, filter });
+  } = useTranslationsPageData({ projectId, branchId, search, page, filter: filter as FilterType, namespace });
 
   // Mutations hook
   const {
@@ -62,10 +71,12 @@ export default function TranslationsPage({ params }: PageProps) {
     savedKeys,
     approvingTranslations,
     isBatchApproving,
+    isBulkDeleting,
     getTranslationValue,
     handleTranslationChange,
     handleApprove,
     handleBatchApprove,
+    handleBulkDelete,
     batchApproveTranslations,
     setTranslationValue,
   } = useTranslationMutations({ branchId });
@@ -79,9 +90,31 @@ export default function TranslationsPage({ params }: PageProps) {
     isAllSelected,
   } = useKeySelection({ keys });
 
+  // Bulk translate job hook
+  const bulkTranslateJob = useBulkTranslateJob({
+    branchId,
+    onComplete: () => {
+      clearSelection();
+      setBulkTranslateDialogOpen(false);
+      setBulkTranslateProvider(null);
+    },
+    onError: () => {
+      // Keep dialog open to show error
+    },
+  });
+
   // TM and suggestions
   const recordTMUsage = useRecordTMUsage(projectId);
-  const { getSuggestions, setSuggestion, fetchMT, getFetchingMTSet, hasMT } = useKeySuggestions(projectId, branchId);
+  const {
+    getSuggestions,
+    setSuggestion,
+    fetchMT,
+    fetchAI,
+    getFetchingMTSet,
+    getFetchingAISet,
+    hasMT,
+    hasAI,
+  } = useKeySuggestions(projectId, branchId);
 
   // TM suggestions for expanded key
   const expandedKey = expandedKeyId ? keys.find((k) => k.id === expandedKeyId) : null;
@@ -136,6 +169,17 @@ export default function TranslationsPage({ params }: PageProps) {
     [keys, defaultLanguage, getTranslationValue, fetchMT]
   );
 
+  const handleFetchAI = useCallback(
+    (keyId: string, lang: string) => {
+      const key = keys.find((k) => k.id === keyId);
+      if (!key || !defaultLanguage) return;
+      const source = getTranslationValue(key, defaultLanguage.code);
+      if (!source) return;
+      fetchAI(keyId, source, defaultLanguage.code, lang);
+    },
+    [keys, defaultLanguage, getTranslationValue, fetchAI]
+  );
+
   const onBatchApprove = useCallback(
     async (status: 'APPROVED' | 'REJECTED') => {
       await handleBatchApprove(status, selectedKeys, keys, clearSelection);
@@ -143,15 +187,36 @@ export default function TranslationsPage({ params }: PageProps) {
     [handleBatchApprove, selectedKeys, keys, clearSelection]
   );
 
+  const onBulkDelete = useCallback(
+    async () => {
+      await handleBulkDelete(selectedKeys, clearSelection);
+    },
+    [handleBulkDelete, selectedKeys, clearSelection]
+  );
+
+  const onBulkTranslate = useCallback(
+    (provider: 'MT' | 'AI') => {
+      setBulkTranslateProvider(provider);
+      setBulkTranslateDialogOpen(true);
+      bulkTranslateJob.start(Array.from(selectedKeys), provider);
+    },
+    [selectedKeys, bulkTranslateJob]
+  );
+
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
     setPage(1);
-  }, []);
+  }, [setSearch, setPage]);
 
   const handleFilterChange = useCallback((value: FilterType) => {
     setFilter(value);
     setPage(1);
-  }, []);
+  }, [setFilter, setPage]);
+
+  const handleNamespaceChange = useCallback((value: string) => {
+    setNamespace(value);
+    setPage(1);
+  }, [setNamespace, setPage]);
 
   const handleKeyDialogChange = useCallback((open: boolean) => {
     setShowKeyDialog(open);
@@ -238,17 +303,26 @@ export default function TranslationsPage({ params }: PageProps) {
           onSelectAll={handleSelectAll}
           search={search}
           onSearchChange={handleSearchChange}
-          filter={filter}
+          filter={filter as FilterType}
           onFilterChange={handleFilterChange}
+          namespace={namespace}
+          onNamespaceChange={handleNamespaceChange}
+          namespaces={namespaces}
         />
 
         {selectedKeys.size > 0 && canApprove && (
           <BatchActionsBar
             selectedCount={selectedKeys.size}
             isApproving={isBatchApproving}
+            isDeleting={isBulkDeleting}
+            isTranslating={bulkTranslateJob.isRunning}
             onApprove={() => onBatchApprove('APPROVED')}
             onReject={() => onBatchApprove('REJECTED')}
+            onDelete={onBulkDelete}
+            onTranslateEmpty={onBulkTranslate}
             onClear={clearSelection}
+            hasMT={hasMT}
+            hasAI={hasAI}
           />
         )}
 
@@ -274,6 +348,9 @@ export default function TranslationsPage({ params }: PageProps) {
           onApplySuggestion={handleApplySuggestion}
           onFetchMT={handleFetchMT}
           getFetchingMTSet={getFetchingMTSet}
+          onFetchAI={handleFetchAI}
+          getFetchingAISet={getFetchingAISet}
+          hasAI={hasAI}
           focusedLanguage={focusedLanguage}
           onFocusLanguage={focusLanguage}
           isKeyIdFocused={isKeyIdFocused}
@@ -319,6 +396,14 @@ export default function TranslationsPage({ params }: PageProps) {
             targetLanguages.forEach((lang) => handleFetchMT(expandedKeyId, lang));
           }
         }}
+        onFetchAI={(lang) => {
+          if (expandedKeyId) handleFetchAI(expandedKeyId, lang);
+        }}
+        onFetchAIAll={() => {
+          if (expandedKeyId) {
+            targetLanguages.forEach((lang) => handleFetchAI(expandedKeyId, lang));
+          }
+        }}
         onCopyFromSource={(lang) => {
           if (expandedKeyId && defaultLanguage) {
             const key = keys.find((k) => k.id === expandedKeyId);
@@ -333,6 +418,20 @@ export default function TranslationsPage({ params }: PageProps) {
         onApproveKey={(translationIds) => batchApproveTranslations(translationIds, 'APPROVED')}
         onRejectKey={(translationIds) => batchApproveTranslations(translationIds, 'REJECTED')}
         hasMT={hasMT}
+        hasAI={hasAI}
+      />
+
+      {/* Bulk Translate Progress Dialog */}
+      <BulkTranslateProgress
+        open={bulkTranslateDialogOpen}
+        onOpenChange={setBulkTranslateDialogOpen}
+        provider={bulkTranslateProvider}
+        progress={bulkTranslateJob.progress}
+        isRunning={bulkTranslateJob.isRunning}
+        isComplete={bulkTranslateJob.isComplete}
+        result={bulkTranslateJob.result}
+        error={bulkTranslateJob.error}
+        onCancel={bulkTranslateJob.cancel}
       />
     </div>
   );

@@ -1,1 +1,167 @@
-{}
+{
+  "toasts": {
+    "entryCreated": "Запись создана",
+    "tagFailed": "Не удалось создать тег",
+    "tagDeleted": "Тег удален",
+    "deleteTagFailed": "Не удалось удалить тег",
+    "entryFailed": "Не удалось сохранить запись",
+    "entryDeleted": "Запись удалена",
+    "deleteFailed": "Не удалось удалить запись",
+    "tagCreated": "Тег создан",
+    "importSuccess": "Глоссарий успешно импортирован",
+    "syncFailed": "Не удалось синхронизировать словарь",
+    "syncDeleted": "Синхронизированный глоссарий удален от поставщика",
+    "importFailed": "Не удалось импортировать словарь",
+    "exportSuccess": "Глоссарий экспортирован",
+    "exportFailed": "Не удалось экспортировать словарь",
+    "syncSuccess": "Глоссарий синхронизирован с {provider}",
+    "syncDeleteFailed": "Не удалось удалить синхронизированный глоссарий",
+    "entryUpdated": "Запись обновлена"
+  },
+  "terminology": {
+    "title": "Терминология",
+    "export": "Экспорт",
+    "description": "Управляйте записями словаря",
+    "addTerm": "Добавить термин",
+    "exportAsCsv": "Экспорт в CSV",
+    "exportAsTbx": "Экспорт в TBX",
+    "import": "Импорт"
+  },
+  "tags": {
+    "title": "Теги",
+    "description": "Организуйте термины по категориям",
+    "noTagsYet": "Теги еще не добавлены",
+    "addTag": "Добавить тег",
+    "createToOrganize": "Создавайте теги для категоризации и организации вашей терминологии",
+    "createFirstTag": "Создать первый тег"
+  },
+  "stats": {
+    "active": "Активных",
+    "totalTerms": "Всего терминов",
+    "organizationalCategories": "Категории организации",
+    "translationsAcross": "{count} переводов на разные языки",
+    "pairs": "Пары",
+    "languagePairs": "Языковые пары",
+    "activeCombinations": "Активные комбинации переводов",
+    "categories": "Категории",
+    "tagsDefined": "Определенные теги",
+    "title": "Обзор",
+    "description": "Статистика и аналитика глоссария"
+  },
+  "providerSync": {
+    "title": "Синхронизация поставщика",
+    "consistencyDescription": "Синхронизируйте ваш глоссарий с поставщиками машинного перевода, чтобы обеспечить согласованность терминологии. Ваши термины будут применяться автоматически при переводах.",
+    "description": "Синхронизировать глоссарий с поставщиками переводов",
+    "consistency": "Согласованность терминологии",
+    "activeSyncs": "Активные синхронизации",
+    "connected": "{count} подключено",
+    "termsSynced": "{count} терминов синхронизировано",
+    "noSyncs": "Синхронизации не настроены",
+    "connectBelow": "Подключите ваш глоссарий к поставщику ниже",
+    "quickSync": "Быстрая синхронизация",
+    "syncToDeepL": "Синхронизировать с DeepL",
+    "syncToGoogle": "Синхронизировать с Google"
+  },
+  "import": {
+    "tbxDescription": "TermBase eXchange (ISO)",
+    "title": "Импортировать глоссарий",
+    "description": "Импортировать терминологию из стандартных форматов файлов",
+    "fileFormat": "Формат файла",
+    "csvDescription": "Значения, разделённые запятыми",
+    "overwriteExisting": "Перезаписать существующие термины",
+    "overwriteDescription": "Обновить термины, которые уже существуют в вашем глоссарии",
+    "clickToSelect": "Нажмите, чтобы выбрать файл",
+    "dragAndDrop": "или перетащите ваш файл {format} сюда",
+    "accepts": "Принимает файлы {format}",
+    "selectFile": "Выбрать файл",
+    "options": "Параметры импорта"
+  },
+  "tagDialog": {
+    "title": "Создать тег",
+    "description": "Добавьте новый тег для организации вашего глоссария",
+    "namePlaceholder": "например: Технический, Юридический",
+    "createTag": "Создать тег"
+  },
+  "common": {
+    "name": "Имя",
+    "color": "Цвет",
+    "cancel": "Отмена",
+    "delete": "Удалить"
+  },
+  "filters": {
+    "allLanguages": "Все языки",
+    "allDomains": "Все домены",
+    "allTags": "Все теги",
+    "searchPlaceholder": "Поиск терминов...",
+    "language": "Язык",
+    "domain": "Домен",
+    "tag": "Тег",
+    "entriesCount": "{count, plural, one {# запись} other {# записей}}"
+  },
+  "partOfSpeech": {
+    "other": "Другое",
+    "noun": "Существительное",
+    "verb": "Глагол",
+    "adjective": "Прилагательное",
+    "adverb": "Наречие",
+    "pronoun": "Местоимение",
+    "preposition": "Предлог",
+    "conjunction": "Союз",
+    "interjection": "Междометие",
+    "determiner": "Определитель"
+  },
+  "pagination": {
+    "pageOf": "Страница {page} из {total}",
+    "previous": "Предыдущая",
+    "next": "Далее"
+  },
+  "entry": {
+    "moreTranslations": "+{count} еще"
+  },
+  "list": {
+    "loading": "Загрузка записей...",
+    "noMatching": "Нет совпадающих записей",
+    "startBuilding": "Начните создавать свой словарь",
+    "adjustFilters": "Попробуйте отрегулировать фильтры, чтобы найти то, что вы ищете",
+    "addTerminology": "Добавьте терминологию, чтобы обеспечить согласованность переводов в вашем проекте",
+    "addFirstTerm": "Добавить первый семестр"
+  },
+  "dialog": {
+    "editTerm": "Редактировать термин",
+    "addNewTerm": "Добавить новый термин",
+    "termInformation": "Информация о термине",
+    "editDescription": "Обновите детали записи глоссария и переводы",
+    "addDescription": "Добавьте новый термин в глоссарий проекта для согласованных переводов",
+    "sourceTerm": "Исходный термин",
+    "sourceTermPlaceholder": "например, API, Dashboard, Settings",
+    "sourceLanguage": "Исходный язык",
+    "selectLanguage": "Выберите язык",
+    "classification": "Классификация",
+    "partOfSpeech": "Часть речи",
+    "selectType": "Выберите тип",
+    "noneSpecified": "I'm ready to help with translation from English to Russian. However, I notice that you've provided related keys and context, but there is no source text to translate in the `<source>` field.\n\nPlease provide the text you'd like me to translate, and I'll return it in the proper format using the glossary terms and style guidelines you've established.",
+    "usageContext": "Контекст использования",
+    "contextPlaceholder": "Приведите пример предложения или опишите, где используется этот термин...",
+    "translatorNotes": "Примечания переводчика",
+    "notesPlaceholder": "Добавьте рекомендации или специальные инструкции для переводчиков...",
+    "caseSensitive": "Учет регистра при совпадении",
+    "caseSensitiveDescription": "Требовать точное совпадение регистра букв при сопоставлении этого термина",
+    "tags": "Теги",
+    "tagsSelected": "{count} выбрано",
+    "changesApplyToAll": "Изменения будут применены ко всем переводам",
+    "termAvailableForMatching": "Термин будет доступен для сопоставления",
+    "saveChanges": "Сохранить изменения",
+    "addTerm": "Добавить термин",
+    "domain": "Домен",
+    "domainPlaceholder": "например, технический, юридический, медицинский",
+    "additionalDetails": "Дополнительные детали"
+  },
+  "deleteEntry": {
+    "description": "Это действие навсегда удалит \"{term}\" и все его переводы. Это действие нельзя отменить.",
+    "title": "Удалить запись"
+  },
+  "deleteTag": {
+    "title": "Удалить тег",
+    "description": "Это действие удалит тег \"{name}\" из всех записей. Сами записи удалены не будут."
+  }
+}

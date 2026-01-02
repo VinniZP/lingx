@@ -1,0 +1,108 @@
+{
+  "pageTitle": "AI Translation",
+  "pageDescription": "",
+  "sections": {
+    "providers": "",
+    "contextSettings": "",
+    "usage": ""
+  },
+  "provider": {
+    "status": {
+      "active": "",
+      "inactive": ""
+    },
+    "openai": {
+      "description": ""
+    },
+    "anthropic": {
+      "description": ""
+    },
+    "googleAI": {
+      "description": ""
+    },
+    "mistral": {
+      "description": ""
+    },
+    "form": {
+      "apiKey": "",
+      "apiKeyKeepCurrent": "",
+      "apiKeyPlaceholder": "",
+      "apiKeyUpdatePlaceholder": "",
+      "apiKeyHint": {
+        "openai": "",
+        "anthropic": "",
+        "googleAI": "",
+        "mistral": ""
+      },
+      "model": "",
+      "modelPlaceholder": "",
+      "modelDescription": "",
+      "enableProvider": "",
+      "enableProviderDescription": ""
+    },
+    "actions": {
+      "cancel": "",
+      "save": "",
+      "saving": "",
+      "remove": "",
+      "test": "",
+      "edit": ""
+    },
+    "removeDialog": {
+      "title": "",
+      "description": ""
+    }
+  },
+  "toasts": {
+    "configSaved": "",
+    "configSavedDescription": "",
+    "configSaveFailed": "",
+    "configRemoved": "",
+    "configRemovedDescription": "",
+    "configRemoveFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "",
+    "connectionFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": ""
+  },
+  "context": {
+    "title": "",
+    "description": "",
+    "glossary": {
+      "label": "",
+      "description": ""
+    },
+    "tm": {
+      "label": "",
+      "description": ""
+    },
+    "relatedKeys": {
+      "label": "",
+      "description": ""
+    },
+    "maxItems": "",
+    "minSimilarity": "",
+    "customInstructions": {
+      "title": "",
+      "description": "",
+      "placeholder": ""
+    },
+    "saveNote": "",
+    "saveSettings": ""
+  },
+  "usage": {
+    "title": "",
+    "description": "",
+    "stats": {
+      "totalTokens": "",
+      "requests": "",
+      "cacheHits": "",
+      "estCost": ""
+    },
+    "byProvider": "",
+    "tokens": "",
+    "requests": ""
+  }
+}

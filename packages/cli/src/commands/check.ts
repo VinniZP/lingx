@@ -143,7 +143,7 @@ async function check(options: CheckOptions): Promise<number> {
 
       console.log();
       console.log(chalk.yellow('Fix all dynamic keys before running check.'));
-      console.log(chalk.gray('Use tKey() to wrap dynamic keys or @lf-key comments to declare them.'));
+      console.log(chalk.gray('Use tKey() to wrap dynamic keys or @lingx-key comments to declare them.'));
       return 1;
     }
 

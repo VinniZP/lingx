@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { useState, ReactNode } from 'react';
 import { AuthProvider } from '@/lib/auth';
 import { Toaster } from '@/components/ui/sonner';
@@ -28,31 +29,33 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <AuthProvider>
-          <LingxProvider
-            defaultLanguage="en"
-            staticData={undefined}
-            // API fetching (tries first, falls back to localePath)
-            apiUrl={API_URL}
-            project="lingx"
-            space="default"
-            environment="production"
-            // Fallback to local JSON files
-            localePath="/locales"
-            availableLanguages={['en', 'de', 'es', 'fr', 'ru', 'uk']}
-          >
-            {children}
-          </LingxProvider>
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <NuqsAdapter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <LingxProvider
+              defaultLanguage="en"
+              staticData={undefined}
+              // API fetching (tries first, falls back to localePath)
+              apiUrl={API_URL}
+              project="lingx"
+              space="default"
+              environment="production"
+              // Fallback to local JSON files
+              localePath="/locales"
+              availableLanguages={['en', 'de', 'es', 'fr', 'ru', 'uk']}
+            >
+              {children}
+            </LingxProvider>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </NuqsAdapter>
   );
 }

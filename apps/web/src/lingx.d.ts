@@ -228,6 +228,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'common.back'
       | 'common.branch'
       | 'common.cancel'
+      | 'common.close'
       | 'common.continue'
       | 'common.create'
       | 'common.delete'
@@ -856,12 +857,32 @@ declare module '@lingx/sdk-nextjs' {
       | 'time.minutesAgo'
       | 'time.today'
       | 'time.yesterday'
+      | 'translations.batch.aiTranslate'
       | 'translations.batch.approveAll'
+      | 'translations.batch.confirmDelete'
+      | 'translations.batch.delete'
+      | 'translations.batch.deleteDescription'
+      | 'translations.batch.deleteTitle'
       | 'translations.batch.keysSelected'
+      | 'translations.batch.machineTranslate'
       | 'translations.batch.rejectAll'
+      | 'translations.batch.translateEmpty'
       | 'translations.branchHeader.changes'
       | 'translations.branchHeader.complete'
       | 'translations.branchHeader.translatorsOnline'
+      | 'translations.bulkTranslate.complete'
+      | 'translations.bulkTranslate.completedMessage'
+      | 'translations.bulkTranslate.errors'
+      | 'translations.bulkTranslate.failed'
+      | 'translations.bulkTranslate.failedLabel'
+      | 'translations.bulkTranslate.skipped'
+      | 'translations.bulkTranslate.title'
+      | 'translations.bulkTranslate.translated'
+      | 'translations.bulkTranslate.translating'
+      | 'translations.bulkTranslate.usingAI'
+      | 'translations.bulkTranslate.usingMT'
+      | 'translations.commandPalette.aiTranslateAllLanguages'
+      | 'translations.commandPalette.aiTranslateCurrentField'
       | 'translations.commandPalette.approveAllTranslations'
       | 'translations.commandPalette.approveTranslation'
       | 'translations.commandPalette.copyFromSource'
@@ -882,11 +903,14 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.empty.description'
       | 'translations.empty.title'
       | 'translations.filters.all'
+      | 'translations.filters.allNamespaces'
       | 'translations.filters.approved'
       | 'translations.filters.complete'
       | 'translations.filters.missing'
+      | 'translations.filters.noNamespace'
       | 'translations.filters.pending'
       | 'translations.filters.rejected'
+      | 'translations.filters.warnings'
       | 'translations.glossaryPanel.addTermsHint'
       | 'translations.glossaryPanel.applied'
       | 'translations.glossaryPanel.applyTerm'
@@ -912,6 +936,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.keyboard.machineTranslate'
       | 'translations.keyboard.navigate'
       | 'translations.keyboard.switchFields'
+      | 'translations.keyCard.aiTranslate'
       | 'translations.keyCard.applySuggestion'
       | 'translations.keyCard.approve'
       | 'translations.keyCard.approved'
@@ -987,11 +1012,17 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.title'
       | 'translations.toasts.failedToApprove'
       | 'translations.toasts.failedToApproveTranslations'
+      | 'translations.toasts.failedToDeleteKeys'
       | 'translations.toasts.failedToRejectTranslations'
       | 'translations.toasts.failedToSave'
+      | 'translations.toasts.failedToTranslate'
       | 'translations.toasts.failedToUpdateTranslations'
+      | 'translations.toasts.jobCancelled'
+      | 'translations.toasts.keysDeleted'
+      | 'translations.toasts.noEmptyTranslations'
       | 'translations.toasts.noTranslationsToUpdate'
       | 'translations.toasts.translationsApproved'
+      | 'translations.toasts.translationsGenerated'
       | 'translations.toasts.translationsRejected'
       | 'translations.toasts.translationsUpdated'
       | 'twoFactor.backToLogin'
@@ -1068,6 +1099,76 @@ declare module '@lingx/sdk-nextjs' {
    * Usage: tKey('key', 'namespace')
    */
   interface NamespaceKeys {
+    /** Keys in the 'aiTranslation' namespace */
+    'aiTranslation':
+        | 'context.customInstructions.description'
+        | 'context.customInstructions.placeholder'
+        | 'context.customInstructions.title'
+        | 'context.description'
+        | 'context.glossary.description'
+        | 'context.glossary.label'
+        | 'context.maxItems'
+        | 'context.minSimilarity'
+        | 'context.relatedKeys.description'
+        | 'context.relatedKeys.label'
+        | 'context.saveNote'
+        | 'context.saveSettings'
+        | 'context.title'
+        | 'context.tm.description'
+        | 'context.tm.label'
+        | 'pageDescription'
+        | 'pageTitle'
+        | 'provider.actions.cancel'
+        | 'provider.actions.edit'
+        | 'provider.actions.remove'
+        | 'provider.actions.save'
+        | 'provider.actions.saving'
+        | 'provider.actions.test'
+        | 'provider.anthropic.description'
+        | 'provider.form.apiKey'
+        | 'provider.form.apiKeyHint.anthropic'
+        | 'provider.form.apiKeyHint.googleAI'
+        | 'provider.form.apiKeyHint.mistral'
+        | 'provider.form.apiKeyHint.openai'
+        | 'provider.form.apiKeyKeepCurrent'
+        | 'provider.form.apiKeyPlaceholder'
+        | 'provider.form.apiKeyUpdatePlaceholder'
+        | 'provider.form.enableProvider'
+        | 'provider.form.enableProviderDescription'
+        | 'provider.form.model'
+        | 'provider.form.modelDescription'
+        | 'provider.form.modelPlaceholder'
+        | 'provider.googleAI.description'
+        | 'provider.mistral.description'
+        | 'provider.openai.description'
+        | 'provider.removeDialog.description'
+        | 'provider.removeDialog.title'
+        | 'provider.status.active'
+        | 'provider.status.inactive'
+        | 'sections.contextSettings'
+        | 'sections.providers'
+        | 'sections.usage'
+        | 'toasts.configRemoved'
+        | 'toasts.configRemovedDescription'
+        | 'toasts.configRemoveFailed'
+        | 'toasts.configSaved'
+        | 'toasts.configSavedDescription'
+        | 'toasts.configSaveFailed'
+        | 'toasts.connectionFailed'
+        | 'toasts.connectionSuccess'
+        | 'toasts.connectionSuccessDescription'
+        | 'toasts.connectionTestFailed'
+        | 'toasts.contextSaved'
+        | 'toasts.contextSaveFailed'
+        | 'usage.byProvider'
+        | 'usage.description'
+        | 'usage.requests'
+        | 'usage.stats.cacheHits'
+        | 'usage.stats.estCost'
+        | 'usage.stats.requests'
+        | 'usage.stats.totalTokens'
+        | 'usage.title'
+        | 'usage.tokens';
     /** Keys in the 'glossary' namespace */
     'glossary':
         | 'common.cancel'
@@ -1346,6 +1447,12 @@ declare module '@lingx/sdk-nextjs' {
     'projectSettings.languages.selectedCount': { count: string | number };
     /** Configure {projectName} */
     'projectSettings.layout.subtitle': { projectName: string | number };
+    /** Enter {provider} API key */
+    'provider.form.apiKeyPlaceholder': { provider: string | number };
+    /** This will remove the API key and disable AI translations using {provider}. You can add it back later... */
+    'provider.removeDialog.description': { provider: string | number };
+    /** Remove {provider}? */
+    'provider.removeDialog.title': { provider: string | number };
     /** {count} connected */
     'providerSync.connected': { count: string | number };
     /** {count} terms synced */
@@ -1368,8 +1475,16 @@ declare module '@lingx/sdk-nextjs' {
     'time.hoursAgo': { count: number };
     /** {count} min ago */
     'time.minutesAgo': { count: string | number };
+    /** {provider} has been removed. */
+    'toasts.configRemovedDescription': { provider: string | number };
+    /** {provider} has been configured. */
+    'toasts.configSavedDescription': { provider: string | number };
+    /** Successfully connected to {provider}. */
+    'toasts.connectionSuccessDescription': { provider: string | number };
     /** Glossary synced to {provider} */
     'toasts.syncSuccess': { provider: string | number };
+    /** Are you sure you want to delete {count, plural, one {# translation key} other {# translation keys}}?... */
+    'translations.batch.deleteDescription': { count: number };
     /** {count, plural, one {# key} other {# keys}} selected */
     'translations.batch.keysSelected': { count: number };
     /** {count, plural, one {# change} other {# changes}} */
@@ -1378,6 +1493,8 @@ declare module '@lingx/sdk-nextjs' {
     'translations.branchHeader.complete': { percent: string | number };
     /** {count, plural, one {# translator} other {# translators}} online */
     'translations.branchHeader.translatorsOnline': { count: number };
+    /** {count, plural, one {# translation} other {# translations}} processed successfully */
+    'translations.bulkTranslate.completedMessage': { count: number };
     /** Enter {language} translation... */
     'translations.editor.enterTranslationPlaceholder': { language: string | number };
     /** from {source} */
@@ -1396,8 +1513,12 @@ declare module '@lingx/sdk-nextjs' {
     'translations.row.enterTranslationPlaceholder': { language: string | number };
     /** {percent}% complete */
     'translations.stats.percentComplete': { percent: string | number };
+    /** {count, plural, one {# key} other {# keys}} deleted */
+    'translations.toasts.keysDeleted': { count: number };
     /** {count} translations approved */
     'translations.toasts.translationsApproved': { count: string | number };
+    /** {count, plural, one {# translation} other {# translations}} generated */
+    'translations.toasts.translationsGenerated': { count: number };
     /** {count} translations rejected */
     'translations.toasts.translationsRejected': { count: string | number };
     /** {count} translations {status} */

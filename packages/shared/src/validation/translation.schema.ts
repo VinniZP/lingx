@@ -127,6 +127,7 @@ export const keyFilterSchema = z.enum([
   'pending',  // Keys with at least one PENDING translation
   'approved', // Keys with at least one APPROVED translation
   'rejected', // Keys with at least one REJECTED translation
+  'warnings', // Keys with quality issues (placeholder mismatch, etc.)
 ]);
 export type KeyFilter = z.infer<typeof keyFilterSchema>;
 

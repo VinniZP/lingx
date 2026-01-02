@@ -1,34 +1,13 @@
 {
-  "common": {
-    "loading": "Cargando...",
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
-    "languages": "{count, plural, one {# idioma} other {# idiomas}}",
-    "viewAll": "Ver todo"
-  },
   "auth": {
     "forgotPassword": "¿Olvidaste tu contraseña?"
   },
   "dashboard": {
     "stats": {
       "projects": "Proyectos",
-      "keys": "Claves",
+      "languages": "Idiomas",
       "complete": "Completo",
-      "languages": "Idiomas"
-    },
-    "recentProjects": "Proyectos Recientes",
-    "quickActions": "Acciones Rápidas",
-    "import": {
-      "title": "Importar traducciones",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "Claves API",
-      "description": "Gestionar acceso"
-    },
-    "branches": {
-      "title": "Gestionar ramas",
-      "description": "Control de versiones"
+      "keys": "Claves"
     },
     "team": {
       "title": "Miembros del equipo",
@@ -61,19 +40,40 @@
       "afternoon": "Buenas tardes",
       "evening": "Buenas noches"
     },
-    "overview": "Aquí está tu resumen de traducciones",
-    "progress": "Progreso general de traducciones",
+    "import": {
+      "title": "Importar traducciones",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "Claves API",
+      "description": "Gestionar acceso"
+    },
+    "recentProjects": "Proyectos Recientes",
+    "quickActions": "Acciones Rápidas",
     "resources": {
+      "guide": "Guía de inicio",
       "title": "Recursos",
       "docs": "Documentación",
-      "guide": "Guía de inicio",
       "bestPractices": "Mejores prácticas de idiomas"
     },
+    "branches": {
+      "title": "Gestionar ramas",
+      "description": "Control de versiones"
+    },
     "createProject": {
-      "title": "Crear nuevo proyecto",
       "description": "Inicia un proyecto de localización con control de versiones, ramificación y colaboración en equipo",
-      "cta": "Comenzar"
-    }
+      "cta": "Comenzar",
+      "title": "Crear nuevo proyecto"
+    },
+    "overview": "Aquí está tu resumen de traducciones",
+    "progress": "Progreso general de traducciones"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "languages": "{count, plural, one {# idioma} other {# idiomas}}",
+    "delete": "Eliminar",
+    "viewAll": "Ver todo"
   },
   "projects": {
     "search": {
@@ -82,20 +82,20 @@
       "noResultsHint": "Intenta ajustar tu búsqueda"
     },
     "filters": "Filtros",
-    "card": {
-      "keys": "{count} claves",
-      "main": "main",
-      "progress": "Progreso"
-    },
     "title": "Proyectos",
     "description": "Gestiona tus proyectos de localización",
-    "stats": {
-      "totalKeys": "Claves Totales"
-    },
     "empty": {
       "title": "Aún no hay proyectos",
       "description": "Crea tu primer proyecto para comenzar a gestionar traducciones con control de versiones y colaboración.",
       "cta": "Crea tu primer proyecto"
+    },
+    "stats": {
+      "totalKeys": "Claves Totales"
+    },
+    "card": {
+      "keys": "{count} claves",
+      "main": "main",
+      "progress": "Progreso"
     }
   },
   "apiKeys": {

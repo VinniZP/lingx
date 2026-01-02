@@ -30,12 +30,15 @@ import branchRoutes from './routes/branches.js';
 import translationRoutes from './routes/translations.js';
 import translationMemoryRoutes from './routes/translation-memory.js';
 import machineTranslationRoutes from './routes/machine-translation.js';
+import aiTranslationRoutes from './routes/ai-translation.js';
 import glossaryRoutes from './routes/glossary.js';
 import keyContextRoutes from './routes/key-context.js';
 import environmentRoutes from './routes/environments.js';
 import sdkRoutes from './routes/sdk.js';
+import jobRoutes from './routes/jobs.js';
 import { startWorkers, stopWorkers } from './workers/index.js';
 import { closeQueues } from './lib/queues.js';
+import { closeQueueEvents } from './lib/queue-events.js';
 import { closeRedis } from './lib/redis.js';
 
 /**
@@ -172,10 +175,12 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(translationRoutes);
   await fastify.register(translationMemoryRoutes);
   await fastify.register(machineTranslationRoutes);
+  await fastify.register(aiTranslationRoutes);
   await fastify.register(glossaryRoutes);
   await fastify.register(keyContextRoutes);
   await fastify.register(environmentRoutes);
   await fastify.register(sdkRoutes);
+  await fastify.register(jobRoutes);
 
   // Start background workers (skip in test mode)
   const skipWorkers = process.env.NODE_ENV === 'test' || options.logger === false;
@@ -192,6 +197,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     // Graceful shutdown
     fastify.addHook('onClose', async () => {
       await stopWorkers();
+      await closeQueueEvents();
       await closeQueues();
       await closeRedis();
     });

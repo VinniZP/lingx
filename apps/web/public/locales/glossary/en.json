@@ -1,167 +1,167 @@
 {
-  "tagDialog": {
-    "title": "Create Tag",
-    "description": "Add a new tag to organize your glossary",
-    "namePlaceholder": "e.g. Technical, Legal",
-    "createTag": "Create Tag"
-  },
   "common": {
-    "name": "Name",
-    "color": "Color",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "color": "Color",
+    "delete": "Delete",
+    "name": "Name"
   },
-  "import": {
-    "title": "Import Glossary",
-    "description": "Import terminology from industry-standard file formats",
-    "fileFormat": "File Format",
-    "csvDescription": "Comma-separated values",
-    "tbxDescription": "TermBase eXchange (ISO)",
-    "options": "Import Options",
-    "overwriteExisting": "Overwrite Existing Terms",
-    "overwriteDescription": "Update terms that already exist in your glossary",
-    "clickToSelect": "Click to select file",
-    "dragAndDrop": "or drag and drop your {format} file here",
-    "accepts": "Accepts {format} files",
-    "selectFile": "Select File"
+  "deleteEntry": {
+    "description": "This will permanently delete \"{term}\" and all its translations. This action cannot be undone.",
+    "title": "Delete Entry"
+  },
+  "deleteTag": {
+    "description": "This will remove the tag \"{name}\" from all entries. The entries themselves will not be deleted.",
+    "title": "Delete Tag"
+  },
+  "dialog": {
+    "addDescription": "Add a new term to your project glossary for consistent translations",
+    "addNewTerm": "Add New Term",
+    "addTerm": "Add Term",
+    "additionalDetails": "Additional Details",
+    "caseSensitive": "Case Sensitive Matching",
+    "caseSensitiveDescription": "Require exact letter casing when matching this term",
+    "changesApplyToAll": "Changes will apply to all translations",
+    "classification": "Classification",
+    "contextPlaceholder": "Provide an example sentence or describe where this term is used...",
+    "domain": "Domain",
+    "domainPlaceholder": "e.g. technical, legal, medical",
+    "editDescription": "Update the glossary entry details and translations",
+    "editTerm": "Edit Term",
+    "noneSpecified": "None specified",
+    "notesPlaceholder": "Add guidance or special instructions for translators...",
+    "partOfSpeech": "Part of Speech",
+    "saveChanges": "Save Changes",
+    "selectLanguage": "Select language",
+    "selectType": "Select type",
+    "sourceLanguage": "Source Language",
+    "sourceTerm": "Source Term",
+    "sourceTermPlaceholder": "e.g. API, Dashboard, Settings",
+    "tags": "Tags",
+    "tagsSelected": "{count} selected",
+    "termAvailableForMatching": "Term will be available for matching",
+    "termInformation": "Term Information",
+    "translatorNotes": "Translator Notes",
+    "usageContext": "Usage Context"
+  },
+  "entry": {
+    "moreTranslations": "+{count} more"
   },
   "filters": {
-    "allLanguages": "All languages",
     "allDomains": "All domains",
+    "allLanguages": "All languages",
     "allTags": "All tags",
-    "searchPlaceholder": "Search terms...",
-    "language": "Language",
     "domain": "Domain",
-    "tag": "Tag",
-    "entriesCount": "{count, plural, one {# entry} other {# entries}}"
+    "entriesCount": "{count, plural, one {# entry} other {# entries}}",
+    "language": "Language",
+    "searchPlaceholder": "Search terms...",
+    "tag": "Tag"
   },
-  "toasts": {
-    "entryUpdated": "Entry updated",
-    "entryCreated": "Entry created",
-    "entryFailed": "Failed to save entry",
-    "entryDeleted": "Entry deleted",
-    "deleteFailed": "Failed to delete entry",
-    "tagCreated": "Tag created",
-    "tagFailed": "Failed to create tag",
-    "tagDeleted": "Tag deleted",
-    "deleteTagFailed": "Failed to delete tag",
-    "importSuccess": "Glossary imported successfully",
-    "importFailed": "Failed to import glossary",
-    "exportSuccess": "Glossary exported",
-    "exportFailed": "Failed to export glossary",
-    "syncSuccess": "Glossary synced to {provider}",
-    "syncFailed": "Failed to sync glossary",
-    "syncDeleted": "Synced glossary deleted from provider",
-    "syncDeleteFailed": "Failed to delete synced glossary"
+  "import": {
+    "accepts": "Accepts {format} files",
+    "clickToSelect": "Click to select file",
+    "csvDescription": "Comma-separated values",
+    "description": "Import terminology from industry-standard file formats",
+    "dragAndDrop": "or drag and drop your {format} file here",
+    "fileFormat": "File Format",
+    "options": "Import Options",
+    "overwriteDescription": "Update terms that already exist in your glossary",
+    "overwriteExisting": "Overwrite Existing Terms",
+    "selectFile": "Select File",
+    "tbxDescription": "TermBase eXchange (ISO)",
+    "title": "Import Glossary"
+  },
+  "list": {
+    "addFirstTerm": "Add First Term",
+    "addTerminology": "Add terminology to ensure consistent translations across your project",
+    "adjustFilters": "Try adjusting your filters to find what you're looking for",
+    "loading": "Loading entries...",
+    "noMatching": "No matching entries",
+    "startBuilding": "Start building your glossary"
+  },
+  "pagination": {
+    "next": "Next",
+    "pageOf": "Page {page} of {total}",
+    "previous": "Previous"
+  },
+  "partOfSpeech": {
+    "adjective": "Adjective",
+    "adverb": "Adverb",
+    "conjunction": "Conjunction",
+    "determiner": "Determiner",
+    "interjection": "Interjection",
+    "noun": "Noun",
+    "other": "Other",
+    "preposition": "Preposition",
+    "pronoun": "Pronoun",
+    "verb": "Verb"
+  },
+  "providerSync": {
+    "activeSyncs": "Active Syncs",
+    "connectBelow": "Connect your glossary to a provider below",
+    "connected": "{count} connected",
+    "consistency": "Terminology Consistency",
+    "consistencyDescription": "Sync your glossary to machine translation providers to ensure consistent terminology. Your terms will be applied automatically during translations.",
+    "description": "Sync glossary to translation providers",
+    "noSyncs": "No syncs configured",
+    "quickSync": "Quick Sync",
+    "syncToDeepL": "Sync to DeepL",
+    "syncToGoogle": "Sync to Google",
+    "termsSynced": "{count} terms synced",
+    "title": "Provider Sync"
+  },
+  "stats": {
+    "active": "Active",
+    "activeCombinations": "Active translation combinations",
+    "categories": "Categories",
+    "description": "Glossary statistics and insights",
+    "languagePairs": "Language Pairs",
+    "organizationalCategories": "Organizational categories",
+    "pairs": "Pairs",
+    "tagsDefined": "Tags Defined",
+    "title": "Overview",
+    "totalTerms": "Total Terms",
+    "translationsAcross": "{count} translations across languages"
+  },
+  "tagDialog": {
+    "createTag": "Create Tag",
+    "description": "Add a new tag to organize your glossary",
+    "namePlaceholder": "e.g. Technical, Legal",
+    "title": "Create Tag"
+  },
+  "tags": {
+    "addTag": "Add Tag",
+    "createFirstTag": "Create First Tag",
+    "createToOrganize": "Create tags to categorize and organize your terminology",
+    "description": "Organize terms by category",
+    "noTagsYet": "No tags yet",
+    "title": "Tags"
   },
   "terminology": {
-    "title": "Terminology",
+    "addTerm": "Add Term",
     "description": "Manage your glossary entries",
     "export": "Export",
     "exportAsCsv": "Export as CSV",
     "exportAsTbx": "Export as TBX",
     "import": "Import",
-    "addTerm": "Add Term"
+    "title": "Terminology"
   },
-  "tags": {
-    "title": "Tags",
-    "description": "Organize terms by category",
-    "addTag": "Add Tag",
-    "noTagsYet": "No tags yet",
-    "createToOrganize": "Create tags to categorize and organize your terminology",
-    "createFirstTag": "Create First Tag"
-  },
-  "stats": {
-    "title": "Overview",
-    "description": "Glossary statistics and insights",
-    "active": "Active",
-    "totalTerms": "Total Terms",
-    "translationsAcross": "{count} translations across languages",
-    "pairs": "Pairs",
-    "languagePairs": "Language Pairs",
-    "activeCombinations": "Active translation combinations",
-    "categories": "Categories",
-    "tagsDefined": "Tags Defined",
-    "organizationalCategories": "Organizational categories"
-  },
-  "providerSync": {
-    "title": "Provider Sync",
-    "description": "Sync glossary to translation providers",
-    "consistency": "Terminology Consistency",
-    "consistencyDescription": "Sync your glossary to machine translation providers to ensure consistent terminology. Your terms will be applied automatically during translations.",
-    "activeSyncs": "Active Syncs",
-    "connected": "{count} connected",
-    "termsSynced": "{count} terms synced",
-    "noSyncs": "No syncs configured",
-    "connectBelow": "Connect your glossary to a provider below",
-    "quickSync": "Quick Sync",
-    "syncToDeepL": "Sync to DeepL",
-    "syncToGoogle": "Sync to Google"
-  },
-  "pagination": {
-    "previous": "Previous",
-    "next": "Next",
-    "pageOf": "Page {page} of {total}"
-  },
-  "dialog": {
-    "editTerm": "Edit Term",
-    "addNewTerm": "Add New Term",
-    "editDescription": "Update the glossary entry details and translations",
-    "addDescription": "Add a new term to your project glossary for consistent translations",
-    "termInformation": "Term Information",
-    "sourceTerm": "Source Term",
-    "sourceTermPlaceholder": "e.g. API, Dashboard, Settings",
-    "sourceLanguage": "Source Language",
-    "selectLanguage": "Select language",
-    "classification": "Classification",
-    "partOfSpeech": "Part of Speech",
-    "selectType": "Select type",
-    "noneSpecified": "None specified",
-    "usageContext": "Usage Context",
-    "contextPlaceholder": "Provide an example sentence or describe where this term is used...",
-    "translatorNotes": "Translator Notes",
-    "notesPlaceholder": "Add guidance or special instructions for translators...",
-    "caseSensitive": "Case Sensitive Matching",
-    "caseSensitiveDescription": "Require exact letter casing when matching this term",
-    "tags": "Tags",
-    "tagsSelected": "{count} selected",
-    "changesApplyToAll": "Changes will apply to all translations",
-    "termAvailableForMatching": "Term will be available for matching",
-    "saveChanges": "Save Changes",
-    "addTerm": "Add Term",
-    "domain": "Domain",
-    "domainPlaceholder": "e.g. technical, legal, medical",
-    "additionalDetails": "Additional Details"
-  },
-  "deleteEntry": {
-    "title": "Delete Entry",
-    "description": "This will permanently delete \"{term}\" and all its translations. This action cannot be undone."
-  },
-  "deleteTag": {
-    "title": "Delete Tag",
-    "description": "This will remove the tag \"{name}\" from all entries. The entries themselves will not be deleted."
-  },
-  "entry": {
-    "moreTranslations": "+{count} more"
-  },
-  "list": {
-    "loading": "Loading entries...",
-    "noMatching": "No matching entries",
-    "startBuilding": "Start building your glossary",
-    "adjustFilters": "Try adjusting your filters to find what you're looking for",
-    "addTerminology": "Add terminology to ensure consistent translations across your project",
-    "addFirstTerm": "Add First Term"
-  },
-  "partOfSpeech": {
-    "noun": "Noun",
-    "verb": "Verb",
-    "adjective": "Adjective",
-    "adverb": "Adverb",
-    "pronoun": "Pronoun",
-    "preposition": "Preposition",
-    "conjunction": "Conjunction",
-    "interjection": "Interjection",
-    "determiner": "Determiner",
-    "other": "Other"
+  "toasts": {
+    "deleteFailed": "Failed to delete entry",
+    "deleteTagFailed": "Failed to delete tag",
+    "entryCreated": "Entry created",
+    "entryDeleted": "Entry deleted",
+    "entryFailed": "Failed to save entry",
+    "entryUpdated": "Entry updated",
+    "exportFailed": "Failed to export glossary",
+    "exportSuccess": "Glossary exported",
+    "importFailed": "Failed to import glossary",
+    "importSuccess": "Glossary imported successfully",
+    "syncDeleteFailed": "Failed to delete synced glossary",
+    "syncDeleted": "Synced glossary deleted from provider",
+    "syncFailed": "Failed to sync glossary",
+    "syncSuccess": "Glossary synced to {provider}",
+    "tagCreated": "Tag created",
+    "tagDeleted": "Tag deleted",
+    "tagFailed": "Failed to create tag"
   }
 }

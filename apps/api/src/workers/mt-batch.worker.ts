@@ -8,13 +8,14 @@ import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
 import { redis } from '../lib/redis.js';
 import { MTService } from '../services/mt.service.js';
+import { AITranslationService } from '../services/ai-translation.service.js';
 import { TranslationService } from '../services/translation.service.js';
 import type { MTProviderType } from '../services/providers/index.js';
 
 /**
  * Job types for MT batch processing
  */
-export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache';
+export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache' | 'bulk-translate-ui';
 
 /**
  * Job data for MT batch worker
@@ -28,9 +29,25 @@ export interface MTJobData {
   targetLanguage?: string;
   provider?: MTProviderType;
   overwriteExisting?: boolean;
-  // For pre-translate
+  // For pre-translate and bulk-translate-ui
   branchId?: string;
   targetLanguages?: string[];
+  // For bulk-translate-ui (supports both MT and AI)
+  translationProvider?: 'MT' | 'AI';
+}
+
+/**
+ * Progress data for bulk translate jobs
+ */
+export interface BulkTranslateProgress {
+  total: number;
+  processed: number;
+  translated: number;
+  skipped: number;
+  failed: number;
+  currentKey?: string;
+  currentLang?: string;
+  errors?: Array<{ keyId: string; keyName: string; language: string; error: string }>;
 }
 
 /** Batch size for processing translations */
@@ -44,6 +61,7 @@ const BATCH_DELAY = 500;
  */
 export function createMTBatchWorker(prisma: PrismaClient): Worker {
   const mtService = new MTService(prisma);
+  const aiService = new AITranslationService(prisma);
   const translationService = new TranslationService(prisma);
 
   const worker = new Worker<MTJobData>(
@@ -62,6 +80,10 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
 
         case 'cleanup-cache':
           await handleCacheCleanup(prisma, projectId);
+          break;
+
+        case 'bulk-translate-ui':
+          await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job);
           break;
 
         default:
@@ -339,6 +361,161 @@ async function handleCacheCleanup(
   });
 
   console.log(`[MTWorker] Cleaned up ${result.count} expired cache entries`);
+}
+
+/**
+ * Handle bulk translate from UI (supports both MT and AI)
+ */
+async function handleBulkTranslateUI(
+  prisma: PrismaClient,
+  mtService: MTService,
+  aiService: AITranslationService,
+  translationService: TranslationService,
+  job: Job<MTJobData>
+): Promise<{ translated: number; skipped: number; failed: number; errors: Array<{ keyId: string; keyName: string; language: string; error: string }> }> {
+  const { projectId, branchId, keyIds, targetLanguages, translationProvider } = job.data;
+
+  if (!branchId || !keyIds || keyIds.length === 0 || !targetLanguages || targetLanguages.length === 0) {
+    console.warn('[MTWorker] bulk-translate-ui job missing required data');
+    return { translated: 0, skipped: 0, failed: 0, errors: [] };
+  }
+
+  const provider = translationProvider || 'MT';
+
+  // Get project default language
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    throw new Error(`Project ${projectId} not found`);
+  }
+
+  const sourceLanguage = project.defaultLanguage;
+
+  // Get keys with their translations
+  const keys = await prisma.translationKey.findMany({
+    where: {
+      id: { in: keyIds },
+      branchId,
+    },
+    include: {
+      translations: true,
+    },
+  });
+
+  let translated = 0;
+  let skipped = 0;
+  let failed = 0;
+  const errors: Array<{ keyId: string; keyName: string; language: string; error: string }> = [];
+  const totalOperations = keys.length * targetLanguages.length;
+  let processed = 0;
+
+  // Process each key
+  for (const key of keys) {
+    // Get source translation
+    const sourceTranslation = key.translations.find(
+      (t) => t.language === sourceLanguage
+    );
+    const sourceText = sourceTranslation?.value;
+
+    if (!sourceText || sourceText.trim() === '') {
+      // No source text to translate from
+      skipped += targetLanguages.length;
+      processed += targetLanguages.length;
+      await job.updateProgress({
+        total: totalOperations,
+        processed,
+        translated,
+        skipped,
+        failed,
+        currentKey: key.name,
+      } as BulkTranslateProgress);
+      continue;
+    }
+
+    // Translate to each target language
+    for (const targetLang of targetLanguages) {
+      processed++;
+
+      // Check if translation already exists
+      const existingTranslation = key.translations.find(
+        (t) => t.language === targetLang
+      );
+      if (existingTranslation?.value && existingTranslation.value.trim() !== '') {
+        // Already has a translation
+        skipped++;
+        await job.updateProgress({
+          total: totalOperations,
+          processed,
+          translated,
+          skipped,
+          failed,
+          currentKey: key.name,
+          currentLang: targetLang,
+        } as BulkTranslateProgress);
+        continue;
+      }
+
+      try {
+        let translatedText: string;
+
+        if (provider === 'AI') {
+          const result = await aiService.translate(projectId, {
+            text: sourceText,
+            sourceLanguage,
+            targetLanguage: targetLang,
+            keyId: key.id,
+            branchId,
+          });
+          translatedText = result.text;
+        } else {
+          const result = await mtService.translateWithContext(
+            projectId,
+            branchId,
+            key.id,
+            sourceText,
+            sourceLanguage,
+            targetLang
+          );
+          translatedText = result.translatedText;
+        }
+
+        // Save the translation
+        await translationService.setTranslation(key.id, targetLang, translatedText);
+        translated++;
+      } catch (error) {
+        failed++;
+        errors.push({
+          keyId: key.id,
+          keyName: key.name,
+          language: targetLang,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+
+      // Update progress
+      await job.updateProgress({
+        total: totalOperations,
+        processed,
+        translated,
+        skipped,
+        failed,
+        currentKey: key.name,
+        currentLang: targetLang,
+        errors: errors.length > 0 ? errors : undefined,
+      } as BulkTranslateProgress);
+
+      // Small delay between translations to avoid rate limiting
+      await delay(100);
+    }
+  }
+
+  console.log(
+    `[MTWorker] Bulk translate UI complete: ${translated} translated, ${skipped} skipped, ${failed} failed`
+  );
+
+  return { translated, skipped, failed, errors };
 }
 
 /**

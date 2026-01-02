@@ -17,7 +17,7 @@ export function createCLI(): Command {
   const program = new Command();
 
   program
-    .name('lf')
+    .name('lingx')
     .description('Lingx CLI - Translation management for developers')
     .version(VERSION);
 

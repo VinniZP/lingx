@@ -159,6 +159,8 @@ model Project {
   activities        Activity[]
   translationMemory TranslationMemory[]
   mtConfigs         MachineTranslationConfig[]
+  aiConfigs         AITranslationConfig[]
+  aiContextConfig   AIContextConfig?
   glossaryEntries   GlossaryEntry[]
   glossaryTags      GlossaryTag[]
   glossarySyncs     GlossaryProviderSync[]
@@ -464,6 +466,17 @@ enum MTProvider {
   GOOGLE_TRANSLATE
 }
 
+// ============================================
+// AI TRANSLATION (per ADR - AI-Powered Translation)
+// ============================================
+
+enum AIProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE_AI
+  MISTRAL
+}
+
 /// Per-project MT provider configuration
 /// API keys are AES-256-GCM encrypted (same pattern as TOTP)
 model MachineTranslationConfig {
@@ -519,6 +532,88 @@ model MachineTranslationUsage {
 
   // One record per project per provider per month
   @@unique([projectId, provider, yearMonth])
+  @@index([projectId, yearMonth])
+}
+
+/// Per-project AI provider configuration
+/// API keys are AES-256-GCM encrypted (same pattern as MT)
+model AITranslationConfig {
+  id        String     @id @default(cuid())
+  projectId String
+  provider  AIProvider
+  apiKey    String // AES-256-GCM encrypted API key
+  apiKeyIv  String // Initialization vector for decryption
+  model     String // e.g., "gpt-4o-mini", "claude-3-5-sonnet-latest"
+  isActive  Boolean    @default(true)
+  priority  Int        @default(0) // Lower = higher priority for auto-selection
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // One config per provider per project
+  @@unique([projectId, provider])
+  @@index([projectId])
+}
+
+/// Per-project AI context configuration
+/// Controls what context is included in AI translation prompts
+model AIContextConfig {
+  id                 String   @id @default(cuid())
+  projectId          String   @unique
+  includeGlossary    Boolean  @default(true) // Include matching glossary terms
+  glossaryLimit      Int      @default(10) // Max glossary terms to include
+  includeTM          Boolean  @default(true) // Include TM fuzzy matches
+  tmLimit            Int      @default(5) // Max TM matches to include
+  tmMinSimilarity    Float    @default(0.7) // Min similarity (0.0-1.0)
+  includeRelatedKeys Boolean  @default(true) // Include related key translations
+  relatedKeysLimit   Int      @default(5) // Max related keys to include
+  includeDescription Boolean  @default(true) // Include project description
+  customInstructions String?  @db.Text // Custom prompt additions
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+/// Cache AI translation results to avoid duplicate API calls
+/// Indexed by source text hash for fast lookups (same pattern as MT cache)
+model AITranslationCache {
+  id             String     @id @default(cuid())
+  projectId      String
+  provider       AIProvider
+  model          String
+  sourceLanguage String
+  targetLanguage String
+  sourceTextHash String // SHA-256 hash of source text (for indexing)
+  sourceText     String     @db.Text // Original text
+  translatedText String     @db.Text // AI result
+  tokenCount     Int // Total tokens used (input + output)
+  createdAt      DateTime   @default(now())
+  expiresAt      DateTime // 30-day TTL
+
+  // One cached result per unique source per language pair per model
+  @@unique([projectId, provider, model, sourceLanguage, targetLanguage, sourceTextHash])
+  @@index([projectId, provider, sourceLanguage, targetLanguage])
+  @@index([expiresAt]) // For cleanup job
+}
+
+/// Track AI usage per project per month for cost estimation
+model AITranslationUsage {
+  id           String     @id @default(cuid())
+  projectId    String
+  provider     AIProvider
+  model        String
+  yearMonth    String // "2025-01" format for monthly aggregation
+  inputTokens  BigInt     @default(0) // Prompt tokens
+  outputTokens BigInt     @default(0) // Completion tokens
+  requestCount Int        @default(0)
+  cacheHits    Int        @default(0) // Requests served from cache
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // One record per project per provider per model per month
+  @@unique([projectId, provider, model, yearMonth])
   @@index([projectId, yearMonth])
 }
 

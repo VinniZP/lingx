@@ -28,6 +28,9 @@ interface KeyListProps {
   onApplySuggestion: (keyId: string, lang: string, text: string, id: string) => void;
   onFetchMT: (keyId: string, lang: string) => void;
   getFetchingMTSet: (keyId: string) => Set<string>;
+  onFetchAI?: (keyId: string, lang: string) => void;
+  getFetchingAISet?: (keyId: string) => Set<string>;
+  hasAI?: boolean;
   focusedLanguage: string | null;
   onFocusLanguage: (lang: string | null) => void;
   isKeyIdFocused: (keyId: string) => boolean;
@@ -58,6 +61,9 @@ export function KeyList({
   onApplySuggestion,
   onFetchMT,
   getFetchingMTSet,
+  onFetchAI,
+  getFetchingAISet,
+  hasAI = false,
   focusedLanguage,
   onFocusLanguage,
   isKeyIdFocused,
@@ -102,6 +108,9 @@ export function KeyList({
           onApplySuggestion={(lang, text, id) => onApplySuggestion(key.id, lang, text, id)}
           onFetchMT={(lang) => onFetchMT(key.id, lang)}
           isFetchingMT={getFetchingMTSet(key.id)}
+          onFetchAI={onFetchAI ? (lang) => onFetchAI(key.id, lang) : undefined}
+          isFetchingAI={getFetchingAISet ? getFetchingAISet(key.id) : new Set()}
+          hasAI={hasAI}
           focusedLanguage={expandedKeyId === key.id ? focusedLanguage : null}
           onFocusLanguage={onFocusLanguage}
           isFocusedKey={isKeyIdFocused(key.id)}

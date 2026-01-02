@@ -29,7 +29,9 @@ import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { BranchService } from '../services/branch.service.js';
 import { ActivityService } from '../services/activity.service.js';
-import { translationMemoryQueue } from '../lib/queues.js';
+import { MTService } from '../services/mt.service.js';
+import { AITranslationService } from '../services/ai-translation.service.js';
+import { translationMemoryQueue, mtBatchQueue } from '../lib/queues.js';
 import type { TMJobData } from '../workers/translation-memory.worker.js';
 import {
   toTranslationKeyDto,
@@ -44,6 +46,8 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
   const projectService = new ProjectService(fastify.prisma);
   const branchService = new BranchService(fastify.prisma);
   const activityService = new ActivityService(fastify.prisma);
+  const mtService = new MTService(fastify.prisma);
+  const aiService = new AITranslationService(fastify.prisma);
 
   /**
    * GET /api/branches/:branchId/keys - List keys with pagination, search, and filter
@@ -997,6 +1001,221 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
       return {
         ...toTranslationValueDto(translation),
         qualityIssues: qualityIssues.length > 0 ? qualityIssues : undefined,
+      };
+    }
+  );
+
+  // ============================================
+  // BULK TRANSLATE
+  // ============================================
+
+  // Request schema for bulk translate
+  const bulkTranslateSchema = z.object({
+    keyIds: z.array(z.string()).min(1).max(100),
+    targetLanguages: z.array(z.string()).optional(),
+    provider: z.enum(['MT', 'AI']),
+  });
+
+  // Response schema for bulk translate (sync or async)
+  const bulkTranslateResponseSchema = z.union([
+    // Sync response
+    z.object({
+      translated: z.number(),
+      skipped: z.number(),
+      errors: z.array(z.object({
+        keyId: z.string(),
+        language: z.string(),
+        error: z.string(),
+      })).optional(),
+    }),
+    // Async response
+    z.object({
+      jobId: z.string(),
+      async: z.literal(true),
+    }),
+  ]);
+
+  /** Threshold for async processing */
+  const ASYNC_THRESHOLD_KEYS = 5;
+  const ASYNC_THRESHOLD_LANGS = 3;
+
+  /**
+   * POST /api/branches/:branchId/keys/bulk-translate - Bulk translate empty translations
+   * Translates all empty strings for selected keys using MT or AI.
+   * For large batches (>5 keys or >3 languages), returns a jobId for background processing.
+   */
+  app.post(
+    '/api/branches/:branchId/keys/bulk-translate',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Bulk translate empty translations for selected keys. Large batches are processed in background.',
+        tags: ['Translations'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          branchId: z.string(),
+        }),
+        body: bulkTranslateSchema,
+        response: {
+          200: bulkTranslateResponseSchema,
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { branchId } = request.params;
+      const { keyIds, targetLanguages, provider } = request.body;
+
+      // Verify branch and get project
+      const projectId = await branchService.getProjectIdByBranchId(branchId);
+      if (!projectId) {
+        throw new NotFoundError('Branch');
+      }
+
+      // Check project membership
+      const isMember = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+      if (!isMember) {
+        throw new ForbiddenError('Not a member of this project');
+      }
+
+      // Get project info for default language
+      const project = await projectService.findById(projectId);
+      if (!project) {
+        throw new NotFoundError('Project');
+      }
+
+      const sourceLanguage = project.defaultLanguage || 'en';
+
+      // Get project languages for target filtering
+      const projectLanguages = project.languages.map((l) => l.code);
+      const targets = targetLanguages?.length
+        ? targetLanguages.filter((l) => projectLanguages.includes(l) && l !== sourceLanguage)
+        : projectLanguages.filter((l) => l !== sourceLanguage);
+
+      if (targets.length === 0) {
+        return { translated: 0, skipped: 0 };
+      }
+
+      // Determine if this should be async (large batch)
+      const isLargeBatch = keyIds.length > ASYNC_THRESHOLD_KEYS || targets.length > ASYNC_THRESHOLD_LANGS;
+
+      if (isLargeBatch) {
+        // Queue for background processing
+        const job = await mtBatchQueue.add('bulk-translate-ui', {
+          type: 'bulk-translate-ui',
+          projectId,
+          branchId,
+          userId: request.user.userId,
+          keyIds,
+          targetLanguages: targets,
+          translationProvider: provider,
+        });
+
+        return {
+          jobId: job.id!,
+          async: true as const,
+        };
+      }
+
+      // Fetch keys with their translations
+      const keys = await fastify.prisma.translationKey.findMany({
+        where: {
+          id: { in: keyIds },
+          branchId,
+        },
+        include: {
+          translations: true,
+        },
+      });
+
+      let translated = 0;
+      let skipped = 0;
+      const errors: Array<{ keyId: string; language: string; error: string }> = [];
+
+      // Process each key
+      for (const key of keys) {
+        // Get source text
+        const sourceTranslation = key.translations.find(
+          (t) => t.language === sourceLanguage
+        );
+        const sourceText = sourceTranslation?.value;
+
+        if (!sourceText || sourceText.trim() === '') {
+          // No source text to translate from
+          skipped += targets.length;
+          continue;
+        }
+
+        // Translate to each target language
+        for (const targetLang of targets) {
+          // Check if translation already exists
+          const existingTranslation = key.translations.find(
+            (t) => t.language === targetLang
+          );
+          if (existingTranslation?.value && existingTranslation.value.trim() !== '') {
+            // Already has a translation
+            skipped++;
+            continue;
+          }
+
+          try {
+            let translatedText: string;
+
+            if (provider === 'MT') {
+              const result = await mtService.translateWithContext(
+                projectId,
+                branchId,
+                key.id,
+                sourceText,
+                sourceLanguage,
+                targetLang
+              );
+              translatedText = result.translatedText;
+            } else {
+              const result = await aiService.translate(projectId, {
+                text: sourceText,
+                sourceLanguage,
+                targetLanguage: targetLang,
+                keyId: key.id,
+                branchId,
+              });
+              translatedText = result.text;
+            }
+
+            // Save the translation
+            await translationService.setTranslation(key.id, targetLang, translatedText);
+            translated++;
+          } catch (error) {
+            errors.push({
+              keyId: key.id,
+              language: targetLang,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        }
+      }
+
+      // Log activity
+      if (translated > 0) {
+        activityService.log({
+          type: 'translation',
+          projectId,
+          branchId,
+          userId: request.user.userId,
+          metadata: {
+            languages: targets,
+            keyCount: keys.length,
+          },
+          changes: [],
+        });
+      }
+
+      return {
+        translated,
+        skipped,
+        errors: errors.length > 0 ? errors : undefined,
       };
     }
   );

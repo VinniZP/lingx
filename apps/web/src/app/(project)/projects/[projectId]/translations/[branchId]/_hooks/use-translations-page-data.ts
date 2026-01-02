@@ -17,6 +17,7 @@ interface UseTranslationsPageDataOptions {
   search: string;
   page: number;
   filter: FilterType;
+  namespace: string;
 }
 
 interface CurrentBranchInfo {
@@ -33,6 +34,7 @@ export function useTranslationsPageData({
   search,
   page,
   filter,
+  namespace,
 }: UseTranslationsPageDataOptions) {
   // Project query
   const { data: project } = useQuery({
@@ -48,8 +50,20 @@ export function useTranslationsPageData({
 
   // Keys query with pagination and filtering
   const { data: keysData, isLoading } = useQuery({
-    queryKey: ['keys', branchId, search, page, filter],
-    queryFn: () => translationApi.listKeys(branchId, { search, page, limit: 50, filter }),
+    queryKey: ['keys', branchId, search, page, filter, namespace],
+    queryFn: () => translationApi.listKeys(branchId, {
+      search,
+      page,
+      limit: 50,
+      filter,
+      namespace: namespace || undefined,
+    }),
+  });
+
+  // Namespaces query for filter dropdown
+  const { data: namespacesData } = useQuery({
+    queryKey: ['namespaces', branchId],
+    queryFn: () => translationApi.getNamespaces(branchId),
   });
 
   // Derived data
@@ -102,6 +116,9 @@ export function useTranslationsPageData({
     };
   }, [keys, languages]);
 
+  // Namespaces for filter dropdown
+  const namespaces = namespacesData?.namespaces || [];
+
   return {
     // Raw data
     project,
@@ -116,6 +133,7 @@ export function useTranslationsPageData({
     canApprove,
     currentBranchInfo,
     completionStats,
+    namespaces,
     // Loading state
     isLoading,
   };

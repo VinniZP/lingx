@@ -66,7 +66,7 @@ export interface ExtractedKey {
    * How this key was extracted.
    * - 'function': from t('key') calls
    * - 'marker': from tKey('key') marker function
-   * - 'comment': from @lf-key comment
+   * - 'comment': from @lingx-key comment
    */
   source?: KeySource;
 

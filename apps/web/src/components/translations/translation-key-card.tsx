@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Copy,
   Zap,
+  Sparkles,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,9 @@ interface TranslationKeyCardProps {
   onApplySuggestion: (lang: string, text: string, suggestionId: string) => void;
   onFetchMT: (lang: string) => void;
   isFetchingMT: Set<string>;
+  onFetchAI?: (lang: string) => void;
+  isFetchingAI?: Set<string>;
+  hasAI?: boolean;
   focusedLanguage: string | null;
   onFocusLanguage: (lang: string | null) => void;
   isFocusedKey: boolean;
@@ -90,6 +94,9 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
   onApplySuggestion,
   onFetchMT,
   isFetchingMT,
+  onFetchAI,
+  isFetchingAI = new Set(),
+  hasAI = false,
   focusedLanguage,
   onFocusLanguage,
   isFocusedKey,
@@ -215,6 +222,15 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
             onFetchMT(langCode);
           }
           break;
+        case 'a':
+          if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
+            e.preventDefault();
+            // Fetch AI
+            if (onFetchAI && hasAI) {
+              onFetchAI(langCode);
+            }
+          }
+          break;
       }
     },
     [
@@ -229,6 +245,8 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
       translationKey,
       onTranslationChange,
       onFetchMT,
+      onFetchAI,
+      hasAI,
     ]
   );
 
@@ -313,13 +331,24 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
             <div className="flex items-center gap-1">
               {languages.map((lang) => {
                 const hasValue = !!getTranslationValue(translationKey, lang.code);
+                const status = getApprovalStatus(lang.code);
+
+                // Determine dot color based on translation status
+                let dotColor = 'bg-muted-foreground/30'; // Gray: Missing
+                if (hasValue) {
+                  if (status === 'APPROVED') {
+                    dotColor = 'bg-success'; // Green: Approved
+                  } else if (status === 'REJECTED') {
+                    dotColor = 'bg-destructive'; // Red: Rejected
+                  } else {
+                    dotColor = 'bg-warning'; // Yellow: Pending (translated but not approved)
+                  }
+                }
+
                 return (
                   <div
                     key={lang.code}
-                    className={cn(
-                      'size-2 rounded-full transition-colors',
-                      hasValue ? 'bg-success' : 'bg-muted-foreground/30'
-                    )}
+                    className={cn('size-2 rounded-full transition-colors', dotColor)}
                   />
                 );
               })}
@@ -485,6 +514,36 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                           <span className="ml-2"><Kbd variant="pill">M</Kbd></span>
                         </TooltipContent>
                       </Tooltip>
+
+                      {/* Get AI */}
+                      {hasAI && onFetchAI && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                'size-7',
+                                isFetchingAI.has(lang.code)
+                                  ? 'text-primary'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              )}
+                              onClick={() => onFetchAI(lang.code)}
+                              disabled={isFetchingAI.has(lang.code)}
+                            >
+                              {isFetchingAI.has(lang.code) ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Sparkles className="size-3.5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {t('translations.keyCard.aiTranslate')}
+                            <span className="ml-2"><Kbd variant="pill">⇧A</Kbd></span>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
                   )}
 

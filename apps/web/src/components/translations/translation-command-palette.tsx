@@ -20,6 +20,7 @@ import {
   Key,
   CheckCheck,
   XCircle,
+  Sparkles,
 } from 'lucide-react';
 
 import type { TranslationKey } from '@/lib/api';
@@ -36,12 +37,15 @@ interface TranslationCommandPaletteProps {
   onSelectKey: (keyId: string) => void;
   onFetchMT: (lang: string) => void;
   onFetchMTAll: () => void;
+  onFetchAI?: (lang: string) => void;
+  onFetchAIAll?: () => void;
   onCopyFromSource: (lang: string) => void;
   onApprove: (translationId: string) => void;
   onReject: (translationId: string) => void;
   onApproveKey: (translationIds: string[]) => void;
   onRejectKey: (translationIds: string[]) => void;
   hasMT: boolean;
+  hasAI?: boolean;
 }
 
 export function TranslationCommandPalette({
@@ -54,12 +58,15 @@ export function TranslationCommandPalette({
   onSelectKey,
   onFetchMT,
   onFetchMTAll,
+  onFetchAI,
+  onFetchAIAll,
   onCopyFromSource,
   onApprove,
   onReject,
   onApproveKey,
   onRejectKey,
   hasMT,
+  hasAI = false,
 }: TranslationCommandPaletteProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
@@ -141,6 +148,25 @@ export function TranslationCommandPalette({
                 >
                   <Languages className="text-primary" />
                   <span>{t('translations.commandPalette.translateAllLanguages')}</span>
+                </CommandItem>
+              )}
+
+              {hasAI && canDoLanguageActions && onFetchAI && (
+                <CommandItem
+                  onSelect={() => handleAction(() => onFetchAI(focusedLanguage!))}
+                >
+                  <Sparkles className="text-primary" />
+                  <span>{t('translations.commandPalette.aiTranslateCurrentField')}</span>
+                  <CommandShortcut><Kbd>⇧A</Kbd></CommandShortcut>
+                </CommandItem>
+              )}
+
+              {hasAI && expandedKeyId && onFetchAIAll && (
+                <CommandItem
+                  onSelect={() => handleAction(onFetchAIAll)}
+                >
+                  <Sparkles className="text-primary" />
+                  <span>{t('translations.commandPalette.aiTranslateAllLanguages')}</span>
                 </CommandItem>
               )}
 

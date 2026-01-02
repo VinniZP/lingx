@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMTConfigs } from '@/hooks/use-machine-translation';
+import { useAIConfigs } from '@/hooks/use-ai-translation';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,12 +35,16 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
     queryFn: () => projectApi.get(projectId),
   });
 
-  const { data: configsData } = useMTConfigs(projectId);
-  const connectedCount = configsData?.configs?.filter((c) => c.isActive).length || 0;
+  const { data: mtConfigsData } = useMTConfigs(projectId);
+  const mtConnectedCount = mtConfigsData?.configs?.filter((c) => c.isActive).length || 0;
+
+  const { data: aiConfigsData } = useAIConfigs(projectId);
+  const aiConnectedCount = aiConfigsData?.configs?.filter((c) => c.isActive).length || 0;
 
   // Determine active section from pathname
   const isGeneralActive = pathname === `/projects/${projectId}/settings`;
   const isIntegrationsActive = pathname === `/projects/${projectId}/settings/integrations`;
+  const isAITranslationActive = pathname === `/projects/${projectId}/settings/ai-translation`;
   const isGlossaryActive = pathname === `/projects/${projectId}/settings/glossary`;
 
   if (isLoading) {
@@ -84,7 +89,15 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       label: t('projectSettings.layout.nav.integrations'),
       description: t('projectSettings.layout.nav.integrationsDescription'),
       isActive: isIntegrationsActive,
-      badge: connectedCount > 0 ? `${connectedCount}` : null,
+      badge: mtConnectedCount > 0 ? `${mtConnectedCount}` : null,
+    },
+    {
+      href: `/projects/${projectId}/settings/ai-translation`,
+      icon: Sparkles,
+      label: 'AI Translation',
+      description: 'Configure AI providers for context-aware translations',
+      isActive: isAITranslationActive,
+      badge: aiConnectedCount > 0 ? `${aiConnectedCount}` : null,
     },
   ];
 

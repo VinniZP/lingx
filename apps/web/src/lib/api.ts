@@ -367,7 +367,7 @@ export const branchApi = {
 
 // Translation types
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type KeyFilter = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
+export type KeyFilter = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
 
 export interface Translation {
   id: string;
@@ -489,6 +489,73 @@ export const translationApi = {
     fetchApi<{ updated: number }>(`/api/branches/${branchId}/translations/batch-approve`, {
       method: 'POST',
       body: JSON.stringify({ translationIds, status }),
+    }),
+
+  // Bulk translate empty translations
+  // Returns sync result for small batches, or jobId for large batches (async)
+  bulkTranslate: (
+    branchId: string,
+    keyIds: string[],
+    provider: 'MT' | 'AI',
+    targetLanguages?: string[]
+  ) =>
+    fetchApi<BulkTranslateResponse>(
+      `/api/branches/${branchId}/keys/bulk-translate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ keyIds, provider, targetLanguages }),
+      }
+    ),
+};
+
+// Bulk translate response types
+export type BulkTranslateSyncResult = {
+  translated: number;
+  skipped: number;
+  failed: number;
+  errors?: Array<{ keyId: string; language: string; error: string }>;
+};
+
+export type BulkTranslateAsyncResult = {
+  jobId: string;
+  async: true;
+};
+
+export type BulkTranslateResponse = BulkTranslateSyncResult | BulkTranslateAsyncResult;
+
+export function isBulkTranslateAsync(response: BulkTranslateResponse): response is BulkTranslateAsyncResult {
+  return 'async' in response && response.async === true;
+}
+
+// Job types
+export interface JobProgress {
+  total: number;
+  processed: number;
+  translated: number;
+  skipped: number;
+  failed: number;
+  currentKey?: string;
+  currentLang?: string;
+  errors?: Array<{ keyId: string; keyName: string; language: string; error: string }>;
+}
+
+export interface JobStatus {
+  id: string;
+  name: string;
+  status: 'waiting' | 'active' | 'completed' | 'failed' | 'delayed';
+  progress?: JobProgress;
+  result?: BulkTranslateSyncResult & { errors?: Array<{ keyId: string; keyName: string; language: string; error: string }> };
+  failedReason?: string;
+  createdAt: string;
+  finishedAt?: string;
+}
+
+// Jobs API
+export const jobsApi = {
+  getStatus: (jobId: string) => fetchApi<JobStatus>(`/api/jobs/${jobId}`),
+  cancel: (jobId: string) =>
+    fetchApi<{ success: boolean; message: string }>(`/api/jobs/${jobId}/cancel`, {
+      method: 'POST',
     }),
 };
 
@@ -1114,6 +1181,131 @@ export const machineTranslationApi = {
   /** Get MT usage statistics */
   getUsage: (projectId: string) =>
     fetchApi<{ providers: MTUsageStats[] }>(`/api/projects/${projectId}/mt/usage`),
+};
+
+// ============================================
+// AI TRANSLATION TYPES
+// ============================================
+
+export type AIProvider = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE_AI' | 'MISTRAL';
+
+export interface AIConfig {
+  id: string;
+  provider: AIProvider;
+  model: string;
+  keyPrefix: string;
+  isActive: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AIContextConfig {
+  includeGlossary: boolean;
+  glossaryLimit: number;
+  includeTM: boolean;
+  tmLimit: number;
+  tmMinSimilarity: number;
+  includeRelatedKeys: boolean;
+  relatedKeysLimit: number;
+  includeDescription: boolean;
+  customInstructions: string | null;
+}
+
+export interface AITranslateResult {
+  text: string;
+  provider: AIProvider;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cached: boolean;
+  context?: {
+    glossaryTerms: number;
+    tmMatches: number;
+    relatedKeys: number;
+  };
+}
+
+export interface AIUsageStats {
+  provider: AIProvider;
+  model: string;
+  currentMonth: {
+    inputTokens: number;
+    outputTokens: number;
+    requestCount: number;
+    cacheHits: number;
+    estimatedCost: number;
+  };
+  allTime: {
+    inputTokens: number;
+    outputTokens: number;
+    requestCount: number;
+  };
+}
+
+// AI Translation API
+export const aiTranslationApi = {
+  /** Get AI configurations for a project */
+  getConfigs: (projectId: string) =>
+    fetchApi<{ configs: AIConfig[] }>(`/api/projects/${projectId}/ai/config`),
+
+  /** Save AI provider configuration (apiKey optional for updates) */
+  saveConfig: (projectId: string, data: {
+    provider: AIProvider;
+    apiKey?: string;
+    model: string;
+    isActive?: boolean;
+    priority?: number;
+  }) =>
+    fetchApi<AIConfig>(`/api/projects/${projectId}/ai/config`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Delete AI provider configuration */
+  deleteConfig: (projectId: string, provider: AIProvider) =>
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/ai/config/${provider}`, {
+      method: 'DELETE',
+    }),
+
+  /** Get AI context configuration */
+  getContextConfig: (projectId: string) =>
+    fetchApi<AIContextConfig>(`/api/projects/${projectId}/ai/context-config`),
+
+  /** Update AI context configuration */
+  updateContextConfig: (projectId: string, data: Partial<AIContextConfig>) =>
+    fetchApi<AIContextConfig>(`/api/projects/${projectId}/ai/context-config`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Test AI provider connection */
+  testConnection: (projectId: string, provider: AIProvider) =>
+    fetchApi<{ success: boolean; error?: string }>(`/api/projects/${projectId}/ai/test/${provider}`, {
+      method: 'POST',
+    }),
+
+  /** Get supported models for a provider */
+  getSupportedModels: (provider: AIProvider) =>
+    fetchApi<{ models: string[] }>(`/api/ai/models/${provider}`),
+
+  /** Translate text using AI */
+  translate: (projectId: string, data: {
+    text: string;
+    sourceLanguage: string;
+    targetLanguage: string;
+    keyId?: string;
+    branchId?: string;
+    provider?: AIProvider;
+  }) =>
+    fetchApi<AITranslateResult>(`/api/projects/${projectId}/ai/translate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Get AI usage statistics */
+  getUsage: (projectId: string) =>
+    fetchApi<{ providers: AIUsageStats[] }>(`/api/projects/${projectId}/ai/usage`),
 };
 
 // ============================================

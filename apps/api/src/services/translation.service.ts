@@ -131,7 +131,7 @@ export class TranslationService {
       search?: string;
       page?: number;
       limit?: number;
-      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
+      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
       namespace?: string; // Use "__root__" for keys without namespace
     } = {}
   ): Promise<KeyListResult> {
@@ -163,6 +163,12 @@ export class TranslationService {
     // For 'missing' and 'complete' filters, use raw SQL for efficiency
     if (options.filter === 'missing' || options.filter === 'complete') {
       return this.findKeysByCompletionFilter(branchId, options, languageCount);
+    }
+
+    // For 'warnings' filter, we need to check quality issues
+    if (options.filter === 'warnings') {
+      const sourceLanguage = branch?.space.project.languages[0]?.code || 'en'; // First language as source
+      return this.findKeysByQualityFilter(branchId, options, sourceLanguage);
     }
 
     // Build the where clause for other filters
@@ -229,7 +235,8 @@ export class TranslationService {
       search?: string;
       page?: number;
       limit?: number;
-      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
+      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
+      namespace?: string;
     },
     languageCount: number
   ): Promise<KeyListResult> {
@@ -241,62 +248,72 @@ export class TranslationService {
     // For 'complete': keys where non-empty translation count >= language count
     const comparison = options.filter === 'missing' ? '<' : '>=';
 
-    // Build query with search if provided
+    // Build namespace filter condition
+    const hasNamespaceFilter = options.namespace !== undefined;
+    const namespaceValue: string | null = options.namespace === '__root__' ? null : (options.namespace ?? null);
+
+    // Build query with search and namespace if provided
     let keyIdsQuery: string;
     let countQuery: string;
-    let params: (string | number)[];
+    let params: (string | number | null)[];
+
+    // Build WHERE conditions dynamically
+    const whereConditions = ['tk."branchId" = $1'];
+    let paramIndex = 2;
+
+    if (hasNamespaceFilter) {
+      if (namespaceValue === null) {
+        whereConditions.push('tk.namespace IS NULL');
+      } else {
+        whereConditions.push(`tk.namespace = $${paramIndex}`);
+        paramIndex++;
+      }
+    }
 
     if (options.search) {
-      keyIdsQuery = `
-        SELECT tk.id
-        FROM "TranslationKey" tk
-        LEFT JOIN "Translation" t ON t."keyId" = tk.id
-        WHERE tk."branchId" = $1
-          AND (tk.name ILIKE '%' || $2 || '%' OR tk.description ILIKE '%' || $2 || '%')
-        GROUP BY tk.id
-        HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $3
-        ORDER BY tk.name ASC
-        LIMIT $4 OFFSET $5
-      `;
-      countQuery = `
-        SELECT COUNT(*)::int as count FROM (
-          SELECT tk.id
-          FROM "TranslationKey" tk
-          LEFT JOIN "Translation" t ON t."keyId" = tk.id
-          WHERE tk."branchId" = $1
-            AND (tk.name ILIKE '%' || $2 || '%' OR tk.description ILIKE '%' || $2 || '%')
-          GROUP BY tk.id
-          HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $3
-        ) subquery
-      `;
-      params = [branchId, options.search, languageCount, limit, offset];
-    } else {
-      keyIdsQuery = `
-        SELECT tk.id
-        FROM "TranslationKey" tk
-        LEFT JOIN "Translation" t ON t."keyId" = tk.id
-        WHERE tk."branchId" = $1
-        GROUP BY tk.id
-        HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $2
-        ORDER BY tk.name ASC
-        LIMIT $3 OFFSET $4
-      `;
-      countQuery = `
-        SELECT COUNT(*)::int as count FROM (
-          SELECT tk.id
-          FROM "TranslationKey" tk
-          LEFT JOIN "Translation" t ON t."keyId" = tk.id
-          WHERE tk."branchId" = $1
-          GROUP BY tk.id
-          HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $2
-        ) subquery
-      `;
-      params = [branchId, languageCount, limit, offset];
+      whereConditions.push(`(tk.name ILIKE '%' || $${paramIndex} || '%' OR tk.description ILIKE '%' || $${paramIndex} || '%')`);
+      paramIndex++;
     }
+
+    const whereClause = whereConditions.join(' AND ');
+    const havingParam = paramIndex;
+
+    keyIdsQuery = `
+      SELECT tk.id
+      FROM "TranslationKey" tk
+      LEFT JOIN "Translation" t ON t."keyId" = tk.id
+      WHERE ${whereClause}
+      GROUP BY tk.id
+      HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $${havingParam}
+      ORDER BY tk.name ASC
+      LIMIT $${havingParam + 1} OFFSET $${havingParam + 2}
+    `;
+
+    countQuery = `
+      SELECT COUNT(*)::int as count FROM (
+        SELECT tk.id
+        FROM "TranslationKey" tk
+        LEFT JOIN "Translation" t ON t."keyId" = tk.id
+        WHERE ${whereClause}
+        GROUP BY tk.id
+        HAVING COUNT(CASE WHEN t.value IS NOT NULL AND t.value != '' THEN 1 END) ${comparison} $${havingParam}
+      ) subquery
+    `;
+
+    // Build params array
+    params = [branchId];
+    if (hasNamespaceFilter && namespaceValue !== null) {
+      params.push(namespaceValue);
+    }
+    if (options.search) {
+      params.push(options.search);
+    }
+    const countParams = [...params, languageCount];
+    params.push(languageCount, limit, offset);
 
     const [keyIdResults, countResult] = await Promise.all([
       this.prisma.$queryRawUnsafe<Array<{ id: string }>>(keyIdsQuery, ...params),
-      this.prisma.$queryRawUnsafe<Array<{ count: number }>>(countQuery, ...params.slice(0, options.search ? 3 : 2)),
+      this.prisma.$queryRawUnsafe<Array<{ count: number }>>(countQuery, ...countParams),
     ]);
 
     const keyIds = keyIdResults.map((r) => r.id);
@@ -317,6 +334,82 @@ export class TranslationService {
 
     return {
       keys,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Find keys by quality issues filter (warnings)
+   * Fetches keys and filters by quality check failures
+   */
+  private async findKeysByQualityFilter(
+    branchId: string,
+    options: {
+      search?: string;
+      page?: number;
+      limit?: number;
+      namespace?: string;
+    },
+    sourceLanguage: string
+  ): Promise<KeyListResult> {
+    const page = options.page || 1;
+    const limit = options.limit || 50;
+
+    // Build base where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { branchId };
+
+    if (options.namespace !== undefined) {
+      where.namespace = options.namespace === '__root__' ? null : options.namespace;
+    }
+
+    if (options.search) {
+      where.OR = [
+        { name: { contains: options.search, mode: 'insensitive' } },
+        { description: { contains: options.search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Fetch all matching keys with translations
+    const allKeys = await this.prisma.translationKey.findMany({
+      where,
+      include: {
+        translations: {
+          orderBy: { language: 'asc' },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    // Filter to keys with quality issues
+    const keysWithIssues = allKeys.filter((key) => {
+      const sourceText = key.translations.find((t) => t.language === sourceLanguage)?.value;
+      if (!sourceText) return false;
+
+      for (const translation of key.translations) {
+        if (translation.language === sourceLanguage) continue;
+        if (!translation.value) continue;
+
+        const result = runQualityChecks({
+          source: sourceText,
+          target: translation.value,
+          sourceLanguage,
+          targetLanguage: translation.language,
+        });
+
+        if (result.issues.length > 0) return true;
+      }
+      return false;
+    });
+
+    // Paginate
+    const total = keysWithIssues.length;
+    const paginatedKeys = keysWithIssues.slice((page - 1) * limit, page * limit);
+
+    return {
+      keys: paginatedKeys,
       total,
       page,
       limit,

@@ -1,34 +1,13 @@
 {
-  "common": {
-    "loading": "Laden...",
-    "cancel": "Abbrechen",
-    "delete": "Löschen",
-    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
-    "viewAll": "Alle anzeigen"
-  },
   "auth": {
     "forgotPassword": "Passwort vergessen?"
   },
   "dashboard": {
     "stats": {
       "projects": "Projekte",
-      "keys": "Schlüssel",
+      "languages": "Sprachen",
       "complete": "Fertig",
-      "languages": "Sprachen"
-    },
-    "recentProjects": "Aktuelle Projekte",
-    "quickActions": "Schnellaktionen",
-    "import": {
-      "title": "Übersetzungen importieren",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "API-Schlüssel",
-      "description": "Zugriff verwalten"
-    },
-    "branches": {
-      "title": "Branches verwalten",
-      "description": "Versionskontrolle"
+      "keys": "Schlüssel"
     },
     "team": {
       "title": "Teammitglieder",
@@ -61,19 +40,40 @@
       "afternoon": "Guten Tag",
       "evening": "Guten Abend"
     },
-    "overview": "Hier ist Ihre Übersetzungsübersicht",
-    "progress": "Gesamtfortschritt der Übersetzungen",
+    "import": {
+      "title": "Übersetzungen importieren",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "API-Schlüssel",
+      "description": "Zugriff verwalten"
+    },
+    "recentProjects": "Aktuelle Projekte",
+    "quickActions": "Schnellaktionen",
     "resources": {
+      "guide": "Erste Schritte",
       "title": "Ressourcen",
       "docs": "Dokumentation",
-      "guide": "Erste Schritte",
       "bestPractices": "Best Practices für Sprachen"
     },
+    "branches": {
+      "title": "Branches verwalten",
+      "description": "Versionskontrolle"
+    },
     "createProject": {
-      "title": "Neues Projekt erstellen",
       "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
-      "cta": "Loslegen"
-    }
+      "cta": "Loslegen",
+      "title": "Neues Projekt erstellen"
+    },
+    "overview": "Hier ist Ihre Übersetzungsübersicht",
+    "progress": "Gesamtfortschritt der Übersetzungen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "cancel": "Abbrechen",
+    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
+    "delete": "Löschen",
+    "viewAll": "Alle anzeigen"
   },
   "projects": {
     "search": {
@@ -82,25 +82,92 @@
       "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
     },
     "filters": "Filter",
-    "card": {
-      "keys": "{count} Schlüssel",
-      "main": "main",
-      "progress": "Fortschritt"
-    },
     "title": "Projekte",
     "description": "Verwalten Sie Ihre Lokalisierungsprojekte",
-    "stats": {
-      "totalKeys": "Schlüssel Gesamt"
-    },
     "empty": {
       "title": "Noch keine Projekte",
       "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen.",
       "cta": "Erstellen Sie Ihr erstes Projekt"
+    },
+    "stats": {
+      "totalKeys": "Schlüssel Gesamt"
+    },
+    "card": {
+      "keys": "{count} Schlüssel",
+      "main": "main",
+      "progress": "Fortschritt"
     }
   },
+  "activity": {
+    "noRecent": "Keine aktuelle Aktivität",
+    "preview": {
+      "andMore": "+{count} weitere",
+      "metadata": {
+        "branch": "Branch",
+        "from": "Von",
+        "format": "Format",
+        "changed": "Geändert",
+        "conflictsResolved": "Konflikte gelöst",
+        "file": "Datei",
+        "keys": "Schlüssel",
+        "languages": "Sprachen",
+        "source": "Quelle",
+        "target": "Ziel",
+        "environment": "Umgebung",
+        "to": "Zu"
+      },
+      "loading": "Laden...",
+      "empty": "leer",
+      "viewAllHint": "Klicken Sie, um {count} Änderungen anzuzeigen",
+      "noDetails": "Keine Details verfügbar"
+    },
+    "description": {
+      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
+      "aiTranslateWithLanguages": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} zu {languages} übersetzt",
+      "aiTranslate": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} übersetzt",
+      "default": "Aktivität aufgezeichnet",
+      "keyDeleteSingle": "Übersetzungsschlüssel gelöscht",
+      "keyDeletePlural": "Gelöschte {count} Übersetzungsschlüssel",
+      "branchCreateWithSource": "Branch \"{branchName}\" wurde aus \"{sourceBranchName}\" erstellt",
+      "branchCreate": "Branch \"{branchName}\" erstellt",
+      "keyAddPlural": "Hinzugefügt {count} Übersetzungsschlüssel",
+      "merge": "Hat \"{sourceBranchName}\" in \"{targetBranchName}\" zusammengeführt",
+      "importWithFile": "Importierte {count, plural, one {# Schlüssel} other {# Schlüssel}} aus {fileName}",
+      "import": "Importiert {count, plural, one {# Schlüssel} other {# Schlüssel}}",
+      "export": "Übersetzungen in {format} exportiert",
+      "keyAddSingle": "Übersetzungsschlüssel hinzugefügt",
+      "projectSettings": "Projekt {fields} aktualisiert",
+      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
+      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht",
+      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
+      "branchDelete": "Branch \"{branchName}\" gelöscht",
+      "translationSingle": "Übersetzung aktualisiert{languages, select, undefined {} other { in {languages}}}"
+    },
+    "modal": {
+      "noChangesHint": "Diese Aktivität verfügt nicht über detaillierte Änderungsverfolgung.",
+      "noChanges": "Keine detaillierten Änderungen aufgezeichnet",
+      "auditTrail": "Audit-Trail",
+      "loadMore": "Mehr laden",
+      "empty": "Leer"
+    },
+    "lastDay": "Letzte 24 Stunden",
+    "empty": "Aktivitäten erscheinen hier während Sie arbeiten",
+    "lastWeek": "Letzte 7 Tage",
+    "viewAll": "Alle Änderungen anzeigen",
+    "viewAllChanges": "Alle {count} Änderungen anzeigen",
+    "title": "Aktuelle Aktivität"
+  },
   "apiKeys": {
+    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
+    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
+    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
+    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt",
+    "copiedToClipboard": "In die Zwischenablage kopiert",
+    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
     "revokeDialog": {
       "cancel": "Abbrechen"
-    }
+    },
+    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
+    "activeKeys": "Aktive Schlüssel"
   }
 }

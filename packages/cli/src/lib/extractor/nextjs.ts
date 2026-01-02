@@ -62,7 +62,7 @@ const DYNAMIC_TRANSLATION_FUNCTIONS = new Set(['td']);
  * - i18n.t('key'), this.t('key') member expressions
  * - Template literals with static strings
  * - JSX and TypeScript syntax
- * - Magic comments: @lf-skip, @lf-key
+ * - Magic comments: @lingx-skip, @lingx-key
  */
 export class NextjsExtractor implements Extractor {
   private functions: Set<string>;
@@ -103,22 +103,22 @@ export class NextjsExtractor implements Extractor {
         errorRecovery: true,
       });
 
-      // Process comments for @lf-skip and @lf-key
+      // Process comments for @lingx-skip and @lingx-key
       const skipLines = new Set<number>();
       const commentKeys: ExtractedKey[] = [];
 
       for (const comment of (ast.comments ?? []) as Comment[]) {
         const text = comment.value.trim();
 
-        // @lf-skip - skip the next line
-        if (text === '@lf-skip') {
+        // @lingx-skip - skip the next line
+        if (text === '@lingx-skip') {
           if (comment.loc) {
             skipLines.add(comment.loc.end.line + 1);
           }
         }
 
-        // @lf-key key.name - extract key from comment
-        const keyMatch = text.match(/^@lf-key\s+(\S+)/);
+        // @lingx-key key.name - extract key from comment
+        const keyMatch = text.match(/^@lingx-key\s+(\S+)/);
         if (keyMatch) {
           commentKeys.push({
             key: keyMatch[1],
@@ -323,7 +323,7 @@ export class NextjsExtractor implements Extractor {
             } else if (path.node.arguments.length > 0) {
               // Dynamic key detected - this is an error
               errors.push({
-                message: 'Dynamic key detected - wrap with tKey() or use @lf-key comment',
+                message: 'Dynamic key detected - wrap with tKey() or use @lingx-key comment',
                 location: {
                   file: filePath ?? '<unknown>',
                   line: loc?.start.line ?? 0,
@@ -357,7 +357,7 @@ export class NextjsExtractor implements Extractor {
             } else if (path.node.arguments.length > 0) {
               // Dynamic key detected - this is an error
               errors.push({
-                message: 'Dynamic key detected - wrap with tKey() or use @lf-key comment',
+                message: 'Dynamic key detected - wrap with tKey() or use @lingx-key comment',
                 location: {
                   file: filePath ?? '<unknown>',
                   line: loc?.start.line ?? 0,

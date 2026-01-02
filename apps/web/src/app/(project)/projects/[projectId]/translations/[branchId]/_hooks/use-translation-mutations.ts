@@ -22,6 +22,7 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
   const [savedKeys, setSavedKeys] = useState<Map<string, Set<string>>>(new Map());
   const [approvingTranslations, setApprovingTranslations] = useState<Set<string>>(new Set());
   const [isBatchApproving, setIsBatchApproving] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Auto-save refs
   const saveTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -232,6 +233,30 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
     }
   }, [branchId, queryClient, t]);
 
+  // Handle bulk delete
+  const handleBulkDelete = useCallback(async (
+    selectedKeys: Set<string>,
+    onSuccess: () => void
+  ) => {
+    if (selectedKeys.size === 0) return;
+
+    setIsBulkDeleting(true);
+    try {
+      const keyIds = Array.from(selectedKeys);
+      const result = await translationApi.bulkDeleteKeys(branchId, keyIds);
+      toast.success(t('translations.toasts.keysDeleted', { count: result.deleted }));
+      queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
+      queryClient.invalidateQueries({ queryKey: ['namespaces', branchId] });
+      onSuccess();
+    } catch (error) {
+      toast.error(t('translations.toasts.failedToDeleteKeys'), {
+        description: (error as ApiError).message
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [branchId, queryClient, t]);
+
   // Set editing translation directly (for copy from source)
   const setTranslationValue = useCallback((keyId: string, lang: string, value: string) => {
     setEditingTranslations((prev) => ({
@@ -250,11 +275,13 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
     savedKeys,
     approvingTranslations,
     isBatchApproving,
+    isBulkDeleting,
     // Handlers
     getTranslationValue,
     handleTranslationChange,
     handleApprove,
     handleBatchApprove,
+    handleBulkDelete,
     batchApproveTranslations,
     setTranslationValue,
   };

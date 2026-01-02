@@ -4,19 +4,26 @@ import { useState, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslationMemorySearch, type TMMatch } from './use-translation-memory';
 import { useMTTranslate, useMTTranslateWithContext, useMTConfigs, getProviderDisplayName } from './use-machine-translation';
-import type { MTProvider } from '@/lib/api';
+import { useAITranslate, useAIConfigs, getAIProviderDisplayName, getModelDisplayName } from './use-ai-translation';
+import type { MTProvider, AIProvider } from '@/lib/api';
 
 /**
- * Unified suggestion type that can represent both TM and MT suggestions.
+ * Unified suggestion type that can represent TM, MT, and AI suggestions.
  */
 export interface UnifiedSuggestion {
   id: string;
-  type: 'tm' | 'mt';
+  type: 'tm' | 'mt' | 'ai';
   text: string;
-  confidence: number; // 0-100 for TM, always 100 for MT
-  source?: string; // Source key name for TM, provider name for MT
-  provider?: string; // MT provider display name
-  cached?: boolean; // Whether MT result was cached
+  confidence: number; // 0-100 for TM, always 100 for MT/AI
+  source?: string; // Source key name for TM, provider name for MT/AI
+  provider?: string; // MT/AI provider display name
+  model?: string; // AI model name
+  cached?: boolean; // Whether MT/AI result was cached
+  context?: { // AI context metadata
+    glossaryTerms: number;
+    tmMatches: number;
+    relatedKeys: number;
+  };
 }
 
 /**
@@ -231,6 +238,7 @@ export function useSuggestions({
 /**
  * Simplified hook for managing suggestions state at the page level.
  * Provides a cache of suggestions per key ID.
+ * Supports TM, MT, and AI suggestions.
  *
  * @param projectId - Project ID
  * @param branchId - Optional branch ID for context-enhanced translation
@@ -240,7 +248,9 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
     Map<string, Map<string, UnifiedSuggestion[]>>
   >(new Map());
   const [fetchingMT, setFetchingMT] = useState<Map<string, Set<string>>>(new Map());
+  const [fetchingAI, setFetchingAI] = useState<Map<string, Set<string>>>(new Map());
 
+  // MT configuration
   const mtTranslate = useMTTranslate(projectId);
   const mtTranslateWithContext = useMTTranslateWithContext(projectId);
   const { data: mtConfigsData } = useMTConfigs(projectId);
@@ -248,6 +258,14 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
     const configs = mtConfigsData?.configs || [];
     return configs.some(c => c.isActive);
   }, [mtConfigsData?.configs]);
+
+  // AI configuration
+  const aiTranslate = useAITranslate(projectId);
+  const { data: aiConfigsData } = useAIConfigs(projectId);
+  const hasAI = useMemo(() => {
+    const configs = aiConfigsData?.configs || [];
+    return configs.some(c => c.isActive);
+  }, [aiConfigsData?.configs]);
 
   // Get suggestions for a key
   const getSuggestions = useCallback((keyId: string): Map<string, UnifiedSuggestion[]> => {
@@ -377,13 +395,97 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
     });
   }, []);
 
+  // Fetch AI translation for a specific key/language
+  const fetchAI = useCallback(async (
+    keyId: string,
+    sourceText: string,
+    sourceLanguage: string,
+    targetLanguage: string
+  ) => {
+    if (!sourceText || !hasAI) return;
+
+    // Mark as fetching
+    setFetchingAI(prev => {
+      const next = new Map(prev);
+      const keyFetching = new Set<string>(next.get(keyId) || new Set<string>());
+      keyFetching.add(targetLanguage);
+      next.set(keyId, keyFetching);
+      return next;
+    });
+
+    try {
+      const result = await aiTranslate.mutateAsync({
+        text: sourceText,
+        sourceLanguage,
+        targetLanguage,
+        keyId,
+        branchId,
+      });
+
+      // Build provider display with model
+      const providerDisplay = `${getAIProviderDisplayName(result.provider)} (${getModelDisplayName(result.model)})`;
+
+      const suggestion: UnifiedSuggestion = {
+        id: `ai-${keyId}-${targetLanguage}-${Date.now()}`,
+        type: 'ai',
+        text: result.text,
+        confidence: 100,
+        provider: providerDisplay,
+        model: result.model,
+        cached: result.cached,
+        context: result.context,
+      };
+
+      // Add to cache
+      setSuggestionsCache(prev => {
+        const next = new Map(prev);
+        const keySuggestions = new Map(next.get(keyId) || new Map());
+        const langSuggestions = keySuggestions.get(targetLanguage) || [];
+        // Remove any existing AI suggestion for this language
+        const filteredSuggestions = langSuggestions.filter((s: UnifiedSuggestion) => s.type !== 'ai');
+        keySuggestions.set(targetLanguage, [...filteredSuggestions, suggestion]);
+        next.set(keyId, keySuggestions);
+        return next;
+      });
+    } catch (error) {
+      console.error('[useKeySuggestions] AI fetch failed:', error);
+    } finally {
+      // Clear fetching state
+      setFetchingAI(prev => {
+        const next = new Map(prev);
+        const keyFetching = next.get(keyId);
+        if (keyFetching) {
+          keyFetching.delete(targetLanguage);
+          if (keyFetching.size === 0) {
+            next.delete(keyId);
+          }
+        }
+        return next;
+      });
+    }
+  }, [hasAI, branchId, aiTranslate]);
+
+  // Check if AI is being fetched for a key/language
+  const isFetchingAI = useCallback((keyId: string, lang: string): boolean => {
+    return fetchingAI.get(keyId)?.has(lang) || false;
+  }, [fetchingAI]);
+
+  // Get all languages being fetched via AI for a key
+  const getFetchingAISet = useCallback((keyId: string): Set<string> => {
+    return fetchingAI.get(keyId) || new Set();
+  }, [fetchingAI]);
+
   return {
     getSuggestions,
     setSuggestion,
     fetchMT,
+    fetchAI,
     isFetchingMT,
+    isFetchingAI,
     getFetchingMTSet,
+    getFetchingAISet,
     clearKeySuggestions,
     hasMT,
+    hasAI,
   };
 }

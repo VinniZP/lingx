@@ -67,16 +67,16 @@ extract:
 
 ```bash
 # Login with API key (interactive prompt)
-lf auth login
+lingx auth login
 
 # Login with API key directly
-lf auth login --key=lf_your_api_key_here
+lingx auth login --key=lf_your_api_key_here
 
 # Check authentication status
-lf auth status
+lingx auth status
 
 # Logout (remove stored credentials)
-lf auth logout
+lingx auth logout
 ```
 
 Credentials are stored in `~/.lingx/credentials.json`.
@@ -87,19 +87,19 @@ Download translations from the platform to local files.
 
 ```bash
 # Pull all translations for configured branch
-lf pull
+lingx pull
 
 # Pull specific language only
-lf pull --lang=en
+lingx pull --lang=en
 
 # Pull to custom directory
-lf pull --output=./translations
+lingx pull --output=./translations
 
 # Pull in YAML format (override config)
-lf pull --format=yaml
+lingx pull --format=yaml
 
 # Override project/space/branch
-lf pull --project=my-app --space=frontend --branch=feature-x
+lingx pull --project=my-app --space=frontend --branch=feature-x
 ```
 
 **Options:**
@@ -118,13 +118,13 @@ Upload local translations to the platform.
 
 ```bash
 # Push all translations to configured branch
-lf push
+lingx push
 
 # Push from custom directory
-lf push --source=./translations
+lingx push --source=./translations
 
 # Override project/space/branch
-lf push --project=my-app --space=frontend --branch=feature-x
+lingx push --project=my-app --space=frontend --branch=feature-x
 ```
 
 **Options:**
@@ -141,13 +141,13 @@ Bidirectional sync between local files and platform.
 
 ```bash
 # Sync translations (pull + push)
-lf sync
+lingx sync
 
 # Detect conflicts without modifying
-lf sync --dry-run
+lingx sync --dry-run
 
 # Force overwrite (use with caution)
-lf sync --force
+lingx sync --force
 ```
 
 **Options:**
@@ -162,19 +162,19 @@ Extract translation keys from source code.
 
 ```bash
 # Extract keys from Next.js project
-lf extract --format=nextjs
+lingx extract --format=nextjs
 
 # Extract keys from Angular project
-lf extract --format=angular
+lingx extract --format=angular
 
 # Custom source directory
-lf extract --source=./src
+lingx extract --source=./src
 
 # Detect ICU MessageFormat variables in code
-lf extract --detect-icu
+lingx extract --detect-icu
 
 # Save results to file
-lf extract --output=extracted-keys.json
+lingx extract --output=extracted-keys.json
 ```
 
 **Options:**
@@ -195,19 +195,19 @@ Validate translation coverage and ICU syntax.
 
 ```bash
 # Check for missing keys (in code but not platform)
-lf check --missing
+lingx check --missing
 
 # Check for unused keys (in platform but not code)
-lf check --unused
+lingx check --unused
 
 # Validate ICU MessageFormat syntax
-lf check --validate-icu
+lingx check --validate-icu
 
 # All checks at once
-lf check --missing --unused --validate-icu
+lingx check --missing --unused --validate-icu
 
 # Override configuration
-lf check --project=my-app --space=frontend --branch=main
+lingx check --project=my-app --space=frontend --branch=main
 ```
 
 **Options:**
@@ -231,10 +231,10 @@ Manage translation branches from the command line.
 
 ```bash
 # Create new branch from main
-lf branch create feature-checkout --from=main
+lingx branch create feature-checkout --from=main
 
 # Create from current branch (as specified in config)
-lf branch create hotfix-typo
+lingx branch create hotfix-typo
 ```
 
 **Options:**
@@ -246,20 +246,20 @@ lf branch create hotfix-typo
 
 ```bash
 # List all branches in configured space
-lf branch list
+lingx branch list
 
 # Verbose output with key counts
-lf branch list -v
+lingx branch list -v
 ```
 
 #### Show Diff
 
 ```bash
 # Compare two branches
-lf branch diff feature-checkout main
+lingx branch diff feature-checkout main
 
 # Compare with current branch (from config)
-lf branch diff feature-checkout
+lingx branch diff feature-checkout
 ```
 
 Output shows:
@@ -271,13 +271,13 @@ Output shows:
 
 ```bash
 # Merge feature branch into main
-lf branch merge feature-checkout --into=main
+lingx branch merge feature-checkout --into=main
 
 # Interactive merge (resolve conflicts one by one)
-lf branch merge feature-checkout --into=main --interactive
+lingx branch merge feature-checkout --into=main --interactive
 
 # Dry run (show what would be merged)
-lf branch merge feature-checkout --into=main --dry-run
+lingx branch merge feature-checkout --into=main --dry-run
 ```
 
 **Options:**
@@ -322,9 +322,9 @@ jobs:
 
       - name: Check translations
         run: |
-          lf auth login --key=${{ secrets.LINGX_API_KEY }}
-          lf check --missing --unused
-          lf check --validate-icu
+          lingx auth login --key=${{ secrets.LINGX_API_KEY }}
+          lingx check --missing --unused
+          lingx check --validate-icu
         env:
           LINGX_API_KEY: ${{ secrets.LINGX_API_KEY }}
 ```
@@ -337,9 +337,9 @@ check-translations:
   stage: test
   script:
     - npm install -g @lingx/cli
-    - lf auth login --key=$LINGX_API_KEY
-    - lf check --missing --unused
-    - lf check --validate-icu
+    - lingx auth login --key=$LINGX_API_KEY
+    - lingx check --missing --unused
+    - lingx check --validate-icu
 ```
 
 ### Pre-commit Hook
@@ -355,7 +355,7 @@ npx @lingx/cli check --missing --validate-icu
 
 ### "Not authenticated" error
 
-Run `lf auth login` with your API key. Check that the API key is valid and not revoked.
+Run `lingx auth login` with your API key. Check that the API key is valid and not revoked.
 
 ### "Project not found" error
 
@@ -367,11 +367,11 @@ Check that the space exists in your project and the slug is correct.
 
 ### "Branch not found" error
 
-The branch may not exist. Use `lf branch list` to see available branches.
+The branch may not exist. Use `lingx branch list` to see available branches.
 
 ### ICU validation errors
 
-Run `lf check --validate-icu` to see detailed error messages with locations.
+Run `lingx check --validate-icu` to see detailed error messages with locations.
 
 Common ICU issues:
 - Unbalanced braces: `{count, plural, one {1 item} other {{count items}}`
