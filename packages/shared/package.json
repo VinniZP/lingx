@@ -19,9 +19,7 @@
     "@lingx/config": "workspace:*"
   },
   "dependencies": {
-    "zod": "^4.2.1"
-  },
-  "optionalDependencies": {
-    "@messageformat/parser": "^6.0.0"
+    "zod": "^4.2.1",
+    "@messageformat/parser": "^5.1.1"
   }
 }

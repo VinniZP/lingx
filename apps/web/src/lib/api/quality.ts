@@ -1,0 +1,200 @@
+/**
+ * Quality Estimation API Client
+ *
+ * Type-safe API calls for translation quality scoring operations
+ */
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+/**
+ * API Error class for quality API errors
+ */
+export class QualityApiError extends Error {
+  constructor(
+    public statusCode: number,
+    public code: string,
+    message: string
+  ) {
+    super(message);
+    this.name = 'QualityApiError';
+  }
+}
+
+/**
+ * Internal fetch wrapper with error handling
+ */
+async function fetchQualityApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({
+      code: 'UNKNOWN_ERROR',
+      message: 'An unexpected error occurred',
+    }));
+    throw new QualityApiError(response.status, error.code, error.message);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json();
+}
+
+// ============================================
+// TYPES
+// ============================================
+
+export interface QualityScore {
+  score: number; // 0-100
+  accuracy?: number; // AI: semantic fidelity
+  fluency?: number; // AI: natural language quality
+  terminology?: number; // Glossary + AI
+  format?: number; // Heuristic: ICU, placeholders, length
+  passed: boolean;
+  needsAIEvaluation: boolean;
+  issues: QualityIssue[];
+  evaluationType: 'heuristic' | 'ai' | 'hybrid';
+  cached: boolean;
+}
+
+export interface QualityIssue {
+  type: string;
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  position?: {
+    start: number;
+    end: number;
+  };
+  context?: {
+    expected?: string;
+    found?: string;
+    placeholder?: string;
+  };
+}
+
+export interface BranchQualitySummary {
+  averageScore: number;
+  distribution: {
+    excellent: number; // >=80
+    good: number; // 60-79
+    needsReview: number; // <60
+  };
+  byLanguage: Record<string, { average: number; count: number }>;
+  totalScored: number;
+  totalTranslations: number;
+}
+
+export interface QualityConfig {
+  scoreAfterAITranslation: boolean;
+  scoreBeforeMerge: boolean;
+  autoApproveThreshold: number;
+  flagThreshold: number;
+  aiEvaluationEnabled: boolean;
+  aiEvaluationProvider: string | null;
+  aiEvaluationModel: string | null;
+}
+
+export interface ICUValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+// ============================================
+// API FUNCTIONS
+// ============================================
+
+/**
+ * Evaluate quality score for a single translation
+ *
+ * @param translationId - Translation ID to evaluate
+ * @param forceAI - Force AI evaluation even if heuristics pass
+ * @returns Quality score with dimension breakdown
+ */
+export async function evaluateTranslationQuality(
+  translationId: string,
+  forceAI?: boolean
+): Promise<QualityScore> {
+  return fetchQualityApi<QualityScore>(`/api/translations/${translationId}/quality`, {
+    method: 'POST',
+    body: JSON.stringify({ forceAI }),
+  });
+}
+
+/**
+ * Queue batch quality evaluation job for translations
+ *
+ * @param branchId - Branch ID
+ * @param translationIds - Optional array of translation IDs (defaults to all in branch)
+ * @param forceAI - Force AI evaluation for all translations
+ * @returns Job ID for tracking progress
+ */
+export async function queueBatchQuality(
+  branchId: string,
+  translationIds?: string[],
+  forceAI?: boolean
+): Promise<{ jobId: string }> {
+  return fetchQualityApi<{ jobId: string }>(`/api/branches/${branchId}/quality/batch`, {
+    method: 'POST',
+    body: JSON.stringify({ translationIds, forceAI }),
+  });
+}
+
+/**
+ * Get quality summary statistics for a branch
+ *
+ * @param branchId - Branch ID
+ * @returns Summary with average score, distribution, and breakdown by language
+ */
+export async function getBranchQualitySummary(branchId: string): Promise<BranchQualitySummary> {
+  return fetchQualityApi<BranchQualitySummary>(`/api/branches/${branchId}/quality/summary`);
+}
+
+/**
+ * Get quality scoring configuration for a project
+ *
+ * @param projectId - Project ID
+ * @returns Quality scoring configuration
+ */
+export async function getQualityConfig(projectId: string): Promise<QualityConfig> {
+  return fetchQualityApi<QualityConfig>(`/api/projects/${projectId}/quality/config`);
+}
+
+/**
+ * Update quality scoring configuration for a project
+ *
+ * @param projectId - Project ID
+ * @param config - Partial configuration to update
+ * @returns Updated quality scoring configuration
+ */
+export async function updateQualityConfig(
+  projectId: string,
+  config: Partial<QualityConfig>
+): Promise<QualityConfig> {
+  return fetchQualityApi<QualityConfig>(`/api/projects/${projectId}/quality/config`, {
+    method: 'PUT',
+    body: JSON.stringify(config),
+  });
+}
+
+/**
+ * Validate ICU MessageFormat syntax
+ *
+ * @param text - Text to validate
+ * @returns Validation result with error message if invalid
+ */
+export async function validateICUSyntax(text: string): Promise<ICUValidationResult> {
+  return fetchQualityApi<ICUValidationResult>('/api/quality/validate-icu', {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  });
+}

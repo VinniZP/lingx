@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { ProjectLanguage } from '@lingx/shared';
 import { TranslationKey } from '@/lib/api';
+import { evaluateTranslationQuality } from '@/lib/api/quality';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Edit, Save, Loader2 } from 'lucide-react';
 import { TranslationMemoryPanel } from './translation-memory-panel';
+import { QualityScoreBadge, QualityScoreBadgeSkeleton } from './quality-score-badge';
 import { useTranslation } from '@lingx/sdk-nextjs';
 
 // Language flags mapping
@@ -135,6 +138,10 @@ export function TranslationEditor({
           const flag = LANGUAGE_FLAGS[lang.code] || '🌐';
           const value = getTranslationValue(translationKey, lang.code);
 
+          // Find the translation ID for this language
+          const translation = translationKey.translations.find((t) => t.language === lang.code);
+          const translationId = translation?.id;
+
           return (
             <div key={lang.code} className="space-y-2">
               <div className="flex items-center gap-2">
@@ -145,6 +152,9 @@ export function TranslationEditor({
                     {t('translations.editor.default')}
                   </span>
                 )}
+
+                {/* Quality Score Badge */}
+                {translationId && value && <TranslationQualityBadge translationId={translationId} />}
               </div>
               <Textarea
                 value={value}
@@ -176,4 +186,30 @@ export function TranslationEditor({
       )}
     </div>
   );
+}
+
+/**
+ * Translation Quality Badge with data fetching
+ *
+ * Fetches and displays quality score for a translation
+ */
+function TranslationQualityBadge({ translationId }: { translationId: string }) {
+  const { data: score, isLoading } = useQuery({
+    queryKey: ['quality-score', translationId],
+    queryFn: () => evaluateTranslationQuality(translationId),
+    // Don't auto-fetch - only fetch on demand or manual trigger
+    enabled: false,
+    // Cache quality scores for 10 minutes
+    staleTime: 10 * 60 * 1000,
+  });
+
+  if (isLoading) {
+    return <QualityScoreBadgeSkeleton size="sm" />;
+  }
+
+  if (!score) {
+    return null;
+  }
+
+  return <QualityScoreBadge score={score} size="sm" showDimensions />;
 }

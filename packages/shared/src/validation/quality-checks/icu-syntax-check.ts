@@ -89,9 +89,6 @@ export const icuSyntaxChecker: QualityChecker = {
 /**
  * Full ICU syntax validation using @messageformat/parser
  *
- * This function uses dynamic import for the parser to keep it as an optional dependency.
- * If the parser is not installed, it returns valid: true (graceful degradation).
- *
  * @param text - Text to validate
  * @returns Validation result with optional error message
  *
@@ -109,20 +106,11 @@ export async function validateICUSyntaxAsync(
   }
 
   try {
-    // Dynamic import - allows @messageformat/parser to be optional
-    // @ts-expect-error - Optional dependency, may not be installed
     const { parse } = await import('@messageformat/parser');
     parse(text);
     return { valid: true };
   } catch (error) {
-    // Check if it's a module not found error
-    if (error instanceof Error && (error.message.includes('Cannot find module') || error.message.includes('MODULE_NOT_FOUND'))) {
-      // Parser not available - fall back to basic checks only
-      // In production API, this should always be installed
-      return { valid: true };
-    }
-
-    // Actual syntax error
+    // Syntax error from parser
     return {
       valid: false,
       error: error instanceof Error ? error.message : 'Invalid ICU MessageFormat syntax',
