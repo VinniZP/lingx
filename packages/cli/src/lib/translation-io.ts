@@ -1,7 +1,7 @@
 import { readFile, writeFile, readdir, mkdir, stat } from 'fs/promises';
 import { join, basename, extname, dirname } from 'path';
 import { existsSync } from 'fs';
-import { combineKey } from '@localeflow/shared';
+import { combineKey } from '@lingx/shared';
 import type { Formatter } from './formatter/index.js';
 
 /**

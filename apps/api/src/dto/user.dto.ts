@@ -2,7 +2,7 @@
  * User DTO - transforms Prisma User model to API response format
  */
 import type { User } from '@prisma/client';
-import type { UserResponse } from '@localeflow/shared';
+import type { UserResponse } from '@lingx/shared';
 
 /**
  * Transform Prisma User to UserResponse

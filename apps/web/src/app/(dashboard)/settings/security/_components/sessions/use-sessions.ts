@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { securityApi } from '@/lib/api';
 import { toast } from 'sonner';
 

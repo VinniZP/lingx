@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity } from 'lucide-react';
 import { ActivityItem } from '@/components/activity';

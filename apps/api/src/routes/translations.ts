@@ -24,7 +24,7 @@ import {
   batchQualityCheckResponseSchema,
   qualityIssueSchema,
   namespaceListResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { TranslationService } from '../services/translation.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { BranchService } from '../services/branch.service.js';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   getRelativeTimeInfo,
   getFormatDateInfo,

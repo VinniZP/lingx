@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,7 +28,7 @@ export function GlossaryTerminologyHeader({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <div className="size-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/10 flex items-center justify-center shadow-sm">
+        <div className="size-12 rounded-2xl bg-linear-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/10 flex items-center justify-center shadow-sm">
           <BookOpen className="size-5 text-emerald-500" />
         </div>
         <div>

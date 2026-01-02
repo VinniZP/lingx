@@ -81,7 +81,7 @@ export default function TranslationsPage({ params }: PageProps) {
 
   // TM and suggestions
   const recordTMUsage = useRecordTMUsage(projectId);
-  const { getSuggestions, setSuggestion, fetchMT, getFetchingMTSet, hasMT } = useKeySuggestions(projectId);
+  const { getSuggestions, setSuggestion, fetchMT, getFetchingMTSet, hasMT } = useKeySuggestions(projectId, branchId);
 
   // TM suggestions for expanded key
   const expandedKey = expandedKeyId ? keys.find((k) => k.id === expandedKeyId) : null;
@@ -158,6 +158,12 @@ export default function TranslationsPage({ params }: PageProps) {
     if (!open) setEditingKey(undefined);
   }, []);
 
+  const handleSearchKey = useCallback((keyName: string) => {
+    setSearch(keyName);
+    setPage(1);
+    setExpandedKeyId(null);
+  }, []);
+
   // Mobile layout
   if (isMobile) {
     return (
@@ -194,6 +200,7 @@ export default function TranslationsPage({ params }: PageProps) {
         showKeyDialog={showKeyDialog}
         onShowKeyDialogChange={handleKeyDialogChange}
         editingKey={editingKey}
+        onSearchKey={handleSearchKey}
       />
     );
   }
@@ -248,6 +255,7 @@ export default function TranslationsPage({ params }: PageProps) {
         <KeyList
           isLoading={isLoading}
           keys={keys}
+          branchId={branchId}
           hasSearch={!!search}
           languages={languages}
           defaultLanguage={defaultLanguage}
@@ -271,6 +279,7 @@ export default function TranslationsPage({ params }: PageProps) {
           isKeyIdFocused={isKeyIdFocused}
           onKeyboardNavigate={handleKeyboardNavigate}
           onCreateKey={() => setShowKeyDialog(true)}
+          onSearchKey={handleSearchKey}
         />
 
         {totalPages > 1 && (

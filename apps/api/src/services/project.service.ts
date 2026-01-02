@@ -10,7 +10,7 @@ import {
   NotFoundError,
   ValidationError,
 } from '../plugins/error-handler.js';
-import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
+import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
 
 /** Language name lookup (common languages) */
 const LANGUAGE_NAMES: Record<string, string> = {

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';

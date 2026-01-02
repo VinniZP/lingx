@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Languages, Plus } from 'lucide-react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export function Onboarding() {
   const { t } = useTranslation();
@@ -11,7 +11,7 @@ export function Onboarding() {
     <div className="island p-8 lg:p-10 animate-fade-in-up stagger-6">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <div className="size-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/20">
+          <div className="size-14 rounded-2xl bg-linear-to-br from-primary to-primary/60 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/20">
             <Languages className="size-7 text-white" />
           </div>
           <h3 className="text-xl font-semibold mb-2">

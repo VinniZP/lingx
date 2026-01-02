@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Localeflow requires authentication for multiple access patterns:
+Lingx requires authentication for multiple access patterns:
 
 1. **Web Application**: Users accessing the translation management UI via browser
 2. **CLI Tool**: Developers using command-line operations (pull, push, sync, branch operations)
@@ -209,7 +209,7 @@ This approach avoids the complexity of OAuth while providing sufficient security
 - **JWT expiry is an MVP trade-off**: 2025 security best practices (RFC 8725) recommend 5-15 minute access tokens with refresh tokens. The 24h expiry simplifies MVP implementation but should be reduced post-MVP with a proper refresh token flow for enhanced security.
 - **Password management**: Must implement secure password hashing and storage
 - **Token management**: CLI users must manage API keys securely
-- **No SSO out of the box**: Users must create accounts specifically for Localeflow
+- **No SSO out of the box**: Users must create accounts specifically for Lingx
 
 ### Neutral Consequences
 

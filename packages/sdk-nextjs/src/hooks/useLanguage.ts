@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useLocaleflowContext } from '../context/LocaleflowContext';
+import { useLingxContext } from '../context/LingxContext';
 
 /**
  * Return type for useLanguage hook
@@ -61,7 +61,7 @@ export interface UseLanguageReturn {
  * ```
  */
 export function useLanguage(): UseLanguageReturn {
-  const context = useLocaleflowContext();
+  const context = useLingxContext();
 
   return useMemo(
     () => ({

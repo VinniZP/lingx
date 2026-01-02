@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -43,7 +43,7 @@ export function GlossaryProviderSyncSection({
   return (
     <section className="space-y-6 animate-fade-in-up stagger-5">
       <div className="flex items-center gap-4">
-        <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-500/20 via-blue-500/10 to-transparent border border-blue-500/10 flex items-center justify-center shadow-sm">
+        <div className="size-12 rounded-2xl bg-linear-to-br from-blue-500/20 via-blue-500/10 to-transparent border border-blue-500/10 flex items-center justify-center shadow-sm">
           <RefreshCw className="size-5 text-blue-500" />
         </div>
         <div>
@@ -58,7 +58,7 @@ export function GlossaryProviderSyncSection({
 
       <div className="island p-6 space-y-5">
         {/* Info banner */}
-        <div className="flex items-start gap-4 p-5 rounded-xl bg-gradient-to-r from-primary/5 via-primary/[0.02] to-transparent border border-primary/10">
+        <div className="flex items-start gap-4 p-5 rounded-xl bg-linear-to-r from-primary/5 via-primary/[0.02] to-transparent border border-primary/10">
           <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Sparkles className="size-5 text-primary" />
           </div>

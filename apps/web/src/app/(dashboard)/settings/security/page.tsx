@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { Shield, Lock, Activity, ShieldCheck } from 'lucide-react';
 import {

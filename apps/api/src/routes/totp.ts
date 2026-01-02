@@ -15,7 +15,7 @@ import {
   totpDisableSchema,
   regenerateBackupCodesSchema,
   totpStatusSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { UnauthorizedError } from '../plugins/error-handler.js';
 
 const totpRoutes: FastifyPluginAsync = async (fastify) => {

@@ -17,7 +17,7 @@ import {
   UnauthorizedError,
   FieldValidationError,
 } from '../plugins/error-handler.js';
-import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
+import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
 import { EmailService } from './email.service.js';
 import { FileStorageService } from './file-storage.service.js';
 

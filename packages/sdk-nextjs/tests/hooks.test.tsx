@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { LocaleflowProvider } from '../src/provider';
+import { LingxProvider } from '../src/provider';
 import { useTranslation } from '../src/hooks/useTranslation';
 import { useLanguage } from '../src/hooks/useLanguage';
 import { useNamespace } from '../src/hooks/useNamespace';
@@ -53,9 +53,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={staticTranslations}>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('ready').textContent).toBe('true');
@@ -70,9 +70,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={staticTranslations}>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('greeting').textContent).toBe('Hello, World!');
@@ -85,9 +85,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={staticTranslations}>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('missing').textContent).toBe('nonexistent.key');
@@ -108,9 +108,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={staticTranslations}>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('zero').textContent).toBe('No items');
@@ -135,9 +135,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+        <LingxProvider defaultLanguage="en" staticData={translations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('male').textContent).toBe('He liked your post');
@@ -155,9 +155,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+        <LingxProvider defaultLanguage="en" staticData={translations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('count').textContent).toBe('Count: 1,234,567');
@@ -173,9 +173,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={staticTranslations}>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('namespaced').textContent).toBe('Common Title');
@@ -189,9 +189,9 @@ describe('useTranslation', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={staticTranslations}>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
           <TestComponent />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByTestId('fallback').textContent).toBe('Simple text');
@@ -222,9 +222,9 @@ describe('useLanguage', () => {
     };
 
     render(
-      <LocaleflowProvider defaultLanguage="en" staticData={multiLangTranslations}>
+      <LingxProvider defaultLanguage="en" staticData={multiLangTranslations}>
         <TestComponent />
-      </LocaleflowProvider>
+      </LingxProvider>
     );
 
     expect(screen.getByTestId('language').textContent).toBe('en');
@@ -250,9 +250,9 @@ describe('useLanguage', () => {
     };
 
     render(
-      <LocaleflowProvider defaultLanguage="en" staticData={multiLangTranslations}>
+      <LingxProvider defaultLanguage="en" staticData={multiLangTranslations}>
         <TestComponent />
-      </LocaleflowProvider>
+      </LingxProvider>
     );
 
     expect(screen.getByTestId('language').textContent).toBe('en');
@@ -294,13 +294,13 @@ describe('useNamespace', () => {
     };
 
     render(
-      <LocaleflowProvider
+      <LingxProvider
         defaultLanguage="en"
         staticData={staticTranslations}
         namespaces={['common']}
       >
         <TestComponent />
-      </LocaleflowProvider>
+      </LingxProvider>
     );
 
     expect(screen.getByTestId('namespace').textContent).toBe('checkout');
@@ -338,13 +338,13 @@ describe('useNamespace', () => {
     };
 
     render(
-      <LocaleflowProvider
+      <LingxProvider
         defaultLanguage="en"
         staticData={staticTranslations}
         localePath="/locales"
       >
         <TestComponent />
-      </LocaleflowProvider>
+      </LingxProvider>
     );
 
     expect(screen.getByTestId('loaded').textContent).toBe('false');

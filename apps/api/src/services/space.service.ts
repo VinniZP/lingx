@@ -10,7 +10,7 @@ import {
   FieldValidationError,
   NotFoundError,
 } from '../plugins/error-handler.js';
-import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
+import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
 
 export interface CreateSpaceInput {
   name: string;

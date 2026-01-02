@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { FolderOpen, Key, Globe2, Clock, GitBranch } from 'lucide-react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { ProjectWithStats } from '@localeflow/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import type { ProjectWithStats } from '@lingx/shared';
 
 interface ProjectCardProps {
   project: ProjectWithStats;

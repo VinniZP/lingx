@@ -5,7 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { useState, ReactNode } from 'react';
 import { AuthProvider } from '@/lib/auth';
 import { Toaster } from '@/components/ui/sonner';
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+import { LingxProvider } from '@lingx/sdk-nextjs';
 
 // Only import default language for instant initial render
 // Other languages fetched from API first, then fallback to /locales/*.json
@@ -36,20 +36,20 @@ export function Providers({ children }: { children: ReactNode }) {
         disableTransitionOnChange
       >
         <AuthProvider>
-          <LocaleflowProvider
+          <LingxProvider
             defaultLanguage="en"
             staticData={undefined}
             // API fetching (tries first, falls back to localePath)
             apiUrl={API_URL}
-            project="localeflow"
+            project="lingx"
             space="default"
             environment="production"
             // Fallback to local JSON files
             localePath="/locales"
-            availableLanguages={['en', 'de', 'es', 'fr']}
+            availableLanguages={['en', 'de', 'es', 'fr', 'ru', 'uk']}
           >
             {children}
-          </LocaleflowProvider>
+          </LingxProvider>
           <Toaster />
         </AuthProvider>
       </ThemeProvider>

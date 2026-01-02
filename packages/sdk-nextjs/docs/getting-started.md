@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide walks you through setting up `@localeflow/sdk-nextjs` in your Next.js application.
+This guide walks you through setting up `@lingx/sdk-nextjs` in your Next.js application.
 
 ## Prerequisites
 
@@ -12,13 +12,13 @@ This guide walks you through setting up `@localeflow/sdk-nextjs` in your Next.js
 
 ```bash
 # Using pnpm (recommended)
-pnpm add @localeflow/sdk-nextjs
+pnpm add @lingx/sdk-nextjs
 
 # Using npm
-npm install @localeflow/sdk-nextjs
+npm install @lingx/sdk-nextjs
 
 # Using yarn
-yarn add @localeflow/sdk-nextjs
+yarn add @lingx/sdk-nextjs
 ```
 
 ## Quick Setup
@@ -54,11 +54,11 @@ app/
 
 ### 2. Add the Provider
 
-Wrap your application with `LocaleflowProvider` in your root layout:
+Wrap your application with `LingxProvider` in your root layout:
 
 ```tsx
 // app/layout.tsx
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+import { LingxProvider } from '@lingx/sdk-nextjs';
 import en from './locales/en.json';
 import de from './locales/de.json';
 
@@ -70,12 +70,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{ en, de }}
         >
           {children}
-        </LocaleflowProvider>
+        </LingxProvider>
       </body>
     </html>
   );
@@ -90,7 +90,7 @@ Use the `useTranslation` hook in your components:
 // app/page.tsx
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -109,20 +109,58 @@ export default function HomePage() {
 For TypeScript autocomplete and validation, generate types from your translations:
 
 ```bash
-# Create localeflow.config.ts first, then run:
-localeflow types
+# Create lingx.config.ts first, then run:
+lingx types
 ```
 
 This creates a `.d.ts` file that provides autocomplete for translation keys and validates ICU parameters. See [Type-Safe Translations](./type-safety.md) for setup details.
 
-### 5. Add Language Switching
+### 5. Organize with Namespaces (Optional)
+
+For larger applications, organize translations into namespaces using subdirectories:
+
+```
+app/
+├── locales/
+│   ├── en.json              # Root translations
+│   ├── de.json
+│   ├── glossary/
+│   │   ├── en.json          # Glossary namespace
+│   │   └── de.json
+│   └── auth/
+│       ├── en.json          # Auth namespace
+│       └── de.json
+├── layout.tsx
+└── page.tsx
+```
+
+Use `useTranslation()` with the namespace name:
+
+```tsx
+'use client';
+
+import { useTranslation } from '@lingx/sdk-nextjs';
+
+function GlossaryPage() {
+  const { t, ready } = useTranslation('glossary');
+
+  // Wait for namespace to load
+  if (!ready) return <LoadingSpinner />;
+
+  return <h1>{t('dialog.title')}</h1>;
+}
+```
+
+See [Type-Safe Translations](./type-safety.md#namespace-types) for advanced namespace patterns with TypeScript.
+
+### 6. Add Language Switching
 
 Use the `LanguageSwitcher` component or build your own:
 
 ```tsx
 'use client';
 
-import { LanguageSwitcher } from '@localeflow/sdk-nextjs';
+import { LanguageSwitcher } from '@lingx/sdk-nextjs';
 
 export function Header() {
   return (
@@ -143,7 +181,7 @@ Or create a custom switcher:
 ```tsx
 'use client';
 
-import { useLanguage } from '@localeflow/sdk-nextjs';
+import { useLanguage } from '@lingx/sdk-nextjs';
 
 export function CustomLanguageSwitcher() {
   const { language, setLanguage, availableLanguages, isChanging } = useLanguage();
@@ -166,9 +204,9 @@ export function CustomLanguageSwitcher() {
 
 ## Next Steps
 
-- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete and validation
+- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete, validation, and namespaces
 - [Provider Configuration](./provider.md) - Learn about all provider options
-- [Hooks Reference](./hooks.md) - Explore all available hooks
+- [Hooks Reference](./hooks.md) - Explore all available hooks including namespace loading
 - [ICU MessageFormat](./icu-format.md) - Master pluralization and formatting
 - [Server Components](./server-side.md) - Use translations in Server Components
 - [Language Detection](./language-detection.md) - Configure automatic language detection

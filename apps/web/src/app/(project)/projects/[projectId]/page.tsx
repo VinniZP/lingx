@@ -6,7 +6,7 @@ import { projectApi, ProjectTreeBranch } from '@/lib/api';
 import { useProjectActivities } from '@/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreateSpaceDialog, CreateBranchDialog, MergeBranchDialog } from '@/components/dialogs';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { ProjectTreeSpace } from '@/lib/api';
 import {
   HeroSection,

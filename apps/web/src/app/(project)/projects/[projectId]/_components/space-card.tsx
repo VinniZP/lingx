@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -44,7 +44,7 @@ export function SpaceCard({
       <div className="border border-border rounded-xl overflow-hidden bg-card/50 card-hover">
         <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-accent/30 transition-colors">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 flex items-center justify-center">
+            <div className="size-10 rounded-lg bg-linear-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 flex items-center justify-center">
               <FolderOpen className="size-5 text-amber-600" strokeWidth={1.5} />
             </div>
             <div className="text-left">

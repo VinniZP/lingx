@@ -21,7 +21,7 @@ flowchart TB
     subgraph Client["Client (Browser)"]
         CC[Client Component]
         CC --> Hooks[useTranslation / useLanguage]
-        Hooks --> Provider[LocaleflowProvider]
+        Hooks --> Provider[LingxProvider]
     end
 
     Server -->|HTML + Translations| Client
@@ -36,18 +36,18 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph ServerAPI["Server API (@localeflow/sdk-nextjs/server)"]
+    subgraph ServerAPI["Server API (@lingx/sdk-nextjs/server)"]
         direction TB
         GT2[getTranslations]
         GAL2[getAvailableLanguages]
     end
 
-    subgraph ClientAPI["Client API (@localeflow/sdk-nextjs)"]
+    subgraph ClientAPI["Client API (@lingx/sdk-nextjs)"]
         direction TB
         useT[useTranslation]
         useL[useLanguage]
         useN[useNamespace]
-        LFP[LocaleflowProvider]
+        LFP[LingxProvider]
     end
 
     RSC2[Server Component] --> ServerAPI
@@ -69,7 +69,7 @@ Use `getTranslations` in Server Components:
 
 ```tsx
 // app/[lang]/page.tsx
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
@@ -163,7 +163,7 @@ app/
 
 ```tsx
 // app/[lang]/layout.tsx
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+import { LingxProvider } from '@lingx/sdk-nextjs';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
@@ -179,12 +179,12 @@ export default function LocaleLayout({
   return (
     <html lang={params.lang}>
       <body>
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage={params.lang}
           staticData={translations}
         >
           {children}
-        </LocaleflowProvider>
+        </LingxProvider>
       </body>
     </html>
   );
@@ -195,7 +195,7 @@ export default function LocaleLayout({
 
 ```tsx
 // app/[lang]/page.tsx
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
@@ -219,7 +219,7 @@ Use `getAvailableLanguages` to generate static paths:
 
 ```tsx
 // app/[lang]/layout.tsx
-import { getAvailableLanguages } from '@localeflow/sdk-nextjs/server';
+import { getAvailableLanguages } from '@lingx/sdk-nextjs/server';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
@@ -241,7 +241,7 @@ Server Components use `getTranslations`, Client Components use hooks:
 
 ```tsx
 // app/[lang]/page.tsx (Server Component)
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 import { ClientSection } from './ClientSection';
 
 export default async function Page({ params }: { params: { lang: string } }) {
@@ -266,7 +266,7 @@ export default async function Page({ params }: { params: { lang: string } }) {
 // app/[lang]/ClientSection.tsx
 'use client';
 
-import { useTranslation, useLanguage } from '@localeflow/sdk-nextjs';
+import { useTranslation, useLanguage } from '@lingx/sdk-nextjs';
 
 export function ClientSection() {
   const { t } = useTranslation();
@@ -291,7 +291,7 @@ Use translations in Server Actions:
 // app/actions.ts
 'use server';
 
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
@@ -318,7 +318,7 @@ Translate metadata for SEO:
 
 ```tsx
 // app/[lang]/page.tsx
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 import type { Metadata } from 'next';
 
 export async function generateMetadata({

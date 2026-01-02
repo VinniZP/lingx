@@ -23,8 +23,8 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { BranchDiffResponse } from '@localeflow/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import type { BranchDiffResponse } from '@lingx/shared';
 import type { Resolution } from '@/lib/api';
 import { ConflictResolver } from './ConflictResolver';
 
@@ -88,7 +88,7 @@ export function MergeDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col w-[95vw] md:w-auto p-4 md:p-6">
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 md:gap-3 text-lg md:text-xl">
-            <span className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
+            <span className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
               <GitMerge className="h-4 w-4 md:h-5 md:w-5 text-white" />
             </span>
             <span className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-1 min-w-0">
@@ -165,7 +165,7 @@ export function MergeDialog({
 
               {/* Conflicts warning */}
               {hasConflicts && (
-                <Alert className="border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50">
+                <Alert className="border-amber-300 bg-linear-to-r from-amber-50 to-orange-50">
                   <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-amber-600" />
                   <AlertTitle className="text-amber-800 font-semibold text-sm md:text-base">
                     {t('branch.mergeDialog.conflictsDetected')}
@@ -187,7 +187,7 @@ export function MergeDialog({
 
               {/* No conflicts - ready to merge */}
               {!hasConflicts && totalChanges > 0 && (
-                <div className="p-3 md:p-4 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200">
+                <div className="p-3 md:p-4 rounded-lg bg-linear-to-r from-emerald-50 to-green-50 border border-emerald-200">
                   <div className="flex items-center gap-2 md:gap-3">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                       <Check className="h-4 w-4 md:h-5 md:w-5 text-emerald-600" />
@@ -308,7 +308,7 @@ export function MergeDialog({
               <Button
                 onClick={handleMerge}
                 disabled={!canMerge || merging || totalChanges === 0}
-                className={`bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white touch-manipulation ${isMobile ? 'w-full h-11' : ''}`}
+                className={`bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white touch-manipulation ${isMobile ? 'w-full h-11' : ''}`}
               >
                 {merging ? (
                   <>

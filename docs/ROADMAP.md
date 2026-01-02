@@ -1,6 +1,6 @@
-# LocaleFlow Roadmap
+# Lingx Roadmap
 
-> **Updated**: 2025-12-31 (Phase 8 complete - Moving to Phase 9)
+> **Updated**: 2026-01-01 (Phase 8 complete - Moving to Phase 9)
 
 ---
 
@@ -116,10 +116,17 @@
   - [x] Warning at 150%, error at 200% of expected length
   - [x] ICU placeholder-aware length calculation
   - [x] Configurable thresholds via QualityCheckConfig
+- [x] **Namespace support (SDK & CLI)**
+  - [x] File organization (`locales/[namespace]/[lang].json`)
+  - [x] `useTranslation('namespace')` with `ready` state for lazy-loading
+  - [x] Type-safe namespaced keys (`NamespaceKeys`, `TNsKey<NS>`, `tKey('key', 'namespace')`)
+  - [x] CLI namespace handling (pull/push/extract/types/check)
+  - [x] Internal delimiter format (U+001F) for clean key separation
+  - [x] Comprehensive SDK documentation update
 
 ### Phase 9: AI & Context 📋
 - [ ] **AI-powered translation with context** (near-keys, glossary, domain)
-- [ ] **MCP Server** (LocaleFlow as AI tool via Model Context Protocol)
+- [ ] **MCP Server** (Lingx as AI tool via Model Context Protocol)
 - [ ] Near-key context detection (unique feature)
 - [ ] **AI quality estimation** (auto-score translations)
 - [ ] Screenshot context system
@@ -159,6 +166,7 @@
 | Medium | Extended quality checks | ✅ Complete |
 | Medium | Interactive conflict resolution | ✅ Complete |
 | Low | Translation length prediction | ✅ Complete |
+| Medium | Namespace support (SDK & CLI) | ✅ Complete |
 
 ---
 

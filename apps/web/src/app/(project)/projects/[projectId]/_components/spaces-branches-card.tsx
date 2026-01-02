@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, FolderOpen } from 'lucide-react';
@@ -58,7 +58,7 @@ export function SpacesBranchesCard({
         ) : !spaces || spaces.length === 0 ? (
           <div className="text-center py-12 relative rounded-xl bg-muted/30">
             <div className="relative">
-              <div className="size-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 mx-auto flex items-center justify-center mb-4">
+              <div className="size-14 rounded-2xl bg-linear-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 mx-auto flex items-center justify-center mb-4">
                 <FolderOpen className="size-7 text-amber-600" />
               </div>
               <p className="text-muted-foreground mb-4">{t('projectDetail.spacesAndBranches.noSpacesYet')}</p>

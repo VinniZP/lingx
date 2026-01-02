@@ -4,7 +4,7 @@ import { join, relative, dirname } from 'path';
 import { existsSync } from 'fs';
 import { glob } from 'glob';
 import { loadConfig } from '../lib/config.js';
-import { parseNamespacedKey } from '@localeflow/shared';
+import { parseNamespacedKey } from '@lingx/shared';
 import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
 import { createFormatter } from '../lib/formatter/index.js';
 import { regenerateTypesIfEnabled } from './types.js';

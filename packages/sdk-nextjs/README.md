@@ -1,4 +1,4 @@
-# @localeflow/sdk-nextjs
+# @lingx/sdk-nextjs
 
 Modern i18n SDK for Next.js 15+ and React 19+ with full ICU MessageFormat support.
 
@@ -15,9 +15,9 @@ Modern i18n SDK for Next.js 15+ and React 19+ with full ICU MessageFormat suppor
 ## Installation
 
 ```bash
-pnpm add @localeflow/sdk-nextjs
+pnpm add @lingx/sdk-nextjs
 # or
-npm install @localeflow/sdk-nextjs
+npm install @lingx/sdk-nextjs
 ```
 
 **Peer dependencies:** React 19+, Next.js 15+
@@ -38,7 +38,7 @@ npm install @localeflow/sdk-nextjs
 
 ```tsx
 // app/layout.tsx
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+import { LingxProvider } from '@lingx/sdk-nextjs';
 import en from './locales/en.json';
 import de from './locales/de.json';
 
@@ -46,9 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <LocaleflowProvider defaultLanguage="en" staticData={{ en, de }}>
+        <LingxProvider defaultLanguage="en" staticData={{ en, de }}>
           {children}
-        </LocaleflowProvider>
+        </LingxProvider>
       </body>
     </html>
   );
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 // app/page.tsx
 'use client';
 
-import { useTranslation, useLanguage, LanguageSwitcher } from '@localeflow/sdk-nextjs';
+import { useTranslation, useLanguage, LanguageSwitcher } from '@lingx/sdk-nextjs';
 
 export default function Page() {
   const { t } = useTranslation();
@@ -80,7 +80,7 @@ export default function Page() {
 
 ```tsx
 // app/[lang]/page.tsx
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
@@ -103,13 +103,13 @@ export default async function Page({ params }: { params: { lang: string } }) {
 | `useTranslation(ns?)` | Translate strings with `t()` and `td()` |
 | `useLanguage()` | Language switching with `setLanguage()` |
 | `useNamespace(ns, opts)` | Lazy-load translation namespaces |
-| `useLocaleflow()` | Full context access |
+| `useLingx()` | Full context access |
 
 ### Components
 
 | Component | Description |
 |-----------|-------------|
-| `LocaleflowProvider` | Root provider with configuration |
+| `LingxProvider` | Root provider with configuration |
 | `LanguageSwitcher` | Drop-in language selector |
 
 ### Server Utilities
@@ -176,7 +176,7 @@ t('pronoun', { gender: 'female' })  // "She"
 Run the CLI to generate TypeScript types from your translation files:
 
 ```bash
-localeflow types
+lingx types
 ```
 
 This creates a `.d.ts` file with autocomplete for all keys and ICU parameter types.
@@ -184,7 +184,7 @@ This creates a `.d.ts` file with autocomplete for all keys and ICU parameter typ
 ### Usage
 
 ```tsx
-import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@lingx/sdk-nextjs';
 
 // Type your interfaces
 interface NavItem {

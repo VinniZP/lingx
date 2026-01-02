@@ -14,7 +14,7 @@ import {
   parseNamespacedKey,
   type QualityIssue,
   type BatchQualityResult,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 export interface CreateKeyInput {
   name: string;
@@ -636,65 +636,70 @@ export class TranslationService {
     let updated = 0;
     let created = 0;
 
-    await this.prisma.$transaction(async (tx) => {
-      for (const [language, keyValues] of Object.entries(translations)) {
-        for (const [combinedKey, value] of Object.entries(keyValues)) {
-          // Parse namespace and key from combined format
-          const { namespace, key: keyName } = parseNamespacedKey(combinedKey);
+    await this.prisma.$transaction(
+      async (tx) => {
+        for (const [language, keyValues] of Object.entries(translations)) {
+          for (const [combinedKey, value] of Object.entries(keyValues)) {
+            // Parse namespace and key from combined format
+            const { namespace, key: keyName } = parseNamespacedKey(combinedKey);
 
-          // Find or create key
-          // Use findFirst because namespace can be null
-          let key = await tx.translationKey.findFirst({
-            where: {
-              branchId,
-              namespace,
-              name: keyName,
-            },
-          });
-
-          if (!key) {
-            key = await tx.translationKey.create({
-              data: { branchId, namespace, name: keyName },
+            // Find or create key
+            // Use findFirst because namespace can be null
+            let key = await tx.translationKey.findFirst({
+              where: {
+                branchId,
+                namespace,
+                name: keyName,
+              },
             });
-            created++;
-          }
 
-          // Upsert translation with status reset on change
-          const existing = await tx.translation.findUnique({
-            where: {
-              keyId_language: { keyId: key.id, language },
-            },
-          });
+            if (!key) {
+              key = await tx.translationKey.create({
+                data: { branchId, namespace, name: keyName },
+              });
+              created++;
+            }
 
-          if (existing) {
-            const valueChanged = existing.value !== value;
-            await tx.translation.update({
-              where: { id: existing.id },
-              data: {
-                value,
-                // Reset approval status if value changed
-                ...(valueChanged && {
+            // Upsert translation with status reset on change
+            const existing = await tx.translation.findUnique({
+              where: {
+                keyId_language: { keyId: key.id, language },
+              },
+            });
+
+            if (existing) {
+              const valueChanged = existing.value !== value;
+              await tx.translation.update({
+                where: { id: existing.id },
+                data: {
+                  value,
+                  // Reset approval status if value changed
+                  ...(valueChanged && {
+                    status: 'PENDING' as ApprovalStatus,
+                    statusUpdatedAt: null,
+                    statusUpdatedBy: null,
+                  }),
+                },
+              });
+              updated++;
+            } else {
+              await tx.translation.create({
+                data: {
+                  keyId: key.id,
+                  language,
+                  value,
                   status: 'PENDING' as ApprovalStatus,
-                  statusUpdatedAt: null,
-                  statusUpdatedBy: null,
-                }),
-              },
-            });
-            updated++;
-          } else {
-            await tx.translation.create({
-              data: {
-                keyId: key.id,
-                language,
-                value,
-                status: 'PENDING' as ApprovalStatus,
-              },
-            });
-            created++;
+                },
+              });
+              created++;
+            }
           }
         }
+      },
+      {
+        timeout: 60000, // 60 seconds for large bulk operations
       }
-    });
+    );
 
     return { updated, created };
   }

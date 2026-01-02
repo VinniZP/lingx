@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createBranchSchema, type CreateBranchInput } from '@localeflow/shared';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { createBranchSchema, type CreateBranchInput } from '@lingx/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { branchApi, ApiError, ProjectTreeBranch } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
@@ -137,7 +137,7 @@ export function CreateBranchDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
         {/* Header with gradient background */}
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+        <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
           <DialogHeader className="gap-3">
             <div className="flex items-center gap-3">
               <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">

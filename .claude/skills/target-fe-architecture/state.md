@@ -1,6 +1,6 @@
 # State Management
 
-LocaleFlow uses a simple state architecture: React Query for server state, React hooks for local state.
+Lingx uses a simple state architecture: React Query for server state, React hooks for local state.
 
 ## State Types
 

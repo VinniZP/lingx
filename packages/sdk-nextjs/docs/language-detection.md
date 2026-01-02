@@ -14,15 +14,15 @@ On mount, the provider:
 Configure detection via the `detection` prop:
 
 ```tsx
-<LocaleflowProvider
+<LingxProvider
   defaultLanguage="en"
   staticData={{ en, de }}
   detection={{
     order: ['querystring', 'cookie', 'localStorage', 'navigator'],
     caches: ['cookie', 'localStorage'],
-    cookieName: 'localeflow-lang',
+    cookieName: 'lingx-lang',
     cookieMaxAge: 31536000,  // 1 year
-    localStorageKey: 'localeflow-lang',
+    localStorageKey: 'lingx-lang',
   }}
 >
 ```
@@ -34,10 +34,10 @@ Configure detection via the `detection` prop:
 | `order` | `string[]` | `['querystring', 'cookie', 'localStorage', 'navigator']` | Detection order |
 | `caches` | `string[]` | `['cookie', 'localStorage']` | Where to cache language |
 | `excludeCacheFor` | `string[]` | `[]` | Languages to exclude from caching |
-| `cookieName` | `string` | `'localeflow-lang'` | Cookie name |
+| `cookieName` | `string` | `'lingx-lang'` | Cookie name |
 | `cookieMaxAge` | `number` | `31536000` (1 year) | Cookie max-age in seconds |
 | `cookieDomain` | `string` | - | Cookie domain for cross-subdomain |
-| `localStorageKey` | `string` | `'localeflow-lang'` | localStorage key |
+| `localStorageKey` | `string` | `'lingx-lang'` | localStorage key |
 
 ## Built-in Detectors
 
@@ -141,7 +141,7 @@ detection={{
 To always use `defaultLanguage`:
 
 ```tsx
-<LocaleflowProvider
+<LingxProvider
   defaultLanguage="en"
   detection={false}
 >
@@ -152,7 +152,7 @@ To always use `defaultLanguage`:
 Create custom detectors for special use cases:
 
 ```tsx
-import { createLanguageDetector } from '@localeflow/sdk-nextjs';
+import { createLanguageDetector } from '@lingx/sdk-nextjs';
 
 // Detector that reads from a custom header (server-passed)
 const headerDetector = createLanguageDetector({
@@ -179,7 +179,7 @@ const headerDetector = createLanguageDetector({
 ### Adding Custom Detectors
 
 ```tsx
-import { LanguageDetectorService } from '@localeflow/sdk-nextjs';
+import { LanguageDetectorService } from '@lingx/sdk-nextjs';
 
 const service = new LanguageDetectorService({
   order: ['header', 'cookie', 'navigator'],
@@ -190,7 +190,7 @@ const service = new LanguageDetectorService({
 service.addDetector(headerDetector);
 
 // Use in provider config
-<LocaleflowProvider
+<LingxProvider
   defaultLanguage="en"
   detection={{
     order: ['header', 'cookie', 'navigator'],
@@ -298,7 +298,7 @@ detection={{
 
 ```tsx
 // app/[lang]/layout.tsx
-<LocaleflowProvider
+<LingxProvider
   defaultLanguage={params.lang}
   staticData={{ en, de }}
   detection={{

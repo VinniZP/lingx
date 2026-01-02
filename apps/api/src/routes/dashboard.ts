@@ -5,7 +5,7 @@
  */
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { dashboardStatsResponseSchema } from '@localeflow/shared';
+import { dashboardStatsResponseSchema } from '@lingx/shared';
 import { DashboardService } from '../services/dashboard.service.js';
 
 /**

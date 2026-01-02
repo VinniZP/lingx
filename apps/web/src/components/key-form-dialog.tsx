@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createKeySchema, updateKeySchema, type CreateKeyInput, type UpdateKeyInput } from '@localeflow/shared';
+import { createKeySchema, updateKeySchema, type CreateKeyInput, type UpdateKeyInput } from '@lingx/shared';
 import {
   translationApi,
   TranslationKey,
@@ -43,7 +43,7 @@ import {
   Settings,
   AlertCircle,
 } from 'lucide-react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface KeyFormDialogProps {
   open: boolean;
@@ -181,7 +181,7 @@ export function KeyFormDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[480px] rounded-2xl p-0 overflow-hidden">
         {/* Header with gradient background */}
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+        <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
           <DialogHeader className="gap-3">
             <div className="flex items-center gap-3">
               <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">

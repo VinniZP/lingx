@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginInput } from '@localeflow/shared';
+import { loginSchema, type LoginInput } from '@lingx/shared';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import { handleApiFieldErrors } from '@/lib/form-errors';
 import { toast } from 'sonner';
 import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -243,7 +243,7 @@ export default function LoginPage() {
         </div>
         <div className="relative flex justify-center">
           <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
-            {t('auth.newToLocaleflow')}
+            {t('auth.newToLingx')}
           </span>
         </div>
       </div>

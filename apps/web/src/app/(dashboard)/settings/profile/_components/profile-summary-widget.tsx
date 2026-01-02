@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { UserProfile } from '@/lib/api';
 
 interface ProfileSummaryWidgetProps {
@@ -26,10 +26,10 @@ export function ProfileSummaryWidget({
     : profile.email[0].toUpperCase();
 
   return (
-    <div className="shrink-0 p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50 min-w-50">
+    <div className="shrink-0 p-6 rounded-2xl bg-linear-to-br from-muted/50 to-muted/20 border border-border/50 min-w-50">
       <div className="flex items-center gap-4 mb-4">
         {/* Avatar */}
-        <div className="size-14 rounded-xl bg-gradient-to-br from-info/20 via-info/10 to-primary/10 flex items-center justify-center border border-info/20 overflow-hidden">
+        <div className="size-14 rounded-xl bg-linear-to-br from-info/20 via-info/10 to-primary/10 flex items-center justify-center border border-info/20 overflow-hidden">
           {profile.avatarUrl ? (
             <img
               src={profile.avatarUrl}

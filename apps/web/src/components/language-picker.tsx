@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Check, ChevronDown, Globe } from 'lucide-react';
-import { useLanguage, useTranslation } from '@localeflow/sdk-nextjs';
+import { useLanguage, useTranslation } from '@lingx/sdk-nextjs';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -24,6 +24,8 @@ const LANGUAGES: LanguageOption[] = [
   { code: 'de', label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪' },
   { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸' },
   { code: 'fr', label: 'French', nativeLabel: 'Français', flag: '🇫🇷' },
+  { code: 'ru', label: 'Russian', nativeLabel: 'Русский', flag: '🇷🇺' },
+  { code: 'uk', label: 'Ukrainian', nativeLabel: 'Українська', flag: '🇺🇦' },
 ];
 
 interface LanguagePickerProps {

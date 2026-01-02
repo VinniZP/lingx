@@ -1,4 +1,4 @@
-import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@lingx/sdk-nextjs';
 
 // Translation keys for relative time - wrapped with tKey for static extraction
 // Uses existing keys from time.* namespace in locales

@@ -25,7 +25,7 @@ import {
   glossarySyncRequestSchema,
   glossarySyncStatusListResponseSchema,
   type PartOfSpeech,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { GlossaryService } from '../services/glossary.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { glossaryQueue } from '../lib/queues.js';

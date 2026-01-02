@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ConflictEntry } from '@localeflow/shared';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import type { ConflictEntry } from '@lingx/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   branchApi,
   ApiError,
@@ -176,7 +176,7 @@ export function MergeBranchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[560px] rounded-2xl p-0 overflow-hidden">
         {/* Header with gradient background */}
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+        <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
           <DialogHeader className="gap-3">
             <div className="flex items-center gap-3">
               <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">

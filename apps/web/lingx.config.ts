@@ -1,10 +1,10 @@
-import type { LocaleflowConfig } from '@localeflow/cli';
+import type { LingxConfig } from '@lingx/cli';
 
-const config: LocaleflowConfig = {
+const config: LingxConfig = {
   api: {
     url: 'http://localhost:3001',
   },
-  project: 'localeflow',
+  project: 'lingx',
   defaultSpace: 'default',
   defaultBranch: 'main',
   format: {
@@ -32,7 +32,7 @@ const config: LocaleflowConfig = {
   },
   types: {
     enabled: true,
-    output: './src/localeflow.d.ts',
+    output: './src/lingx.d.ts',
     sourceLocale: 'en',
   },
 };

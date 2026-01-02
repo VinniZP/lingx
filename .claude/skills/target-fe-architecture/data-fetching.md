@@ -1,6 +1,6 @@
 # Data Fetching
 
-LocaleFlow uses TanStack Query (React Query) for all data fetching.
+Lingx uses TanStack Query (React Query) for all data fetching.
 
 ## Configuration
 
@@ -32,7 +32,7 @@ All API calls are centralized in `lib/api.ts`:
 
 ```typescript
 // lib/api.ts
-import type { DashboardStats, Project } from '@localeflow/shared';
+import type { DashboardStats, Project } from '@lingx/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -356,5 +356,5 @@ useQuery({
 1. **Use hooks for all queries** - Never call useQuery directly in components
 2. **Consistent query keys** - Use the same key structure everywhere
 3. **Handle all states** - Loading, error, empty, success
-4. **Use shared types** - Import from `@localeflow/shared`
+4. **Use shared types** - Import from `@lingx/shared`
 5. **Invalidate appropriately** - After mutations, invalidate affected queries

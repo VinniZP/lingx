@@ -17,7 +17,7 @@ import {
   webauthnDeleteCredentialResponseSchema,
   webauthnGoPasswordlessResponseSchema,
   authResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { UnauthorizedError } from '../plugins/error-handler.js';
 import { toUserDto } from '../dto/user.dto.js';
 

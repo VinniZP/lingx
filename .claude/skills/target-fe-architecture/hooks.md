@@ -21,7 +21,7 @@ hooks/
 // hooks/use-projects.ts
 import { useQuery } from '@tanstack/react-query';
 import { projectApi } from '@/lib/api';
-import type { Project } from '@localeflow/shared';
+import type { Project } from '@lingx/shared';
 
 export function useProjects() {
   return useQuery({
@@ -84,7 +84,7 @@ export function useTranslationKeys(
 // hooks/use-dashboard-stats.ts
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/api';
-import type { DashboardStats } from '@localeflow/shared';
+import type { DashboardStats } from '@lingx/shared';
 
 export function useDashboardStats() {
   const query = useQuery({
@@ -115,7 +115,7 @@ export function useDashboardStats() {
 // hooks/use-create-project.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectApi } from '@/lib/api';
-import type { CreateProjectInput } from '@localeflow/shared';
+import type { CreateProjectInput } from '@lingx/shared';
 
 export function useCreateProject() {
   const queryClient = useQueryClient();
@@ -198,7 +198,7 @@ export function useUpdateTranslation(branchId: string) {
 ```typescript
 // hooks/use-translation-filter.ts
 import { useState, useMemo } from 'react';
-import type { TranslationKey, ProjectLanguage } from '@localeflow/shared';
+import type { TranslationKey, ProjectLanguage } from '@lingx/shared';
 
 type FilterType = 'all' | 'missing' | 'complete';
 
@@ -373,7 +373,7 @@ export function useProject(id: string) {
 ### 4. Use shared types
 
 ```typescript
-import type { Project, DashboardStats } from '@localeflow/shared';
+import type { Project, DashboardStats } from '@lingx/shared';
 
 export function useProjects(): { projects: Project[] | undefined } {
   // ...

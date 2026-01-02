@@ -1,4 +1,4 @@
-// Shared types and utilities for Localeflow
+// Shared types and utilities for Lingx
 export const VERSION = '0.0.0';
 
 // API contracts

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { join, dirname } from 'path';
 import { mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
-import { parseNamespacedKey, type CliTranslationsResponse } from '@localeflow/shared';
+import { parseNamespacedKey, type CliTranslationsResponse } from '@lingx/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';

@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -197,7 +197,7 @@ function ProviderCard({ projectId, provider, config, onSave }: ProviderCardProps
         : 'border-border/60 bg-card/50 hover:border-border'
     )}>
       {/* Provider Header */}
-      <div className={cn('p-5 bg-gradient-to-r', info.accentColor)}>
+      <div className={cn('p-5 bg-linear-to-r', info.accentColor)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={cn(
@@ -398,8 +398,8 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
       {/* Translation Providers Section */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
-            <Plug className="size-[18px] text-primary" />
+          <div className="size-10 rounded-xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
+            <Plug className="size-4.5 text-primary" />
           </div>
           <div>
             <h2 className="text-lg font-semibold tracking-tight">{t('integrations.providers.title')}</h2>
@@ -426,8 +426,8 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
       {/* Usage Statistics - Always visible */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 border border-emerald-500/10 flex items-center justify-center">
-            <BarChart3 className="size-[18px] text-emerald-500" />
+          <div className="size-10 rounded-xl bg-linear-to-br from-emerald-500/15 to-emerald-500/5 border border-emerald-500/10 flex items-center justify-center">
+            <BarChart3 className="size-4.5 text-emerald-500" />
           </div>
           <div>
             <h2 className="text-lg font-semibold tracking-tight">{t('integrations.usage.title')}</h2>
@@ -543,8 +543,8 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
       {/* Info Section */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
-            <Info className="size-[18px] text-blue-500" />
+          <div className="size-10 rounded-xl bg-linear-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
+            <Info className="size-4.5 text-blue-500" />
           </div>
           <div>
             <h2 className="text-lg font-semibold tracking-tight">{t('integrations.howItWorks.title')}</h2>
@@ -565,7 +565,7 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
                 </p>
               </div>
             </div>
-            <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent" />
+            <div className="h-px bg-linear-to-r from-border via-border/50 to-transparent" />
             <div className="flex gap-4">
               <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
                 <Zap className="size-4 text-muted-foreground" />

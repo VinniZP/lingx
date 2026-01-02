@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Localeflow is a localization management platform with multiple components that need to be developed, tested, and deployed together:
+Lingx is a localization management platform with multiple components that need to be developed, tested, and deployed together:
 
 - **Web Application** (Next.js frontend)
 - **Backend API** (Fastify server)
@@ -186,7 +186,7 @@ The combination of pnpm workspaces and Turborepo provides the best balance of:
 ## Proposed Workspace Structure
 
 ```
-localeflow/
+lingx/
 ├── apps/
 │   ├── web/          # Next.js 16 frontend
 │   └── api/          # Fastify backend

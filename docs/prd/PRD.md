@@ -1,4 +1,4 @@
-# PRD: Localeflow Localization Management Platform
+# PRD: Lingx Localization Management Platform
 
 **Version**: 1.2
 **Date**: 2025-12-27
@@ -24,7 +24,7 @@ The translation management system (TMS) market is projected to grow from USD 2.5
 
 Current tools like Lokalise offer branching but with significant limitations (no reverting merges, no branching from non-master branches). The industry is moving toward "Localization as Code" with CI/CD integration and Git-based workflows, but no solution fully addresses the developer workflow needs.
 
-Localeflow addresses these gaps with a feature-rich SDK API providing specialized hooks for translations, language management, and namespaces with full ICU MessageFormat support for pluralization and formatting, alongside a powerful CLI with comprehensive conflict detection and ICU syntax validation.
+Lingx addresses these gaps with a feature-rich SDK API providing specialized hooks for translations, language management, and namespaces with full ICU MessageFormat support for pluralization and formatting, alongside a powerful CLI with comprehensive conflict detection and ICU syntax validation.
 
 ### Real-World Problem
 
@@ -332,7 +332,7 @@ journey
 ##### 5.3.1 Next.js 16 SDK (Must Have - Priority 1)
 
 - [ ] **FR-SDK-001**: Provider component for app setup
-  - AC: When wrapping app with `<LocaleflowProvider>`, then translations are available to child components
+  - AC: When wrapping app with `<LingxProvider>`, then translations are available to child components
 - [ ] **FR-SDK-002**: `useTranslation()` hook - main translation hook with ICU MessageFormat support
   - AC: When calling `const { t } = useTranslation()`, then `t('key')` returns translated string with:
     - Simple interpolation: `t('greeting', { name: 'Nick' })` with translation `"Hello, {name}!"`
@@ -352,7 +352,7 @@ journey
 ##### 5.3.2 Angular SDK (Should Have - Priority 2)
 
 - [ ] **FR-SDK-007**: Module-based configuration
-  - AC: When importing `LocaleflowModule.forRoot({...})`, then SDK is configured for the application
+  - AC: When importing `LingxModule.forRoot({...})`, then SDK is configured for the application
 - [ ] **FR-SDK-008**: Translate pipe for templates with ICU MessageFormat support
   - AC: When using `{{ 'key' | translate }}`, then translated value is displayed with full ICU support:
     - Simple interpolation: `{{ 'greeting' | translate: { name: 'Nick' } }}` with translation `"Hello, {name}!"`
@@ -360,8 +360,8 @@ journey
     - ICU select syntax: `{{ 'pronoun' | translate: { gender: 'male' } }}` with translation `"{gender, select, male {He} female {She} other {They}}"`
     - ICU number formatting: `{{ 'price' | translate: { amount: 1234.56 } }}` with translation `"Price: {amount, number, currency}"`
     - ICU date formatting: `{{ 'updated' | translate: { date: dateValue } }}` with translation `"Updated {date, date, medium}"`
-- [ ] **FR-SDK-009**: `LocaleflowService` for programmatic access
-  - AC: When injecting `LocaleflowService`, then `instant()`, `get()`, and `stream()` methods are available with ICU MessageFormat support
+- [ ] **FR-SDK-009**: `LingxService` for programmatic access
+  - AC: When injecting `LingxService`, then `instant()`, `get()`, and `stream()` methods are available with ICU MessageFormat support
 - [ ] **FR-SDK-010**: `LanguageService` for language management
   - AC: When injecting `LanguageService`, then `getCurrentLanguage()`, `setLanguage()`, and `getAvailableLanguages()` methods are available
 - [ ] **FR-SDK-011**: `NamespaceService` for namespace-based loading
@@ -669,7 +669,7 @@ graph TB
     end
 
     subgraph "Client Tools"
-        CLI[Localeflow CLI]
+        CLI[Lingx CLI]
         SDK_NEXT[Next.js 16 SDK]
         SDK_ANG[Angular SDK]
     end
@@ -814,7 +814,7 @@ tl branch diff feature-auth main
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2025-12-27 | AI Assistant | Initial PRD creation |
-| 1.1 | 2025-12-27 | AI Assistant | Renamed to Localeflow, updated SDK API to feature-rich style with specialized hooks (useTranslation, useLanguage, useNamespace, usePlural), Next.js 16, pluralization now in-scope |
+| 1.1 | 2025-12-27 | AI Assistant | Renamed to Lingx, updated SDK API to feature-rich style with specialized hooks (useTranslation, useLanguage, useNamespace, usePlural), Next.js 16, pluralization now in-scope |
 | 1.2 | 2025-12-27 | AI Assistant | Added ICU MessageFormat support for SDK pluralization and formatting; removed separate usePlural/PluralPipe in favor of ICU syntax; updated CLI for ICU validation |
 
 ### Update History
@@ -822,5 +822,5 @@ tl branch diff feature-auth main
 | Date | Changes |
 |------|---------|
 | 2025-12-27 | Initial creation |
-| 2025-12-27 | Renamed to Localeflow, updated SDK API to feature-rich style, Next.js 16 |
+| 2025-12-27 | Renamed to Lingx, updated SDK API to feature-rich style, Next.js 16 |
 | 2025-12-27 | Added ICU MessageFormat support for SDK pluralization and formatting |

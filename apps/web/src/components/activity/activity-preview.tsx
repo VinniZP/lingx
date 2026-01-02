@@ -9,9 +9,9 @@
 import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useActivityChanges } from '@/hooks';
-import type { Activity, ActivityPreviewItem, ActivityChange } from '@localeflow/shared';
+import type { Activity, ActivityPreviewItem, ActivityChange } from '@lingx/shared';
 import { cn } from '@/lib/utils';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ActivityPreviewProps {
   activity: Activity;

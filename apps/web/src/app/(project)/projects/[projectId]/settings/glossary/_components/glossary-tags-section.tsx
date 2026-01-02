@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Tag, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,7 @@ export function GlossaryTagsSection({
     <section className="space-y-6 animate-fade-in-up stagger-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="size-12 rounded-2xl bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/10 flex items-center justify-center shadow-sm">
+          <div className="size-12 rounded-2xl bg-linear-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/10 flex items-center justify-center shadow-sm">
             <Tag className="size-5 text-amber-500" />
           </div>
           <div>
@@ -45,7 +45,7 @@ export function GlossaryTagsSection({
         {tags.length === 0 ? (
           <div className="text-center py-10">
             <div className="relative inline-flex mb-5">
-              <div className="size-16 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent flex items-center justify-center">
+              <div className="size-16 rounded-2xl bg-linear-to-br from-amber-500/10 to-transparent flex items-center justify-center">
                 <Tag className="size-7 text-amber-500/60" />
               </div>
             </div>

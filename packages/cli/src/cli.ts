@@ -18,7 +18,7 @@ export function createCLI(): Command {
 
   program
     .name('lf')
-    .description('Localeflow CLI - Translation management for developers')
+    .description('Lingx CLI - Translation management for developers')
     .version(VERSION);
 
   // Register command groups

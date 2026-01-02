@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useProjects } from '@/hooks';
 import { ProjectsHeader } from './_components/projects-header';

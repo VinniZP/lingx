@@ -1,5 +1,5 @@
 /**
- * BullMQ Queue Definitions for LocaleFlow
+ * BullMQ Queue Definitions for Lingx
  *
  * Centralized queue creation with shared Redis connection.
  * Queues are used for async activity logging and scheduled jobs.

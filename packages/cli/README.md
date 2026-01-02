@@ -1,20 +1,20 @@
-# Localeflow CLI
+# Lingx CLI
 
-Command-line tool for managing Localeflow translations in your development workflow.
+Command-line tool for managing Lingx translations in your development workflow.
 
 ## Installation
 
 ```bash
-npm install -g @localeflow/cli
+npm install -g @lingx/cli
 # or
-pnpm add -g @localeflow/cli
+pnpm add -g @lingx/cli
 # or use npx
-npx @localeflow/cli
+npx @lingx/cli
 ```
 
 ## Configuration
 
-Create `.localeflow.yml` in your project root:
+Create `.lingx.yml` in your project root:
 
 ```yaml
 # API connection
@@ -79,7 +79,7 @@ lf auth status
 lf auth logout
 ```
 
-Credentials are stored in `~/.localeflow/credentials.json`.
+Credentials are stored in `~/.lingx/credentials.json`.
 
 ### Pull Translations
 
@@ -318,15 +318,15 @@ jobs:
           node-version: '20'
 
       - name: Install CLI
-        run: npm install -g @localeflow/cli
+        run: npm install -g @lingx/cli
 
       - name: Check translations
         run: |
-          lf auth login --key=${{ secrets.LOCALEFLOW_API_KEY }}
+          lf auth login --key=${{ secrets.LINGX_API_KEY }}
           lf check --missing --unused
           lf check --validate-icu
         env:
-          LOCALEFLOW_API_KEY: ${{ secrets.LOCALEFLOW_API_KEY }}
+          LINGX_API_KEY: ${{ secrets.LINGX_API_KEY }}
 ```
 
 ### GitLab CI
@@ -336,8 +336,8 @@ check-translations:
   image: node:20
   stage: test
   script:
-    - npm install -g @localeflow/cli
-    - lf auth login --key=$LOCALEFLOW_API_KEY
+    - npm install -g @lingx/cli
+    - lf auth login --key=$LINGX_API_KEY
     - lf check --missing --unused
     - lf check --validate-icu
 ```
@@ -348,7 +348,7 @@ Add to `.husky/pre-commit`:
 
 ```bash
 #!/bin/sh
-npx @localeflow/cli check --missing --validate-icu
+npx @lingx/cli check --missing --validate-icu
 ```
 
 ## Troubleshooting
@@ -359,7 +359,7 @@ Run `lf auth login` with your API key. Check that the API key is valid and not r
 
 ### "Project not found" error
 
-Verify your `.localeflow.yml` project slug matches your project in Localeflow.
+Verify your `.lingx.yml` project slug matches your project in Lingx.
 
 ### "Space not found" error
 
@@ -380,7 +380,7 @@ Common ICU issues:
 
 ### Connection refused
 
-1. Check that the Localeflow API is running
+1. Check that the Lingx API is running
 2. Verify the `apiUrl` in your config
 3. Check for firewall or network issues
 
@@ -395,8 +395,8 @@ For large codebases:
 
 | Variable | Description |
 |----------|-------------|
-| `LOCALEFLOW_API_KEY` | API key (alternative to auth login) |
-| `LOCALEFLOW_API_URL` | API URL (overrides config) |
+| `LINGX_API_KEY` | API key (alternative to auth login) |
+| `LINGX_API_URL` | API URL (overrides config) |
 
 ## File Format Examples
 
@@ -438,18 +438,18 @@ welcome:
 
 ```bash
 # Clone the monorepo
-git clone https://github.com/your-org/localeflow.git
-cd localeflow
+git clone https://github.com/your-org/lingx.git
+cd lingx
 
 # Install dependencies
 pnpm install
 
 # Build CLI
-pnpm --filter=@localeflow/cli build
+pnpm --filter=@lingx/cli build
 
 # Run locally
 node packages/cli/dist/index.js --help
 
 # Run tests
-pnpm --filter=@localeflow/cli test
+pnpm --filter=@lingx/cli test
 ```

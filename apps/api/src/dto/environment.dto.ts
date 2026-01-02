@@ -2,7 +2,7 @@
  * Environment DTOs - transforms Prisma Environment model to API response format
  */
 import type { Environment } from '@prisma/client';
-import type { EnvironmentResponse } from '@localeflow/shared';
+import type { EnvironmentResponse } from '@lingx/shared';
 
 type EnvironmentWithBranch = Environment & {
   branch: {

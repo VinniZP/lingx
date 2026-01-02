@@ -1,6 +1,6 @@
-# Deploying Localeflow
+# Deploying Lingx
 
-This guide covers deploying Localeflow using Docker Compose.
+This guide covers deploying Lingx using Docker Compose.
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ This guide covers deploying Localeflow using Docker Compose.
 
 ```bash
 # Clone repository
-git clone https://github.com/your-org/localeflow.git
-cd localeflow
+git clone https://github.com/your-org/lingx.git
+cd lingx
 
 # Create environment file
 cp .env.example .env
@@ -29,9 +29,9 @@ docker-compose up -d
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `POSTGRES_USER` | No | localeflow | Database username |
+| `POSTGRES_USER` | No | lingx | Database username |
 | `POSTGRES_PASSWORD` | Yes | - | Database password |
-| `POSTGRES_DB` | No | localeflow | Database name |
+| `POSTGRES_DB` | No | lingx | Database name |
 | `JWT_SECRET` | Yes | - | Secret for JWT signing (min 32 chars) |
 | `API_PORT` | No | 3001 | API server port |
 | `WEB_PORT` | No | 3000 | Web server port |
@@ -43,9 +43,9 @@ docker-compose up -d
 
 ```bash
 # Production .env
-POSTGRES_USER=localeflow
+POSTGRES_USER=lingx
 POSTGRES_PASSWORD=your-very-secure-password-here
-POSTGRES_DB=localeflow
+POSTGRES_DB=lingx
 
 # Generate with: openssl rand -base64 32
 JWT_SECRET=your-jwt-secret-here
@@ -90,19 +90,19 @@ volumes:
 ### Basic Configuration
 
 ```nginx
-# /etc/nginx/sites-available/localeflow
+# /etc/nginx/sites-available/lingx
 server {
     listen 80;
-    server_name localeflow.yourdomain.com;
+    server_name lingx.yourdomain.com;
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name localeflow.yourdomain.com;
+    server_name lingx.yourdomain.com;
 
-    ssl_certificate /etc/letsencrypt/live/localeflow.yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/localeflow.yourdomain.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/lingx.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/lingx.yourdomain.com/privkey.pem;
 
     # SSL settings
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -124,10 +124,10 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name api.localeflow.yourdomain.com;
+    server_name api.lingx.yourdomain.com;
 
-    ssl_certificate /etc/letsencrypt/live/api.localeflow.yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/api.localeflow.yourdomain.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/api.lingx.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.lingx.yourdomain.com/privkey.pem;
 
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
@@ -147,7 +147,7 @@ server {
 ### Enable the Configuration
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/localeflow /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/lingx /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -156,7 +156,7 @@ sudo systemctl reload nginx
 
 ```bash
 sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d localeflow.yourdomain.com -d api.localeflow.yourdomain.com
+sudo certbot --nginx -d lingx.yourdomain.com -d api.lingx.yourdomain.com
 ```
 
 ## Database Operations
@@ -165,20 +165,20 @@ sudo certbot --nginx -d localeflow.yourdomain.com -d api.localeflow.yourdomain.c
 
 ```bash
 # Full database backup
-docker-compose exec postgres pg_dump -U localeflow localeflow > backup_$(date +%Y%m%d_%H%M%S).sql
+docker-compose exec postgres pg_dump -U lingx lingx > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Compressed backup
-docker-compose exec postgres pg_dump -U localeflow localeflow | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+docker-compose exec postgres pg_dump -U lingx lingx | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
 ```
 
 ### Restore
 
 ```bash
 # Restore from backup
-cat backup.sql | docker-compose exec -T postgres psql -U localeflow localeflow
+cat backup.sql | docker-compose exec -T postgres psql -U lingx lingx
 
 # Restore from compressed backup
-gunzip -c backup.sql.gz | docker-compose exec -T postgres psql -U localeflow localeflow
+gunzip -c backup.sql.gz | docker-compose exec -T postgres psql -U lingx lingx
 ```
 
 ### Automated Backups
@@ -186,8 +186,8 @@ gunzip -c backup.sql.gz | docker-compose exec -T postgres psql -U localeflow loc
 Create a cron job for daily backups:
 
 ```bash
-# /etc/cron.d/localeflow-backup
-0 2 * * * root cd /path/to/localeflow && docker-compose exec -T postgres pg_dump -U localeflow localeflow | gzip > /var/backups/localeflow/backup_$(date +\%Y\%m\%d).sql.gz
+# /etc/cron.d/lingx-backup
+0 2 * * * root cd /path/to/lingx && docker-compose exec -T postgres pg_dump -U lingx lingx | gzip > /var/backups/lingx/backup_$(date +\%Y\%m\%d).sql.gz
 ```
 
 ## Upgrading
@@ -255,7 +255,7 @@ Expected response:
 ### Database Health
 
 ```bash
-docker-compose exec postgres pg_isready -U localeflow -d localeflow
+docker-compose exec postgres pg_isready -U lingx -d lingx
 ```
 
 ## Monitoring
@@ -263,7 +263,7 @@ docker-compose exec postgres pg_isready -U localeflow -d localeflow
 ### Docker Stats
 
 ```bash
-docker stats localeflow-api localeflow-web localeflow-postgres
+docker stats lingx-api lingx-web lingx-postgres
 ```
 
 ### Log Aggregation
@@ -333,7 +333,7 @@ location /api/ {
 1. Check postgres is running: `docker-compose ps`
 2. Check postgres logs: `docker-compose logs postgres`
 3. Verify DATABASE_URL in API logs: `docker-compose logs api | grep DATABASE`
-4. Test connection: `docker-compose exec postgres psql -U localeflow -d localeflow`
+4. Test connection: `docker-compose exec postgres psql -U lingx -d lingx`
 
 ### API Not Starting
 

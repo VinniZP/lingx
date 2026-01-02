@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import { TranslationKey, type ApprovalStatus } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Check, Loader2, Clock, CheckCircle, XCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
@@ -13,7 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@lingx/sdk-nextjs';
 
 type TranslationStatus = 'translated' | 'modified' | 'missing';
 

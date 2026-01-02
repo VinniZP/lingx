@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Upload, Key, GitBranch, Users, Terminal } from 'lucide-react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface QuickActionsProps {
   isManager: boolean;

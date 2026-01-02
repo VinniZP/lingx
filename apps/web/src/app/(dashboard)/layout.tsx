@@ -71,7 +71,7 @@ export default function DashboardLayout({
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary text-primary-foreground">
               <Languages className="size-4" />
             </div>
-            <span className="font-semibold">LocaleFlow</span>
+            <span className="font-semibold">Lingx</span>
           </Link>
           <Button
             variant="ghost"

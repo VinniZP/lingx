@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { UserProfile } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,9 +57,9 @@ export function ProfileForm({ profile, onEmailChangeClick }: ProfileFormProps) {
   return (
     <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
       {/* Section header with subtle gradient */}
-      <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+      <div className="px-8 py-6 border-b border-border/40 bg-linear-to-r from-muted/40 via-muted/20 to-transparent">
         <div className="flex items-center gap-5">
-          <div className="size-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10">
+          <div className="size-12 rounded-2xl bg-linear-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/10">
             <User className="size-5 text-primary" />
           </div>
           <div>

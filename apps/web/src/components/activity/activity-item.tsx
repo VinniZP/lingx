@@ -14,13 +14,13 @@ import {
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
-import type { Activity } from '@localeflow/shared';
+import type { Activity } from '@lingx/shared';
 import { getActivityIcon } from './activity-icon';
 import { getActivityDescription, formatRelativeTime, translateKey } from './activity-description';
 import { ActivityPreview } from './activity-preview';
 import { ActivityChangesModal } from './activity-changes-modal';
 import { cn } from '@/lib/utils';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ActivityItemProps {
   activity: Activity;

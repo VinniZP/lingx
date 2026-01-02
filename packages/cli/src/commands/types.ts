@@ -42,7 +42,7 @@ async function types(options: TypesOptions): Promise<void> {
   // Resolve options with config defaults
   const typesConfig = config.types ?? {
     enabled: true,
-    output: './src/localeflow.d.ts',
+    output: './src/lingx.d.ts',
     sourceLocale: 'en',
   };
 

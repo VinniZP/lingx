@@ -29,7 +29,7 @@ export interface LanguageSwitcherProps {
  * Ready-to-use language switcher component.
  *
  * Renders a select dropdown with available languages.
- * Automatically handles language switching via the Localeflow context.
+ * Automatically handles language switching via the Lingx context.
  *
  * @example
  * ```tsx

@@ -2,7 +2,7 @@
  * API Key DTOs - transforms Prisma ApiKey model to API response format
  */
 import type { ApiKey } from '@prisma/client';
-import type { ApiKeyItem, CreateApiKeyResponse } from '@localeflow/shared';
+import type { ApiKeyItem, CreateApiKeyResponse } from '@lingx/shared';
 
 /**
  * Transform Prisma ApiKey to ApiKeyItem (for listing)

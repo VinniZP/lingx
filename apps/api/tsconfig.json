@@ -1,5 +1,5 @@
 {
-  "extends": "@localeflow/config/tsconfig/node",
+  "extends": "@lingx/config/tsconfig/node",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "."

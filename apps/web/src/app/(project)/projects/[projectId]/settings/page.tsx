@@ -2,7 +2,7 @@
 
 import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -89,6 +89,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
         languages: project.languages.map((l) => l.code),
         defaultLanguage: project.defaultLanguage,
       });
+      // Trigger validation after reset to enable save button when form becomes dirty
+      void form.trigger();
     }
   }, [project, form]);
 
@@ -131,9 +133,9 @@ export default function ProjectSettingsPage({ params }: PageProps) {
     const current = selectedLanguages || [];
     if (current.includes(code)) {
       if (code === defaultLanguage) return;
-      form.setValue('languages', current.filter((c) => c !== code), { shouldValidate: true });
+      form.setValue('languages', current.filter((c) => c !== code), { shouldValidate: true, shouldDirty: true });
     } else {
-      form.setValue('languages', [...current, code], { shouldValidate: true });
+      form.setValue('languages', [...current, code], { shouldValidate: true, shouldDirty: true });
     }
   };
 
@@ -158,8 +160,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
           {/* Project Details Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
-                <FileText className="size-[18px] text-primary" />
+              <div className="size-10 rounded-xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
+                <FileText className="size-4.5 text-primary" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold tracking-tight">{t('projectSettings.details.title')}</h2>
@@ -238,8 +240,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
           {/* Languages Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
-                <Globe2 className="size-[18px] text-blue-500" />
+              <div className="size-10 rounded-xl bg-linear-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
+                <Globe2 className="size-4.5 text-blue-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold tracking-tight">{t('projectSettings.languages.title')}</h2>
@@ -301,7 +303,7 @@ export default function ProjectSettingsPage({ params }: PageProps) {
                 {/* Default Language Selector */}
                 {selectedLanguages?.length > 0 && (
                   <>
-                    <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent" />
+                    <div className="h-px bg-linear-to-r from-border via-border/50 to-transparent" />
 
                     <FormField
                       control={form.control}
@@ -368,8 +370,8 @@ export default function ProjectSettingsPage({ params }: PageProps) {
       {/* Danger Zone */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-gradient-to-br from-destructive/15 to-destructive/5 border border-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="size-[18px] text-destructive" />
+          <div className="size-10 rounded-xl bg-linear-to-br from-destructive/15 to-destructive/5 border border-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="size-4.5 text-destructive" />
           </div>
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-destructive">{t('projectSettings.dangerZone.title')}</h2>

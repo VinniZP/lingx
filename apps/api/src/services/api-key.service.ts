@@ -8,7 +8,7 @@ import { PrismaClient, ApiKey } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import { NotFoundError } from '../plugins/error-handler.js';
 
-/** Prefix for Localeflow API keys */
+/** Prefix for Lingx API keys */
 const KEY_PREFIX = 'lf_';
 /** Length of random bytes for key generation (32 bytes = 64 hex characters) */
 const KEY_LENGTH = 32;

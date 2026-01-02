@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, X, Edit2, ArrowRight, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { ConflictEntry } from '@localeflow/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import type { ConflictEntry } from '@lingx/shared';
 import type { Resolution } from '@/lib/api';
 
 interface ConflictResolverProps {
@@ -90,7 +90,7 @@ export function ConflictResolver({
           </div>
           <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-300"
+              className="h-full bg-linear-to-r from-emerald-500 to-green-500 transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -164,7 +164,7 @@ export function ConflictResolver({
                       resolutions.get(currentConflict.key)?.resolution ===
                       'source'
                         ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200'
-                        : 'border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50'
+                        : 'border-amber-200 bg-linear-to-br from-amber-50 to-orange-50'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -409,7 +409,7 @@ export function ConflictResolver({
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-300"
+                className="h-full bg-linear-to-r from-emerald-500 to-green-500 transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -482,7 +482,7 @@ export function ConflictResolver({
                       resolutions.get(currentConflict.key)?.resolution ===
                       'source'
                         ? 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200'
-                        : 'border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50'
+                        : 'border-amber-200 bg-linear-to-br from-amber-50 to-orange-50'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-4">

@@ -22,11 +22,11 @@ import {
 import { Key, Sparkles, Terminal, Globe, Code } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createApiKeySchema, type CreateApiKeyInput } from '@localeflow/shared';
+import { createApiKeySchema, type CreateApiKeyInput } from '@lingx/shared';
 import { cn } from '@/lib/utils';
 import { ApiError } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ApiKeyDialogProps {
   open: boolean;
@@ -86,7 +86,7 @@ export function ApiKeyDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
         {/* Header with gradient background */}
-        <div className="bg-gradient-to-br from-warm/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+        <div className="bg-linear-to-br from-warm/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
           <DialogHeader className="gap-3">
             <div className="flex items-center gap-3">
               <div className="size-12 rounded-xl bg-warm/20 flex items-center justify-center border border-warm/20">

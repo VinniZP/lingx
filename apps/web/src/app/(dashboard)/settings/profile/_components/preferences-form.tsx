@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { UserProfile, UserPreferences } from '@/lib/api';
 import {
   Select,
@@ -45,9 +45,9 @@ export function PreferencesForm({ profile, projects }: PreferencesFormProps) {
   return (
     <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
       {/* Section header with subtle gradient */}
-      <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+      <div className="px-8 py-6 border-b border-border/40 bg-linear-to-r from-muted/40 via-muted/20 to-transparent">
         <div className="flex items-center gap-5">
-          <div className="size-12 rounded-2xl bg-gradient-to-br from-warm/15 to-warm/5 flex items-center justify-center border border-warm/10">
+          <div className="size-12 rounded-2xl bg-linear-to-br from-warm/15 to-warm/5 flex items-center justify-center border border-warm/10">
             <Palette className="size-5 text-warm" />
           </div>
           <div>
@@ -110,6 +110,8 @@ export function PreferencesForm({ profile, projects }: PreferencesFormProps) {
                 <SelectItem value="es">{t('profile.preferences.spanish')}</SelectItem>
                 <SelectItem value="fr">{t('profile.preferences.french')}</SelectItem>
                 <SelectItem value="de">{t('profile.preferences.german')}</SelectItem>
+                <SelectItem value="ru">{t('profile.preferences.russian')}</SelectItem>
+                <SelectItem value="uk">{t('profile.preferences.ukrainian')}</SelectItem>
                 <SelectItem value="ja">
                   {t('profile.preferences.japanese')}
                 </SelectItem>

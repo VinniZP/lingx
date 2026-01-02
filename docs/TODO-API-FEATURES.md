@@ -561,7 +561,7 @@ useEffect(() => {
 - Requires setting up i18n (next-intl or similar)
 - On login, set app locale based on preference
 - Store translations in `messages/` folder
-- Low priority until LocaleFlow needs translation itself
+- Low priority until Lingx needs translation itself
 
 #### Default Project
 **Current State:** Stored in `user.preferences.defaultProjectId` (string | null)

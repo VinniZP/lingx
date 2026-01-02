@@ -1,8 +1,8 @@
 'use client';
 
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { DashboardStats } from '@localeflow/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import type { DashboardStats } from '@lingx/shared';
 
 interface DashboardHeroProps {
   displayName: string;
@@ -88,7 +88,7 @@ export function DashboardHero({ displayName, stats, isLoading }: DashboardHeroPr
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
+              className="h-full bg-linear-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
               style={{ width: `${completionPercentage}%` }}
             />
           </div>

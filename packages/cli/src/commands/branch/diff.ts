@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import type { BranchDiffResponse } from '@localeflow/shared';
+import type { BranchDiffResponse } from '@lingx/shared';
 import { createApiClientFromConfig } from '../../lib/api.js';
 import { loadConfig } from '../../lib/config.js';
 import { formatDiffOutput } from '../../lib/diff/display.js';

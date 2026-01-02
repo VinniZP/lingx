@@ -6,11 +6,15 @@ import {
   isStringLiteral,
   isTemplateLiteral,
   isMemberExpression,
+  isVariableDeclarator,
   type CallExpression,
   type Expression,
   type SpreadElement,
   type ArgumentPlaceholder,
   type Comment,
+  type FunctionDeclaration,
+  type ArrowFunctionExpression,
+  type ClassDeclaration,
 } from '@babel/types';
 import type { NodePath, TraverseOptions } from '@babel/traverse';
 import type {
@@ -19,8 +23,10 @@ import type {
   ExtractedKey,
   ExtractionResult,
   ExtractionError,
+  ComponentContext,
+  ComponentType,
 } from './index.js';
-import { combineKey } from '@localeflow/shared';
+import { combineKey } from '@lingx/shared';
 import type { File } from '@babel/types';
 
 // Handle ESM/CJS interop - Babel exports default differently
@@ -85,6 +91,7 @@ export class NextjsExtractor implements Extractor {
     const keys: ExtractedKey[] = [];
     const errors: ExtractionError[] = [];
     let currentNamespace: string | undefined;
+    let currentComponent: ComponentContext | undefined;
     const functionsSet = this.functions;
     const markerFunctionsSet = this.markerFunctions;
 
@@ -129,7 +136,88 @@ export class NextjsExtractor implements Extractor {
 
       const dynamicFunctionsSet = this.dynamicFunctions;
 
+      // Stack to track nested component contexts
+      const componentStack: ComponentContext[] = [];
+
+      /**
+       * Detect component type from function name.
+       */
+      function detectComponentType(name: string): ComponentType | null {
+        // React hooks: useXxx
+        if (/^use[A-Z]/.test(name)) return 'hook';
+        // React components: PascalCase
+        if (/^[A-Z]/.test(name)) return 'function';
+        return null;
+      }
+
       traverse(ast, {
+        // Track function declarations
+        FunctionDeclaration: {
+          enter(path: NodePath<FunctionDeclaration>) {
+            const name = path.node.id?.name;
+            if (name) {
+              const type = detectComponentType(name);
+              if (type) {
+                const context: ComponentContext = { name, type };
+                componentStack.push(context);
+                currentComponent = context;
+              }
+            }
+          },
+          exit(path: NodePath<FunctionDeclaration>) {
+            const name = path.node.id?.name;
+            if (name && detectComponentType(name)) {
+              componentStack.pop();
+              currentComponent = componentStack[componentStack.length - 1];
+            }
+          },
+        },
+
+        // Track arrow functions assigned to variables
+        ArrowFunctionExpression: {
+          enter(path: NodePath<ArrowFunctionExpression>) {
+            const parent = path.parent;
+            if (isVariableDeclarator(parent) && isIdentifier(parent.id)) {
+              const name = parent.id.name;
+              const type = detectComponentType(name);
+              if (type) {
+                const context: ComponentContext = { name, type: 'arrow' };
+                componentStack.push(context);
+                currentComponent = context;
+              }
+            }
+          },
+          exit(path: NodePath<ArrowFunctionExpression>) {
+            const parent = path.parent;
+            if (isVariableDeclarator(parent) && isIdentifier(parent.id)) {
+              const name = parent.id.name;
+              if (detectComponentType(name)) {
+                componentStack.pop();
+                currentComponent = componentStack[componentStack.length - 1];
+              }
+            }
+          },
+        },
+
+        // Track class declarations (for class components)
+        ClassDeclaration: {
+          enter(path: NodePath<ClassDeclaration>) {
+            const name = path.node.id?.name;
+            if (name && /^[A-Z]/.test(name)) {
+              const context: ComponentContext = { name, type: 'class' };
+              componentStack.push(context);
+              currentComponent = context;
+            }
+          },
+          exit(path: NodePath<ClassDeclaration>) {
+            const name = path.node.id?.name;
+            if (name && /^[A-Z]/.test(name)) {
+              componentStack.pop();
+              currentComponent = componentStack[componentStack.length - 1];
+            }
+          },
+        },
+
         CallExpression(path: NodePath<CallExpression>) {
           const callee = path.node.callee;
           const loc = path.node.loc;
@@ -191,6 +279,7 @@ export class NextjsExtractor implements Extractor {
                       column: loc.start.column,
                     }
                   : undefined,
+                componentContext: currentComponent ? { ...currentComponent } : undefined,
               });
             }
             // Marker functions should always have static keys
@@ -229,6 +318,7 @@ export class NextjsExtractor implements Extractor {
                       column: loc.start.column,
                     }
                   : undefined,
+                componentContext: currentComponent ? { ...currentComponent } : undefined,
               });
             } else if (path.node.arguments.length > 0) {
               // Dynamic key detected - this is an error
@@ -262,6 +352,7 @@ export class NextjsExtractor implements Extractor {
                       column: loc.start.column,
                     }
                   : undefined,
+                componentContext: currentComponent ? { ...currentComponent } : undefined,
               });
             } else if (path.node.arguments.length > 0) {
               // Dynamic key detected - this is an error

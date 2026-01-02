@@ -55,7 +55,7 @@ export function SettingsBackdrop({ accentColor = 'primary' }: SettingsBackdropPr
       />
       {/* Floating center orb */}
       <div
-        className={`absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-r ${colors.floating} rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse`}
+        className={`absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-linear-to-r ${colors.floating} rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse`}
         style={{ animationDuration: '12s' }}
       />
       {/* Refined grid pattern */}

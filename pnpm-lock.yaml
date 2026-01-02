@@ -65,7 +65,7 @@ importers:
       '@google-cloud/translate':
         specifier: ^9.3.0
         version: 9.3.0
-      '@localeflow/shared':
+      '@lingx/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@prisma/adapter-pg':
@@ -120,7 +120,7 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
     devDependencies:
-      '@localeflow/config':
+      '@lingx/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/bcrypt':
@@ -153,10 +153,10 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.69.0(react@19.2.3))
-      '@localeflow/sdk-nextjs':
+      '@lingx/sdk-nextjs':
         specifier: workspace:*
         version: link:../../packages/sdk-nextjs
-      '@localeflow/shared':
+      '@lingx/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@radix-ui/react-alert-dialog':
@@ -256,7 +256,7 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
     devDependencies:
-      '@localeflow/cli':
+      '@lingx/cli':
         specifier: workspace:*
         version: link:../../packages/cli
       '@playwright/test':
@@ -334,7 +334,7 @@ importers:
       '@inquirer/prompts':
         specifier: ^8.1.0
         version: 8.1.0(@types/node@25.0.3)
-      '@localeflow/shared':
+      '@lingx/shared':
         specifier: workspace:*
         version: link:../shared
       chalk:
@@ -365,7 +365,7 @@ importers:
         specifier: ^9.0.0
         version: 9.0.0
     devDependencies:
-      '@localeflow/config':
+      '@lingx/config':
         specifier: workspace:*
         version: link:../config
       '@types/babel__core':
@@ -419,6 +419,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.0.0
         version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@types/node':
+        specifier: ^25.0.3
+        version: 25.0.3
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.7
@@ -450,7 +453,7 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
     devDependencies:
-      '@localeflow/config':
+      '@lingx/config':
         specifier: workspace:*
         version: link:../config
 
@@ -9836,7 +9839,7 @@ snapshots:
       eslint: 9.39.2(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.2(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.2(jiti@2.6.1))
@@ -9869,7 +9872,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -9884,7 +9887,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.2(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9

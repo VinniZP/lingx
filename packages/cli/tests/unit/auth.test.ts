@@ -5,7 +5,7 @@ describe('CredentialStore', () => {
   let store: CredentialStore;
 
   beforeEach(() => {
-    store = new CredentialStore({ configName: 'localeflow-test' });
+    store = new CredentialStore({ configName: 'lingx-test' });
   });
 
   afterEach(() => {

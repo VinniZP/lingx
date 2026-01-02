@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { totpApi, ApiError, TotpSetupResponse } from '@/lib/api';
 import {
   Dialog,
@@ -198,7 +198,7 @@ ${t('twoFactorSetup.backupCodesFile.keepSafe')}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'localeflow-backup-codes.txt';
+    a.download = 'lingx-backup-codes.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -338,7 +338,7 @@ ${t('twoFactorSetup.backupCodesFile.keepSafe')}
           {step === 'qrcode' && setupData && (
             <div className="space-y-5">
               <div className="flex justify-center">
-                <div className="relative p-1 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-warm/10">
+                <div className="relative p-1 rounded-2xl bg-linear-to-br from-primary/20 via-primary/10 to-warm/10">
                   <div className="bg-white p-4 rounded-xl">
                     {qrCodeDataUrl ? (
                       <img src={qrCodeDataUrl} alt="QR Code" className="size-48 sm:size-52" />

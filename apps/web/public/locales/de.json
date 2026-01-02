@@ -3,30 +3,18 @@
     "loading": "Laden...",
     "cancel": "Abbrechen",
     "delete": "Löschen",
-    "viewAll": "Alle anzeigen",
-    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}"
+    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
+    "viewAll": "Alle anzeigen"
   },
   "auth": {
     "forgotPassword": "Passwort vergessen?"
   },
   "dashboard": {
-    "greeting": {
-      "morning": "Guten Morgen",
-      "afternoon": "Guten Tag",
-      "evening": "Guten Abend"
-    },
-    "overview": "Hier ist Ihre Übersetzungsübersicht",
     "stats": {
       "projects": "Projekte",
       "keys": "Schlüssel",
-      "languages": "Sprachen",
-      "complete": "Fertig"
-    },
-    "progress": "Gesamtfortschritt der Übersetzungen",
-    "createProject": {
-      "title": "Neues Projekt erstellen",
-      "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
-      "cta": "Loslegen"
+      "complete": "Fertig",
+      "languages": "Sprachen"
     },
     "recentProjects": "Aktuelle Projekte",
     "quickActions": "Schnellaktionen",
@@ -50,14 +38,8 @@
       "title": "CLI verfügbar",
       "description": "Übersetzungen vom Terminal synchronisieren"
     },
-    "resources": {
-      "title": "Ressourcen",
-      "docs": "Dokumentation",
-      "guide": "Erste Schritte",
-      "bestPractices": "Best Practices für Sprachen"
-    },
     "welcome": {
-      "title": "Willkommen bei LocaleFlow",
+      "title": "Willkommen bei Lingx",
       "description": "Professionelles Übersetzungsmanagement mit Git-ähnlicher Versionskontrolle für moderne Teams"
     },
     "onboarding": {
@@ -73,29 +55,52 @@
         "title": "Mit Ihrer App synchronisieren",
         "description": "CLI oder API zum Abrufen von Übersetzungen verwenden"
       }
+    },
+    "greeting": {
+      "morning": "Guten Morgen",
+      "afternoon": "Guten Tag",
+      "evening": "Guten Abend"
+    },
+    "overview": "Hier ist Ihre Übersetzungsübersicht",
+    "progress": "Gesamtfortschritt der Übersetzungen",
+    "resources": {
+      "title": "Ressourcen",
+      "docs": "Dokumentation",
+      "guide": "Erste Schritte",
+      "bestPractices": "Best Practices für Sprachen"
+    },
+    "createProject": {
+      "title": "Neues Projekt erstellen",
+      "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
+      "cta": "Loslegen"
     }
   },
   "projects": {
-    "title": "Projekte",
-    "description": "Verwalten Sie Ihre Lokalisierungsprojekte",
-    "stats": {
-      "totalKeys": "Schlüssel Gesamt"
-    },
     "search": {
       "placeholder": "Projekte suchen...",
       "noResults": "Keine Projekte gefunden",
       "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
     },
     "filters": "Filter",
+    "card": {
+      "keys": "{count} Schlüssel",
+      "main": "main",
+      "progress": "Fortschritt"
+    },
+    "title": "Projekte",
+    "description": "Verwalten Sie Ihre Lokalisierungsprojekte",
+    "stats": {
+      "totalKeys": "Schlüssel Gesamt"
+    },
     "empty": {
       "title": "Noch keine Projekte",
       "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen.",
       "cta": "Erstellen Sie Ihr erstes Projekt"
-    },
-    "card": {
-      "keys": "{count} Schlüssel",
-      "progress": "Fortschritt",
-      "main": "main"
+    }
+  },
+  "apiKeys": {
+    "revokeDialog": {
+      "cancel": "Abbrechen"
     }
   }
 }

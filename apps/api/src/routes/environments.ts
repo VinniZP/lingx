@@ -13,7 +13,7 @@ import {
   switchBranchSchema,
   environmentListResponseSchema,
   environmentResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { EnvironmentService } from '../services/environment.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { ActivityService } from '../services/activity.service.js';

@@ -10,7 +10,7 @@ import type {
   CreateGlossaryEntryInput,
   UpdateGlossaryEntryInput,
   GlossaryListQuery,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 export interface GlossaryMatch {
   id: string;
@@ -1150,8 +1150,8 @@ export class GlossaryService {
 <tbx xmlns="urn:iso:std:iso:30042:ed-2" type="TBX-Basic" xml:lang="en">
   <tbxHeader>
     <fileDesc>
-      <titleStmt><title>LocaleFlow Glossary Export</title></titleStmt>
-      <sourceDesc><p>Exported from LocaleFlow</p></sourceDesc>
+      <titleStmt><title>Lingx Glossary Export</title></titleStmt>
+      <sourceDesc><p>Exported from Lingx</p></sourceDesc>
     </fileDesc>
   </tbxHeader>
   <text>

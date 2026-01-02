@@ -65,7 +65,7 @@ export function SettingsTipCard({
     <div className="p-5 flex items-start gap-4">
       <div
         className={cn(
-          'size-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br border',
+          'size-10 rounded-xl flex items-center justify-center shrink-0 bg-linear-to-br border',
           colors.bg,
           colors.border
         )}
@@ -145,7 +145,7 @@ export function SettingsQuickTip({
   return (
     <div
       className={cn(
-        'p-5 rounded-2xl border border-border/40 bg-gradient-to-br',
+        'p-5 rounded-2xl border border-border/40 bg-linear-to-br',
         colors.bg
       )}
     >

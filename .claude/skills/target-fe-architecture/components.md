@@ -1,6 +1,6 @@
 # Component Patterns
 
-Guidelines for splitting and organizing React components in LocaleFlow.
+Guidelines for splitting and organizing React components in Lingx.
 
 ## When to Split
 
@@ -95,7 +95,7 @@ export default function DashboardPage() {
 
 ```typescript
 // app/(dashboard)/dashboard/_components/dashboard-hero.tsx
-import type { DashboardStats } from '@localeflow/shared';
+import type { DashboardStats } from '@lingx/shared';
 import { Folder, Key, Languages, CheckCircle } from 'lucide-react';
 
 interface DashboardHeroProps {
@@ -167,7 +167,7 @@ function StatCard({
 ```typescript
 // app/(dashboard)/dashboard/_components/recent-projects.tsx
 import Link from 'next/link';
-import type { Project } from '@localeflow/shared';
+import type { Project } from '@lingx/shared';
 import { ChevronRight } from 'lucide-react';
 
 interface RecentProjectsProps {
@@ -313,7 +313,7 @@ import { Button } from '@/components/ui/button';
 import { DashboardHero } from './_components/dashboard-hero';
 
 // 5. Types
-import type { DashboardStats } from '@localeflow/shared';
+import type { DashboardStats } from '@lingx/shared';
 
 // 6. Utilities
 import { cn } from '@/lib/utils';

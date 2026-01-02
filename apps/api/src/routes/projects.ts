@@ -15,7 +15,7 @@ import {
   projectStatsDetailSchema,
   projectTreeResponseSchema,
   activityListResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { ProjectService } from '../services/project.service.js';
 import { ActivityService } from '../services/activity.service.js';
 import {

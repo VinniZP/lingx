@@ -1,12 +1,12 @@
 'use client';
 
-import { useLocaleflowContext } from '../context/LocaleflowContext';
-import type { LocaleflowContextValue } from '../types';
+import { useLingxContext } from '../context/LingxContext';
+import type { LingxContextValue } from '../types';
 
 /**
- * Hook to access the full Localeflow context
+ * Hook to access the full Lingx context
  *
- * @returns The full Localeflow context value including:
+ * @returns The full Lingx context value including:
  * - `t`: Translation function
  * - `language`: Current language code
  * - `setLanguage`: Function to change language
@@ -21,7 +21,7 @@ import type { LocaleflowContextValue } from '../types';
  *
  * @example
  * ```tsx
- * const { t, language, setLanguage, ready, error } = useLocaleflow();
+ * const { t, language, setLanguage, ready, error } = useLingx();
  *
  * if (!ready) return <Loading />;
  * if (error) return <Error message={error.message} />;
@@ -29,6 +29,6 @@ import type { LocaleflowContextValue } from '../types';
  * return <h1>{t('greeting', { name: 'World' })}</h1>;
  * ```
  */
-export function useLocaleflow(): LocaleflowContextValue {
-  return useLocaleflowContext();
+export function useLingx(): LingxContextValue {
+  return useLingxContext();
 }

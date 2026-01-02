@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FolderOpen, ArrowRight, Plus } from 'lucide-react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { ProjectResponse } from '@localeflow/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import type { ProjectResponse } from '@lingx/shared';
 
 interface RecentProjectsProps {
   projects: ProjectResponse[];

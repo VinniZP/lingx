@@ -1,5 +1,5 @@
 import type { UseFormSetError, FieldPath, FieldValues } from 'react-hook-form';
-import type { FieldError } from '@localeflow/shared';
+import type { FieldError } from '@lingx/shared';
 import { ApiError } from './api';
 
 /**

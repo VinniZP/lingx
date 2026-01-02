@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { tKey, type TNsKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TNsKey } from '@lingx/sdk-nextjs';
 import type { PartOfSpeech } from '@/lib/api';
 
 // Form schemas - validation messages use i18n keys for runtime translation

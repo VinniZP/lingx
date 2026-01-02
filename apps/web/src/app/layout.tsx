@@ -12,7 +12,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'LocaleFlow',
+  title: 'Lingx',
   description: 'Self-hosted localization management with git-like branching',
   icons: {
     icon: '/favicon.ico',

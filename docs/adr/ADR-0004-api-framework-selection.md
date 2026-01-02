@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Localeflow requires a backend API to serve:
+Lingx requires a backend API to serve:
 
 1. **Web Application**: CRUD operations for projects, spaces, branches, translations
 2. **CLI Tool**: Sync operations, branch management, key extraction results

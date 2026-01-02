@@ -3,30 +3,18 @@
     "loading": "Chargement...",
     "cancel": "Annuler",
     "delete": "Supprimer",
-    "viewAll": "Voir tout",
-    "languages": "{count, plural, one {# langue} other {# langues}}"
+    "languages": "{count, plural, one {# langue} other {# langues}}",
+    "viewAll": "Voir tout"
   },
   "auth": {
     "forgotPassword": "Mot de passe oublié ?"
   },
   "dashboard": {
-    "greeting": {
-      "morning": "Bonjour",
-      "afternoon": "Bon après-midi",
-      "evening": "Bonsoir"
-    },
-    "overview": "Voici votre aperçu des traductions",
     "stats": {
       "projects": "Projets",
       "keys": "Clés",
-      "languages": "Langues",
-      "complete": "Terminé"
-    },
-    "progress": "Progression globale des traductions",
-    "createProject": {
-      "title": "Créer un nouveau projet",
-      "description": "Démarrez un projet de localisation avec contrôle de version, branches et collaboration d'équipe",
-      "cta": "Commencer"
+      "complete": "Terminé",
+      "languages": "Langues"
     },
     "recentProjects": "Projets Récents",
     "quickActions": "Actions Rapides",
@@ -50,14 +38,8 @@
       "title": "CLI Disponible",
       "description": "Synchronisez les traductions depuis votre terminal"
     },
-    "resources": {
-      "title": "Ressources",
-      "docs": "Documentation",
-      "guide": "Guide de démarrage",
-      "bestPractices": "Meilleures pratiques linguistiques"
-    },
     "welcome": {
-      "title": "Bienvenue sur LocaleFlow",
+      "title": "Bienvenue sur Lingx",
       "description": "Gestion professionnelle des traductions avec contrôle de version de type Git pour les équipes modernes"
     },
     "onboarding": {
@@ -73,29 +55,52 @@
         "title": "Synchroniser avec votre app",
         "description": "Utilisez CLI ou API pour récupérer les traductions"
       }
+    },
+    "greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir"
+    },
+    "overview": "Voici votre aperçu des traductions",
+    "progress": "Progression globale des traductions",
+    "resources": {
+      "title": "Ressources",
+      "docs": "Documentation",
+      "guide": "Guide de démarrage",
+      "bestPractices": "Meilleures pratiques linguistiques"
+    },
+    "createProject": {
+      "title": "Créer un nouveau projet",
+      "description": "Démarrez un projet de localisation avec contrôle de version, branches et collaboration d'équipe",
+      "cta": "Commencer"
     }
   },
   "projects": {
-    "title": "Projets",
-    "description": "Gérez vos projets de localisation",
-    "stats": {
-      "totalKeys": "Clés Totales"
-    },
     "search": {
       "placeholder": "Rechercher des projets...",
       "noResults": "Aucun projet trouvé",
       "noResultsHint": "Essayez d'ajuster votre recherche"
     },
     "filters": "Filtres",
+    "card": {
+      "keys": "{count} clés",
+      "main": "main",
+      "progress": "Progression"
+    },
+    "title": "Projets",
+    "description": "Gérez vos projets de localisation",
+    "stats": {
+      "totalKeys": "Clés Totales"
+    },
     "empty": {
       "title": "Pas encore de projets",
       "description": "Créez votre premier projet pour commencer à gérer les traductions avec contrôle de version et collaboration.",
       "cta": "Créez votre premier projet"
-    },
-    "card": {
-      "keys": "{count} clés",
-      "progress": "Progression",
-      "main": "main"
+    }
+  },
+  "apiKeys": {
+    "revokeDialog": {
+      "cancel": "Annuler"
     }
   }
 }

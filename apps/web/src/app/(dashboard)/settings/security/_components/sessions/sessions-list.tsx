@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Monitor, XCircle, LogOut, Loader2 } from 'lucide-react';
 import { useSessions, useRevokeAllSessions } from './use-sessions';

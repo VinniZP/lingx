@@ -17,8 +17,8 @@ Basic variable substitution with `{name}` syntax:
 t('greeting', { name: 'World' })
 // → "Hello, World!"
 
-t('welcome', { appName: 'LocaleFlow', userName: 'John' })
-// → "Welcome to LocaleFlow, John!"
+t('welcome', { appName: 'Lingx', userName: 'John' })
+// → "Welcome to Lingx, John!"
 ```
 
 ## Pluralization

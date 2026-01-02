@@ -93,7 +93,7 @@ export class ICUFormatter {
       // On parse error, return original message
       // This prevents breaking the UI on malformed messages
       console.warn(
-        `[Localeflow] ICU parse error for message: "${message.substring(0, 50)}..."`,
+        `[Lingx] ICU parse error for message: "${message.substring(0, 50)}..."`,
         error
       );
       return message;

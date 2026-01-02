@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { BranchDiffResponse } from '@localeflow/shared';
+import type { BranchDiffResponse } from '@lingx/shared';
 
 export function formatDiffOutput(diff: BranchDiffResponse): string {
   const lines: string[] = [];

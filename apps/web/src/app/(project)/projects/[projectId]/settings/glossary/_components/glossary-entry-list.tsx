@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Plus, Loader2 } from 'lucide-react';
 import type { GlossaryEntry } from '@/lib/api';
@@ -51,7 +51,7 @@ export function GlossaryEntryList({
       <div className="island overflow-hidden">
         <div className="py-20 text-center">
           <div className="relative inline-flex mb-6">
-            <div className="size-20 rounded-3xl bg-gradient-to-br from-muted/80 to-muted/40 flex items-center justify-center">
+            <div className="size-20 rounded-3xl bg-linear-to-br from-muted/80 to-muted/40 flex items-center justify-center">
               <BookOpen className="size-8 text-muted-foreground/60" />
             </div>
             <div className="absolute -bottom-1 -right-1 size-8 rounded-xl bg-primary/10 border-2 border-background flex items-center justify-center">

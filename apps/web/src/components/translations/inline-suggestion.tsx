@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Check, X, Database, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface InlineSuggestionProps {
   suggestions: UnifiedSuggestion[];

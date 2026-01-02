@@ -1,5 +1,5 @@
 import type {
-  LocaleflowConfig,
+  LingxConfig,
   TranslationBundle,
   SdkTranslationsResponse,
   TranslationValues,
@@ -37,13 +37,14 @@ export function getNestedValue(obj: TranslationBundle, path: string): string | u
 }
 
 /**
- * Core Localeflow client for translation management.
+ * Core Lingx client for translation management.
  * Supports hybrid loading: API first with local JSON fallback.
  */
-export class LocaleflowClient {
-  private config: LocaleflowConfig;
+export class LingxClient {
+  private config: LingxConfig;
   private cache: TranslationCache;
   private translations: TranslationBundle = {};
+  private fallbackTranslations: TranslationBundle = {};
   private availableLanguages: string[] = [];
   private currentLanguage: string;
   private icuFormatter: ICUFormatter;
@@ -51,7 +52,7 @@ export class LocaleflowClient {
   // Request deduplication: track pending requests
   private pendingRequests: Map<string, Promise<TranslationBundle>> = new Map();
 
-  constructor(config: LocaleflowConfig) {
+  constructor(config: LingxConfig) {
     this.config = config;
     this.cache = new TranslationCache();
     this.currentLanguage = config.defaultLanguage;
@@ -60,6 +61,7 @@ export class LocaleflowClient {
     // Initialize with static data if provided
     if (config.staticData) {
       this.translations = config.staticData as TranslationBundle;
+      this.fallbackTranslations = config.staticData as TranslationBundle;
       this.cache.set(config.defaultLanguage, this.translations);
     }
 
@@ -246,7 +248,7 @@ export class LocaleflowClient {
       } catch (apiError) {
         // API failed, try local fallback
         console.warn(
-          `[Localeflow] API fetch failed for ${language}, falling back to local:`,
+          `[Lingx] API fetch failed for ${language}, falling back to local:`,
           apiError
         );
       }
@@ -282,8 +284,17 @@ export class LocaleflowClient {
       return;
     }
 
-    // Load default language
-    this.translations = await this.loadTranslations(this.currentLanguage);
+    // Always load default language for fallback (regardless of detection)
+    const defaultTranslations = await this.loadTranslations(this.config.defaultLanguage);
+    this.fallbackTranslations = defaultTranslations;
+
+    // If current language is default, use same translations
+    if (this.currentLanguage === this.config.defaultLanguage) {
+      this.translations = defaultTranslations;
+    } else {
+      // Load current language separately
+      this.translations = await this.loadTranslations(this.currentLanguage);
+    }
   }
 
   /**
@@ -301,6 +312,7 @@ export class LocaleflowClient {
    * Load additional namespace
    */
   async loadNamespace(namespace: string): Promise<TranslationBundle> {
+    // Load namespace for current language
     const nsTranslations = await this.loadTranslations(
       this.currentLanguage,
       namespace
@@ -320,6 +332,27 @@ export class LocaleflowClient {
       ...this.translations,
       ...prefixedTranslations,
     };
+
+    // Also load fallback namespace translations if not on default language
+    if (this.currentLanguage !== this.config.defaultLanguage) {
+      try {
+        const fallbackNsTranslations = await this.loadTranslations(
+          this.config.defaultLanguage,
+          namespace
+        );
+        const prefixedFallback: TranslationBundle = {};
+        for (const [key, value] of Object.entries(fallbackNsTranslations)) {
+          const prefixedKey = `${namespace}${NS_DELIMITER}${key}`;
+          prefixedFallback[prefixedKey] = value;
+        }
+        this.fallbackTranslations = {
+          ...this.fallbackTranslations,
+          ...prefixedFallback,
+        };
+      } catch {
+        // Fallback namespace load failed, continue without it
+      }
+    }
 
     return prefixedTranslations;
   }
@@ -346,6 +379,13 @@ export class LocaleflowClient {
   }
 
   /**
+   * Get fallback translations (default language)
+   */
+  getFallbackTranslations(): TranslationBundle {
+    return this.fallbackTranslations;
+  }
+
+  /**
    * Update translations (for context sync)
    */
   updateTranslations(translations: TranslationBundle): void {
@@ -355,9 +395,15 @@ export class LocaleflowClient {
   /**
    * Translate a key with full ICU MessageFormat support.
    * Supports nested keys using dot notation (e.g., "common.welcome").
+   * Falls back to default language if key is missing in current language.
    */
   translate(key: string, values?: TranslationValues): string {
-    const translation = getNestedValue(this.translations, key);
+    let translation = getNestedValue(this.translations, key);
+
+    // Fallback to default language if missing and not already on default
+    if (!translation && this.currentLanguage !== this.config.defaultLanguage) {
+      translation = getNestedValue(this.fallbackTranslations, key);
+    }
 
     if (!translation) {
       return key;
@@ -408,7 +454,7 @@ export class LocaleflowClient {
   /**
    * Get the configuration
    */
-  getConfig(): LocaleflowConfig {
+  getConfig(): LingxConfig {
     return this.config;
   }
 }

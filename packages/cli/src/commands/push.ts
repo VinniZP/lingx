@@ -1,9 +1,12 @@
 import { Command } from 'commander';
-import { join } from 'path';
-import { combineKey, type CliTranslationsResponse } from '@localeflow/shared';
+import { join, relative } from 'path';
+import { readFile } from 'fs/promises';
+import { glob } from 'glob';
+import { combineKey, type CliTranslationsResponse } from '@lingx/shared';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
+import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
 import { readTranslationFilesWithNamespaces, computeTranslationDiff } from '../lib/translation-io.js';
 import { resolveConflicts, type TranslationConflict } from '../utils/conflict-resolver.js';
 import { regenerateTypesIfEnabled } from './types.js';
@@ -19,6 +22,7 @@ interface PushOptions {
   languages?: string;
   force?: boolean;
   delete?: boolean;
+  context?: boolean;
 }
 
 export function createPushCommand(): Command {
@@ -32,6 +36,8 @@ export function createPushCommand(): Command {
     .option('-l, --languages <langs>', 'Languages to push (comma-separated)')
     .option('-f, --force', 'Force push without conflict prompts')
     .option('-d, --delete', 'Delete remote keys not present in local files')
+    .option('--context', 'Sync key context after push (default: from config)')
+    .option('--no-context', 'Skip context sync after push')
     .action(async (options: PushOptions) => {
       try {
         await push(options);
@@ -253,8 +259,128 @@ async function push(options: PushOptions): Promise<void> {
 
     // Regenerate types if enabled
     await regenerateTypesIfEnabled(cwd);
+
+    // Sync key context if enabled
+    const syncContext = options.context ?? config.context?.syncOnPush ?? true;
+    if (syncContext && config.context?.enabled !== false) {
+      await syncKeyContext(cwd, config, targetBranch.id, client, spinner);
+    }
   } catch (error) {
     spinner.fail('Failed to push translations');
     throw error;
+  }
+}
+
+interface KeyContextPayload {
+  name: string;
+  namespace: string | null;
+  sourceFile: string | undefined;
+  sourceLine: number | undefined;
+  sourceComponent: string | undefined;
+}
+
+/**
+ * Extract and sync key context after push.
+ */
+async function syncKeyContext(
+  cwd: string,
+  config: Awaited<ReturnType<typeof loadConfig>>,
+  branchId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  spinner: any
+): Promise<void> {
+  spinner.start('Syncing key context...');
+
+  try {
+    // Create extractor
+    const extractor = createExtractor(config.extract.framework, {
+      functions: config.extract.functions,
+      markerFunctions: config.extract.markerFunctions,
+    });
+
+    // Find source files
+    const sourceDir = config.paths.source;
+    const patterns = config.extract.patterns.map((p: string) =>
+      join(sourceDir, p)
+    );
+    const files = await glob(patterns, {
+      ignore: config.extract.exclude,
+      absolute: true,
+    });
+
+    if (files.length === 0) {
+      spinner.info('No source files found for context sync');
+      return;
+    }
+
+    // Extract keys with context from all files
+    const allKeys: ExtractedKey[] = [];
+
+    for (const file of files) {
+      const code = await readFile(file, 'utf-8');
+      const result = extractor.extract(code, file);
+      // Ignore errors for context sync - just use what we can
+      allKeys.push(...result.keys);
+    }
+
+    if (allKeys.length === 0) {
+      spinner.info('No translation keys found for context sync');
+      return;
+    }
+
+    // Build context payload
+    const contextPayload: KeyContextPayload[] = [];
+    const keyMap = new Map<string, KeyContextPayload>();
+
+    for (const key of allKeys) {
+      // Parse namespace from combined key
+      const delimiterIndex = key.key.indexOf('\u001F');
+      const namespace = delimiterIndex >= 0 ? key.key.slice(0, delimiterIndex) : null;
+      const name = delimiterIndex >= 0 ? key.key.slice(delimiterIndex + 1) : key.key;
+
+      const mapKey = `${namespace ?? ''}:${name}`;
+
+      if (!keyMap.has(mapKey)) {
+        const payload: KeyContextPayload = {
+          name,
+          namespace,
+          sourceFile: key.location?.file
+            ? relative(cwd, key.location.file)
+            : undefined,
+          sourceLine: key.location?.line,
+          sourceComponent: key.componentContext?.name,
+        };
+        keyMap.set(mapKey, payload);
+        contextPayload.push(payload);
+      }
+    }
+
+    // Send to API in chunks of 1000 (API limit)
+    const CHUNK_SIZE = 1000;
+    let totalUpdated = 0;
+    let totalNotFound = 0;
+
+    for (let i = 0; i < contextPayload.length; i += CHUNK_SIZE) {
+      const chunk = contextPayload.slice(i, i + CHUNK_SIZE);
+      const result = (await client.put(
+        `/api/branches/${branchId}/keys/context`,
+        { keys: chunk }
+      )) as { updated: number; notFound: number };
+      totalUpdated += result.updated;
+      totalNotFound += result.notFound;
+    }
+
+    const keysWithComponent = contextPayload.filter(k => k.sourceComponent).length;
+    spinner.succeed(
+      `Context synced: ${totalUpdated} keys (${keysWithComponent} with component info)`
+    );
+  } catch (error) {
+    // Don't fail the push if context sync fails
+    spinner.warn(
+      'Context sync failed: ' +
+        (error instanceof Error ? error.message : 'Unknown error')
+    );
   }
 }

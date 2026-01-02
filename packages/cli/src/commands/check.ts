@@ -5,12 +5,12 @@ import { glob } from 'glob';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createExtractor, type ExtractionError } from '../lib/extractor/index.js';
-import { parseNamespacedKey, toUserKey } from '@localeflow/shared';
+import { parseNamespacedKey, toUserKey } from '@lingx/shared';
 import {
   validateTranslations,
   summarizeValidation,
 } from '../lib/validator/icu-validator.js';
-import { runBatchQualityChecks, type BatchTranslationEntry } from '@localeflow/shared';
+import { runBatchQualityChecks, type BatchTranslationEntry } from '@lingx/shared';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
 import chalk from 'chalk';

@@ -180,7 +180,7 @@ function CommandItem({
         "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-40",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         "[&_svg:not([class*='text-'])]:text-muted-foreground/70",
-        "[&_svg:not([class*='size-'])]:size-[18px]",
+        "[&_svg:not([class*='size-'])]:size-4.5",
         "group",
         className
       )}

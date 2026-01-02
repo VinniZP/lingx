@@ -13,6 +13,7 @@ import {
   type MTProviderType,
   type MTCostEstimate,
 } from './providers/index.js';
+import { KeyContextService, type AIContextResult } from './key-context.service.js';
 import { BadRequestError, NotFoundError } from '../plugins/error-handler.js';
 
 /** Cache TTL in days */
@@ -70,6 +71,13 @@ export interface PreTranslateInput {
   branchId: string;
   targetLanguages: string[];
   provider?: MTProviderType;
+}
+
+export interface TranslateWithContextResult extends TranslateResult {
+  context?: {
+    relatedTranslations: number;
+    glossaryTerms: number;
+  };
 }
 
 export class MTService {
@@ -255,6 +263,161 @@ export class MTService {
       provider: selectedProvider,
       cached: false,
       characterCount,
+    };
+  }
+
+  /**
+   * Translate a single text with AI context enrichment
+   *
+   * Uses related translations and glossary terms from the key context service
+   * to improve translation quality by providing additional context.
+   *
+   * @param projectId - Project ID
+   * @param branchId - Branch ID
+   * @param keyId - Translation key ID for context fetching
+   * @param text - Text to translate
+   * @param sourceLanguage - Source language code
+   * @param targetLanguage - Target language code
+   * @param provider - Optional MT provider
+   * @returns Translation result with context metadata
+   */
+  async translateWithContext(
+    projectId: string,
+    branchId: string,
+    keyId: string,
+    text: string,
+    sourceLanguage: string,
+    targetLanguage: string,
+    provider?: MTProviderType
+  ): Promise<TranslateWithContextResult> {
+    // Validate input
+    if (!text || text.trim().length === 0) {
+      throw new BadRequestError('Text to translate cannot be empty');
+    }
+
+    // Get AI context for this key
+    const keyContextService = new KeyContextService(this.prisma);
+    let aiContext: AIContextResult | null = null;
+
+    try {
+      aiContext = await keyContextService.getAIContext(branchId, keyId, targetLanguage);
+    } catch (error) {
+      // Context fetch failed - continue without context
+      console.warn('[MT] Failed to fetch AI context:', error);
+    }
+
+    // Build context-enriched text if we have context
+    let enrichedText = text;
+    const contextMetadata = { relatedTranslations: 0, glossaryTerms: 0 };
+
+    if (aiContext) {
+      const contextParts: string[] = [];
+
+      // Add glossary terms as translation hints
+      if (aiContext.suggestedTerms.length > 0) {
+        const glossaryHint = aiContext.suggestedTerms
+          .map((t: { term: string; translation: string }) => `"${t.term}" → "${t.translation}"`)
+          .join('; ');
+        contextParts.push(`[Glossary: ${glossaryHint}]`);
+        contextMetadata.glossaryTerms = aiContext.suggestedTerms.length;
+      }
+
+      // Add related translations as reference context
+      if (aiContext.relatedTranslations.length > 0) {
+        const relatedHint = aiContext.relatedTranslations
+          .slice(0, 3) // Limit to 3 examples to avoid token bloat
+          .map((rt: { keyName: string; translations: Record<string, string> }) => {
+            const sourceText = rt.translations[sourceLanguage] || '';
+            const targetText = rt.translations[targetLanguage] || '';
+            return `"${sourceText}" → "${targetText}"`;
+          })
+          .filter((s: string) => s !== '""  → ""') // Skip empty translations
+          .join('; ');
+        if (relatedHint) {
+          contextParts.push(`[Similar translations: ${relatedHint}]`);
+        }
+        contextMetadata.relatedTranslations = aiContext.relatedTranslations.length;
+      }
+
+      // Prepend context to the text for providers that support context hints
+      // Note: Traditional MT providers may ignore this, but LLM-based providers use it
+      if (contextParts.length > 0) {
+        enrichedText = `${contextParts.join(' ')} Translate: ${text}`;
+      }
+    }
+
+    // Select provider
+    const selectedProvider = provider || (await this.selectProvider(projectId));
+    if (!selectedProvider) {
+      throw new BadRequestError('No MT provider configured for this project');
+    }
+
+    // For cache key, we still use the original text (not enriched) to maintain consistency
+    const cached = await this.getCachedTranslation(
+      projectId,
+      selectedProvider,
+      sourceLanguage,
+      targetLanguage,
+      text
+    );
+
+    if (cached) {
+      await this.updateUsage(projectId, selectedProvider, 0, 0, 1);
+      return {
+        translatedText: cached.translatedText,
+        provider: selectedProvider,
+        cached: true,
+        characterCount: cached.characterCount,
+        context: contextMetadata.relatedTranslations > 0 || contextMetadata.glossaryTerms > 0
+          ? contextMetadata
+          : undefined,
+      };
+    }
+
+    // Get initialized provider
+    const mtProvider = await this.getInitializedProvider(projectId, selectedProvider);
+
+    // Perform translation with enriched text
+    const result = await mtProvider.translate(
+      enrichedText,
+      sourceLanguage,
+      targetLanguage
+    );
+
+    // Clean up the result if we added context prefix
+    let translatedText = result.text;
+    if (enrichedText !== text) {
+      // Some providers might include context in output; try to clean it
+      // This is a best-effort cleanup for providers that echo context
+      const translatePrefix = 'Translate:';
+      if (translatedText.includes(translatePrefix)) {
+        translatedText = translatedText.split(translatePrefix).pop()?.trim() || translatedText;
+      }
+    }
+
+    const characterCount = text.length;
+
+    // Cache with original text key
+    await this.cacheTranslation(
+      projectId,
+      selectedProvider,
+      sourceLanguage,
+      targetLanguage,
+      text,
+      translatedText,
+      characterCount
+    );
+
+    await this.updateUsage(projectId, selectedProvider, characterCount, 1, 0);
+
+    return {
+      translatedText,
+      provider: selectedProvider,
+      cached: false,
+      characterCount,
+      context: contextMetadata.relatedTranslations > 0 || contextMetadata.glossaryTerms > 0
+        ? contextMetadata
+        : undefined,
     };
   }
 

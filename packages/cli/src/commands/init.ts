@@ -39,7 +39,7 @@ const DEFAULTS: InitAnswers = {
 
 export function createInitCommand(): Command {
   return new Command('init')
-    .description('Initialize a LocaleFlow configuration file')
+    .description('Initialize a Lingx configuration file')
     .option('-y, --yes', 'Skip prompts and use defaults')
     .option('-p, --project <slug>', 'Project slug')
     .option('-s, --space <name>', 'Default space')
@@ -183,18 +183,18 @@ async function init(options: InitOptions): Promise<void> {
   const configContent = generateConfigFile(answers);
 
   // Write config file
-  const configPath = join(projectDir, 'localeflow.config.ts');
+  const configPath = join(projectDir, 'lingx.config.ts');
   await writeFile(configPath, configContent, 'utf-8');
 
   logger.success(`Created ${configPath}`);
   logger.info('');
   logger.info('Next steps:');
   if (!isLoggedIn) {
-    logger.info('  1. Run "lf auth login" to authenticate');
-    logger.info('  2. Run "lf pull" to download translations');
+    logger.info('  1. Run "lingx auth login" to authenticate');
+    logger.info('  2. Run "lingx pull" to download translations');
   } else {
-    logger.info('  1. Run "lf pull" to download translations');
-    logger.info('  2. Run "lf push" to upload new keys');
+    logger.info('  1. Run "lingx pull" to download translations');
+    logger.info('  2. Run "lingx push" to upload new keys');
   }
 }
 
@@ -211,9 +211,9 @@ function generateConfigFile(answers: InitAnswers): string {
       : ['t', 'useTranslation'];
 
   // Build the config object as a string to maintain formatting
-  return `import type { LocaleflowConfig } from '@localeflow/cli';
+  return `import type { LingxConfig } from '@lingx/cli';
 
-const config: LocaleflowConfig = {
+const config: LingxConfig = {
   api: {
     url: '${answers.apiUrl}',
   },

@@ -16,7 +16,7 @@ const prisma = new PrismaClient({ adapter });
 const BCRYPT_ROUNDS = 12;
 
 // Demo credentials - printed at end of seed
-const DEMO_EMAIL = 'demo@localeflow.dev';
+const DEMO_EMAIL = 'demo@lingx.dev';
 const DEMO_PASSWORD = 'password123';
 const DEMO_API_KEY = 'lf_demo_0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -100,7 +100,7 @@ async function main() {
       data: {
         name: 'Demo Application',
         slug: 'demo-app',
-        description: 'A demo project for testing LocaleFlow',
+        description: 'A demo project for testing Lingx',
         defaultLanguage: 'en',
       },
     });

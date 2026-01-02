@@ -105,6 +105,31 @@ export function useMTTranslate(projectId: string) {
 }
 
 /**
+ * Hook to translate with AI context from related translations and glossary.
+ * Provides higher quality translations by leveraging surrounding context.
+ */
+export function useMTTranslateWithContext(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      branchId: string;
+      keyId: string;
+      text: string;
+      sourceLanguage: string;
+      targetLanguage: string;
+      provider?: MTProvider;
+    }) => machineTranslationApi.translateWithContext(projectId, data),
+    onSuccess: () => {
+      // Optionally invalidate usage stats
+      queryClient.invalidateQueries({
+        queryKey: mtQueryKeys.usage(projectId),
+      });
+    },
+  });
+}
+
+/**
  * Hook to batch translate keys
  */
 export function useMTBatchTranslate(projectId: string) {

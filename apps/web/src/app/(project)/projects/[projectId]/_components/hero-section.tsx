@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { StatPill } from './stat-pill';
-import type { ProjectResponse } from '@localeflow/shared';
+import type { ProjectResponse } from '@lingx/shared';
 
 interface HeroSectionProps {
   project: ProjectResponse;

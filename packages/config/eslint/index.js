@@ -3,7 +3,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 /**
- * ESLint flat config for Localeflow monorepo
+ * ESLint flat config for Lingx monorepo
  * @type {import('eslint').Linter.Config[]}
  */
 export default tseslint.config(

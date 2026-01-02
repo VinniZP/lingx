@@ -17,13 +17,13 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type {
   BranchDiffResponse,
   DiffEntry,
   ModifiedEntry,
   ConflictEntry,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 interface DiffViewProps {
   diff: BranchDiffResponse;
@@ -165,19 +165,19 @@ function DiffSection({
 }: DiffSectionProps) {
   const variantStyles = {
     added: {
-      card: 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50/50',
+      card: 'border-emerald-200 bg-linear-to-br from-emerald-50 to-green-50/50',
       badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     },
     modified: {
-      card: 'border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50/50',
+      card: 'border-violet-200 bg-linear-to-br from-violet-50 to-indigo-50/50',
       badge: 'bg-violet-100 text-violet-700 border-violet-200',
     },
     deleted: {
-      card: 'border-rose-200 bg-gradient-to-br from-rose-50 to-red-50/50',
+      card: 'border-rose-200 bg-linear-to-br from-rose-50 to-red-50/50',
       badge: 'bg-rose-100 text-rose-700 border-rose-200',
     },
     conflict: {
-      card: 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50/50',
+      card: 'border-amber-300 bg-linear-to-br from-amber-50 to-orange-50/50',
       badge: 'bg-amber-100 text-amber-700 border-amber-300',
     },
   };
@@ -251,7 +251,7 @@ function ModifiedCard({ entry }: { entry: ModifiedEntry }) {
       {/* Mobile: Stacked layout, Desktop: Side-by-side */}
       <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
         {/* Source section */}
-        <div className="rounded-md bg-gradient-to-br from-violet-50 to-indigo-50 p-3 border-l-4 border-violet-400">
+        <div className="rounded-md bg-linear-to-br from-violet-50 to-indigo-50 p-3 border-l-4 border-violet-400">
           <div className="text-xs font-medium text-violet-600 mb-2 uppercase tracking-wide flex items-center gap-2">
             {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-violet-500" />}
             {t('branch.diffView.sourceNew')}
@@ -352,7 +352,7 @@ function ConflictCard({
       {/* Mobile: Stacked layout, Desktop: Side-by-side */}
       <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
         {/* Source section */}
-        <div className="rounded-md bg-gradient-to-br from-amber-50 to-orange-50 p-3 border border-amber-200 border-l-4 border-l-amber-400">
+        <div className="rounded-md bg-linear-to-br from-amber-50 to-orange-50 p-3 border border-amber-200 border-l-4 border-l-amber-400">
           <div className="text-xs font-medium text-amber-600 mb-2 uppercase tracking-wide flex items-center gap-2">
             {isMobile && <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />}
             {t('branch.diffView.sourceIncoming')}

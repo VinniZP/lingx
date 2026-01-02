@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Settings, Key, Edit, Zap } from 'lucide-react';
 import { QuickActionCard } from './quick-action-card';
 

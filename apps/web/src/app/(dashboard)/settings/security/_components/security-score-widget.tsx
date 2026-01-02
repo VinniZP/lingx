@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@lingx/sdk-nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { totpApi, webauthnApi } from '@/lib/api';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';

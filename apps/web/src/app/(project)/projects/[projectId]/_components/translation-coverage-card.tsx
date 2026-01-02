@@ -1,10 +1,10 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import type { ProjectStatsDetailed } from '@/lib/api';
 
 interface TranslationCoverageCardProps {

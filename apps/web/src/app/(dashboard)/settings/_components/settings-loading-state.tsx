@@ -71,7 +71,7 @@ export function SettingsLoadingState({
           <div className={cn('absolute inset-0 rounded-3xl blur-2xl scale-125', colors.glow)} />
           <div
             className={cn(
-              'relative size-20 rounded-3xl bg-gradient-to-br flex items-center justify-center border',
+              'relative size-20 rounded-3xl bg-linear-to-br flex items-center justify-center border',
               colors.icon,
               colors.border
             )}

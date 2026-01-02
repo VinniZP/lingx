@@ -1,4 +1,4 @@
-# LocaleFlow Strategic Analysis & Feature Roadmap
+# Lingx Strategic Analysis & Feature Roadmap
 
 > **Version**: 1.0
 > **Date**: 2025-12-30
@@ -8,9 +8,9 @@
 
 ## Executive Summary
 
-This document provides a comprehensive analysis of LocaleFlow's current capabilities, competitive landscape, and strategic recommendations for feature development. Based on research into leading open-source translation platforms (Tolgee, Weblate, Traduora) and commercial solutions (Crowdin, Lokalise), we identify high-impact opportunities to differentiate LocaleFlow.
+This document provides a comprehensive analysis of Lingx's current capabilities, competitive landscape, and strategic recommendations for feature development. Based on research into leading open-source translation platforms (Tolgee, Weblate, Traduora) and commercial solutions (Crowdin, Lokalise), we identify high-impact opportunities to differentiate Lingx.
 
-**Key Finding**: LocaleFlow has achieved feature parity with basic TMS functionality and leads competitors with its git-like branching model. The primary gaps are in AI/ML features, visual context tools, and ecosystem integrations.
+**Key Finding**: Lingx has achieved feature parity with basic TMS functionality and leads competitors with its git-like branching model. The primary gaps are in AI/ML features, visual context tools, and ecosystem integrations.
 
 ---
 
@@ -56,7 +56,7 @@ This document provides a comprehensive analysis of LocaleFlow's current capabili
 
 ### Tool Comparison Matrix
 
-| Feature | LocaleFlow | Tolgee | Weblate | Traduora | Crowdin |
+| Feature | Lingx | Tolgee | Weblate | Traduora | Crowdin |
 |---------|------------|--------|---------|----------|---------|
 | Git-like branching | ✅ Full | ⚠️ Limited | ❌ | ❌ | ⚠️ Limited |
 | Environment pointers | ✅ | ❌ | ❌ | ❌ | ❌ |
@@ -95,7 +95,7 @@ This document provides a comprehensive analysis of LocaleFlow's current capabili
 - **AI assist**: Interactive translation suggestions
 
 #### [Lokalise](https://lokalise.com/)
-- **Branching**: Similar to LocaleFlow but limited
+- **Branching**: Similar to Lingx but limited
 - **Workflows**: Automated task routing (beta)
 - **SDK ecosystem**: Flutter, Node, Ruby SDKs
 
@@ -319,7 +319,7 @@ These features address critical gaps and provide significant competitive advanta
 
 ### Tier 3: Differentiating Features
 
-#### 7. Near-Key Context Detection (Unique to LocaleFlow)
+#### 7. Near-Key Context Detection (Unique to Lingx)
 
 **Value Proposition**: Automatically provide translation context without screenshots by analyzing code proximity.
 
@@ -418,7 +418,7 @@ These features address critical gaps and provide significant competitive advanta
 
 #### 11. Webhooks & Automation
 
-**Value Proposition**: Integrate LocaleFlow into existing workflows and tools.
+**Value Proposition**: Integrate Lingx into existing workflows and tools.
 
 **Events**:
 - Translation updated
@@ -518,15 +518,15 @@ These features address critical gaps and provide significant competitive advanta
 
 ### Tier 5: AI-Powered Features
 
-#### 17. MCP Server for LocaleFlow
+#### 17. MCP Server for Lingx
 
 **Value Proposition**: Enable AI assistants (Claude, GPT, etc.) to interact with translations via [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol).
 
 **Resources Exposed**:
-- `localeflow://projects` - List all projects
-- `localeflow://projects/{id}/translations` - All translations
-- `localeflow://projects/{id}/keys` - Translation keys
-- `localeflow://projects/{id}/glossary` - Glossary terms
+- `lingx://projects` - List all projects
+- `lingx://projects/{id}/translations` - All translations
+- `lingx://projects/{id}/keys` - Translation keys
+- `lingx://projects/{id}/glossary` - Glossary terms
 
 **Tools Provided**:
 - `translate` - Translate a key using AI with context
@@ -586,7 +586,7 @@ These features address critical gaps and provide significant competitive advanta
 
 **Value Proposition**: Catch untranslated strings at development time, not in production.
 
-**Package**: `eslint-plugin-localeflow`
+**Package**: `eslint-plugin-lingx`
 
 **React Rules**:
 - `react/no-literal-string` - Detect hardcoded JSX text
@@ -762,14 +762,14 @@ Events emitted via:
 
 ## Conclusion
 
-LocaleFlow has established a strong foundation with unique branching capabilities that competitors lack. The strategic priority should be:
+Lingx has established a strong foundation with unique branching capabilities that competitors lack. The strategic priority should be:
 
 1. **Complete Phase 7** (stats, activity tracking) to polish the MVP
 2. **Prioritize Translation Memory + MT** for immediate productivity gains
 3. **Add AI translation** to differentiate from open-source competitors
 4. **Build ecosystem** (webhooks, git) for enterprise adoption
 
-The recommended 16-week roadmap (Phases 7-10) will transform LocaleFlow from a capable TMS into a comprehensive localization platform competitive with commercial offerings.
+The recommended 16-week roadmap (Phases 7-10) will transform Lingx from a capable TMS into a comprehensive localization platform competitive with commercial offerings.
 
 ---
 

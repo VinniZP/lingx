@@ -11,7 +11,7 @@ A drop-in language selector component that renders as a `<select>` element.
 ```tsx
 'use client';
 
-import { LanguageSwitcher } from '@localeflow/sdk-nextjs';
+import { LanguageSwitcher } from '@lingx/sdk-nextjs';
 
 function Header() {
   return (
@@ -88,7 +88,7 @@ For more control, build custom components using the hooks.
 ```tsx
 'use client';
 
-import { useLanguage } from '@localeflow/sdk-nextjs';
+import { useLanguage } from '@lingx/sdk-nextjs';
 
 const LANGUAGE_LABELS: Record<string, string> = {
   en: 'English',
@@ -126,7 +126,7 @@ export function LanguageButtons() {
 'use client';
 
 import { useState } from 'react';
-import { useLanguage } from '@localeflow/sdk-nextjs';
+import { useLanguage } from '@lingx/sdk-nextjs';
 
 const LANGUAGES = {
   en: { label: 'English', flag: '🇺🇸' },
@@ -183,7 +183,7 @@ export function FlagDropdown() {
 ```tsx
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export function TranslatedContent({ translationKey }: { translationKey: string }) {
   const { t, error } = useTranslation();
@@ -201,7 +201,7 @@ export function TranslatedContent({ translationKey }: { translationKey: string }
 ```tsx
 'use client';
 
-import { useNamespace } from '@localeflow/sdk-nextjs';
+import { useNamespace } from '@lingx/sdk-nextjs';
 
 interface NamespaceLoaderProps {
   namespace: string;

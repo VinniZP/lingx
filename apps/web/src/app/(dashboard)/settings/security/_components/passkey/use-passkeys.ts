@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { webauthnApi } from '@/lib/api';
 import { startRegistration, browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { toast } from 'sonner';

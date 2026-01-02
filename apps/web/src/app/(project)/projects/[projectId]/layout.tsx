@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -97,7 +97,7 @@ export default function ProjectLayout({
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary text-primary-foreground">
               <Languages className="size-4" />
             </div>
-            <span className="font-semibold">LocaleFlow</span>
+            <span className="font-semibold">Lingx</span>
           </Link>
           <Button
             variant="ghost"

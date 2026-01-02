@@ -74,7 +74,7 @@ export class ApiClient {
 export async function getApiClient(profile?: string): Promise<ApiClient> {
   const credentials = credentialStore.getCredentials(profile);
   if (!credentials) {
-    throw new Error('Not authenticated. Run "lf auth login" first.');
+    throw new Error('Not authenticated. Run "lingx auth login" first.');
   }
   return new ApiClient(credentials);
 }
@@ -85,7 +85,7 @@ export async function createApiClientFromConfig(
 ): Promise<ApiClient> {
   const credentials = credentialStore.getCredentials(profile);
   if (!credentials) {
-    throw new Error('Not authenticated. Run "lf auth login" first.');
+    throw new Error('Not authenticated. Run "lingx auth login" first.');
   }
 
   // Override API URL from config if present

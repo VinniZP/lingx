@@ -14,7 +14,7 @@ import {
 
 function createUniqueTempDir(): string {
   const randomSuffix = randomBytes(8).toString('hex');
-  return join(tmpdir(), `localeflow-test-${Date.now()}-${randomSuffix}`);
+  return join(tmpdir(), `lingx-test-${Date.now()}-${randomSuffix}`);
 }
 
 describe('extractLanguageFromFilename', () => {

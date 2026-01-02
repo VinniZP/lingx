@@ -24,7 +24,7 @@ import {
 
 import type { TranslationKey } from '@/lib/api';
 import { Kbd } from '@/components/ui/kbd';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface TranslationCommandPaletteProps {
   open: boolean;

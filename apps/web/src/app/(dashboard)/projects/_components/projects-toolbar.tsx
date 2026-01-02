@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Search, LayoutGrid, List, SlidersHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ProjectsToolbarProps {
   searchQuery: string;
@@ -42,13 +42,13 @@ export function ProjectsToolbar({
             onClick={() => onViewModeChange('grid')}
             className={`size-9 flex items-center justify-center rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            <LayoutGrid className="size-[18px]" />
+            <LayoutGrid className="size-4.5" />
           </button>
           <button
             onClick={() => onViewModeChange('list')}
             className={`size-9 flex items-center justify-center rounded-lg transition-colors ${viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            <List className="size-[18px]" />
+            <List className="size-4.5" />
           </button>
         </div>
 

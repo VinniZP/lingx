@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { translationApi, TranslationKey, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
 

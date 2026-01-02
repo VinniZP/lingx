@@ -10,7 +10,7 @@ import {
   FieldValidationError,
   UnauthorizedError,
 } from '../plugins/error-handler.js';
-import { UNIQUE_VIOLATION_CODES } from '@localeflow/shared';
+import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
 
 /** bcrypt cost factor per Design Doc NFRs */
 const BCRYPT_ROUNDS = 12;

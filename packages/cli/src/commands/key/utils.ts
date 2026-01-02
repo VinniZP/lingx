@@ -1,8 +1,8 @@
 import { readFile, readdir, stat, rm } from 'fs/promises';
 import { join, extname } from 'path';
 import { existsSync } from 'fs';
-import { parseUserKey, combineKey, toUserKey } from '@localeflow/shared';
-import { type LocaleflowConfig } from '../../lib/config.js';
+import { parseUserKey, combineKey, toUserKey } from '@lingx/shared';
+import { type LingxConfig } from '../../lib/config.js';
 import { createFormatter, type Formatter } from '../../lib/formatter/index.js';
 import {
   writeTranslationFile,
@@ -116,7 +116,7 @@ export async function readTranslationsFromFile(
 export async function readKeyValues(
   translationsPath: string,
   parsedKey: ParsedKey,
-  config: LocaleflowConfig
+  config: LingxConfig
 ): Promise<Record<string, string | undefined>> {
   const formatter = createFormatter(config.format.type, {
     nested: config.format.nested,
@@ -153,7 +153,7 @@ export async function writeKeyValue(
   parsedKey: ParsedKey,
   lang: string,
   value: string,
-  config: LocaleflowConfig
+  config: LingxConfig
 ): Promise<void> {
   const formatter = createFormatter(config.format.type, {
     nested: config.format.nested,
@@ -185,7 +185,7 @@ export async function removeKeyFromFile(
   translationsPath: string,
   parsedKey: ParsedKey,
   lang: string,
-  config: LocaleflowConfig
+  config: LingxConfig
 ): Promise<boolean> {
   const formatter = createFormatter(config.format.type, {
     nested: config.format.nested,
@@ -222,7 +222,7 @@ export async function removeKeyFromFile(
 export async function keyExists(
   translationsPath: string,
   parsedKey: ParsedKey,
-  config: LocaleflowConfig
+  config: LingxConfig
 ): Promise<boolean> {
   const values = await readKeyValues(translationsPath, parsedKey, config);
   return Object.values(values).some((v) => v !== undefined);

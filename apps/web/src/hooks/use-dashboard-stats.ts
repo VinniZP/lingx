@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/api';
-import type { DashboardStats } from '@localeflow/shared';
+import type { DashboardStats } from '@lingx/shared';
 
 /**
  * Fetch dashboard statistics for the current user.

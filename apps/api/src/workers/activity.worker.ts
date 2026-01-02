@@ -19,7 +19,7 @@ import {
 import type {
   CreateActivityInput,
   ActivityMetadata,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 /**
  * Activity types that can be grouped when consecutive

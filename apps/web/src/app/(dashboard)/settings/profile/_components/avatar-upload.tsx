@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { UserProfile } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Camera, Trash2, Loader2 } from 'lucide-react';
@@ -59,7 +59,7 @@ export function AvatarUpload({ profile }: AvatarUploadProps) {
           className={cn(
             'size-28 sm:size-32 rounded-2xl flex items-center justify-center overflow-hidden',
             'ring-4 ring-card shadow-xl transition-all duration-300',
-            'bg-gradient-to-br from-info/20 via-info/10 to-primary/10',
+            'bg-linear-to-br from-info/20 via-info/10 to-primary/10',
             isDragging && 'ring-info scale-105',
             !isDragging && 'hover:ring-info/50'
           )}

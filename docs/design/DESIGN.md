@@ -1,8 +1,8 @@
-# Localeflow Platform Design Document
+# Lingx Platform Design Document
 
 ## Overview
 
-This Design Document defines the technical implementation for Localeflow, a self-hosted localization management platform with git-like branching for translations. The platform enables development teams to safely manage translations across multiple environments, preventing feature work from polluting production translations.
+This Design Document defines the technical implementation for Lingx, a self-hosted localization management platform with git-like branching for translations. The platform enables development teams to safely manage translations across multiple environments, preventing feature work from polluting production translations.
 
 The system consists of six packages: a Next.js web application, Fastify backend API, Node.js CLI tool, Next.js 16 SDK, Angular SDK (Phase 2), and shared utilities package, all managed in a pnpm + Turborepo monorepo.
 
@@ -193,7 +193,7 @@ This is a greenfield project with no existing codebase. The challenge is buildin
 
 #### Next.js 16 SDK
 
-- [x] **AC-SDK-001**: When app is wrapped with `<LocaleflowProvider>` with required config (apiKey, environment, defaultLanguage), the system shall initialize the translation context and make translations available to child components
+- [x] **AC-SDK-001**: When app is wrapped with `<LingxProvider>` with required config (apiKey, environment, defaultLanguage), the system shall initialize the translation context and make translations available to child components
 - [x] **AC-SDK-002**: When calling `useTranslation()` hook, the system shall return `{ t, ready, error }` where `t()` translates keys with ICU MessageFormat support, `ready` indicates load status, and `error` contains any fetch errors
 - [x] **AC-SDK-003**: When calling `t('key', { params })` with ICU MessageFormat translation containing `{paramName}` placeholders, the system shall substitute all placeholders with provided values
 - [x] **AC-SDK-004**: When using `useLanguage()` hook, the system shall return `{ language, setLanguage, availableLanguages, isChanging }` for complete language management
@@ -209,16 +209,16 @@ This is a greenfield project with no existing codebase. The challenge is buildin
 
 #### Angular SDK
 
-- [x] **AC-SDK-014**: When importing `LocaleflowModule.forRoot({ apiKey, environment, defaultLanguage })`, the system shall configure and initialize the SDK for the entire application
+- [x] **AC-SDK-014**: When importing `LingxModule.forRoot({ apiKey, environment, defaultLanguage })`, the system shall configure and initialize the SDK for the entire application
 - [x] **AC-SDK-015**: When using `{{ 'key' | translate:params }}` pipe with ICU MessageFormat translation, the system shall display the translated value with properly formatted placeholders
-- [x] **AC-SDK-016**: When injecting `LocaleflowService`, the system shall provide `translate()` returning Observable, `instant()` returning string, `get()` returning Promise, and `stream()` returning Observable that updates on language change, all with full ICU MessageFormat support
+- [x] **AC-SDK-016**: When injecting `LingxService`, the system shall provide `translate()` returning Observable, `instant()` returning string, `get()` returning Promise, and `stream()` returning Observable that updates on language change, all with full ICU MessageFormat support
 - [x] **AC-SDK-017**: When injecting `LanguageService`, the system shall provide `currentLanguage$` Observable, `setLanguage(lang)` method returning Promise, and `getAvailableLanguages()` returning string array
 - [x] **AC-SDK-018**: When calling `setLanguage(lang)` on `LanguageService`, the system shall fetch new translations and update all pipes and observables within 500ms
 - [x] **AC-SDK-019**: When injecting `NamespaceService`, the system shall provide `loadNamespace(ns)` returning Promise and `isNamespaceLoaded(ns)` returning boolean
 - [x] **AC-SDK-020**: When using `{{ 'cart_items' | translate:{ count: 5 } }}` with ICU plural message `{count, plural, =0 {No items} one {1 item} other {{count} items}}`, the system shall return the correctly pluralized string
 - [x] **AC-SDK-021**: When using `{{ 'greeting' | translate:{ gender: 'female' } }}` with ICU select message, the system shall return the correctly selected string based on the value
 - [x] **AC-SDK-022**: When using `{{ 'price' | translate:{ amount: 1234.56 } }}` with ICU number message `Price: {amount, number, currency}`, the system shall return the correctly formatted currency string based on locale
-- [x] **AC-SDK-023**: When `LocaleflowService.translate()` Observable emits and language changes, the system shall automatically emit the new translation value without manual resubscription
+- [x] **AC-SDK-023**: When `LingxService.translate()` Observable emits and language changes, the system shall automatically emit the new translation value without manual resubscription
 
 ---
 
@@ -328,7 +328,7 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant App as Application
-    participant SDK as Localeflow SDK
+    participant SDK as Lingx SDK
     participant Cache as Local Cache
     participant API as Fastify API
     participant DB as PostgreSQL
@@ -384,7 +384,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant CLI as Localeflow CLI
+    participant CLI as Lingx CLI
     participant FS as File System
     participant API as Fastify API
     participant DB as PostgreSQL
@@ -1574,11 +1574,11 @@ lf branch merge <source> [options]
 ### Configuration File Format
 
 ```yaml
-# .localeflow.yml or localeflow.config.yml
+# .lingx.yml or lingx.config.yml
 
 # API configuration
 api:
-  url: "https://localeflow.example.com"  # API base URL
+  url: "https://lingx.example.com"  # API base URL
 
 # Default project settings
 project: my-app
@@ -1624,7 +1624,7 @@ extract:
 ### Authentication Storage
 
 ```typescript
-// ~/.config/localeflow/credentials.json
+// ~/.config/lingx/credentials.json
 interface CredentialsFile {
   version: 1;
   profiles: {
@@ -1640,9 +1640,9 @@ interface CredentialsFile {
 }
 
 // Default location:
-// - Linux: ~/.config/localeflow/credentials.json
-// - macOS: ~/Library/Application Support/localeflow/credentials.json
-// - Windows: %APPDATA%\localeflow\credentials.json
+// - Linux: ~/.config/lingx/credentials.json
+// - macOS: ~/Library/Application Support/lingx/credentials.json
+// - Windows: %APPDATA%\lingx\credentials.json
 ```
 
 ---
@@ -1655,22 +1655,22 @@ interface CredentialsFile {
 packages/sdk-nextjs/
 ├── src/
 │   ├── index.ts                      # Public exports
-│   ├── provider.tsx                  # LocaleflowProvider component
+│   ├── provider.tsx                  # LingxProvider component
 │   ├── hooks/
 │   │   ├── useTranslation.ts         # Main translation hook (ICU MessageFormat)
 │   │   ├── useLanguage.ts            # Language management hook
 │   │   ├── useNamespace.ts           # Namespace management hook
-│   │   └── useLocaleflow.ts          # Context access hook
+│   │   └── useLingx.ts          # Context access hook
 │   ├── server/
 │   │   ├── getTranslations.ts        # Server-side translations (ICU MessageFormat)
 │   │   ├── getServerLanguage.ts      # Server language detection
 │   │   └── cache.ts                  # Server-side caching with "use cache"
 │   ├── client/
-│   │   ├── LocaleflowClient.ts       # Core translation client
+│   │   ├── LingxClient.ts       # Core translation client
 │   │   ├── icu-formatter.ts          # ICU MessageFormat wrapper (@formatjs/intl-messageformat)
 │   │   └── cache.ts                  # Client-side caching
 │   ├── context/
-│   │   └── LocaleflowContext.tsx     # React context
+│   │   └── LingxContext.tsx     # React context
 │   └── types.ts                      # TypeScript types
 ├── package.json
 └── tsconfig.json
@@ -1685,7 +1685,7 @@ packages/sdk-nextjs/
 // Provider Configuration
 // =============================================================================
 
-interface LocaleflowProviderProps {
+interface LingxProviderProps {
   children: React.ReactNode;
   apiKey: string;
   environment: string;
@@ -1697,7 +1697,7 @@ interface LocaleflowProviderProps {
 }
 
 // Usage:
-<LocaleflowProvider
+<LingxProvider
   apiKey="lf_live_..."
   environment="production"
   defaultLanguage="en"
@@ -1705,7 +1705,7 @@ interface LocaleflowProviderProps {
   namespaces={['common', 'auth']}
 >
   <App />
-</LocaleflowProvider>
+</LingxProvider>
 
 // =============================================================================
 // useTranslation Hook - Main Translation Access with ICU MessageFormat
@@ -1835,7 +1835,7 @@ async function getTranslations(namespace?: string): Promise<{
 }>;
 
 // Usage in Server Component (app/[locale]/page.tsx):
-import { getTranslations } from '@localeflow/nextjs/server';
+import { getTranslations } from '@lingx/nextjs/server';
 
 export default async function HomePage() {
   const { t } = await getTranslations('home');
@@ -1868,14 +1868,14 @@ packages/sdk-angular/
 ├── src/
 │   ├── index.ts                      # Public exports
 │   ├── lib/
-│   │   ├── localeflow.module.ts      # LocaleflowModule
-│   │   ├── localeflow.service.ts     # Main translation service (ICU MessageFormat)
+│   │   ├── lingx.module.ts      # LingxModule
+│   │   ├── lingx.service.ts     # Main translation service (ICU MessageFormat)
 │   │   ├── language.service.ts       # Language management service
 │   │   ├── namespace.service.ts      # Namespace management service
 │   │   ├── translate.pipe.ts         # Translate pipe (ICU MessageFormat)
-│   │   ├── translate.directive.ts    # Localeflow directive
+│   │   ├── translate.directive.ts    # Lingx directive
 │   │   ├── icu-formatter.ts          # ICU MessageFormat wrapper (@formatjs/intl-messageformat)
-│   │   └── localeflow-client.ts      # Core client
+│   │   └── lingx-client.ts      # Core client
 │   └── types.ts
 ├── package.json
 └── tsconfig.json
@@ -1890,7 +1890,7 @@ packages/sdk-angular/
 // Module Configuration
 // =============================================================================
 
-interface LocaleflowConfig {
+interface LingxConfig {
   apiKey: string;
   environment: string;
   defaultLanguage: string;
@@ -1900,7 +1900,7 @@ interface LocaleflowConfig {
 
 @NgModule({
   imports: [
-    LocaleflowModule.forRoot({
+    LingxModule.forRoot({
       apiKey: 'lf_live_...',
       environment: 'production',
       defaultLanguage: 'en',
@@ -1912,11 +1912,11 @@ interface LocaleflowConfig {
 export class AppModule {}
 
 // =============================================================================
-// LocaleflowService - Main Translation Service with ICU MessageFormat
+// LingxService - Main Translation Service with ICU MessageFormat
 // =============================================================================
 
 @Injectable({ providedIn: 'root' })
-class LocaleflowService {
+class LingxService {
   /**
    * Returns Observable that updates on language change.
    * Full ICU MessageFormat support: plural, select, number, date, time.
@@ -1947,7 +1947,7 @@ class LocaleflowService {
   selector: 'app-greeting',
   template: `
     <h1>{{ greeting$ | async }}</h1>
-    <p>{{ localeflow.instant('welcome') }}</p>
+    <p>{{ lingx.instant('welcome') }}</p>
 
     <!-- ICU Plural -->
     <p>{{ cartItems$ | async }}</p>
@@ -1961,15 +1961,15 @@ export class GreetingComponent {
   cartItems$: Observable<string>;
   lastUpdated$: Observable<string>;
 
-  constructor(private localeflow: LocaleflowService) {
+  constructor(private lingx: LingxService) {
     // Simple interpolation
-    this.greeting$ = this.localeflow.stream('greeting', { name: 'Nick' });
+    this.greeting$ = this.lingx.stream('greeting', { name: 'Nick' });
 
     // ICU Plural: "{count, plural, =0 {No items} one {1 item} other {{count} items}}"
-    this.cartItems$ = this.localeflow.stream('cart_items', { count: 5 });
+    this.cartItems$ = this.lingx.stream('cart_items', { count: 5 });
 
     // ICU Date: "Last updated: {date, date, medium}"
-    this.lastUpdated$ = this.localeflow.stream('last_updated', { date: new Date() });
+    this.lastUpdated$ = this.lingx.stream('last_updated', { date: new Date() });
   }
 }
 
@@ -2220,7 +2220,7 @@ import { cache } from 'react';
 export const getTranslationsFromApi = cache(
   async (project: string, space: string, environment: string, lang: string) => {
     const response = await fetch(
-      `${process.env.LOCALEFLOW_API_URL}/api/sdk/translations?` +
+      `${process.env.LINGX_API_URL}/api/sdk/translations?` +
       new URLSearchParams({ project, space, environment, lang })
     );
     return response.json();
@@ -2348,7 +2348,7 @@ graph TD
    - Verification: L1 - Pull/push works locally
 
 4. **Next.js 16 SDK Core**
-   - LocaleflowProvider component
+   - LingxProvider component
    - useTranslation hook with interpolation
    - useLanguage hook with setLanguage
    - useNamespace hook for lazy loading
@@ -2388,8 +2388,8 @@ graph TD
    - Verification: L1 - SDK fetches correct branch
 
 4. **Angular SDK**
-   - LocaleflowModule setup
-   - LocaleflowService with translate/instant/get/stream
+   - LingxModule setup
+   - LingxService with translate/instant/get/stream
    - LanguageService with language management
    - NamespaceService for lazy loading
    - TranslatePipe implementation
@@ -2640,5 +2640,5 @@ Not applicable - greenfield project with no existing data to migrate.
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
 | 2025-12-27 | 1.0 | Initial design document | AI Assistant |
-| 2025-12-27 | 2.0 | Renamed to Localeflow, updated to Next.js 16, rewrote SDK design with feature-rich API including namespace management, pluralization, server components support | AI Assistant |
+| 2025-12-27 | 2.0 | Renamed to Lingx, updated to Next.js 16, rewrote SDK design with feature-rich API including namespace management, pluralization, server components support | AI Assistant |
 | 2025-12-27 | 3.0 | Migrated to ICU MessageFormat: removed `usePlural` hook and `PluralPipe`, updated `useTranslation` and translate pipe to support ICU syntax (plural, select, selectordinal, number, date, time), added `@formatjs/intl-messageformat` dependency, updated CLI with `--detect-icu` and `--validate-icu` options, added ICU MessageFormat reference section | AI Assistant |

@@ -8,14 +8,15 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react';
-import { LocaleflowContext } from './context/LocaleflowContext';
-import { LocaleflowClient, getNestedValue } from './client/LocaleflowClient';
+import { LingxContext } from './context/LingxContext';
+import { LingxClient, getNestedValue } from './client/LingxClient';
 import { hasICUSyntax } from './client/icu-formatter';
 import { LanguageDetectorService } from './detection/LanguageDetectorService';
+import { NS_DELIMITER } from './constants';
 import type {
-  LocaleflowProviderProps,
-  LocaleflowConfig,
-  LocaleflowContextValue,
+  LingxProviderProps,
+  LingxConfig,
+  LingxContextValue,
   TranslationBundle,
   MultiLanguageBundle,
 } from './types';
@@ -49,7 +50,7 @@ function getLanguageTranslations(
 }
 
 /**
- * LocaleflowProvider component
+ * LingxProvider component
  * Wraps your application and provides translation context
  *
  * @example
@@ -57,46 +58,46 @@ function getLanguageTranslations(
  * // With static data (recommended for SSG)
  * import en from '@/locales/en.json';
  *
- * <LocaleflowProvider
+ * <LingxProvider
  *   defaultLanguage="en"
  *   staticData={en}
  *   localePath="/locales"
  *   availableLanguages={['en', 'de', 'es']}
  * >
  *   <App />
- * </LocaleflowProvider>
+ * </LingxProvider>
  *
  * // Multi-language static data (auto-detects available languages)
  * import en from '@/locales/en.json';
  * import de from '@/locales/de.json';
  *
- * <LocaleflowProvider
+ * <LingxProvider
  *   defaultLanguage="en"
  *   staticData={{ en, de }}
  * >
  *   <App />
- * </LocaleflowProvider>
+ * </LingxProvider>
  *
  * // With API (optional, falls back to localePath)
- * <LocaleflowProvider
+ * <LingxProvider
  *   defaultLanguage="en"
  *   localePath="/locales"
- *   apiUrl="https://api.localeflow.dev"
+ *   apiUrl="https://api.lingx.dev"
  *   project="my-project"
  *   space="main"
  *   environment="production"
  * >
  *   <App />
- * </LocaleflowProvider>
+ * </LingxProvider>
  * ```
  */
-export function LocaleflowProvider({
+export function LingxProvider({
   children,
   fallback,
   ...config
-}: LocaleflowProviderProps): ReactNode {
+}: LingxProviderProps): ReactNode {
   // Create stable config reference
-  const configRef = useRef<LocaleflowConfig>(config);
+  const configRef = useRef<LingxConfig>(config);
 
   // Detect multi-language bundle
   const isMultiLang = useMemo(
@@ -131,12 +132,12 @@ export function LocaleflowProvider({
 
   // Initialize client with single-language translations
   const client = useMemo(() => {
-    const clientConfig: LocaleflowConfig = {
+    const clientConfig: LingxConfig = {
       ...configRef.current,
       // Only pass staticData if original config had it
       staticData: hasStaticData ? initialTranslations : undefined,
     };
-    return new LocaleflowClient(clientConfig);
+    return new LingxClient(clientConfig);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTranslations]);
 
@@ -155,10 +156,19 @@ export function LocaleflowProvider({
   const [language, setLanguageState] = useState(config.defaultLanguage);
   const [isChanging, setIsChanging] = useState(false);
   const [translations, setTranslations] = useState<TranslationBundle>(initialTranslations);
+  // Fallback translations (default language) for missing keys
+  const [fallbackTranslations, setFallbackTranslations] = useState<TranslationBundle>(
+    isMultiLang
+      ? getLanguageTranslations(config.staticData!, config.defaultLanguage, true)
+      : initialTranslations
+  );
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(initialAvailableLanguages);
   const [loadedNamespaces, setLoadedNamespaces] = useState<Set<string>>(
     () => new Set(config.namespaces || [])
   );
+
+  // Track warned keys to avoid console spam (dev only)
+  const warnedKeysRef = useRef<Set<string>>(new Set());
 
   // Initialize translations (non-blocking)
   useEffect(() => {
@@ -184,6 +194,8 @@ export function LocaleflowProvider({
         if (mounted) {
           setTranslations(client.getTranslations());
           setAvailableLanguages(client.getAvailableLanguages());
+          // Set fallback from client (default language loaded during init)
+          setFallbackTranslations(client.getFallbackTranslations());
         }
       } catch (err) {
         if (mounted) {
@@ -257,6 +269,9 @@ export function LocaleflowProvider({
           setLanguageState(lang);
         }
 
+        // Clear loaded namespaces to force reload for new language
+        setLoadedNamespaces(new Set());
+
         // Cache language preference
         detectorService?.cacheLanguage(lang, availableLanguages);
       } catch (err) {
@@ -276,6 +291,8 @@ export function LocaleflowProvider({
       try {
         await client.loadNamespace(namespace);
         setTranslations(client.getTranslations());
+        // Also sync fallback translations (client loads namespace for default language too)
+        setFallbackTranslations(client.getFallbackTranslations());
         setLoadedNamespaces((prev) => new Set([...prev, namespace]));
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)));
@@ -287,10 +304,33 @@ export function LocaleflowProvider({
   // Translation function - uses state directly (no redundant sync)
   const t = useCallback(
     (key: string, values?: Record<string, string | number | Date>) => {
-      const translation = getNestedValue(translations, key);
+      let translation = getNestedValue(translations, key);
 
-      // Return key if translation not found
+      // Fallback to default language if missing and not already on default
+      if (!translation && language !== config.defaultLanguage) {
+        translation = getNestedValue(fallbackTranslations, key);
+      }
+
+      // Return key if translation not found in current or fallback
       if (!translation) {
+        // Warn about missing key in development (once per key+language combination)
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+          const warnKey = `${language}:${key}`;
+          if (!warnedKeysRef.current.has(warnKey)) {
+            warnedKeysRef.current.add(warnKey);
+            // Parse namespace from key for clearer warning
+            const delimiterIndex = key.indexOf(NS_DELIMITER);
+            if (delimiterIndex !== -1) {
+              const namespace = key.slice(0, delimiterIndex);
+              const actualKey = key.slice(delimiterIndex + 1);
+              console.warn(
+                `[Lingx] Missing translation key: "${actualKey}" in namespace "${namespace}" (language: ${language})`
+              );
+            } else {
+              console.warn(`[Lingx] Missing translation key: "${key}" (language: ${language})`);
+            }
+          }
+        }
         return key;
       }
 
@@ -312,11 +352,11 @@ export function LocaleflowProvider({
       // Full ICU MessageFormat - use client's formatter
       return client.getFormatter().format(translation, values);
     },
-    [client, translations]
+    [client, translations, fallbackTranslations, language, config.defaultLanguage]
   );
 
   // Memoize context value to prevent unnecessary re-renders
-  const contextValue = useMemo<LocaleflowContextValue>(
+  const contextValue = useMemo<LingxContextValue>(
     () => ({
       language,
       setLanguage,
@@ -352,8 +392,8 @@ export function LocaleflowProvider({
   }
 
   return (
-    <LocaleflowContext.Provider value={contextValue}>
+    <LingxContext.Provider value={contextValue}>
       {children}
-    </LocaleflowContext.Provider>
+    </LingxContext.Provider>
   );
 }

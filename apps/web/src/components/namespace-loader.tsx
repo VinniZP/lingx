@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { useTranslation, type NamespaceKeys } from '@localeflow/sdk-nextjs';
+import { useTranslation, type NamespaceKeys } from '@lingx/sdk-nextjs';
 import { cn } from '@/lib/utils';
 
 interface NamespaceLoaderProps<NS extends keyof NamespaceKeys> {

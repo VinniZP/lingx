@@ -18,9 +18,9 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build shared packages and API
-RUN pnpm --filter=@localeflow/shared build
-RUN pnpm --filter=@localeflow/api db:generate
-RUN pnpm --filter=@localeflow/api build
+RUN pnpm --filter=@lingx/shared build
+RUN pnpm --filter=@lingx/api db:generate
+RUN pnpm --filter=@lingx/api build
 
 # Stage 2: Deploy (use pnpm deploy to resolve workspace dependencies)
 FROM node:20-alpine AS deployer
@@ -30,7 +30,7 @@ WORKDIR /app
 COPY --from=builder /app ./
 
 # pnpm deploy creates a standalone package with workspace deps resolved
-RUN pnpm --filter=@localeflow/api deploy --prod --legacy /deploy
+RUN pnpm --filter=@lingx/api deploy --prod --legacy /deploy
 
 # Stage 3: Production
 FROM node:20-alpine AS runner
@@ -38,7 +38,7 @@ WORKDIR /app
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 localeflow
+    adduser --system --uid 1001 lingx
 
 # Copy deployed package (includes node_modules with workspace deps resolved)
 COPY --from=deployer /deploy ./
@@ -54,9 +54,9 @@ RUN chmod +x ./docker-entrypoint.sh
 RUN npx prisma generate
 
 # Set ownership
-RUN chown -R localeflow:nodejs /app
+RUN chown -R lingx:nodejs /app
 
-USER localeflow
+USER lingx
 
 EXPOSE 3001
 

@@ -1,4 +1,4 @@
-# LocaleFlow Project Instructions
+# Lingx Project Instructions
 
 ## Tech Stack
 - **Monorepo**: pnpm workspaces + Turborepo
@@ -29,8 +29,8 @@
 ### SDK Documentation (`packages/sdk-nextjs/docs/`)
 - `getting-started.md` - Installation and basic setup
 - `type-safety.md` - Type generation, TKey, tKey(), tKeyUnsafe()
-- `hooks.md` - useTranslation, useLanguage, useNamespace, useLocaleflow
-- `provider.md` - LocaleflowProvider configuration
+- `hooks.md` - useTranslation, useLanguage, useNamespace, useLingx
+- `provider.md` - LingxProvider configuration
 - `icu-format.md` - ICU MessageFormat (plurals, numbers, dates, selects)
 - `server-side.md` - Server Components and App Router
 - `language-detection.md` - 9 built-in detectors
@@ -39,11 +39,11 @@
 - `troubleshooting.md` - Common issues and solutions
 
 ### CLI Documentation (`packages/cli/`)
-- `localeflow extract` - Extract translation keys from source
-- `localeflow pull` - Pull translations from API
-- `localeflow push` - Push translations to API
-- `localeflow sync` - Bidirectional sync
-- `localeflow types` - Generate TypeScript types from translations
+- `lingx extract` - Extract translation keys from source
+- `lingx pull` - Pull translations from API
+- `lingx push` - Push translations to API
+- `lingx sync` - Bidirectional sync
+- `lingx types` - Generate TypeScript types from translations
 
 ---
 
@@ -58,7 +58,7 @@
 ### Sizing Standards
 - **Form inputs**: `h-11` (44px), `rounded-xl`, `bg-card`, `border-border`
 - **Buttons**: `h-11` default, `h-9` small, `h-12` large, `rounded-xl`
-- **Icons in buttons**: `size-[18px]` default
+- **Icons in buttons**: `size-4.5` default
 - **Select/Textarea**: Match input styling
 
 ### Visual Effects
@@ -147,14 +147,14 @@ Syntax changes from v3:
 ## i18n Patterns (Type-Safe Translations)
 
 ### Type Generation
-Run `localeflow types` to generate TypeScript types from translation files. This provides:
+Run `lingx types` to generate TypeScript types from translation files. This provides:
 - Autocomplete for all translation keys
 - Compile-time validation of keys
 - ICU parameter type inference (plural → number, date → Date)
 
 ### Key Types
 ```tsx
-import { tKey, tKeyUnsafe, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, tKeyUnsafe, type TKey } from '@lingx/sdk-nextjs';
 
 // TKey - convenience type for typed translation keys
 interface NavItem {
@@ -184,7 +184,7 @@ items.map(item => td(item.labelKey));
 
 ### Configuration
 ```typescript
-// localeflow.config.ts
+// lingx.config.ts
 export default {
   paths: {
     translations: './public/locales',
@@ -192,7 +192,7 @@ export default {
   },
   types: {
     enabled: true,
-    output: './src/localeflow.d.ts',
+    output: './src/lingx.d.ts',
     sourceLocale: 'en',
   },
 };

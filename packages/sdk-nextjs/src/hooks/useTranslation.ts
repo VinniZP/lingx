@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useEffect } from 'react';
-import { useLocaleflowContext } from '../context/LocaleflowContext';
+import { useLingxContext } from '../context/LingxContext';
 import { NS_DELIMITER } from '../constants';
 import type {
   TranslationFunction,
@@ -65,15 +65,16 @@ export function useTranslation<NS extends keyof NamespaceKeys>(
   namespace: NS
 ): UseNamespacedTranslationReturn<NS & string>;
 export function useTranslation(namespace?: string): UseTranslationReturn | UseNamespacedTranslationReturn<string> {
-  const context = useLocaleflowContext();
-  const { translations, ready, error, t: contextT, loadNamespace, loadedNamespaces } = context;
+  const context = useLingxContext();
+  const { translations, ready, error, t: contextT, loadNamespace, loadedNamespaces, language } = context;
 
   // Load namespace on mount if provided and not already loaded
+  // Also re-check when language changes (loadedNamespaces is cleared on language change)
   useEffect(() => {
     if (namespace && !loadedNamespaces.has(namespace)) {
       loadNamespace(namespace);
     }
-  }, [namespace, loadNamespace, loadedNamespaces]);
+  }, [namespace, loadNamespace, loadedNamespaces, language]);
 
   /**
    * Translation function that handles namespace key lookup.

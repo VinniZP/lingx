@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react';
 import { useUserActivities } from '@/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityItem } from '@/components/activity';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ActivityFeedProps {
   hasProjects: boolean;

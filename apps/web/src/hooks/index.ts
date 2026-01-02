@@ -57,3 +57,15 @@ export {
   type CreateGlossaryEntryInput,
   type UpdateGlossaryEntryInput,
 } from './use-glossary';
+export {
+  useRelatedKeys,
+  useAllRelatedKeys,
+  useAIContext,
+  useKeyContextStats,
+  useAnalyzeRelationships,
+  type RelatedKey,
+  type RelatedKeysResponse,
+  type AIContextResponse,
+  type KeyContextStats,
+  type RelationshipType,
+} from './use-related-keys';

@@ -10,6 +10,7 @@ import {
   FolderOpen,
   GitBranch,
   GitMerge,
+  Globe,
   Globe2,
   Key,
   LogOut,
@@ -56,6 +57,8 @@ import {
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreateSpaceDialog, CreateBranchDialog, MergeBranchDialog } from '@/components/dialogs';
+import { LanguagePickerCompact } from '@/components/language-picker';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   Tooltip,
   TooltipContent,
@@ -238,6 +241,7 @@ export function ProjectSidebar({
   user,
   onLogout,
 }: ProjectSidebarProps) {
+  const { t } = useTranslation();
   const { setOpenMobile, isMobile } = useSidebar();
 
   // Dialog state
@@ -434,8 +438,17 @@ export function ProjectSidebar({
             </SidebarGroup>
           </SidebarContent>
 
-          {/* Footer - User */}
-          <SidebarFooter className="mt-auto border-t border-border p-3">
+          {/* Footer - Language & User */}
+          <SidebarFooter className="mt-auto border-t border-border p-3 space-y-2">
+            {/* Language Picker */}
+            <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
+              <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
+                <Globe className="size-4 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">{t('sidebar.language')}</span>
+              </div>
+              <LanguagePickerCompact />
+            </div>
+
             <SidebarMenu>
               <SidebarMenuItem>
                 <DropdownMenu>
@@ -462,7 +475,7 @@ export function ProjectSidebar({
                     <div className="px-3 py-3 mb-1">
                       <div className="flex items-center gap-3">
                         <Avatar className="size-10 rounded-xl ring-2 ring-primary/10">
-                          <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/20 to-warm/20 text-primary font-semibold">
+                          <AvatarFallback className="rounded-xl bg-linear-to-br from-primary/20 to-warm/20 text-primary font-semibold">
                             {userInitials}
                           </AvatarFallback>
                         </Avatar>

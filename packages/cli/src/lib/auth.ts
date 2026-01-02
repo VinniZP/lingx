@@ -19,7 +19,7 @@ export class CredentialStore {
 
   constructor(options?: { configName?: string }) {
     this.conf = new Conf<CredentialsSchema>({
-      projectName: 'localeflow',
+      projectName: 'lingx',
       configName: options?.configName ?? 'credentials',
       defaults: {
         version: 1,

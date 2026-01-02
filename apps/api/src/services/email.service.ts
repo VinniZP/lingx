@@ -20,7 +20,7 @@ export class EmailService {
   private appUrl: string;
 
   constructor() {
-    this.fromAddress = process.env.SMTP_FROM || 'noreply@localeflow.dev';
+    this.fromAddress = process.env.SMTP_FROM || 'noreply@lingx.dev';
     this.appUrl = process.env.APP_URL || 'http://localhost:3000';
 
     this.transporter = nodemailer.createTransport({
@@ -63,7 +63,7 @@ export class EmailService {
 
     await this.send({
       to,
-      subject: 'Verify your new email address - LocaleFlow',
+      subject: 'Verify your new email address - Lingx',
       html: `
 <!DOCTYPE html>
 <html>
@@ -74,7 +74,7 @@ export class EmailService {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #7C6EE6 0%, #9D8DF1 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">LocaleFlow</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Lingx</h1>
   </div>
 
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
@@ -99,7 +99,7 @@ export class EmailService {
   </div>
 
   <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-    <p>&copy; ${new Date().getFullYear()} LocaleFlow. All rights reserved.</p>
+    <p>&copy; ${new Date().getFullYear()} Lingx. All rights reserved.</p>
   </div>
 </body>
 </html>
@@ -119,7 +119,7 @@ export class EmailService {
 
     await this.send({
       to: oldEmail,
-      subject: 'Email change requested - LocaleFlow',
+      subject: 'Email change requested - Lingx',
       html: `
 <!DOCTYPE html>
 <html>
@@ -130,13 +130,13 @@ export class EmailService {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #7C6EE6 0%, #9D8DF1 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">LocaleFlow</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Lingx</h1>
   </div>
 
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 12px 12px;">
     <h2 style="color: #333; margin-top: 0;">${greeting},</h2>
 
-    <p>A request was made to change the email address associated with your LocaleFlow account.</p>
+    <p>A request was made to change the email address associated with your Lingx account.</p>
 
     <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin: 20px 0;">
       <p style="margin: 0; color: #666;">
@@ -152,7 +152,7 @@ export class EmailService {
   </div>
 
   <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-    <p>&copy; ${new Date().getFullYear()} LocaleFlow. All rights reserved.</p>
+    <p>&copy; ${new Date().getFullYear()} Lingx. All rights reserved.</p>
   </div>
 </body>
 </html>

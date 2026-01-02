@@ -3,11 +3,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useMutation } from '@tanstack/react-query';
 import { securityApi } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
-import { passwordSchema } from '@localeflow/shared';
+import { passwordSchema } from '@lingx/shared';
 import { Button } from '@/components/ui/button';
 import { PasswordInput } from '@/components/ui/password-input';
 import {

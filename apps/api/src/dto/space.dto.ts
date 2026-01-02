@@ -5,7 +5,7 @@ import type { Space } from '@prisma/client';
 import type {
   SpaceResponse,
   SpaceWithBranches,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 type SpaceWithBranchesFromPrisma = Space & {
   branches: Array<{

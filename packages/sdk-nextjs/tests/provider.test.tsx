@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { LocaleflowProvider } from '../src/provider';
-import { useLocaleflow } from '../src/hooks/useLocaleflow';
+import { LingxProvider } from '../src/provider';
+import { useLingx } from '../src/hooks/useLingx';
 
 // Mock fetch for API calls
 const mockFetch = vi.fn();
 
-describe('LocaleflowProvider', () => {
+describe('LingxProvider', () => {
   beforeEach(() => {
     mockFetch.mockReset();
     global.fetch = mockFetch;
@@ -18,7 +18,7 @@ describe('LocaleflowProvider', () => {
 
   // Test Consumer Component
   const TestConsumer = () => {
-    const { ready, language, t, error, isLoading } = useLocaleflow();
+    const { ready, language, t, error, isLoading } = useLingx();
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
@@ -38,13 +38,13 @@ describe('LocaleflowProvider', () => {
       );
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           localePath="/locales"
           fallback={<div>Loading translations...</div>}
         >
           <TestConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       expect(screen.getByText('Loading translations...')).toBeDefined();
@@ -57,9 +57,9 @@ describe('LocaleflowProvider', () => {
       });
 
       render(
-        <LocaleflowProvider defaultLanguage="en" localePath="/locales">
+        <LingxProvider defaultLanguage="en" localePath="/locales">
           <TestConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -73,12 +73,12 @@ describe('LocaleflowProvider', () => {
   describe('Static Data', () => {
     it('should use static data when provided', async () => {
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{ greeting: 'Hello from static' }}
         >
           <TestConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       // Should immediately be ready with static data
@@ -99,9 +99,9 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+        <LingxProvider defaultLanguage="en" staticData={translations}>
           <TestConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -121,9 +121,9 @@ describe('LocaleflowProvider', () => {
         .mockRejectedValueOnce(new Error('Failed'));
 
       render(
-        <LocaleflowProvider defaultLanguage="en" localePath="/locales">
+        <LingxProvider defaultLanguage="en" localePath="/locales">
           <TestConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(
@@ -138,15 +138,15 @@ describe('LocaleflowProvider', () => {
   describe('Translation Function', () => {
     it('should return key when translation is missing', async () => {
       const MissingKeyConsumer = () => {
-        const { t, isLoading } = useLocaleflow();
+        const { t, isLoading } = useLingx();
         if (isLoading) return null;
         return <div data-testid="missing">{t('nonexistent.key')}</div>;
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={{ greeting: 'Hi' }}>
+        <LingxProvider defaultLanguage="en" staticData={{ greeting: 'Hi' }}>
           <MissingKeyConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -158,7 +158,7 @@ describe('LocaleflowProvider', () => {
 
     it('should interpolate values in translations', async () => {
       const InterpolationConsumer = () => {
-        const { t, isLoading } = useLocaleflow();
+        const { t, isLoading } = useLingx();
         if (isLoading) return null;
         return (
           <div data-testid="interpolated">
@@ -168,12 +168,12 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{ greeting: 'Hello, {name}!' }}
         >
           <InterpolationConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -185,7 +185,7 @@ describe('LocaleflowProvider', () => {
 
     it('should handle multiple interpolation values', async () => {
       const MultiInterpolationConsumer = () => {
-        const { t, isLoading } = useLocaleflow();
+        const { t, isLoading } = useLingx();
         if (isLoading) return null;
         return (
           <div data-testid="multi">
@@ -195,14 +195,14 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{
             message: '{user} sent {count} messages to {recipient}',
           }}
         >
           <MultiInterpolationConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -214,18 +214,18 @@ describe('LocaleflowProvider', () => {
 
     it('should support nested keys', async () => {
       const NestedConsumer = () => {
-        const { t, isLoading } = useLocaleflow();
+        const { t, isLoading } = useLingx();
         if (isLoading) return null;
         return <div data-testid="nested">{t('common.greeting')}</div>;
       };
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{ common: { greeting: 'Nested Hello' } }}
         >
           <NestedConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -242,9 +242,9 @@ describe('LocaleflowProvider', () => {
       });
 
       render(
-        <LocaleflowProvider defaultLanguage="en" localePath="/locales">
+        <LingxProvider defaultLanguage="en" localePath="/locales">
           <div>Test</div>
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -266,7 +266,7 @@ describe('LocaleflowProvider', () => {
       });
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           apiUrl="https://api.example.com"
           project="my-project"
@@ -275,7 +275,7 @@ describe('LocaleflowProvider', () => {
           localePath="/locales"
         >
           <div>Test</div>
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -298,7 +298,7 @@ describe('LocaleflowProvider', () => {
       });
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           apiUrl="https://api.example.com"
           project="my-project"
@@ -307,7 +307,7 @@ describe('LocaleflowProvider', () => {
           localePath="/locales"
         >
           <div>Test</div>
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -322,7 +322,7 @@ describe('LocaleflowProvider', () => {
   describe('Context Hook', () => {
     it('should throw error when used outside provider', () => {
       const ConsumerWithoutProvider = () => {
-        const { t } = useLocaleflow();
+        const { t } = useLingx();
         return <div>{t('test')}</div>;
       };
 
@@ -333,7 +333,7 @@ describe('LocaleflowProvider', () => {
 
       expect(() => {
         render(<ConsumerWithoutProvider />);
-      }).toThrow('useLocaleflow must be used within a LocaleflowProvider');
+      }).toThrow('useLingx must be used within a LingxProvider');
 
       consoleSpy.mockRestore();
     });
@@ -353,7 +353,7 @@ describe('LocaleflowProvider', () => {
           setLanguage,
           isChanging,
           isLoading,
-        } = useLocaleflow();
+        } = useLingx();
         if (isLoading) return <div>Loading...</div>;
         return (
           <div>
@@ -368,9 +368,9 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+        <LingxProvider defaultLanguage="en" staticData={translations}>
           <LanguageConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -389,7 +389,7 @@ describe('LocaleflowProvider', () => {
 
       const LanguageSwitchConsumer = () => {
         const { language, t, setLanguage, isLoading, isChanging } =
-          useLocaleflow();
+          useLingx();
         if (isLoading) return <div>Loading...</div>;
         return (
           <div>
@@ -404,9 +404,9 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider defaultLanguage="en" staticData={translations}>
+        <LingxProvider defaultLanguage="en" staticData={translations}>
           <LanguageSwitchConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -428,7 +428,7 @@ describe('LocaleflowProvider', () => {
   describe('Namespace Loading', () => {
     it('should provide loadNamespace function', async () => {
       const NamespaceConsumer = () => {
-        const { loadedNamespaces, loadNamespace, isLoading } = useLocaleflow();
+        const { loadedNamespaces, loadNamespace, isLoading } = useLingx();
         if (isLoading) return <div>Loading...</div>;
         return (
           <div>
@@ -441,13 +441,13 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{ common: 'Common' }}
           namespaces={['common']}
         >
           <NamespaceConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       await waitFor(() => {
@@ -459,7 +459,7 @@ describe('LocaleflowProvider', () => {
   describe('Non-blocking Render', () => {
     it('should be ready immediately with static data', () => {
       const ReadyConsumer = () => {
-        const { ready, isLoading } = useLocaleflow();
+        const { ready, isLoading } = useLingx();
         return (
           <div>
             <span data-testid="ready">{String(ready)}</span>
@@ -469,12 +469,12 @@ describe('LocaleflowProvider', () => {
       };
 
       render(
-        <LocaleflowProvider
+        <LingxProvider
           defaultLanguage="en"
           staticData={{ greeting: 'Hello' }}
         >
           <ReadyConsumer />
-        </LocaleflowProvider>
+        </LingxProvider>
       );
 
       // Should be ready immediately

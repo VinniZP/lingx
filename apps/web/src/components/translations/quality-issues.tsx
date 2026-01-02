@@ -7,8 +7,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { QualityIssue, QualityCheckResult } from '@localeflow/shared';
-import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
+import type { QualityIssue, QualityCheckResult } from '@lingx/shared';
+import { useTranslation, tKey, type TKey } from '@lingx/sdk-nextjs';
 
 interface QualityIssuesProps {
   issues: QualityIssue[];

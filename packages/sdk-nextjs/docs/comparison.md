@@ -1,10 +1,10 @@
 # Comparison with Other Libraries
 
-This guide compares `@localeflow/sdk-nextjs` with popular i18n libraries to help you understand the differences and make an informed choice.
+This guide compares `@lingx/sdk-nextjs` with popular i18n libraries to help you understand the differences and make an informed choice.
 
 ## Quick Comparison
 
-| Feature | LocaleFlow SDK | i18next | react-intl |
+| Feature | Lingx SDK | i18next | react-intl |
 |---------|---------------|---------|------------|
 | Setup complexity | Minimal | Moderate | Moderate |
 | ICU MessageFormat | Full | Plugin | Full |
@@ -44,17 +44,17 @@ i18n
   });
 ```
 
-**LocaleFlow SDK** works with just a provider:
+**Lingx SDK** works with just a provider:
 
 ```tsx
-// LocaleFlow setup
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+// Lingx setup
+import { LingxProvider } from '@lingx/sdk-nextjs';
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
-<LocaleflowProvider defaultLanguage="en" staticData={{ en, de }}>
+<LingxProvider defaultLanguage="en" staticData={{ en, de }}>
   <App />
-</LocaleflowProvider>
+</LingxProvider>
 ```
 
 ### Non-Blocking by Default
@@ -67,10 +67,10 @@ const { t, ready } = useTranslation();
 if (!ready) return <Loading />;
 ```
 
-**LocaleFlow SDK** never blocks:
+**Lingx SDK** never blocks:
 
 ```tsx
-// LocaleFlow - always renders immediately
+// Lingx - always renders immediately
 const { t, ready } = useTranslation();
 // ready is always true
 return <h1>{t('title')}</h1>;
@@ -80,11 +80,11 @@ return <h1>{t('title')}</h1>;
 
 **i18next** requires workarounds for React Server Components.
 
-**LocaleFlow SDK** has native RSC support:
+**Lingx SDK** has native RSC support:
 
 ```tsx
 // Server Component
-import { getTranslations } from '@localeflow/sdk-nextjs/server';
+import { getTranslations } from '@lingx/sdk-nextjs/server';
 
 export default async function Page({ params }) {
   const { t } = await getTranslations({
@@ -100,11 +100,11 @@ export default async function Page({ params }) {
 
 **i18next** loads languages on demand by default.
 
-**LocaleFlow SDK** supports bundled multi-language data for instant switching:
+**Lingx SDK** supports bundled multi-language data for instant switching:
 
 ```tsx
 // All languages available immediately
-<LocaleflowProvider
+<LingxProvider
   defaultLanguage="en"
   staticData={{ en, de, es, fr }}
 >
@@ -114,7 +114,7 @@ export default async function Page({ params }) {
 
 **i18next** requires the `i18next-icu` plugin for full ICU support.
 
-**LocaleFlow SDK** includes ICU MessageFormat natively:
+**Lingx SDK** includes ICU MessageFormat natively:
 
 ```tsx
 // Works out of the box
@@ -142,13 +142,13 @@ import enMessages from '@/locales/en.json';
 <FormattedMessage id="greeting" values={{ name: 'World' }} />
 ```
 
-**LocaleFlow SDK** is more concise:
+**Lingx SDK** is more concise:
 
 ```tsx
-// LocaleFlow setup
-<LocaleflowProvider defaultLanguage="en" staticData={{ en, de }}>
+// Lingx setup
+<LingxProvider defaultLanguage="en" staticData={{ en, de }}>
   <App />
-</LocaleflowProvider>
+</LingxProvider>
 
 // Usage
 const { t } = useTranslation();
@@ -167,7 +167,7 @@ import { FormattedMessage, FormattedNumber, FormattedDate } from 'react-intl';
 <FormattedDate value={new Date()} />
 ```
 
-**LocaleFlow SDK** uses a function-based API:
+**Lingx SDK** uses a function-based API:
 
 ```tsx
 const { t } = useTranslation();
@@ -187,7 +187,7 @@ Both libraries fully support ICU MessageFormat:
 
 ### Better DX
 
-**LocaleFlow SDK** provides:
+**Lingx SDK** provides:
 - `tKey()` for static extraction
 - `td()` for type-safe dynamic keys
 - Built-in language detection (9 strategies)
@@ -195,9 +195,9 @@ Both libraries fully support ICU MessageFormat:
 
 ---
 
-## When to Use LocaleFlow SDK
+## When to Use Lingx SDK
 
-Choose **LocaleFlow SDK** if you:
+Choose **Lingx SDK** if you:
 
 - Want minimal configuration
 - Use Next.js App Router with Server Components
@@ -238,8 +238,8 @@ function Component() {
   );
 }
 
-// After (LocaleFlow)
-import { useTranslation, useLanguage } from '@localeflow/sdk-nextjs';
+// After (Lingx)
+import { useTranslation, useLanguage } from '@lingx/sdk-nextjs';
 
 function Component() {
   const { t } = useTranslation();
@@ -269,8 +269,8 @@ function Component() {
   );
 }
 
-// After (LocaleFlow)
-import { useTranslation } from '@localeflow/sdk-nextjs';
+// After (Lingx)
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 function Component() {
   const { t } = useTranslation();

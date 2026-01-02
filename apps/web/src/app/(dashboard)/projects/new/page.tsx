@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createProjectSchema, type CreateProjectInput } from '@localeflow/shared';
+import { createProjectSchema, type CreateProjectInput } from '@lingx/shared';
 import { projectApi, ApiError } from '@/lib/api';
 import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ import { ArrowLeft, Globe2, Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { AVAILABLE_LANGUAGES, getLanguageByCode } from '@/lib/languages';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export default function NewProjectPage() {
   const { t } = useTranslation();

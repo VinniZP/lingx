@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Badge } from '@/components/ui/badge';
 import { Key } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';

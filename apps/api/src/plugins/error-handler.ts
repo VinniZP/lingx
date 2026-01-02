@@ -1,6 +1,6 @@
 import { FastifyPluginAsync, FastifyError } from 'fastify';
 import fp from 'fastify-plugin';
-import type { FieldError } from '@localeflow/shared';
+import type { FieldError } from '@lingx/shared';
 
 /**
  * Standard error response structure for consistent API error handling

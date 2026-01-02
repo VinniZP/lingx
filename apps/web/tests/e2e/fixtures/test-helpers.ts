@@ -1,5 +1,5 @@
 /**
- * Localeflow E2E Test Helpers
+ * Lingx E2E Test Helpers
  *
  * Shared utilities for Playwright E2E tests.
  * These helpers provide reusable functions for common operations.

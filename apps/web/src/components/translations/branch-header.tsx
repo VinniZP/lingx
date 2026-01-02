@@ -2,7 +2,7 @@
 
 import { GitBranch, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface BranchHeaderProps {
   branchName: string;

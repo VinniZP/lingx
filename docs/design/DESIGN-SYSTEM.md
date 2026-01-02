@@ -1,4 +1,4 @@
-``# LocaleFlow Design System
+``# Lingx Design System
 
 > **Status:** Draft v1
 > **Created:** 2024-12-29
@@ -6,7 +6,7 @@
 
 ## Design Philosophy
 
-LocaleFlow is built **by developers, for developers** and translation managers. The UI should be:
+Lingx is built **by developers, for developers** and translation managers. The UI should be:
 
 - **Modern & Clean** - Professional without being corporate
 - **UX-First** - Core functionality accessible in minimal clicks
@@ -400,9 +400,9 @@ Future consideration: Custom accent color picker
 
 ## Developer-Familiar Patterns
 
-LocaleFlow is built for developers. Where appropriate, leverage familiar UI patterns from common developer tools to reduce cognitive load:
+Lingx is built for developers. Where appropriate, leverage familiar UI patterns from common developer tools to reduce cognitive load:
 
-| Pattern | Source | Use In LocaleFlow |
+| Pattern | Source | Use In Lingx |
 |---------|--------|-------------------|
 | **Diff View** | GitHub, GitLab | Activity changes, merge conflicts, translation history |
 | **Tree View** | VS Code, file explorers | Namespace/key hierarchy, project structure |

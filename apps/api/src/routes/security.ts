@@ -11,7 +11,7 @@ import {
   changePasswordResponseSchema,
   sessionListResponseSchema,
   revokeAllSessionsResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 const securityRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();

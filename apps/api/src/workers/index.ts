@@ -1,7 +1,7 @@
 /**
  * Workers Index
  *
- * Registers all BullMQ workers for the LocaleFlow API.
+ * Registers all BullMQ workers for the Lingx API.
  * Workers handle background processing for activity tracking,
  * retention cleanup, and other async tasks.
  */

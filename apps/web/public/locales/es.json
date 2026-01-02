@@ -3,30 +3,18 @@
     "loading": "Cargando...",
     "cancel": "Cancelar",
     "delete": "Eliminar",
-    "viewAll": "Ver todo",
-    "languages": "{count, plural, one {# idioma} other {# idiomas}}"
+    "languages": "{count, plural, one {# idioma} other {# idiomas}}",
+    "viewAll": "Ver todo"
   },
   "auth": {
     "forgotPassword": "¿Olvidaste tu contraseña?"
   },
   "dashboard": {
-    "greeting": {
-      "morning": "Buenos días",
-      "afternoon": "Buenas tardes",
-      "evening": "Buenas noches"
-    },
-    "overview": "Aquí está tu resumen de traducciones",
     "stats": {
       "projects": "Proyectos",
       "keys": "Claves",
-      "languages": "Idiomas",
-      "complete": "Completo"
-    },
-    "progress": "Progreso general de traducciones",
-    "createProject": {
-      "title": "Crear nuevo proyecto",
-      "description": "Inicia un proyecto de localización con control de versiones, ramificación y colaboración en equipo",
-      "cta": "Comenzar"
+      "complete": "Completo",
+      "languages": "Idiomas"
     },
     "recentProjects": "Proyectos Recientes",
     "quickActions": "Acciones Rápidas",
@@ -50,14 +38,8 @@
       "title": "CLI Disponible",
       "description": "Sincroniza traducciones desde tu terminal"
     },
-    "resources": {
-      "title": "Recursos",
-      "docs": "Documentación",
-      "guide": "Guía de inicio",
-      "bestPractices": "Mejores prácticas de idiomas"
-    },
     "welcome": {
-      "title": "Bienvenido a LocaleFlow",
+      "title": "Bienvenido a Lingx",
       "description": "Gestión profesional de traducciones con control de versiones tipo Git para equipos modernos"
     },
     "onboarding": {
@@ -73,29 +55,52 @@
         "title": "Sincroniza con tu app",
         "description": "Usa CLI o API para obtener traducciones"
       }
+    },
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "overview": "Aquí está tu resumen de traducciones",
+    "progress": "Progreso general de traducciones",
+    "resources": {
+      "title": "Recursos",
+      "docs": "Documentación",
+      "guide": "Guía de inicio",
+      "bestPractices": "Mejores prácticas de idiomas"
+    },
+    "createProject": {
+      "title": "Crear nuevo proyecto",
+      "description": "Inicia un proyecto de localización con control de versiones, ramificación y colaboración en equipo",
+      "cta": "Comenzar"
     }
   },
   "projects": {
-    "title": "Proyectos",
-    "description": "Gestiona tus proyectos de localización",
-    "stats": {
-      "totalKeys": "Claves Totales"
-    },
     "search": {
       "placeholder": "Buscar proyectos...",
       "noResults": "No se encontraron proyectos",
       "noResultsHint": "Intenta ajustar tu búsqueda"
     },
     "filters": "Filtros",
+    "card": {
+      "keys": "{count} claves",
+      "main": "main",
+      "progress": "Progreso"
+    },
+    "title": "Proyectos",
+    "description": "Gestiona tus proyectos de localización",
+    "stats": {
+      "totalKeys": "Claves Totales"
+    },
     "empty": {
       "title": "Aún no hay proyectos",
       "description": "Crea tu primer proyecto para comenzar a gestionar traducciones con control de versiones y colaboración.",
       "cta": "Crea tu primer proyecto"
-    },
-    "card": {
-      "keys": "{count} claves",
-      "progress": "Progreso",
-      "main": "main"
+    }
+  },
+  "apiKeys": {
+    "revokeDialog": {
+      "cancel": "Cancelar"
     }
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState, useCallback } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { toast } from 'sonner';
 import { LoadingPulse } from '@/components/namespace-loader';
 import type { PartOfSpeech, GlossaryEntry, GlossaryTag, MTProvider } from '@/lib/api';

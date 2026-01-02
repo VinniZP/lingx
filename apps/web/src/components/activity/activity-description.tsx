@@ -4,8 +4,8 @@
  * Generates i18n-ready translation keys for activity items.
  * Returns translation keys with parameters for caller to translate.
  */
-import type { Activity, ActivityType } from '@localeflow/shared';
-import { tKey, type TKey, type TranslationValues, type DynamicTranslationFunction } from '@localeflow/sdk-nextjs';
+import type { Activity, ActivityType } from '@lingx/shared';
+import { tKey, type TKey, type TranslationValues, type DynamicTranslationFunction } from '@lingx/sdk-nextjs';
 
 /**
  * Translation key with optional interpolation parameters.

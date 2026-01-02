@@ -8,7 +8,7 @@ This guide covers advanced features including caching, performance optimization,
 
 ```mermaid
 flowchart TD
-    subgraph Client["LocaleflowClient"]
+    subgraph Client["LingxClient"]
         direction TB
         TC[TranslationCache]
         IC[ICU AST Cache]
@@ -71,7 +71,7 @@ flowchart LR
 The SDK includes an in-memory cache for translations with TTL and LRU eviction:
 
 ```tsx
-import { TranslationCache } from '@localeflow/sdk-nextjs';
+import { TranslationCache } from '@lingx/sdk-nextjs';
 
 const cache = new TranslationCache({
   ttl: 5 * 60 * 1000,  // 5 minutes (default)
@@ -112,7 +112,7 @@ The fastest approach is bundling translations:
 import en from '@/locales/en.json';
 import de from '@/locales/de.json';
 
-<LocaleflowProvider
+<LingxProvider
   defaultLanguage="en"
   staticData={{ en, de }}  // Instant - no network request
 >
@@ -180,21 +180,81 @@ Promise.all([
 ]);
 ```
 
-## Namespace Merging
+## Namespace Internals
+
+### Namespace Delimiter
+
+Internally, namespaces use the `U+001F` (Unit Separator) character to combine namespace and key:
+
+```
+namespace␟key  (where ␟ = U+001F)
+```
+
+- **Never appears in user code**: You write `t('key')` with `useTranslation('namespace')`
+- **Safe for all systems**: Databases, JSON, file systems all handle it correctly
+- **Invisible in storage**: The delimiter separates namespace from key in internal format
+
+### Key Resolution
+
+When you call `useTranslation('namespace')`, the hook automatically prefixes keys:
+
+```tsx
+const { t } = useTranslation('auth');
+
+t('login.title');
+// Looks up: auth␟login.title (internal format)
+// You never see the delimiter
+```
+
+### Namespace Loading
+
+```mermaid
+flowchart TD
+    A["useTranslation('auth')"] --> B{Namespace loaded?}
+    B -->|Yes| C["ready = true"]
+    B -->|No| D[Load namespace]
+    D --> E[Store in loadedNamespaces]
+    E --> F[Merge into translations]
+    F --> C
+
+    style C fill:#10b981,color:#fff
+```
+
+### Storage Format
 
 Namespaces are merged into the main translation bundle:
 
 ```tsx
-// Initial translations
+// Initial translations (root)
 { "common.hello": "Hello" }
 
-// After loading 'auth' namespace
+// After loading 'auth' namespace (with delimiter ␟)
 {
   "common.hello": "Hello",
-  "auth:login.title": "Sign In",
-  "auth:login.submit": "Continue"
+  "auth␟login.title": "Sign In",
+  "auth␟login.submit": "Continue"
 }
 ```
+
+### Tracking Loaded Namespaces
+
+The context tracks which namespaces are loaded:
+
+```tsx
+const { loadedNamespaces, loadNamespace } = useLingx();
+
+// Check if namespace is loaded
+if (!loadedNamespaces.has('checkout')) {
+  await loadNamespace('checkout');
+}
+```
+
+### Namespace Caching
+
+Each namespace + language combination is cached separately:
+- Cache key: `{language}-{namespace}` (e.g., `en-auth`, `de-checkout`)
+- TTL applies per-entry
+- LRU eviction considers all entries equally
 
 ## TypeScript Integration
 
@@ -202,7 +262,7 @@ Namespaces are merged into the main translation bundle:
 
 For compile-time validation of translation keys and ICU parameters, see the dedicated [Type-Safe Translations](./type-safety.md) guide. It covers:
 
-- Generating types with `localeflow types`
+- Generating types with `lingx types`
 - The `TKey` convenience type
 - `tKey()` for strict keys, `tKeyUnsafe()` for dynamic keys
 - ICU parameter type inference (plural → number, date → Date, etc.)
@@ -211,7 +271,7 @@ For compile-time validation of translation keys and ICU parameters, see the dedi
 ### Quick Example
 
 ```tsx
-import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@lingx/sdk-nextjs';
 
 // Type your interfaces with TKey
 interface MenuItem {
@@ -234,21 +294,26 @@ tKey('invalid.key');  // TypeScript error!
 ```tsx
 import type {
   // Provider types
-  LocaleflowConfig,
-  LocaleflowProviderProps,
-  LocaleflowContextValue,
+  LingxConfig,
+  LingxProviderProps,
+  LingxContextValue,
 
   // Hook return types
   UseTranslationReturn,
+  UseNamespacedTranslationReturn,  // For namespaced useTranslation
   UseLanguageReturn,
   UseNamespaceReturn,
 
   // Translation types
   TranslationFunction,
   DynamicTranslationFunction,
+  NamespacedTranslationFunction,   // For namespace-scoped t()
+  NamespacedDynamicTranslationFunction,
   TKey,                 // Convenience alias for TranslationKey<TranslationKeys>
+  TNsKey,               // Namespace-scoped key: TNsKey<'glossary'>
   TranslationKey,
   TranslationKeys,      // Union of valid keys (when types generated)
+  NamespaceKeys,        // Per-namespace key unions (when types generated)
   TranslationParams,    // ICU params per key (when types generated)
   TranslationValues,
   TranslationBundle,
@@ -262,7 +327,7 @@ import type {
   // Cache types
   CacheOptions,
   CacheEntry,
-} from '@localeflow/sdk-nextjs';
+} from '@lingx/sdk-nextjs';
 ```
 
 ## Error Handling
@@ -293,7 +358,7 @@ function MyComponent() {
 ### Provider Error State
 
 ```tsx
-const { error } = useLocaleflow();
+const { error } = useLingx();
 
 if (error) {
   return <ErrorBoundary error={error} />;
@@ -305,9 +370,9 @@ if (error) {
 For advanced use cases, use the client directly:
 
 ```tsx
-import { LocaleflowClient } from '@localeflow/sdk-nextjs';
+import { LingxClient } from '@lingx/sdk-nextjs';
 
-const client = new LocaleflowClient({
+const client = new LingxClient({
   defaultLanguage: 'en',
   staticData: { en, de },
   localePath: '/locales',
@@ -335,13 +400,13 @@ formatter.format('{count, plural, one {#} other {#}}', { count: 5 });
 
 ## Context Without Provider
 
-Access context internals with `useLocaleflowContext`:
+Access context internals with `useLingxContext`:
 
 ```tsx
-import { useLocaleflowContext } from '@localeflow/sdk-nextjs';
+import { useLingxContext } from '@lingx/sdk-nextjs';
 
 function DebugInfo() {
-  const context = useLocaleflowContext();
+  const context = useLingxContext();
 
   return (
     <pre>
@@ -353,7 +418,7 @@ function DebugInfo() {
 }
 ```
 
-Note: Throws if used outside `LocaleflowProvider`.
+Note: Throws if used outside `LingxProvider`.
 
 ## Bundle Analysis
 
@@ -361,7 +426,7 @@ The SDK is tree-shakeable. Unused exports are eliminated:
 
 ```tsx
 // Only imports what you use
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 // Detection, LanguageSwitcher, etc. are not bundled
 ```
@@ -380,7 +445,7 @@ Optional additions:
 Configure retry behavior for API failures:
 
 ```tsx
-<LocaleflowProvider
+<LingxProvider
   retry={{
     maxAttempts: 3,      // Default: 3
     baseDelay: 1000,     // Default: 1000ms
@@ -397,7 +462,8 @@ Retry uses exponential backoff with jitter:
 
 ## Related
 
-- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete and validation
-- [Provider Configuration](./provider.md) - Configuration options
+- [Type-Safe Translations](./type-safety.md) - Namespace types, `tKey()`, and type generation
+- [Provider Configuration](./provider.md) - Namespace preloading configuration
+- [Hooks Reference](./hooks.md) - Namespace loading and `ready` state
 - [ICU MessageFormat](./icu-format.md) - Formatting performance
 - [Troubleshooting](./troubleshooting.md) - Common issues

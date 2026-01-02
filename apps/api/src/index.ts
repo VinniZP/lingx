@@ -1,5 +1,5 @@
 /**
- * Localeflow API Entry Point
+ * Lingx API Entry Point
  *
  * Initializes and starts the Fastify server with all plugins,
  * routes, and middleware configured.

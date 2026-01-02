@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslationMemorySearch, type TMMatch } from './use-translation-memory';
-import { useMTTranslate, useMTConfigs, getProviderDisplayName } from './use-machine-translation';
+import { useMTTranslate, useMTTranslateWithContext, useMTConfigs, getProviderDisplayName } from './use-machine-translation';
 import type { MTProvider } from '@/lib/api';
 
 /**
@@ -231,14 +231,18 @@ export function useSuggestions({
 /**
  * Simplified hook for managing suggestions state at the page level.
  * Provides a cache of suggestions per key ID.
+ *
+ * @param projectId - Project ID
+ * @param branchId - Optional branch ID for context-enhanced translation
  */
-export function useKeySuggestions(projectId: string) {
+export function useKeySuggestions(projectId: string, branchId?: string) {
   const [suggestionsCache, setSuggestionsCache] = useState<
     Map<string, Map<string, UnifiedSuggestion[]>>
   >(new Map());
   const [fetchingMT, setFetchingMT] = useState<Map<string, Set<string>>>(new Map());
 
   const mtTranslate = useMTTranslate(projectId);
+  const mtTranslateWithContext = useMTTranslateWithContext(projectId);
   const { data: mtConfigsData } = useMTConfigs(projectId);
   const hasMT = useMemo(() => {
     const configs = mtConfigsData?.configs || [];
@@ -266,6 +270,7 @@ export function useKeySuggestions(projectId: string) {
   }, []);
 
   // Fetch MT for a specific key/language
+  // Uses context-enhanced translation when branchId is provided
   const fetchMT = useCallback(async (
     keyId: string,
     sourceText: string,
@@ -284,18 +289,43 @@ export function useKeySuggestions(projectId: string) {
     });
 
     try {
-      const result = await mtTranslate.mutateAsync({
-        text: sourceText,
-        sourceLanguage,
-        targetLanguage,
-      });
+      // Use context-enhanced translation when branchId is available
+      const result = branchId
+        ? await mtTranslateWithContext.mutateAsync({
+            branchId,
+            keyId,
+            text: sourceText,
+            sourceLanguage,
+            targetLanguage,
+          })
+        : await mtTranslate.mutateAsync({
+            text: sourceText,
+            sourceLanguage,
+            targetLanguage,
+          });
+
+      // Build provider display with context info
+      let providerDisplay = getProviderDisplayName(result.provider);
+      const contextResult = result as { context?: { relatedTranslations: number; glossaryTerms: number } };
+      if (contextResult.context) {
+        const contextInfo: string[] = [];
+        if (contextResult.context.relatedTranslations > 0) {
+          contextInfo.push(`${contextResult.context.relatedTranslations} related`);
+        }
+        if (contextResult.context.glossaryTerms > 0) {
+          contextInfo.push(`${contextResult.context.glossaryTerms} terms`);
+        }
+        if (contextInfo.length > 0) {
+          providerDisplay += ` + ${contextInfo.join(', ')}`;
+        }
+      }
 
       const suggestion: UnifiedSuggestion = {
         id: `mt-${keyId}-${targetLanguage}-${Date.now()}`,
         type: 'mt',
         text: result.translatedText,
         confidence: 100,
-        provider: getProviderDisplayName(result.provider),
+        provider: providerDisplay,
         cached: result.cached,
       };
 
@@ -326,7 +356,7 @@ export function useKeySuggestions(projectId: string) {
         return next;
       });
     }
-  }, [hasMT, mtTranslate]);
+  }, [hasMT, branchId, mtTranslate, mtTranslateWithContext]);
 
   // Check if MT is being fetched for a key/language
   const isFetchingMT = useCallback((keyId: string, lang: string): boolean => {

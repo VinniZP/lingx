@@ -485,7 +485,7 @@ const sidebarMenuButtonVariants = cva(
     "aria-disabled:pointer-events-none aria-disabled:opacity-50",
     // Text and icon colors - muted by default
     "text-sidebar-foreground/60",
-    "[&>svg]:size-[18px] [&>svg]:shrink-0 [&>svg]:text-sidebar-foreground/50",
+    "[&>svg]:size-4.5 [&>svg]:shrink-0 [&>svg]:text-sidebar-foreground/50",
     "[&>span:last-child]:truncate",
     // Hover - simple background
     "hover:bg-sidebar-accent hover:text-sidebar-foreground",

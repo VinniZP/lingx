@@ -121,7 +121,7 @@ describe('Type Generator', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = join(tmpdir(), `localeflow-test-${Date.now()}`);
+    testDir = join(tmpdir(), `lingx-test-${Date.now()}`);
     await mkdir(testDir, { recursive: true });
     await mkdir(join(testDir, 'locales'), { recursive: true });
     await mkdir(join(testDir, 'src'), { recursive: true });
@@ -148,7 +148,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: false,
     });
@@ -184,7 +184,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: true,
     });
@@ -210,7 +210,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: false,
     });
@@ -227,7 +227,7 @@ describe('Type Generator', () => {
       JSON.stringify(translations)
     );
 
-    const outputPath = join(testDir, 'generated', 'deep', 'path', 'localeflow.d.ts');
+    const outputPath = join(testDir, 'generated', 'deep', 'path', 'lingx.d.ts');
 
     await generateTypes({
       translationsPath: join(testDir, 'locales'),
@@ -245,7 +245,7 @@ describe('Type Generator', () => {
       generateTypes({
         translationsPath: join(testDir, 'locales'),
         sourceLocale: 'fr',
-        outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+        outputPath: join(testDir, 'src', 'lingx.d.ts'),
         filePattern: '{lang}.json',
         nested: false,
       })
@@ -267,7 +267,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: false,
     });
@@ -292,7 +292,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: false,
     });
@@ -320,7 +320,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: true,
     });
@@ -343,13 +343,13 @@ describe('Type Generator', () => {
     await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: false,
     });
 
     // Should not throw and file should be readable
-    const content = readFileSync(join(testDir, 'src', 'localeflow.d.ts'), 'utf-8');
+    const content = readFileSync(join(testDir, 'src', 'lingx.d.ts'), 'utf-8');
     expect(content).toBeDefined();
   });
 
@@ -367,7 +367,7 @@ describe('Type Generator', () => {
     const result = await generateTypes({
       translationsPath: join(testDir, 'locales'),
       sourceLocale: 'en',
-      outputPath: join(testDir, 'src', 'localeflow.d.ts'),
+      outputPath: join(testDir, 'src', 'lingx.d.ts'),
       filePattern: '{lang}.json',
       nested: false,
     });

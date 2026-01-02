@@ -10,7 +10,7 @@ import type {
   ActivityChange,
   CreateActivityInput,
   ActivityMetadata,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { activityQueue } from '../lib/queues.js';
 
 /**

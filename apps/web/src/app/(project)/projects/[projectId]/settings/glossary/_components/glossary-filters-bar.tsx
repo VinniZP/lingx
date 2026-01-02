@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Search, Globe, Hash, Tag } from 'lucide-react';
 import type { GlossaryTag } from '@/lib/api';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 
 interface GlossaryFiltersBarProps {
   search: string;

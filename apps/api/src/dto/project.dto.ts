@@ -11,7 +11,7 @@ import type {
   ProjectWithStats,
   ProjectTreeResponse,
   MemberRole,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 /**
  * Transform language to ProjectLanguage

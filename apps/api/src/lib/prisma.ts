@@ -1,5 +1,5 @@
 /**
- * Prisma Client Utility for Localeflow API
+ * Prisma Client Utility for Lingx API
  *
  * Uses Prisma 7 adapter-based initialization with @prisma/adapter-pg.
  * Implements singleton pattern to prevent multiple client instances

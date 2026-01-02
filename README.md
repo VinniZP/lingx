@@ -1,4 +1,4 @@
-# Localeflow
+# Lingx
 
 A self-hosted, developer-friendly localization management platform with git-like branching for translations.
 
@@ -23,8 +23,8 @@ A self-hosted, developer-friendly localization management platform with git-like
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/localeflow.git
-cd localeflow
+git clone https://github.com/your-org/lingx.git
+cd lingx
 
 # Create environment file
 cp .env.example .env
@@ -47,10 +47,10 @@ pnpm install
 docker-compose up -d postgres
 
 # Run migrations
-pnpm --filter=@localeflow/api prisma migrate dev
+pnpm --filter=@lingx/api prisma migrate dev
 
 # Seed database
-pnpm --filter=@localeflow/api prisma db seed
+pnpm --filter=@lingx/api prisma db seed
 
 # Start development servers
 pnpm dev
@@ -67,7 +67,7 @@ pnpm dev
 ## Architecture
 
 ```
-localeflow/
+lingx/
 ├── apps/
 │   ├── api/          # Fastify backend API
 │   └── web/          # Next.js frontend
@@ -103,7 +103,7 @@ Environments (production, staging, development) point to specific branches. When
 
 ```bash
 # Install CLI
-npm install -g @localeflow/cli
+npm install -g @lingx/cli
 
 # Authenticate
 lf auth login
@@ -130,20 +130,20 @@ lf branch merge feature-x --into=main
 
 ```tsx
 // Provider setup
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+import { LingxProvider } from '@lingx/sdk-nextjs';
 
-<LocaleflowProvider
-  apiKey={process.env.LOCALEFLOW_API_KEY}
+<LingxProvider
+  apiKey={process.env.LINGX_API_KEY}
   environment="production"
   project="my-app"
   space="frontend"
   defaultLanguage="en"
 >
   <App />
-</LocaleflowProvider>
+</LingxProvider>
 
 // Using translations
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 function MyComponent() {
   const { t } = useTranslation();

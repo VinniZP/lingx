@@ -97,17 +97,17 @@ export function SettingsPageHeader({
     <div className={cn('relative mb-12 animate-fade-in-up', stagger)}>
       <div className={cn('island overflow-hidden border-0 shadow-lg', colors.shadow)}>
         {/* Gradient accent band */}
-        <div className={cn('h-1.5 bg-gradient-to-r', colors.band)} />
+        <div className={cn('h-1.5 bg-linear-to-r', colors.band)} />
 
         <div className="p-8 lg:p-10">
           <div className="flex flex-col lg:flex-row lg:items-center gap-8">
             {/* Icon with premium glow effect */}
             <div className="relative shrink-0">
               <div className={cn('absolute inset-0 rounded-3xl blur-2xl scale-110', colors.glow1)} />
-              <div className={cn('absolute inset-0 bg-gradient-to-br rounded-3xl blur-xl', colors.glow2)} />
+              <div className={cn('absolute inset-0 bg-linear-to-br rounded-3xl blur-xl', colors.glow2)} />
               <div
                 className={cn(
-                  'relative size-20 lg:size-24 rounded-3xl bg-gradient-to-br flex items-center justify-center border backdrop-blur-sm',
+                  'relative size-20 lg:size-24 rounded-3xl bg-linear-to-br flex items-center justify-center border backdrop-blur-sm',
                   colors.icon,
                   colors.iconBorder
                 )}
@@ -120,7 +120,7 @@ export function SettingsPageHeader({
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-3 mb-3">
-                <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+                <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight bg-linear-to-br from-foreground to-foreground/70 bg-clip-text">
                   {title}
                 </h1>
                 {badges}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Sparkles, Zap, Key, Shield } from 'lucide-react';
 import { SettingsSectionHeader, SettingsQuickTip } from '../../_components';
 

@@ -6,14 +6,15 @@ This guide covers compile-time type safety for translation keys and ICU paramete
 
 ```mermaid
 flowchart LR
-    subgraph CLI["LocaleFlow CLI"]
+    subgraph CLI["Lingx CLI"]
         JSON["en.json"]
-        Gen["localeflow types"]
-        DTS["localeflow.d.ts"]
+        Gen["lingx types"]
+        DTS["lingx.d.ts"]
     end
 
-    subgraph SDK["@localeflow/sdk-nextjs"]
+    subgraph SDK["@lingx/sdk-nextjs"]
         TR["TranslationResources"]
+        NK["NamespaceKeys"]
         TK["TranslationKeys"]
         TP["TranslationParams"]
     end
@@ -26,8 +27,10 @@ flowchart LR
     JSON --> Gen
     Gen --> DTS
     DTS -->|"module augmentation"| TR
+    DTS -->|"module augmentation"| NK
     TR --> TK
     TR --> TP
+    NK --> TK
     TK --> Check
     TP --> Check
     Code --> Check
@@ -48,10 +51,10 @@ flowchart LR
 
 ### 1. Configure Type Generation
 
-Add the `types` section to your `localeflow.config.ts`:
+Add the `types` section to your `lingx.config.ts`:
 
 ```typescript
-// localeflow.config.ts
+// lingx.config.ts
 export default {
   paths: {
     translations: './public/locales',
@@ -59,7 +62,7 @@ export default {
   },
   types: {
     enabled: true,
-    output: './src/localeflow.d.ts',
+    output: './src/lingx.d.ts',
     sourceLocale: 'en',
   },
 };
@@ -71,22 +74,22 @@ Run the CLI command:
 
 ```bash
 # Generate once
-localeflow types
+lingx types
 
 # Watch mode - regenerate on file changes
-localeflow types --watch
+lingx types --watch
 ```
 
 Output:
 ```
 ✔ Generated types: 156 keys (23 with params)
-  Output: src/localeflow.d.ts
+  Output: src/lingx.d.ts
 ```
 
 ### 3. Use Type-Safe Translations
 
 ```tsx
-import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@lingx/sdk-nextjs';
 
 function MyComponent() {
   const { t, td } = useTranslation();
@@ -111,13 +114,13 @@ function MyComponent() {
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `enabled` | `boolean` | `true` | Enable/disable type generation |
-| `output` | `string` | `'./src/localeflow.d.ts'` | Output path for generated types |
+| `output` | `string` | `'./src/lingx.d.ts'` | Output path for generated types |
 | `sourceLocale` | `string` | `'en'` | Which locale to use as source of truth |
 
 ### CLI Options
 
 ```bash
-localeflow types [options]
+lingx types [options]
 
 Options:
   -o, --output <file>   Output file path (overrides config)
@@ -128,10 +131,10 @@ Options:
 ### Auto-Generation
 
 Types are automatically regenerated when you run:
-- `localeflow extract` - After extracting keys
-- `localeflow pull` - After pulling translations
-- `localeflow push` - After pushing translations
-- `localeflow sync` - After syncing
+- `lingx extract` - After extracting keys
+- `lingx pull` - After pulling translations
+- `lingx push` - After pushing translations
+- `lingx sync` - After syncing
 
 ---
 
@@ -152,10 +155,10 @@ Given this translation file:
 The CLI generates:
 
 ```typescript
-// localeflow.d.ts (auto-generated)
-import '@localeflow/sdk-nextjs';
+// lingx.d.ts (auto-generated)
+import '@lingx/sdk-nextjs';
 
-declare module '@localeflow/sdk-nextjs' {
+declare module '@lingx/sdk-nextjs' {
   interface TranslationResources {
     keys:
       | 'auth.login.title'
@@ -177,7 +180,7 @@ declare module '@localeflow/sdk-nextjs' {
 The generated file uses TypeScript module augmentation to extend the SDK's types without modifying the package itself. The SDK defines base interfaces:
 
 ```typescript
-// In @localeflow/sdk-nextjs
+// In @lingx/sdk-nextjs
 export interface TranslationResources {
   // Empty by default - augmented by generated types
 }
@@ -188,6 +191,122 @@ export type TranslationKeys = TranslationResources extends { keys: infer K }
 ```
 
 When you generate types, they merge with these interfaces to enable strict typing.
+
+---
+
+## Namespace Types
+
+When you organize translations into namespaces (subdirectories), the type generator creates separate types for each namespace.
+
+### File Structure
+
+```
+public/locales/
+├── en.json                    # Root translations
+├── de.json
+├── glossary/
+│   ├── en.json                # Glossary namespace
+│   └── de.json
+└── auth/
+    ├── en.json                # Auth namespace
+    └── de.json
+```
+
+### Generated Namespace Types
+
+With namespaces, the CLI generates a `NamespaceKeys` interface alongside `TranslationResources`:
+
+```typescript
+// lingx.d.ts (auto-generated)
+declare module '@lingx/sdk-nextjs' {
+  interface TranslationResources {
+    keys: 'common.welcome' | 'nav.home' | 'nav.about';
+  }
+
+  interface NamespaceKeys {
+    /** Keys in the 'glossary' namespace */
+    glossary: 'tags.title' | 'tags.addTag' | 'dialog.title';
+    /** Keys in the 'auth' namespace */
+    auth: 'login.title' | 'login.submit' | 'register.title';
+  }
+}
+```
+
+### The `TNsKey<NS>` Type
+
+Use `TNsKey<NS>` for type-safe keys scoped to a specific namespace:
+
+```typescript
+import { type TNsKey, tKey } from '@lingx/sdk-nextjs';
+
+// Only accepts keys from the 'glossary' namespace
+interface GlossaryOption {
+  value: string;
+  labelKey: TNsKey<'glossary'>;
+}
+
+const options: GlossaryOption[] = [
+  { value: 'noun', labelKey: tKey('partOfSpeech.noun', 'glossary') },
+  { value: 'verb', labelKey: tKey('partOfSpeech.verb', 'glossary') },
+];
+```
+
+### `tKey()` with Namespace
+
+The `tKey()` function accepts an optional second argument for namespaced keys:
+
+```typescript
+import { tKey } from '@lingx/sdk-nextjs';
+
+// Root keys (no namespace)
+tKey('nav.home');                     // ✓ Validates against TranslationKeys
+
+// Namespaced keys (second argument)
+tKey('tags.title', 'glossary');       // ✓ Validates against NamespaceKeys['glossary']
+tKey('invalid.key', 'glossary');      // ✗ TypeScript error!
+tKey('login.title', 'auth');          // ✓ Validates against NamespaceKeys['auth']
+```
+
+### Usage with `useTranslation()`
+
+When you use `useTranslation()` with a namespace, the `t()` function only accepts keys valid for that namespace:
+
+```tsx
+'use client';
+
+import { useTranslation, tKey, type TNsKey } from '@lingx/sdk-nextjs';
+
+function GlossaryPage() {
+  // Scoped to 'glossary' namespace
+  const { t, td, ready } = useTranslation('glossary');
+
+  // Show loading while namespace loads
+  if (!ready) {
+    return <LoadingSpinner />;
+  }
+
+  // t() only accepts glossary keys - TypeScript validates!
+  return (
+    <div>
+      <h1>{t('dialog.title')}</h1>
+      <p>{t('tags.description')}</p>
+    </div>
+  );
+}
+
+// Type-safe key storage for namespace
+interface TagItem {
+  id: string;
+  labelKey: TNsKey<'glossary'>;
+}
+
+const tagItems: TagItem[] = [
+  { id: '1', labelKey: tKey('tags.title', 'glossary') },
+  { id: '2', labelKey: tKey('tags.addTag', 'glossary') },
+];
+```
+
+> **Note**: The `ready` state becomes `false` while namespace translations are loading. Always check `ready` before rendering namespace-scoped content.
 
 ---
 
@@ -234,7 +353,7 @@ interface TranslationParams {
 `TKey` is a convenience alias for `TranslationKey<TranslationKeys>`:
 
 ```typescript
-import { type TKey } from '@localeflow/sdk-nextjs';
+import { type TKey } from '@lingx/sdk-nextjs';
 
 // Use in interfaces
 interface NavItem {
@@ -254,7 +373,7 @@ function translateLabel(key: TKey): string {
 Use `tKey()` to create type-safe translation keys for extraction and storage:
 
 ```typescript
-import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@lingx/sdk-nextjs';
 
 // Define keys in arrays/objects
 const navItems = [
@@ -273,7 +392,7 @@ tKey('invalid.key');    // TypeScript error!
 Use `tKeyUnsafe()` for dynamic keys that can't be validated at compile time:
 
 ```typescript
-import { tKeyUnsafe } from '@localeflow/sdk-nextjs';
+import { tKeyUnsafe } from '@lingx/sdk-nextjs';
 
 // Dynamic key construction
 const section = getSectionFromRoute(); // 'home' | 'about' | etc.
@@ -340,7 +459,7 @@ function Button({ labelKey, icon }: ButtonProps) {
 ### Configuration Objects
 
 ```tsx
-import { tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { tKey, type TKey } from '@lingx/sdk-nextjs';
 
 interface MenuItem {
   href: string;
@@ -358,7 +477,7 @@ const menuItems: MenuItem[] = [
 ### Return Types with Keys
 
 ```tsx
-import { type TKey, tKey } from '@localeflow/sdk-nextjs';
+import { type TKey, tKey } from '@lingx/sdk-nextjs';
 
 interface DateInfo {
   type: 'relative' | 'absolute';
@@ -421,7 +540,7 @@ Ensure your `tsconfig.json` includes the generated types:
   },
   "include": [
     "src/**/*",
-    "src/localeflow.d.ts"
+    "src/lingx.d.ts"
   ]
 }
 ```
@@ -442,13 +561,13 @@ For best autocomplete experience:
 
 1. **Check generated file exists**:
    ```bash
-   cat src/localeflow.d.ts
+   cat src/lingx.d.ts
    ```
 
 2. **Verify tsconfig includes the file**:
    ```json
    {
-     "include": ["src/localeflow.d.ts"]
+     "include": ["src/lingx.d.ts"]
    }
    ```
 
@@ -456,14 +575,14 @@ For best autocomplete experience:
 
 ### "Module has no exported member"
 
-If you see errors like `Module '@localeflow/sdk-nextjs' has no exported member 'useTranslation'`:
+If you see errors like `Module '@lingx/sdk-nextjs' has no exported member 'useTranslation'`:
 
-- Ensure the generated file starts with `import '@localeflow/sdk-nextjs';`
+- Ensure the generated file starts with `import '@lingx/sdk-nextjs';`
 - Check the file uses `interface` declarations, not `export type`
 
 ### Keys Not Autocompleting
 
-1. Run `localeflow types` to regenerate
+1. Run `lingx types` to regenerate
 2. Check the source locale file exists
 3. Verify the key exists in the source locale JSON
 
@@ -477,6 +596,6 @@ The ICU parser may not recognize custom formats. Check:
 
 ## Related
 
-- [Hooks Reference](./hooks.md) - Using `t()` and `td()`
+- [Hooks Reference](./hooks.md) - Using `t()`, `td()`, and namespace loading
 - [ICU MessageFormat](./icu-format.md) - Formatting syntax
-- [Advanced Topics](./advanced.md) - Performance optimization
+- [Advanced Topics](./advanced.md) - Namespace internals and performance

@@ -5,7 +5,7 @@ import type {
   BranchDiffResponse,
   ConflictEntry,
   MergeResponse,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { createApiClientFromConfig } from '../../lib/api.js';
 import { loadConfig } from '../../lib/config.js';
 import { formatDiffOutput } from '../../lib/diff/display.js';

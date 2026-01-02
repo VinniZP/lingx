@@ -20,7 +20,7 @@ import {
   XCircle,
   type LucideIcon,
 } from 'lucide-react';
-import type { ActivityType } from '@localeflow/shared';
+import type { ActivityType } from '@lingx/shared';
 
 const activityIcons: Record<ActivityType, LucideIcon> = {
   translation: FileText,

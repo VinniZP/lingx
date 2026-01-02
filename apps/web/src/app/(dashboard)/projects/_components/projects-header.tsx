@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
-import type { ProjectWithStats } from '@localeflow/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import type { ProjectWithStats } from '@lingx/shared';
 
 interface ProjectsHeaderProps {
   projects: ProjectWithStats[];

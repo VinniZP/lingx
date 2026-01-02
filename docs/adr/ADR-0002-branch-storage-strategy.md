@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Localeflow implements a git-like branching model for translations. When users create a translation branch (e.g., `feature-checkout-redesign`), the system needs to store and manage translation data in a way that supports:
+Lingx implements a git-like branching model for translations. When users create a translation branch (e.g., `feature-checkout-redesign`), the system needs to store and manage translation data in a way that supports:
 
 1. **Branch creation**: Creating a new branch from an existing branch
 2. **Independent editing**: Modifying translations on a branch without affecting the source

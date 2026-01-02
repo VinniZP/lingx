@@ -30,7 +30,7 @@ async function status(options: StatusOptions): Promise<void> {
   if (!credentials) {
     logger.info('Not logged in');
     console.log();
-    console.log('Run', chalk.cyan('lf auth login'), 'to authenticate');
+    console.log('Run', chalk.cyan('lingx auth login'), 'to authenticate');
     return;
   }
 
@@ -58,6 +58,6 @@ async function status(options: StatusOptions): Promise<void> {
     spinner.succeed(`Authenticated as ${user.email}`);
   } catch {
     spinner.fail('Credentials are invalid or expired');
-    logger.warn('Run "lf auth login" to re-authenticate');
+    logger.warn('Run "lingx auth login" to re-authenticate');
   }
 }

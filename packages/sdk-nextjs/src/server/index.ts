@@ -10,7 +10,7 @@
  * @example
  * ```tsx
  * // app/[locale]/page.tsx
- * import { getTranslations, getAvailableLanguages } from '@localeflow/nextjs/server';
+ * import { getTranslations, getAvailableLanguages } from '@lingx/nextjs/server';
  * import en from '@/locales/en.json';
  * import de from '@/locales/de.json';
  *

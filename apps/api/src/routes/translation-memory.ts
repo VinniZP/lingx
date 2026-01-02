@@ -12,7 +12,7 @@ import {
   recordTMUsageSchema,
   tmStatsResponseSchema,
   tmReindexResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { TranslationMemoryService } from '../services/translation-memory.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { translationMemoryQueue } from '../lib/queues.js';

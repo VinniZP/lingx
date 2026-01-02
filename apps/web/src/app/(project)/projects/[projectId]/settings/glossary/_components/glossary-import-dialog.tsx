@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -46,12 +46,12 @@ export function GlossaryImportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden">
         {/* Premium Header */}
-        <div className="relative px-7 pt-7 pb-5 border-b border-border/40 bg-gradient-to-br from-emerald-500/[0.04] via-transparent to-transparent">
+        <div className="relative px-7 pt-7 pb-5 border-b border-border/40 bg-linear-to-br from-emerald-500/[0.04] via-transparent to-transparent">
           <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-emerald-500/[0.06] to-transparent rounded-bl-full" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-emerald-500/[0.03] to-transparent rounded-tr-full" />
 
           <div className="relative flex items-start gap-4">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-sm">
+            <div className="size-12 rounded-2xl bg-linear-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-sm">
               <Upload className="size-5 text-emerald-500" />
             </div>
             <div className="flex-1 min-w-0">
@@ -162,7 +162,7 @@ export function GlossaryImportDialog({
               {t('import.options')}
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-border/50 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent p-4">
+            <div className="flex items-center justify-between rounded-xl border border-border/50 bg-linear-to-r from-muted/40 via-muted/20 to-transparent p-4">
               <div className="flex items-center gap-3">
                 <div className="size-9 rounded-lg bg-amber-500/15 flex items-center justify-center">
                   <RefreshCw className="size-4 text-amber-500" />
@@ -189,7 +189,7 @@ export function GlossaryImportDialog({
             )}
             onClick={() => fileInputRef.current?.click()}
           >
-            <div className="size-14 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 flex items-center justify-center mx-auto mb-4 group-hover:from-emerald-500/15 group-hover:to-emerald-500/5 transition-colors">
+            <div className="size-14 rounded-2xl bg-linear-to-br from-muted/80 to-muted/40 flex items-center justify-center mx-auto mb-4 group-hover:from-emerald-500/15 group-hover:to-emerald-500/5 transition-colors">
               <Upload className="size-6 text-muted-foreground group-hover:text-emerald-500 transition-colors" />
             </div>
             <p className="text-sm font-medium mb-1">

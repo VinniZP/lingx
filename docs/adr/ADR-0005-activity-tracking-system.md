@@ -10,7 +10,7 @@ Proposed
 
 ## Context
 
-LocaleFlow requires an activity tracking system to record user actions across the platform. This enables:
+Lingx requires an activity tracking system to record user actions across the platform. This enables:
 
 1. **Audit trail**: Track who made what changes and when
 2. **Activity feed**: Display recent project activity to team members

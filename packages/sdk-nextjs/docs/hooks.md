@@ -6,9 +6,9 @@ The SDK provides four hooks for accessing translations and managing language sta
 
 ```mermaid
 flowchart TB
-    subgraph Provider["LocaleflowProvider"]
-        Context[LocaleflowContext]
-        Client[LocaleflowClient]
+    subgraph Provider["LingxProvider"]
+        Context[LingxContext]
+        Client[LingxClient]
         Detector[LanguageDetectorService]
     end
 
@@ -17,7 +17,7 @@ flowchart TB
         useT[useTranslation]
         useL[useLanguage]
         useN[useNamespace]
-        useLF[useLocaleflow]
+        useLF[useLingx]
     end
 
     Context --> useT
@@ -46,7 +46,7 @@ flowchart TD
     D -->|No| F{Lazy-load namespace?}
     F -->|Yes| G[useNamespace]
     F -->|No| H{Full context access?}
-    H -->|Yes| I[useLocaleflow]
+    H -->|Yes| I[useLingx]
     H -->|No| J[No hook needed]
 
     style C fill:#10b981,color:#fff
@@ -64,7 +64,7 @@ The main hook for translating strings. Provides both static (`t`) and dynamic (`
 ```tsx
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 function MyComponent() {
   const { t, td, ready, error } = useTranslation();
@@ -107,7 +107,7 @@ t('auth.login.title')
 Use `td()` for dynamic keys stored in variables, arrays, or objects. Pair with `tKey()` for type safety and static extraction:
 
 ```tsx
-import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@lingx/sdk-nextjs';
 
 // Type your objects with TKey for type-safe key storage
 interface NavItem {
@@ -146,16 +146,88 @@ Why `tKey()` + `td()`?
 
 ### With Namespace
 
-Scope translations to a namespace:
+Scope translations to a specific namespace. The namespace is automatically loaded when the component mounts.
 
 ```tsx
-const { t } = useTranslation('auth');
+'use client';
 
-// Looks up 'auth:login.title'
-t('login.title')
+import { useTranslation } from '@lingx/sdk-nextjs';
 
-// Falls back to 'login.title' if namespaced key not found
+function AuthPage() {
+  const { t, td, ready, error } = useTranslation('auth');
+
+  // IMPORTANT: Check ready state before rendering
+  if (!ready) {
+    return <LoadingSpinner />;
+  }
+
+  // t() only accepts keys from the 'auth' namespace
+  return (
+    <div>
+      <h1>{t('login.title')}</h1>
+      <p>{t('login.description')}</p>
+    </div>
+  );
+}
 ```
+
+### Namespace Loading Behavior
+
+When you call `useTranslation('namespace')`:
+
+1. **Auto-load on mount**: The namespace is automatically loaded if not already cached
+2. **`ready` is `false` while loading**: Prevents displaying raw keys during load
+3. **Type-scoped keys**: `t()` only accepts keys valid for that namespace
+
+```tsx
+const { t, ready } = useTranslation('glossary');
+
+// ready = false while loading namespace translations
+// ready = true once namespace is loaded and ready to use
+```
+
+> **Tip**: Always check `ready` before rendering content with namespaced translations. Otherwise, users may briefly see translation keys like `dialog.title` instead of translated text.
+
+### Type-Safe Namespaced Keys
+
+Use `tKey()` with a namespace for type-safe key storage:
+
+```tsx
+import { useTranslation, tKey, type TNsKey } from '@lingx/sdk-nextjs';
+
+// TNsKey<'glossary'> only accepts keys from the glossary namespace
+interface GlossaryItem {
+  id: string;
+  labelKey: TNsKey<'glossary'>;
+}
+
+const items: GlossaryItem[] = [
+  { id: '1', labelKey: tKey('tags.title', 'glossary') },
+  { id: '2', labelKey: tKey('tags.addTag', 'glossary') },
+];
+
+function GlossaryTags() {
+  const { td, ready } = useTranslation('glossary');
+
+  if (!ready) return <Loading />;
+
+  return (
+    <ul>
+      {items.map(item => (
+        <li key={item.id}>{td(item.labelKey)}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Internal Key Format
+
+Internally, namespaced keys use a special delimiter (`U+001F` Unit Separator) to combine namespace and key:
+
+- `useTranslation('auth')` + `t('login.title')` → looks up `auth␟login.title`
+- This delimiter never appears in user-facing code or translation files
+- The CLI handles conversion between file structure and internal format
 
 ---
 
@@ -168,7 +240,7 @@ Hook for language management and switching.
 ```tsx
 'use client';
 
-import { useLanguage } from '@localeflow/sdk-nextjs';
+import { useLanguage } from '@lingx/sdk-nextjs';
 
 function LanguageSelector() {
   const { language, setLanguage, availableLanguages, isChanging } = useLanguage();
@@ -222,7 +294,7 @@ Hook for lazy-loading translation namespaces. Use for code-splitting translation
 ```tsx
 'use client';
 
-import { useNamespace, useTranslation } from '@localeflow/sdk-nextjs';
+import { useNamespace, useTranslation } from '@lingx/sdk-nextjs';
 
 function CheckoutPage() {
   const { isLoaded, isLoading } = useNamespace('checkout', { autoLoad: true });
@@ -267,7 +339,7 @@ const { isLoaded, loadNamespace } = useNamespace('checkout');
 // app/checkout/page.tsx
 'use client';
 
-import { useNamespace, useTranslation } from '@localeflow/sdk-nextjs';
+import { useNamespace, useTranslation } from '@lingx/sdk-nextjs';
 
 export default function CheckoutPage() {
   // Auto-load checkout namespace when this route is accessed
@@ -287,7 +359,7 @@ export default function CheckoutPage() {
 
 ---
 
-## useLocaleflow
+## useLingx
 
 Low-level hook providing full context access. Use when you need everything.
 
@@ -296,7 +368,7 @@ Low-level hook providing full context access. Use when you need everything.
 ```tsx
 'use client';
 
-import { useLocaleflow } from '@localeflow/sdk-nextjs';
+import { useLingx } from '@lingx/sdk-nextjs';
 
 function DebugPanel() {
   const {
@@ -312,7 +384,7 @@ function DebugPanel() {
     error,
     t,
     config,
-  } = useLocaleflow();
+  } = useLingx();
 
   return (
     <pre>
@@ -345,7 +417,7 @@ function DebugPanel() {
 | `ready` | `boolean` | Always `true` |
 | `error` | `Error \| null` | Any error |
 | `t` | `TranslationFunction` | Translate function |
-| `config` | `LocaleflowConfig` | Provider configuration |
+| `config` | `LingxConfig` | Provider configuration |
 
 ---
 
@@ -357,29 +429,34 @@ All hooks are fully typed. Import types as needed:
 import type {
   // Hook return types
   UseTranslationReturn,
+  UseNamespacedTranslationReturn,  // For namespaced useTranslation
   UseLanguageReturn,
   UseNamespaceReturn,
-  LocaleflowContextValue,
+  LingxContextValue,
 
   // Translation function types
   TranslationFunction,
   DynamicTranslationFunction,
+  NamespacedTranslationFunction,   // For namespace-scoped t()
+  NamespacedDynamicTranslationFunction,
 
   // Key types (for type-safe translations)
   TKey,                  // Convenience alias for TranslationKey<TranslationKeys>
+  TNsKey,                // Namespace-scoped key type: TNsKey<'glossary'>
   TranslationKey,        // Branded string type
   TranslationKeys,       // Union of all valid keys (when types generated)
+  NamespaceKeys,         // Per-namespace key unions
   TranslationParams,     // ICU parameter types per key
 
   // Value types
   TranslationValues,
   TranslationParamsFor,  // Get params for a specific key
-} from '@localeflow/sdk-nextjs';
+} from '@lingx/sdk-nextjs';
 ```
 
 ## Related
 
-- [Type-Safe Translations](./type-safety.md) - Generate types for autocomplete and validation
+- [Type-Safe Translations](./type-safety.md) - Namespace types, `tKey()`, and `TNsKey<NS>`
 - [ICU MessageFormat](./icu-format.md) - Formatting syntax for `t()` values
 - [Components](./components.md) - Built-in UI components
-- [Advanced](./advanced.md) - Performance and TypeScript tips
+- [Advanced](./advanced.md) - Namespace internals and performance tips

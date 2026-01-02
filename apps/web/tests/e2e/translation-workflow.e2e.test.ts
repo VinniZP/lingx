@@ -1,5 +1,5 @@
 /**
- * Localeflow Web Translation Workflow E2E Tests
+ * Lingx Web Translation Workflow E2E Tests
  *
  * Design Doc: DESIGN.md
  * Test Type: End-to-End Test

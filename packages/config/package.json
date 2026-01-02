@@ -1,5 +1,5 @@
 {
-  "name": "@localeflow/config",
+  "name": "@lingx/config",
   "private": true,
   "type": "module",
   "exports": {

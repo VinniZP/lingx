@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { FolderOpen, Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ProjectsEmptyProps {
   type: 'no-projects' | 'no-results';

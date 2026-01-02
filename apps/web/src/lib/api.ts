@@ -4,7 +4,7 @@ import type {
   ProjectWithStats,
   ConflictEntry,
   BranchDiffResponse,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -91,7 +91,7 @@ export interface User {
   createdAt?: string;
 }
 
-// Project types (ProjectLanguage, ProjectResponse, ProjectStatsEmbedded, ProjectWithStats are from @localeflow/shared)
+// Project types (ProjectLanguage, ProjectResponse, ProjectStatsEmbedded, ProjectWithStats are from @lingx/shared)
 
 /** Legacy detailed stats - used by /api/projects/:id/stats */
 export interface ProjectStatsDetailed {
@@ -148,7 +148,7 @@ export interface ProjectTree {
 }
 
 // Dashboard API
-import type { DashboardStats, Activity, ActivityChange } from '@localeflow/shared';
+import type { DashboardStats, Activity, ActivityChange } from '@lingx/shared';
 
 export const dashboardApi = {
   getStats: () => fetchApi<DashboardStats>('/api/dashboard/stats'),
@@ -317,7 +317,7 @@ export const spaceApi = {
   getStats: (id: string) => fetchApi<SpaceStats>(`/api/spaces/${id}/stats`),
 };
 
-// Branch Diff types (DiffEntry, ModifiedEntry, ConflictEntry, BranchDiffResponse are from @localeflow/shared)
+// Branch Diff types (DiffEntry, ModifiedEntry, ConflictEntry, BranchDiffResponse are from @lingx/shared)
 
 export interface Resolution {
   key: string;
@@ -831,7 +831,7 @@ export const totpApi = {
 import type {
   WebAuthnCredential,
   WebAuthnStatusResponse,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 export interface WebAuthnRegisterOptionsResponse {
   options: PublicKeyCredentialCreationOptions;
@@ -1039,6 +1039,25 @@ export const machineTranslationApi = {
     provider?: MTProvider;
   }) =>
     fetchApi<MTTranslateResult>(`/api/projects/${projectId}/mt/translate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Translate a single text with AI context from related translations and glossary */
+  translateWithContext: (projectId: string, data: {
+    branchId: string;
+    keyId: string;
+    text: string;
+    sourceLanguage: string;
+    targetLanguage: string;
+    provider?: MTProvider;
+  }) =>
+    fetchApi<MTTranslateResult & {
+      context?: {
+        relatedTranslations: number;
+        glossaryTerms: number;
+      };
+    }>(`/api/projects/${projectId}/mt/translate/context`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
@@ -1441,6 +1460,116 @@ export const glossaryApi = {
       `/api/projects/${projectId}/glossary/sync/${provider}?sourceLanguage=${sourceLanguage}&targetLanguage=${targetLanguage}`,
       {
         method: 'DELETE',
+      }
+    ),
+};
+
+// ============================================
+// KEY CONTEXT API (Near-key detection)
+// ============================================
+
+export type RelationshipType = 'SAME_FILE' | 'SAME_COMPONENT' | 'SEMANTIC';
+
+export interface RelatedKeyTranslation {
+  language: string;
+  value: string;
+  status?: ApprovalStatus;
+}
+
+export interface RelatedKey {
+  id: string;
+  name: string;
+  namespace: string | null;
+  relationshipType: RelationshipType;
+  confidence: number;
+  sourceFile?: string | null;
+  sourceComponent?: string | null;
+  translations?: RelatedKeyTranslation[];
+}
+
+export interface RelatedKeysResponse {
+  key: {
+    id: string;
+    name: string;
+    namespace: string | null;
+  };
+  relationships: {
+    sameFile: RelatedKey[];
+    sameComponent: RelatedKey[];
+    semantic: RelatedKey[];
+  };
+}
+
+export interface AIContextTranslation {
+  keyName: string;
+  translations: Record<string, string>;
+  relationshipType: RelationshipType;
+  confidence: number;
+}
+
+export interface AIContextResponse {
+  relatedTranslations: AIContextTranslation[];
+  suggestedTerms: Array<{
+    term: string;
+    translation: string;
+    source: 'glossary' | 'related';
+  }>;
+  contextPrompt: string;
+}
+
+export interface KeyContextStats {
+  sameFile: number;
+  sameComponent: number;
+  semantic: number;
+  keysWithSource: number;
+}
+
+export const keyContextApi = {
+  /** Get related keys for a specific key */
+  getRelatedKeys: (
+    branchId: string,
+    keyId: string,
+    params?: {
+      types?: RelationshipType[];
+      limit?: number;
+      includeTranslations?: boolean;
+    }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.types) query.set('types', params.types.join(','));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.includeTranslations !== undefined) {
+      query.set('includeTranslations', String(params.includeTranslations));
+    }
+    const queryString = query.toString();
+    return fetchApi<RelatedKeysResponse>(
+      `/api/branches/${branchId}/keys/${keyId}/related${queryString ? `?${queryString}` : ''}`
+    );
+  },
+
+  /** Get AI context for translation assistance */
+  getAIContext: (branchId: string, keyId: string, targetLanguage: string) =>
+    fetchApi<AIContextResponse>(
+      `/api/branches/${branchId}/keys/${keyId}/ai-context?targetLanguage=${targetLanguage}`
+    ),
+
+  /** Get relationship statistics for a branch */
+  getStats: (branchId: string) =>
+    fetchApi<KeyContextStats>(`/api/branches/${branchId}/keys/context/stats`),
+
+  /** Trigger semantic relationship analysis */
+  analyzeRelationships: (
+    branchId: string,
+    options?: { types?: RelationshipType[]; minSimilarity?: number }
+  ) =>
+    fetchApi<{ jobId: string; status: string }>(
+      `/api/branches/${branchId}/keys/analyze-relationships`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          types: options?.types,
+          minSimilarity: options?.minSimilarity,
+        }),
       }
     ),
 };

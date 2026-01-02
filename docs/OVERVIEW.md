@@ -1,4 +1,4 @@
-# Localeflow: Product Overview
+# Lingx: Product Overview
 
 ## Vision
 

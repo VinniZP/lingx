@@ -75,7 +75,7 @@ export interface DetectionConfig {
 
   /**
    * Cookie name for storage
-   * @default 'localeflow-lang'
+   * @default 'lingx-lang'
    */
   cookieName?: string;
 
@@ -93,7 +93,7 @@ export interface DetectionConfig {
 
   /**
    * localStorage key for storage
-   * @default 'localeflow-lang'
+   * @default 'lingx-lang'
    */
   localStorageKey?: string;
 }
@@ -105,7 +105,7 @@ export const DEFAULT_DETECTION_CONFIG: Required<Omit<DetectionConfig, 'cookieDom
   order: ['querystring', 'cookie', 'localStorage', 'navigator'],
   caches: ['cookie', 'localStorage'],
   excludeCacheFor: [],
-  cookieName: 'localeflow-lang',
+  cookieName: 'lingx-lang',
   cookieMaxAge: 365 * 24 * 60 * 60, // 1 year
-  localStorageKey: 'localeflow-lang',
+  localStorageKey: 'lingx-lang',
 };

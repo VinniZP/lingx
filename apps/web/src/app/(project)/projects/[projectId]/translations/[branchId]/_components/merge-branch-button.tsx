@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { branchApi, type ProjectTreeBranch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { MergeBranchDialog } from '@/components/dialogs';

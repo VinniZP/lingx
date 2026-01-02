@@ -1,28 +1,28 @@
-# Localeflow Docker Compose Configuration
+# Lingx Docker Compose Configuration
 # Start the entire stack with: docker-compose up -d
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: localeflow-postgres
+    container_name: lingx-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-localeflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localeflow}
-      POSTGRES_DB: ${POSTGRES_DB:-localeflow}
+      POSTGRES_USER: ${POSTGRES_USER:-lingx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lingx}
+      POSTGRES_DB: ${POSTGRES_DB:-lingx}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-localeflow} -d ${POSTGRES_DB:-localeflow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lingx} -d ${POSTGRES_DB:-lingx}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - localeflow-network
+      - lingx-network
 
   redis:
     image: redis:7-alpine
-    container_name: localeflow-redis
+    container_name: lingx-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -33,13 +33,13 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - localeflow-network
+      - lingx-network
 
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    container_name: localeflow-api
+    container_name: lingx-api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -48,7 +48,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-localeflow}:${POSTGRES_PASSWORD:-localeflow}@postgres:5432/${POSTGRES_DB:-localeflow}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-lingx}:${POSTGRES_PASSWORD:-lingx}@postgres:5432/${POSTGRES_DB:-lingx}
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       PORT: 3001
@@ -60,7 +60,7 @@ services:
       timeout: 3s
       retries: 3
     networks:
-      - localeflow-network
+      - lingx-network
 
   web:
     build:
@@ -68,7 +68,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
-    container_name: localeflow-web
+    container_name: lingx-web
     restart: unless-stopped
     depends_on:
       api:
@@ -79,12 +79,12 @@ services:
     ports:
       - "${WEB_PORT:-3000}:3000"
     networks:
-      - localeflow-network
+      - lingx-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  localeflow-network:
+  lingx-network:
     driver: bridge

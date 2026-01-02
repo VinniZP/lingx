@@ -10,7 +10,7 @@ import { z } from 'zod';
 import {
   activityListResponseSchema,
   activityChangesResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { ActivityService } from '../services/activity.service.js';
 import { NotFoundError, ForbiddenError } from '../plugins/error-handler.js';
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete UI/UX overhaul of the Localeflow web application implementing mobile-first responsive design with shadcn sidebar integration. This project transforms the fixed desktop-only layout into a fluid, touch-friendly responsive interface that adapts seamlessly across all device sizes.
+Complete UI/UX overhaul of the Lingx web application implementing mobile-first responsive design with shadcn sidebar integration. This project transforms the fixed desktop-only layout into a fluid, touch-friendly responsive interface that adapts seamlessly across all device sizes.
 
 ## Design Summary (Meta)
 
@@ -12,7 +12,7 @@ risk_level: "medium"
 main_constraints:
   - "frontend-design skill MANDATORY for all component implementations"
   - "Preserve existing functionality and data flow"
-  - "Maintain Localeflow brand identity (deep indigo/violet + warm amber)"
+  - "Maintain Lingx brand identity (deep indigo/violet + warm amber)"
   - "Support Tailwind CSS v4 with oklch color system"
 biggest_risks:
   - "Translation editor multi-column layout complexity on mobile"
@@ -56,7 +56,7 @@ unknowns:
 
 ### Problem to Solve
 
-The current Localeflow UI has critical responsive design limitations:
+The current Lingx UI has critical responsive design limitations:
 1. Fixed sidebar (w-64) does not collapse on mobile devices
 2. Main content uses fixed margin (ml-64) breaking layout on smaller screens
 3. Translation editor grid assumes desktop widths
@@ -313,7 +313,7 @@ Following 4px base unit system:
 
 #### Color Hierarchy
 
-Using existing Localeflow palette from `globals.css`:
+Using existing Lingx palette from `globals.css`:
 
 | Color Token | Light Mode (oklch) | Usage |
 |-------------|-------------------|-------|

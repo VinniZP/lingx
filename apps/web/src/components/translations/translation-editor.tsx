@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import { TranslationKey } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Edit, Save, Loader2 } from 'lucide-react';
 import { TranslationMemoryPanel } from './translation-memory-panel';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 // Language flags mapping
 const LANGUAGE_FLAGS: Record<string, string> = {

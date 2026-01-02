@@ -59,7 +59,7 @@ export class WebAuthnService {
   }
 
   private get rpName(): string {
-    return process.env.WEBAUTHN_RP_NAME || 'LocaleFlow';
+    return process.env.WEBAUTHN_RP_NAME || 'Lingx';
   }
 
   private get origin(): string {

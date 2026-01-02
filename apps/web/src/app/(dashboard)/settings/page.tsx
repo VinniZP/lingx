@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import {
   Key,
@@ -51,7 +51,7 @@ export default function SettingsPage() {
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl scale-125" />
-            <div className="relative size-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+            <div className="relative size-20 rounded-3xl bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
               <Settings className="size-10 text-primary animate-pulse" />
             </div>
             <div className="absolute inset-0 rounded-3xl border-2 border-primary/30 animate-ping" style={{ animationDuration: '2s' }} />
@@ -96,7 +96,7 @@ export default function SettingsPage() {
         {/* Warm accent orb */}
         <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-gradient-to-tr from-warm/[0.06] via-warm/[0.02] to-transparent rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
         {/* Floating center orb */}
-        <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-gradient-to-r from-info/[0.04] to-primary/[0.04] rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '12s' }} />
+        <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-linear-to-r from-info/[0.04] to-primary/[0.04] rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDuration: '12s' }} />
         {/* Refined grid pattern */}
         <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0)`,
@@ -108,15 +108,15 @@ export default function SettingsPage() {
       <div className="relative mb-12 animate-fade-in-up">
         <div className="island overflow-hidden border-0 shadow-lg shadow-primary/[0.03]">
           {/* Gradient accent band */}
-          <div className="h-1.5 bg-gradient-to-r from-primary via-primary/70 to-warm" />
+          <div className="h-1.5 bg-linear-to-r from-primary via-primary/70 to-warm" />
 
           <div className="p-8 lg:p-10">
             <div className="flex flex-col lg:flex-row lg:items-center gap-8">
               {/* Avatar with premium glow effect */}
               <div className="relative shrink-0">
                 <div className="absolute inset-0 bg-primary/25 rounded-3xl blur-2xl scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-warm/20 rounded-3xl blur-xl" />
-                <div className="relative size-24 lg:size-28 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-warm/10 flex items-center justify-center border border-primary/20 backdrop-blur-sm overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-br from-primary/30 to-warm/20 rounded-3xl blur-xl" />
+                <div className="relative size-24 lg:size-28 rounded-3xl bg-linear-to-br from-primary/20 via-primary/10 to-warm/10 flex items-center justify-center border border-primary/20 backdrop-blur-sm overflow-hidden">
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -138,7 +138,7 @@ export default function SettingsPage() {
 
               {/* User Info */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight mb-2 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+                <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight mb-2 bg-linear-to-br from-foreground to-foreground/70 bg-clip-text">
                   {user?.name || t('settings.title')}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
@@ -165,7 +165,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Quick Stats Widget */}
-              <div className="shrink-0 p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50 min-w-[200px]">
+              <div className="shrink-0 p-6 rounded-2xl bg-linear-to-br from-muted/50 to-muted/20 border border-border/50 min-w-[200px]">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Zap className="size-5 text-primary" />
@@ -176,7 +176,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
-                  <div className="h-full w-[85%] rounded-full bg-gradient-to-r from-success to-success/70" />
+                  <div className="h-full w-[85%] rounded-full bg-linear-to-r from-success to-success/70" />
                 </div>
               </div>
             </div>
@@ -285,17 +285,17 @@ export default function SettingsPage() {
             <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
               <div className="divide-y divide-border/40">
                 <ResourceLink
-                  href="https://docs.localeflow.dev"
+                  href="https://docs.lingx.dev"
                   title={t('settings.resources.docs')}
                   description={t('settings.resources.docsDesc')}
                 />
                 <ResourceLink
-                  href="https://docs.localeflow.dev/api"
+                  href="https://docs.lingx.dev/api"
                   title={t('settings.resources.api')}
                   description={t('settings.resources.apiDesc')}
                 />
                 <ResourceLink
-                  href="https://docs.localeflow.dev/cli"
+                  href="https://docs.lingx.dev/cli"
                   title={t('settings.resources.cliGuide')}
                   description={t('settings.resources.cliGuideDesc')}
                 />
@@ -352,7 +352,7 @@ function SettingsActionCard({
           )} />
           <div
             className={cn(
-              'relative size-14 rounded-2xl flex items-center justify-center bg-gradient-to-br border backdrop-blur-sm transition-transform',
+              'relative size-14 rounded-2xl flex items-center justify-center bg-linear-to-br border backdrop-blur-sm transition-transform',
               gradientFrom,
               gradientTo,
               borderColor,
@@ -423,7 +423,7 @@ function SecurityTip({
   return (
     <div className="p-5 flex items-start gap-4">
       <div className={cn(
-        'size-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br border',
+        'size-10 rounded-xl flex items-center justify-center shrink-0 bg-linear-to-br border',
         colors.bg,
         colors.border
       )}>

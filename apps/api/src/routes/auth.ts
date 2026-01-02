@@ -17,7 +17,7 @@ import {
   apiKeyListResponseSchema,
   messageResponseSchema,
   twoFactorRequiredResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import {
   toUserDto,
   toApiKeyDtoList,

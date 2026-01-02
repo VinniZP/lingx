@@ -1,11 +1,11 @@
 ---
 name: target-be-architecture
-description: Target backend architecture for LocaleFlow. DDD-lite patterns with services, result objects, use cases, and error handling. Use when implementing backend features, reviewing code, or making architectural decisions.
+description: Target backend architecture for Lingx. DDD-lite patterns with services, result objects, use cases, and error handling. Use when implementing backend features, reviewing code, or making architectural decisions.
 ---
 
-# LocaleFlow Backend Architecture
+# Lingx Backend Architecture
 
-Target architecture patterns for the LocaleFlow API server. Simplified DDD approach optimized for our needs.
+Target architecture patterns for the Lingx API server. Simplified DDD approach optimized for our needs.
 
 ## Quick Reference
 

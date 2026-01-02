@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Database, Loader2, Copy, CheckCircle2, Sparkles, Languages, Zap } from 'lucide-react';
 import type { MTProvider } from '@/lib/api';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface TranslationMemoryPanelProps {
   projectId: string;

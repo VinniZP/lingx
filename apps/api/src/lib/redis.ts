@@ -1,5 +1,5 @@
 /**
- * Redis Client for LocaleFlow API
+ * Redis Client for Lingx API
  *
  * Used by BullMQ for job queues and optional caching.
  * Implements singleton pattern for connection reuse.

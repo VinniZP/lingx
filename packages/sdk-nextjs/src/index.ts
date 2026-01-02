@@ -1,10 +1,10 @@
 // Components
-export { LocaleflowProvider } from './provider';
+export { LingxProvider } from './provider';
 export { LanguageSwitcher } from './components/LanguageSwitcher';
 export type { LanguageSwitcherProps } from './components/LanguageSwitcher';
 
 // Hooks
-export { useLocaleflow } from './hooks/useLocaleflow';
+export { useLingx } from './hooks/useLingx';
 export { useTranslation } from './hooks/useTranslation';
 export { useLanguage } from './hooks/useLanguage';
 export { useNamespace } from './hooks/useNamespace';
@@ -16,9 +16,9 @@ export type { UseNamespaceReturn, UseNamespaceOptions } from './hooks/useNamespa
 
 // Types
 export type {
-  LocaleflowConfig,
-  LocaleflowProviderProps,
-  LocaleflowContextValue,
+  LingxConfig,
+  LingxProviderProps,
+  LingxContextValue,
   TranslationFunction,
   DynamicTranslationFunction,
   NamespacedTranslationFunction,
@@ -68,8 +68,8 @@ export type { LanguageDetector, DetectorOptions } from './detection/types';
 export { DEFAULT_DETECTION_CONFIG } from './detection/types';
 
 // Client (for advanced usage)
-export { LocaleflowClient } from './client/LocaleflowClient';
+export { LingxClient } from './client/LingxClient';
 export { TranslationCache } from './client/cache';
 
 // Context (for advanced usage)
-export { LocaleflowContext, useLocaleflowContext } from './context/LocaleflowContext';
+export { LingxContext, useLingxContext } from './context/LingxContext';

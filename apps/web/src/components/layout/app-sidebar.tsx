@@ -36,7 +36,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { LanguagePickerCompact } from '@/components/language-picker';
-import { useTranslation, tKey, type TKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TKey } from '@lingx/sdk-nextjs';
 
 interface NavItem {
   href: string;
@@ -193,7 +193,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                         {user?.avatarUrl && (
                           <AvatarImage src={user.avatarUrl} alt={displayName} className="rounded-xl object-cover" />
                         )}
-                        <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/20 to-warm/20 text-primary font-semibold">
+                        <AvatarFallback className="rounded-xl bg-linear-to-br from-primary/20 to-warm/20 text-primary font-semibold">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>

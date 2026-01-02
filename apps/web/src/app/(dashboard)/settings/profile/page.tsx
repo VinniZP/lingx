@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { useAuth } from '@/lib/auth';
 import { User, Camera } from 'lucide-react';
 import { useRelativeTime } from '@/hooks/use-relative-time';
@@ -105,9 +105,9 @@ export default function ProfileSettingsPage() {
           <section className="animate-fade-in-up stagger-2">
             <div className="island overflow-hidden border-0 shadow-lg shadow-black/[0.02]">
               {/* Section header with subtle gradient */}
-              <div className="px-8 py-6 border-b border-border/40 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent">
+              <div className="px-8 py-6 border-b border-border/40 bg-linear-to-r from-muted/40 via-muted/20 to-transparent">
                 <div className="flex items-center gap-5">
-                  <div className="size-12 rounded-2xl bg-gradient-to-br from-info/15 to-info/5 flex items-center justify-center border border-info/10">
+                  <div className="size-12 rounded-2xl bg-linear-to-br from-info/15 to-info/5 flex items-center justify-center border border-info/10">
                     <Camera className="size-5 text-info" />
                   </div>
                   <div>

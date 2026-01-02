@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { TwoFactorSetup } from '@/components/security/two-factor-setup';
 import { Button } from '@/components/ui/button';
 import {

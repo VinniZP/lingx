@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -68,7 +68,7 @@ export function EmailChangeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[440px] border-0 shadow-2xl p-0 overflow-hidden gap-0">
         {/* Decorative gradient header */}
-        <div className="relative h-32 bg-gradient-to-br from-info/20 via-info/10 to-transparent overflow-hidden">
+        <div className="relative h-32 bg-linear-to-br from-info/20 via-info/10 to-transparent overflow-hidden">
           {/* Animated gradient orbs */}
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-info/30 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
@@ -86,7 +86,7 @@ export function EmailChangeDialog({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-info/40 rounded-3xl blur-xl scale-150" />
-              <div className="relative size-20 rounded-3xl bg-gradient-to-br from-info/30 via-info/20 to-info/10 flex items-center justify-center border border-info/30 backdrop-blur-sm shadow-lg shadow-info/20">
+              <div className="relative size-20 rounded-3xl bg-linear-to-br from-info/30 via-info/20 to-info/10 flex items-center justify-center border border-info/30 backdrop-blur-sm shadow-lg shadow-info/20">
                 <Mail className="size-10 text-info" strokeWidth={1.5} />
               </div>
             </div>

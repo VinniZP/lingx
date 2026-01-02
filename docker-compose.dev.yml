@@ -5,25 +5,25 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: localeflow-postgres
+    container_name: lingx-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-localeflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localeflow}
-      POSTGRES_DB: ${POSTGRES_DB:-localeflow}
+      POSTGRES_USER: ${POSTGRES_USER:-lingx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lingx}
+      POSTGRES_DB: ${POSTGRES_DB:-lingx}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-localeflow} -d ${POSTGRES_DB:-localeflow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lingx} -d ${POSTGRES_DB:-lingx}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: localeflow-redis
+    container_name: lingx-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -38,7 +38,7 @@ services:
 
   maildev:
     image: maildev/maildev:2.1.0
-    container_name: localeflow-maildev
+    container_name: lingx-maildev
     restart: unless-stopped
     ports:
       - "${MAILDEV_WEB_PORT:-1080}:1080"   # Web UI for viewing emails

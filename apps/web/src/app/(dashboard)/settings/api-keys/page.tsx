@@ -20,7 +20,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   SettingsBackdrop,
   SettingsBackLink,
@@ -296,19 +296,19 @@ export default function ApiKeysPage() {
             <div className="island overflow-hidden border-0 shadow-lg shadow-black/2">
               <div className="divide-y divide-border/40">
                 <SettingsResourceLink
-                  href="https://docs.localeflow.dev/cli"
+                  href="https://docs.lingx.dev/cli"
                   icon={Terminal}
                   title={t('apiKeys.docs.cliSetup')}
                   description={t('apiKeys.docs.cliSetupDesc')}
                 />
                 <SettingsResourceLink
-                  href="https://docs.localeflow.dev/sdk"
+                  href="https://docs.lingx.dev/sdk"
                   icon={BookOpen}
                   title={t('apiKeys.docs.sdkIntegration')}
                   description={t('apiKeys.docs.sdkIntegrationDesc')}
                 />
                 <SettingsResourceLink
-                  href="https://docs.localeflow.dev/api"
+                  href="https://docs.lingx.dev/api"
                   icon={Key}
                   title={t('apiKeys.docs.apiReference')}
                   description={t('apiKeys.docs.apiReferenceDesc')}

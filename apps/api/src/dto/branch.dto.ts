@@ -5,7 +5,7 @@ import type { Branch } from '@prisma/client';
 import type {
   BranchResponse,
   BranchWithSpace,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 /** Branch from service with keyCount directly or via _count */
 type BranchWithKeyCount = Branch & {

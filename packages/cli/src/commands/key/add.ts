@@ -79,7 +79,7 @@ async function add(
 
   if (languages.length === 0) {
     throw new Error(
-      `No translation files found in "${config.paths.translations}". Run "lf pull" first or create translation files.`
+      `No translation files found in "${config.paths.translations}". Run "lingx pull" first or create translation files.`
     );
   }
 

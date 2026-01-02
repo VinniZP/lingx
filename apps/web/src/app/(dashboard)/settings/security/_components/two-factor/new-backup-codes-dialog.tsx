@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +32,7 @@ export function NewBackupCodesDialog({
   const handleDownload = () => {
     if (!codes) return;
 
-    const content = `LocaleFlow Backup Codes
+    const content = `Lingx Backup Codes
 ========================
 Generated: ${new Date().toLocaleString()}
 
@@ -48,7 +48,7 @@ Keep these codes in a safe place!
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'localeflow-backup-codes.txt';
+    a.download = 'lingx-backup-codes.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -1,4 +1,4 @@
-export { useLocaleflow } from './useLocaleflow';
+export { useLingx } from './useLingx';
 export { useTranslation } from './useTranslation';
 export { useLanguage } from './useLanguage';
 export { useNamespace } from './useNamespace';

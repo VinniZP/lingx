@@ -33,7 +33,7 @@ const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
 /** App name shown in authenticator apps */
-const APP_NAME = 'LocaleFlow';
+const APP_NAME = 'Lingx';
 
 export interface TotpSetupResult {
   secret: string; // Base32 encoded for manual entry

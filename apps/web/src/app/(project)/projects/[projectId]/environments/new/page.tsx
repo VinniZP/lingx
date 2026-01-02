@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createEnvironmentSchema, type CreateEnvironmentInput } from '@localeflow/shared';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { createEnvironmentSchema, type CreateEnvironmentInput } from '@lingx/shared';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   environmentApi,
   projectApi,
@@ -165,7 +165,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           {/* Icon */}
           <div className="relative shrink-0">
-            <div className="size-16 rounded-2xl bg-gradient-to-br from-warm/20 via-warm/10 to-primary/10 flex items-center justify-center border border-warm/20">
+            <div className="size-16 rounded-2xl bg-linear-to-br from-warm/20 via-warm/10 to-primary/10 flex items-center justify-center border border-warm/20">
               <Server className="size-7 text-warm" />
             </div>
           </div>
@@ -457,7 +457,7 @@ export default function NewEnvironmentPage({ params }: PageProps) {
               Resources
             </h2>
             <a
-              href="https://docs.localeflow.dev/environments"
+              href="https://docs.lingx.dev/environments"
               target="_blank"
               rel="noopener noreferrer"
               className="island p-4 flex items-center gap-3 hover:bg-accent/50 transition-colors group"

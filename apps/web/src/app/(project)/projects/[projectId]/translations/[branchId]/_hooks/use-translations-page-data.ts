@@ -8,7 +8,7 @@ import {
   projectApi,
   type TranslationKey,
 } from '@/lib/api';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import type { FilterType } from '../_components';
 
 interface UseTranslationsPageDataOptions {

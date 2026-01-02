@@ -1,6 +1,6 @@
 'use client';
 
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import { cn } from '@/lib/utils';
 
 interface LanguageToggleProps {

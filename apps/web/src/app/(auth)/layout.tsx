@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Languages, Globe, GitBranch, Users, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { useTranslation, tKey, type TranslationKey } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TranslationKey } from '@lingx/sdk-nextjs';
 
 export default function AuthLayout({
   children,
@@ -71,7 +71,7 @@ export default function AuthLayout({
       {/* Left panel - Branding */}
       <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden">
         {/* Base gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1625] via-[#1e1a2e] to-[#0f0d14]" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#1a1625] via-[#1e1a2e] to-[#0f0d14]" />
 
         {/* Animated gradient mesh overlay */}
         <div className="absolute inset-0">

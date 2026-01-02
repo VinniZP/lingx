@@ -14,7 +14,7 @@ import {
   spaceResponseSchema,
   spaceWithBranchesSchema,
   spaceStatsResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { SpaceService } from '../services/space.service.js';
 import { ProjectService } from '../services/project.service.js';
 import {

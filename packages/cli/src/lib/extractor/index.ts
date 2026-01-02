@@ -20,6 +20,26 @@ export interface ExtractorOptions {
 export type KeySource = 'function' | 'marker' | 'comment';
 
 /**
+ * Component context type for near-key detection.
+ */
+export type ComponentType = 'function' | 'class' | 'arrow' | 'hook';
+
+/**
+ * Component context for near-key context detection.
+ */
+export interface ComponentContext {
+  /**
+   * Name of the enclosing component/function (e.g., "HeaderNav", "useAuth")
+   */
+  name: string;
+
+  /**
+   * Type of the component/function.
+   */
+  type: ComponentType;
+}
+
+/**
  * Represents an extracted translation key with optional metadata.
  */
 export interface ExtractedKey {
@@ -59,6 +79,12 @@ export interface ExtractedKey {
    * ICU patterns detected in the translation (e.g., 'plural', 'select')
    */
   icuPatterns?: string[];
+
+  /**
+   * Component context for near-key detection.
+   * Tracks which component/function contains this key.
+   */
+  componentContext?: ComponentContext;
 }
 
 /**

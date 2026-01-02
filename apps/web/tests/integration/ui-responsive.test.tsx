@@ -112,7 +112,7 @@ function TestDashboardLayout({ pathname = '/dashboard' }: { pathname?: string })
         {/* Mobile header */}
         <header className="flex h-14 items-center gap-4 px-4 md:hidden" data-testid="mobile-header">
           <SidebarTrigger className="size-9" data-testid="mobile-sidebar-trigger" />
-          <span>Localeflow</span>
+          <span>Lingx</span>
         </header>
 
         {/* Desktop header */}

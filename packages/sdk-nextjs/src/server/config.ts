@@ -1,9 +1,9 @@
-import type { LocaleflowConfig } from '../types';
+import type { LingxConfig } from '../types';
 
 /**
  * Server-side configuration storage
  */
-let serverConfig: LocaleflowConfig | null = null;
+let serverConfig: LingxConfig | null = null;
 
 /**
  * Configure the SDK for server-side usage.
@@ -30,7 +30,7 @@ let serverConfig: LocaleflowConfig | null = null;
  * });
  * ```
  */
-export function configureServer(config: LocaleflowConfig): void {
+export function configureServer(config: LingxConfig): void {
   serverConfig = config;
 }
 
@@ -38,7 +38,7 @@ export function configureServer(config: LocaleflowConfig): void {
  * Get the current server configuration.
  * Returns null if not configured.
  */
-export function getServerConfig(): LocaleflowConfig | null {
+export function getServerConfig(): LingxConfig | null {
   return serverConfig;
 }
 

@@ -17,7 +17,7 @@ import {
   userPreferencesSchema,
   avatarResponseSchema,
   messageResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { ValidationError } from '../plugins/error-handler.js';
 
 const profileRoutes: FastifyPluginAsync = async (fastify) => {

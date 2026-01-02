@@ -1,11 +1,11 @@
 {
-  "name": "@localeflow/cli",
+  "name": "@lingx/cli",
   "version": "0.0.0",
-  "description": "Localeflow CLI tool for translation management",
+  "description": "Lingx CLI tool for translation management",
   "private": true,
   "type": "module",
   "bin": {
-    "lf": "./bin/lf.js"
+    "lingx": "./bin/lingx.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@localeflow/config": "workspace:*",
+    "@lingx/config": "workspace:*",
     "@types/babel__core": "^7.20.5",
     "@types/babel__generator": "^7.27.0",
     "@types/babel__traverse": "^7.28.0",
@@ -39,7 +39,7 @@
     "@babel/types": "^7.28.5",
     "@formatjs/icu-messageformat-parser": "^3.2.0",
     "@inquirer/prompts": "^8.1.0",
-    "@localeflow/shared": "workspace:*",
+    "@lingx/shared": "workspace:*",
     "chalk": "^5.6.2",
     "chokidar": "^5.0.0",
     "commander": "^14.0.2",

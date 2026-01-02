@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { LocaleflowClient } from '../src/client/LocaleflowClient';
+import { LingxClient } from '../src/client/LingxClient';
 
 const mockFetch = vi.fn();
 
-describe('LocaleflowClient', () => {
+describe('LingxClient', () => {
   beforeEach(() => {
     mockFetch.mockReset();
     global.fetch = mockFetch;
@@ -43,18 +43,18 @@ describe('LocaleflowClient', () => {
 
   describe('Constructor', () => {
     it('should initialize with config', () => {
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
       expect(client.getLanguage()).toBe('en');
       expect(client.getTranslations()).toEqual({});
     });
 
     it('should initialize with static data', () => {
-      const client = new LocaleflowClient(staticConfig);
+      const client = new LingxClient(staticConfig);
       expect(client.getTranslations()).toEqual({ greeting: 'Hello' });
     });
 
     it('should initialize with available languages', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         ...staticConfig,
         availableLanguages: ['en', 'de', 'fr'],
       });
@@ -64,7 +64,7 @@ describe('LocaleflowClient', () => {
 
   describe('init()', () => {
     it('should skip fetch when static data is provided', async () => {
-      const client = new LocaleflowClient(staticConfig);
+      const client = new LingxClient(staticConfig);
       await client.init();
 
       expect(mockFetch).not.toHaveBeenCalled();
@@ -77,7 +77,7 @@ describe('LocaleflowClient', () => {
         json: () => Promise.resolve({ greeting: 'Hello from local' }),
       });
 
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
       await client.init();
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -98,7 +98,7 @@ describe('LocaleflowClient', () => {
           json: () => Promise.resolve({ greeting: 'Local fallback' }),
         });
 
-      const client = new LocaleflowClient(apiConfig);
+      const client = new LingxClient(apiConfig);
       await client.init();
 
       // 3 API attempts + 1 local = 4 calls
@@ -117,7 +117,7 @@ describe('LocaleflowClient', () => {
           }),
       });
 
-      const client = new LocaleflowClient(apiConfig);
+      const client = new LingxClient(apiConfig);
       await client.init();
 
       expect(client.getTranslations()).toEqual({ greeting: 'From API' });
@@ -134,7 +134,7 @@ describe('LocaleflowClient', () => {
         .mockRejectedValueOnce(new Error('Local failed'))
         .mockRejectedValueOnce(new Error('Local failed'));
 
-      const client = new LocaleflowClient(apiConfig);
+      const client = new LingxClient(apiConfig);
 
       await expect(client.init()).rejects.toThrow('Failed to load translations');
     });
@@ -152,7 +152,7 @@ describe('LocaleflowClient', () => {
           json: () => Promise.resolve({ greeting: 'Привіт' }),
         });
 
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
       await client.init();
 
       expect(client.getLanguage()).toBe('en');
@@ -164,7 +164,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should not fetch when language is same', async () => {
-      const client = new LocaleflowClient(staticConfig);
+      const client = new LingxClient(staticConfig);
       await client.init();
 
       await client.setLanguage('en');
@@ -185,7 +185,7 @@ describe('LocaleflowClient', () => {
           json: () => Promise.resolve({ auth_login: 'Login' }),
         });
 
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
       await client.init();
 
       await client.loadNamespace('auth');
@@ -199,17 +199,17 @@ describe('LocaleflowClient', () => {
 
   describe('translate()', () => {
     it('should return translation for existing key', () => {
-      const client = new LocaleflowClient(staticConfig);
+      const client = new LingxClient(staticConfig);
       expect(client.translate('greeting')).toBe('Hello');
     });
 
     it('should return key when translation is missing', () => {
-      const client = new LocaleflowClient(staticConfig);
+      const client = new LingxClient(staticConfig);
       expect(client.translate('missing.key')).toBe('missing.key');
     });
 
     it('should interpolate simple placeholders', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { greeting: 'Hello, {name}!' },
       });
@@ -220,7 +220,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should interpolate multiple placeholders', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { message: '{sender} sent {count} messages to {recipient}' },
       });
@@ -235,7 +235,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should handle repeated placeholders', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { echo: '{word} {word} {word}' },
       });
@@ -244,7 +244,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should handle Date values in interpolation', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { date: 'Date: {date}' },
       });
@@ -259,7 +259,7 @@ describe('LocaleflowClient', () => {
 
   describe('ICU MessageFormat Support', () => {
     it('should format ICU plural messages', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: {
           cart_items:
@@ -273,7 +273,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should format ICU select messages', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: {
           greeting:
@@ -293,7 +293,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should format ICU number messages', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { count: 'Count: {value, number}' },
       });
@@ -304,7 +304,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should format ICU date messages', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { update: 'Updated: {date, date, medium}' },
       });
@@ -317,7 +317,7 @@ describe('LocaleflowClient', () => {
     });
 
     it('should use simple interpolation for non-ICU messages (performance)', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { greeting: 'Hello, {name}!' },
       });
@@ -333,7 +333,7 @@ describe('LocaleflowClient', () => {
         json: () => Promise.resolve({ count: 'Anzahl: {value, number}' }),
       });
 
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         localePath: '/locales',
         staticData: { count: 'Count: {value, number}' },
@@ -354,7 +354,7 @@ describe('LocaleflowClient', () => {
 
   describe('createTranslateFunction()', () => {
     it('should create a bound translate function', () => {
-      const client = new LocaleflowClient({
+      const client = new LingxClient({
         defaultLanguage: 'en',
         staticData: { greeting: 'Hello, {name}!' },
       });
@@ -376,7 +376,7 @@ describe('LocaleflowClient', () => {
           }),
       });
 
-      const client = new LocaleflowClient(apiConfig);
+      const client = new LingxClient(apiConfig);
       await client.init();
 
       const calledUrl = mockFetch.mock.calls[0][0] as string;
@@ -398,7 +398,7 @@ describe('LocaleflowClient', () => {
           }),
       });
 
-      const client = new LocaleflowClient(apiConfig);
+      const client = new LingxClient(apiConfig);
       await client.init();
 
       const options = mockFetch.mock.calls[0][1] as RequestInit;
@@ -414,7 +414,7 @@ describe('LocaleflowClient', () => {
         json: () => Promise.resolve({ greeting: 'Hello' }),
       });
 
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
       await client.init();
 
       // Set same language again - should use cache
@@ -435,7 +435,7 @@ describe('LocaleflowClient', () => {
           json: () => Promise.resolve({ greeting: 'Hello Updated' }),
         });
 
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
       await client.init();
 
       // Clear cache
@@ -460,7 +460,7 @@ describe('LocaleflowClient', () => {
         )
       );
 
-      const client = new LocaleflowClient(localConfig);
+      const client = new LingxClient(localConfig);
 
       // Make concurrent requests
       const [result1, result2, result3] = await Promise.all([

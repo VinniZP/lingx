@@ -1,7 +1,7 @@
 'use client';
 
 import { BookOpen, Zap, Globe2 } from 'lucide-react';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export function Resources() {
   const { t } = useTranslation();

@@ -5,7 +5,7 @@
  * Optimized for a single efficient query instead of N+1 pattern.
  */
 import { PrismaClient } from '@prisma/client';
-import type { DashboardStats } from '@localeflow/shared';
+import type { DashboardStats } from '@lingx/shared';
 
 export class DashboardService {
   constructor(private prisma: PrismaClient) {}

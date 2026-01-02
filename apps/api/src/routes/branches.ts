@@ -14,7 +14,7 @@ import {
   branchDiffResponseSchema,
   mergeRequestSchema,
   mergeResponseSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { BranchService } from '../services/branch.service.js';
 import { DiffService } from '../services/diff.service.js';
 import { MergeService } from '../services/merge.service.js';

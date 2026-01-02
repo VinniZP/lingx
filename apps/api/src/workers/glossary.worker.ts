@@ -231,7 +231,7 @@ async function handleProviderSync(
     }
 
     // Create new glossary on provider
-    const glossaryName = `LocaleFlow-${projectId.slice(-8)}-${sourceLanguage}-${targetLanguage}`;
+    const glossaryName = `Lingx-${projectId.slice(-8)}-${sourceLanguage}-${targetLanguage}`;
     const externalGlossaryId = await mtService.createGlossary(
       projectId,
       provider,

@@ -20,7 +20,7 @@ import {
   mtUsageResponseSchema,
   testConnectionResponseSchema,
   mtProviderSchema,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 import { MTService } from '../services/mt.service.js';
 import { ProjectService } from '../services/project.service.js';
 import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
@@ -254,6 +254,70 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
 
       return await mtService.translate(
         projectId,
+        text,
+        sourceLanguage,
+        targetLanguage,
+        provider
+      );
+    }
+  );
+
+  /**
+   * POST /api/projects/:projectId/mt/translate/context - Translate with AI context
+   *
+   * Translates text using context from related translations and glossary terms.
+   * Provides higher quality translations by leveraging surrounding context.
+   */
+  app.post(
+    '/api/projects/:projectId/mt/translate/context',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Translate with AI context from related translations and glossary',
+        tags: ['Machine Translation'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          projectId: z.string(),
+        }),
+        body: z.object({
+          branchId: z.string().describe('Branch ID for context lookup'),
+          keyId: z.string().describe('Translation key ID for context lookup'),
+          text: z.string().min(1).describe('Text to translate'),
+          sourceLanguage: z.string().describe('Source language code'),
+          targetLanguage: z.string().describe('Target language code'),
+          provider: mtProviderSchema.optional().describe('Specific provider to use'),
+        }),
+        response: {
+          200: z.object({
+            translatedText: z.string(),
+            provider: mtProviderSchema,
+            cached: z.boolean(),
+            characterCount: z.number(),
+            context: z.object({
+              relatedTranslations: z.number(),
+              glossaryTerms: z.number(),
+            }).optional(),
+          }),
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { projectId } = request.params;
+      const { branchId, keyId, text, sourceLanguage, targetLanguage, provider } = request.body;
+
+      // Verify project access
+      const hasAccess = await projectService.checkMembership(
+        projectId,
+        request.user.userId
+      );
+      if (!hasAccess) {
+        throw new ForbiddenError('Access to this project is not allowed');
+      }
+
+      return await mtService.translateWithContext(
+        projectId,
+        branchId,
+        keyId,
         text,
         sourceLanguage,
         targetLanguage,

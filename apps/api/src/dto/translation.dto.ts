@@ -6,7 +6,7 @@ import type {
   TranslationValue,
   TranslationKeyResponse,
   KeyListResponse,
-} from '@localeflow/shared';
+} from '@lingx/shared';
 
 /** Prisma TranslationKey with translations included */
 type KeyWithTranslations = TranslationKey & {

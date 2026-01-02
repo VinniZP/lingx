@@ -1,16 +1,16 @@
-# Getting Started with Localeflow
+# Getting Started with Lingx
 
-This guide will help you set up Localeflow and start managing translations in your project.
+This guide will help you set up Lingx and start managing translations in your project.
 
 ## Prerequisites
 
-- Localeflow server running (see [Deployment Guide](./deployment.md))
+- Lingx server running (see [Deployment Guide](./deployment.md))
 - Node.js 20+ for CLI/SDK
 - A Next.js application
 
 ## Step 1: Create Your Account
 
-1. Open Localeflow at http://localhost:3000 (or your deployment URL)
+1. Open Lingx at http://localhost:3000 (or your deployment URL)
 2. Click "Register" and create an account
 3. Log in to access the dashboard
 
@@ -47,15 +47,15 @@ Spaces let you organize translations by area (frontend, backend, mobile).
 
 ```bash
 # Install globally
-npm install -g @localeflow/cli
+npm install -g @lingx/cli
 
 # Or use npx
-npx @localeflow/cli
+npx @lingx/cli
 ```
 
 ## Step 6: Configure CLI
 
-Create `.localeflow.yml` in your project root:
+Create `.lingx.yml` in your project root:
 
 ```yaml
 # API connection
@@ -138,14 +138,14 @@ src/locales/
 ## Step 10: Install SDK
 
 ```bash
-pnpm add @localeflow/sdk-nextjs
+pnpm add @lingx/sdk-nextjs
 ```
 
 ## Step 11: Set Up Provider
 
 ```tsx
 // app/layout.tsx
-import { LocaleflowProvider } from '@localeflow/sdk-nextjs';
+import { LingxProvider } from '@lingx/sdk-nextjs';
 
 export default function RootLayout({
   children,
@@ -155,15 +155,15 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        <LocaleflowProvider
-          apiKey={process.env.LOCALEFLOW_API_KEY!}
-          environment={process.env.NEXT_PUBLIC_LOCALEFLOW_ENV!}
+        <LingxProvider
+          apiKey={process.env.LINGX_API_KEY!}
+          environment={process.env.NEXT_PUBLIC_LINGX_ENV!}
           project="my-web-app"
           space="frontend"
           defaultLanguage="en"
         >
           {children}
-        </LocaleflowProvider>
+        </LingxProvider>
       </body>
     </html>
   );
@@ -175,7 +175,7 @@ export default function RootLayout({
 ```tsx
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 export function MyComponent() {
   const { t, ready, error } = useTranslation();
@@ -205,7 +205,7 @@ lf branch create feature-checkout --from=main
 
 ### 2. Update Your Config
 
-Update `.localeflow.yml` to use the feature branch:
+Update `.lingx.yml` to use the feature branch:
 
 ```yaml
 defaultBranch: feature-checkout
@@ -213,7 +213,7 @@ defaultBranch: feature-checkout
 
 ### 3. Add New Keys in the UI
 
-1. Navigate to your feature branch in Localeflow
+1. Navigate to your feature branch in Lingx
 2. Add the translation keys you need
 3. Add translations for each language
 
@@ -258,7 +258,7 @@ Point your development environment to the `main` branch or a feature branch:
 
 ```bash
 # Environment variables
-NEXT_PUBLIC_LOCALEFLOW_ENV=development
+NEXT_PUBLIC_LINGX_ENV=development
 ```
 
 ### Production
@@ -267,7 +267,7 @@ Point production to the `main` branch (or a `release` branch):
 
 ```bash
 # Environment variables
-NEXT_PUBLIC_LOCALEFLOW_ENV=production
+NEXT_PUBLIC_LINGX_ENV=production
 ```
 
 ## Next Steps

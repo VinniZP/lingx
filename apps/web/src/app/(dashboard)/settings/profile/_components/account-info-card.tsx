@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { UserProfile } from '@/lib/api';
 import { Hash } from 'lucide-react';
 import { SettingsSectionHeader } from '../../_components';

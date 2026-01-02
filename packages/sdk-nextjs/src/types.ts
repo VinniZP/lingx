@@ -10,13 +10,13 @@ export type { DetectionConfig } from './detection/types.js';
 /**
  * Translation resources interface for type augmentation.
  *
- * When you run `localeflow types`, the generated .d.ts file merges with
+ * When you run `lingx types`, the generated .d.ts file merges with
  * this interface to provide type-safe translation keys.
  *
  * @example Generated types:
  * ```typescript
- * // In localeflow.d.ts (generated)
- * declare module '@localeflow/sdk-nextjs' {
+ * // In lingx.d.ts (generated)
+ * declare module '@lingx/sdk-nextjs' {
  *   interface TranslationResources {
  *     keys: 'auth.login.title' | 'common.greeting' | 'common.items';
  *   }
@@ -30,13 +30,13 @@ export interface TranslationResources {
 /**
  * Namespace-specific translation keys for type augmentation.
  *
- * When you run `localeflow types`, the generated .d.ts file merges with
+ * When you run `lingx types`, the generated .d.ts file merges with
  * this interface to provide type-safe namespaced keys.
  *
  * @example Generated types:
  * ```typescript
- * // In localeflow.d.ts (generated)
- * declare module '@localeflow/sdk-nextjs' {
+ * // In lingx.d.ts (generated)
+ * declare module '@lingx/sdk-nextjs' {
  *   interface NamespaceKeys {
  *     glossary: 'tags.title' | 'tags.addTag' | 'dialog.title';
  *     auth: 'login.title' | 'login.submit';
@@ -88,8 +88,8 @@ export type TranslationKeysFor<NS extends string | undefined> =
  *
  * @example Generated types:
  * ```typescript
- * // In localeflow.d.ts (generated)
- * declare module '@localeflow/sdk-nextjs' {
+ * // In lingx.d.ts (generated)
+ * declare module '@lingx/sdk-nextjs' {
  *   interface TranslationParams {
  *     'common.greeting': { name: string | number };
  *     'common.items': { count: number };
@@ -150,7 +150,7 @@ export type TNsKey<NS extends keyof NamespaceKeys> = TranslationKey<NamespaceKey
 /**
  * Marks a string as a type-safe translation key for static extraction.
  *
- * When type generation is enabled (`localeflow types`), this function
+ * When type generation is enabled (`lingx types`), this function
  * only accepts valid translation keys and provides autocomplete.
  *
  * @example
@@ -204,9 +204,9 @@ export const tKeyUnsafe = (key: string, _namespace?: string): TranslationKey<str
   key as TranslationKey<string>;
 
 /**
- * Configuration for LocaleflowProvider
+ * Configuration for LingxProvider
  */
-export interface LocaleflowConfig {
+export interface LingxConfig {
   /** Default language code (e.g., 'en') */
   defaultLanguage: string;
 
@@ -270,9 +270,9 @@ export interface LocaleflowConfig {
 }
 
 /**
- * Props for LocaleflowProvider component
+ * Props for LingxProvider component
  */
-export interface LocaleflowProviderProps extends LocaleflowConfig {
+export interface LingxProviderProps extends LingxConfig {
   children: React.ReactNode;
   /** Loading fallback while translations load */
   fallback?: React.ReactNode;
@@ -296,7 +296,7 @@ export type TranslationParamsFor<K extends TranslationKeys> =
 /**
  * Type-safe translation function with ICU MessageFormat support.
  *
- * When type generation is enabled (`localeflow types`), this function:
+ * When type generation is enabled (`lingx types`), this function:
  * - Only accepts valid translation keys (autocomplete works)
  * - Requires correct parameter types for ICU formatted strings
  * - Shows translation text in JSDoc on hover
@@ -394,9 +394,9 @@ export interface SdkTranslationsResponse {
 }
 
 /**
- * Localeflow context value
+ * Lingx context value
  */
-export interface LocaleflowContextValue {
+export interface LingxContextValue {
   /** Current language code */
   language: string;
   /** Set current language */
@@ -420,7 +420,7 @@ export interface LocaleflowContextValue {
   /** Translation function */
   t: TranslationFunction;
   /** SDK configuration */
-  config: LocaleflowConfig;
+  config: LingxConfig;
 }
 
 /**

@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { loadConfig, getConfigPath, type LocaleflowConfig } from '../../src/lib/config.js';
+import { loadConfig, getConfigPath, type LingxConfig } from '../../src/lib/config.js';
 
 describe('Config Parser', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `localeflow-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `lingx-test-${Date.now()}`);
     await mkdir(tempDir, { recursive: true });
   });
 
@@ -16,7 +16,7 @@ describe('Config Parser', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should load config from .localeflow.yml', async () => {
+  it('should load config from .lingx.yml', async () => {
     const configContent = `
 api:
   url: https://api.example.com
@@ -27,7 +27,7 @@ format:
   nested: false
   indentation: 4
 `;
-    await writeFile(join(tempDir, '.localeflow.yml'), configContent);
+    await writeFile(join(tempDir, '.lingx.yml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.api.url).toBe('https://api.example.com');
@@ -42,7 +42,7 @@ format:
     const configContent = `
 project: my-project
 `;
-    await writeFile(join(tempDir, '.localeflow.yml'), configContent);
+    await writeFile(join(tempDir, '.lingx.yml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.format.type).toBe('json');
@@ -61,33 +61,33 @@ project: my-project
     expect(config.format.type).toBe('json');
   });
 
-  it('should support .localeflow.yaml extension', async () => {
+  it('should support .lingx.yaml extension', async () => {
     const configContent = `
 api:
   url: https://yaml-extension.example.com
 `;
-    await writeFile(join(tempDir, '.localeflow.yaml'), configContent);
+    await writeFile(join(tempDir, '.lingx.yaml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.api.url).toBe('https://yaml-extension.example.com');
   });
 
-  it('should support localeflow.config.yml', async () => {
+  it('should support lingx.config.yml', async () => {
     const configContent = `
 api:
   url: https://config-yml.example.com
 `;
-    await writeFile(join(tempDir, 'localeflow.config.yml'), configContent);
+    await writeFile(join(tempDir, 'lingx.config.yml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.api.url).toBe('https://config-yml.example.com');
   });
 
   it('should find config path correctly', async () => {
-    await writeFile(join(tempDir, '.localeflow.yml'), 'api:\n  url: test');
+    await writeFile(join(tempDir, '.lingx.yml'), 'api:\n  url: test');
 
     const configPath = getConfigPath(tempDir);
-    expect(configPath).toBe(join(tempDir, '.localeflow.yml'));
+    expect(configPath).toBe(join(tempDir, '.lingx.yml'));
   });
 
   it('should return null when no config file found', () => {
@@ -102,7 +102,7 @@ format:
 paths:
   translations: ./i18n
 `;
-    await writeFile(join(tempDir, '.localeflow.yml'), configContent);
+    await writeFile(join(tempDir, '.lingx.yml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.format.type).toBe('yaml');
@@ -122,7 +122,7 @@ pull:
 push:
   filePattern: "locales/{lang}.json"
 `;
-    await writeFile(join(tempDir, '.localeflow.yml'), configContent);
+    await writeFile(join(tempDir, '.lingx.yml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.pull.languages).toEqual(['en', 'de', 'fr']);
@@ -143,7 +143,7 @@ extract:
     - translate
     - i18n
 `;
-    await writeFile(join(tempDir, '.localeflow.yml'), configContent);
+    await writeFile(join(tempDir, '.lingx.yml'), configContent);
 
     const config = await loadConfig(tempDir);
     expect(config.extract.framework).toBe('angular');

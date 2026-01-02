@@ -103,7 +103,7 @@ function DropdownMenuItem({
         // Icon styling
         "[&_svg:not([class*='text-'])]:text-muted-foreground",
         "data-[variant=destructive]:*:[svg]:!text-destructive",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
         // Disabled state
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         // Inset for items with indicators
@@ -129,7 +129,7 @@ function DropdownMenuCheckboxItem({
         "transition-colors duration-150",
         "focus:bg-accent/50 hover:bg-accent/50",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
         className
       )}
       checked={checked}
@@ -169,7 +169,7 @@ function DropdownMenuRadioItem({
         "transition-colors duration-150",
         "focus:bg-accent/50 hover:bg-accent/50",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
         className
       )}
       {...props}
@@ -258,7 +258,7 @@ function DropdownMenuSubTrigger({
         "focus:bg-accent/50 hover:bg-accent/50",
         "data-[state=open]:bg-accent/50",
         "[&_svg:not([class*='text-'])]:text-muted-foreground",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
         "data-[inset]:pl-9",
         className
       )}

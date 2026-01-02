@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
-import type { ProjectLanguage } from '@localeflow/shared';
-import { runQualityChecks } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
+import { runQualityChecks } from '@lingx/shared';
 import { TranslationKey, type ApprovalStatus } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import {
@@ -27,9 +27,10 @@ import {
 } from '@/components/ui/tooltip';
 import { InlineSuggestion } from './inline-suggestion';
 import { QualityIssues } from './quality-issues';
+import { RelatedKeysSection } from './related-keys-section';
 import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
-import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@localeflow/sdk-nextjs';
+import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@lingx/sdk-nextjs';
 
 const approvalStatusConfig: Record<
   ApprovalStatus,
@@ -42,6 +43,7 @@ const approvalStatusConfig: Record<
 
 interface TranslationKeyCardProps {
   translationKey: TranslationKey;
+  branchId: string;
   languages: ProjectLanguage[];
   defaultLanguage: ProjectLanguage | undefined;
   isExpanded: boolean;
@@ -64,10 +66,12 @@ interface TranslationKeyCardProps {
   onFocusLanguage: (lang: string | null) => void;
   isFocusedKey: boolean;
   onKeyboardNavigate: (direction: 'up' | 'down' | 'next' | 'prev') => void;
+  onSearchKey?: (keyName: string) => void;
 }
 
 export const TranslationKeyCard = memo(function TranslationKeyCard({
   translationKey,
+  branchId,
   languages,
   defaultLanguage,
   isExpanded,
@@ -90,6 +94,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
   onFocusLanguage,
   isFocusedKey,
   onKeyboardNavigate,
+  onSearchKey,
 }: TranslationKeyCardProps) {
   const { t, td } = useTranslation();
   const inputRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
@@ -631,6 +636,14 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
           );
         })}
       </div>
+
+      {/* Related keys section */}
+      <RelatedKeysSection
+        branchId={branchId}
+        keyId={translationKey.id}
+        isExpanded={isExpanded}
+        onNavigateToKey={onSearchKey}
+      />
 
       {/* Keyboard hints footer */}
       <div className="px-4 py-2 border-t border-border/40 bg-muted/20 flex items-center gap-5 text-xs text-muted-foreground">

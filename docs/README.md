@@ -1,6 +1,6 @@
-# Localeflow Documentation
+# Lingx Documentation
 
-Welcome to the Localeflow documentation. This guide will help you get started with Localeflow, a self-hosted localization management platform with git-like branching for translations.
+Welcome to the Lingx documentation. This guide will help you get started with Lingx, a self-hosted localization management platform with git-like branching for translations.
 
 ## Documentation Index
 
@@ -49,7 +49,7 @@ Welcome to the Localeflow documentation. This guide will help you get started wi
 
 ## API Documentation
 
-When the Localeflow API is running, interactive API documentation is available at:
+When the Lingx API is running, interactive API documentation is available at:
 
 - **Swagger UI**: http://localhost:3001/docs
 - **OpenAPI JSON**: http://localhost:3001/docs/json

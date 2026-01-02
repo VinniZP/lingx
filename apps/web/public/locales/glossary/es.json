@@ -6,5 +6,8 @@
     "noTagsYet": "",
     "createToOrganize": "",
     "createFirstTag": ""
+  },
+  "common": {
+    "cancel": "Cancelar"
   }
 }

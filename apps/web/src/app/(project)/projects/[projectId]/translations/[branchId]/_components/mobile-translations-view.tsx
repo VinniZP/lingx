@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, ChevronLeft, Loader2 } from 'lucide-react';
 import { TranslationKeyCard } from '@/components/translations';
 import { KeyFormDialog } from '@/components/key-form-dialog';
 import type { TranslationKey } from '@/lib/api';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
 
 interface MobileTranslationsViewProps {
@@ -44,6 +44,7 @@ interface MobileTranslationsViewProps {
   showKeyDialog: boolean;
   onShowKeyDialogChange: (open: boolean) => void;
   editingKey: TranslationKey | undefined;
+  onSearchKey: (keyName: string) => void;
 }
 
 export function MobileTranslationsView({
@@ -79,6 +80,7 @@ export function MobileTranslationsView({
   showKeyDialog,
   onShowKeyDialogChange,
   editingKey,
+  onSearchKey,
 }: MobileTranslationsViewProps) {
   const { t } = useTranslation();
 
@@ -128,6 +130,7 @@ export function MobileTranslationsView({
               <TranslationKeyCard
                 key={key.id}
                 translationKey={key}
+                branchId={branchId}
                 languages={languages}
                 defaultLanguage={defaultLanguage}
                 isExpanded={expandedKeyId === key.id}
@@ -150,6 +153,7 @@ export function MobileTranslationsView({
                 onFocusLanguage={onFocusLanguage}
                 isFocusedKey={isKeyIdFocused(key.id)}
                 onKeyboardNavigate={onKeyboardNavigate}
+                onSearchKey={onSearchKey}
               />
             ))}
           </div>

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright E2E Test Configuration for Localeflow Web
+ * Playwright E2E Test Configuration for Lingx Web
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({

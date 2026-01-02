@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   environmentApi,
   projectApi,
@@ -305,7 +305,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
               <div className="bg-muted/50 rounded-lg p-3 font-mono text-xs">
                 <span className="text-muted-foreground">// Initialize SDK</span>
                 <br />
-                <span className="text-primary">localeflow</span>.init(&#123;
+                <span className="text-primary">lingx</span>.init(&#123;
                 <br />
                 &nbsp;&nbsp;env: <span className="text-warm">&apos;{environments[0]?.slug || 'prod'}&apos;</span>
                 <br />
@@ -356,7 +356,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
       <Dialog open={switchDialogOpen} onOpenChange={setSwitchDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
           {/* Header with gradient background */}
-          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+          <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
             <DialogHeader className="gap-3">
               <div className="flex items-center gap-3">
                 <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">

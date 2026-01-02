@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import {
   BookOpen,
   Languages,
@@ -23,7 +23,7 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
   return (
     <section className="space-y-6 animate-fade-in-up">
       <div className="flex items-center gap-4">
-        <div className="size-12 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/10 flex items-center justify-center shadow-sm">
+        <div className="size-12 rounded-2xl bg-linear-to-br from-primary/20 via-primary/10 to-transparent border border-primary/10 flex items-center justify-center shadow-sm">
           <BarChart3 className="size-5 text-primary" />
         </div>
         <div>
@@ -43,7 +43,7 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
 
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
-              <div className="size-11 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
+              <div className="size-11 rounded-xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
                 <BookOpen className="size-5 text-primary" />
               </div>
               <div className="flex items-center gap-1 text-xs text-success">
@@ -72,7 +72,7 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
 
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
-              <div className="size-11 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
+              <div className="size-11 rounded-xl bg-linear-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
                 <Languages className="size-5 text-blue-500" />
               </div>
               <div className="flex items-center gap-1 text-xs text-blue-500">
@@ -101,7 +101,7 @@ export function GlossaryStatsSection({ stats, tagsCount }: GlossaryStatsSectionP
 
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
-              <div className="size-11 rounded-xl bg-gradient-to-br from-amber-500/15 to-amber-500/5 border border-amber-500/10 flex items-center justify-center">
+              <div className="size-11 rounded-xl bg-linear-to-br from-amber-500/15 to-amber-500/5 border border-amber-500/10 flex items-center justify-center">
                 <Tag className="size-5 text-amber-500" />
               </div>
               <div className="flex items-center gap-1 text-xs text-amber-500">

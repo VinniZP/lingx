@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import type { BranchResponse } from '@localeflow/shared';
+import type { BranchResponse } from '@lingx/shared';
 import { createApiClientFromConfig } from '../../lib/api.js';
 import { loadConfig } from '../../lib/config.js';
 import { logger } from '../../utils/logger.js';

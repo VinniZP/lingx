@@ -1,5 +1,5 @@
 {
-  "name": "@localeflow/api",
+  "name": "@lingx/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -32,7 +32,7 @@
     "@fastify/swagger": "^9.6.1",
     "@fastify/swagger-ui": "^5.2.3",
     "@google-cloud/translate": "^9.3.0",
-    "@localeflow/shared": "workspace:*",
+    "@lingx/shared": "workspace:*",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@simplewebauthn/server": "^13.2.2",
@@ -52,7 +52,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
-    "@localeflow/config": "workspace:*",
+    "@lingx/config": "workspace:*",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^25.0.3",
     "@types/nodemailer": "^7.0.4",

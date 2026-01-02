@@ -1,7 +1,7 @@
 'use client';
 
 import type { TranslationKey } from '@/lib/api';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
 import { TranslationKeyCard } from '@/components/translations';
 import { LoadingState, EmptyKeysState, NoResultsState } from './empty-states';
@@ -9,6 +9,7 @@ import { LoadingState, EmptyKeysState, NoResultsState } from './empty-states';
 interface KeyListProps {
   isLoading: boolean;
   keys: TranslationKey[];
+  branchId: string;
   hasSearch: boolean;
   languages: ProjectLanguage[];
   defaultLanguage: ProjectLanguage | undefined;
@@ -32,11 +33,13 @@ interface KeyListProps {
   isKeyIdFocused: (keyId: string) => boolean;
   onKeyboardNavigate: (direction: 'up' | 'down' | 'next' | 'prev') => void;
   onCreateKey: () => void;
+  onSearchKey: (keyName: string) => void;
 }
 
 export function KeyList({
   isLoading,
   keys,
+  branchId,
   hasSearch,
   languages,
   defaultLanguage,
@@ -60,6 +63,7 @@ export function KeyList({
   isKeyIdFocused,
   onKeyboardNavigate,
   onCreateKey,
+  onSearchKey,
 }: KeyListProps) {
   if (isLoading) {
     return <LoadingState />;
@@ -79,6 +83,7 @@ export function KeyList({
         <TranslationKeyCard
           key={key.id}
           translationKey={key}
+          branchId={branchId}
           languages={languages}
           defaultLanguage={defaultLanguage}
           isExpanded={expandedKeyId === key.id}
@@ -101,6 +106,7 @@ export function KeyList({
           onFocusLanguage={onFocusLanguage}
           isFocusedKey={isKeyIdFocused(key.id)}
           onKeyboardNavigate={onKeyboardNavigate}
+          onSearchKey={onSearchKey}
         />
       ))}
     </div>

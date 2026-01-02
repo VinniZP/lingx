@@ -1,11 +1,11 @@
 ---
 name: target-fe-architecture
-description: Target frontend architecture for LocaleFlow. FSD 2.1 approach with custom hooks, component patterns, and data fetching. Use when implementing frontend features, reviewing code, or making architectural decisions.
+description: Target frontend architecture for Lingx. FSD 2.1 approach with custom hooks, component patterns, and data fetching. Use when implementing frontend features, reviewing code, or making architectural decisions.
 ---
 
-# LocaleFlow Frontend Architecture
+# Lingx Frontend Architecture
 
-Target architecture patterns for the LocaleFlow web application. Practical FSD 2.1 approach with gradual migration.
+Target architecture patterns for the Lingx web application. Practical FSD 2.1 approach with gradual migration.
 
 ## Quick Reference
 
@@ -17,7 +17,7 @@ apps/web/src/
 │   └── ...           # Domain components
 ├── hooks/            # Custom React hooks
 ├── lib/              # Utilities & API
-└── @localeflow/shared  # Shared types (monorepo)
+└── @lingx/shared  # Shared types (monorepo)
 ```
 
 ## Core Principles
@@ -26,7 +26,7 @@ apps/web/src/
 2. **Co-locate until needed** - Don't split prematurely
 3. **Props-down pattern** - Parent fetches, children render
 4. **Small components** - Target < 200 lines per file
-5. **Shared types** - Use `@localeflow/shared` for API contracts
+5. **Shared types** - Use `@lingx/shared` for API contracts
 
 ## Documentation
 
@@ -63,4 +63,4 @@ Should this component be reused elsewhere?
 ## FSD Reference
 
 For full Feature-Sliced Design methodology, see the `/fsd` skill.
-This skill focuses on practical patterns for LocaleFlow's current structure.
+This skill focuses on practical patterns for Lingx's current structure.

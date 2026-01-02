@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { useLocaleflowContext } from '../context/LocaleflowContext';
+import { useLingxContext } from '../context/LingxContext';
 
 /**
  * Return type for useNamespace hook
@@ -85,7 +85,8 @@ export function useNamespace(
   options: UseNamespaceOptions = {}
 ): UseNamespaceReturn {
   const { autoLoad = false } = options;
-  const context = useLocaleflowContext();
+  const context = useLingxContext();
+  const { language } = context;
   const [isLoading, setIsLoading] = useState(false);
   const loadingRef = useRef(false);
 
@@ -105,11 +106,12 @@ export function useNamespace(
   }, [context, namespace, isLoaded]);
 
   // Auto-load on mount if requested
+  // Also re-check when language changes (loadedNamespaces is cleared on language change)
   useEffect(() => {
     if (autoLoad && !isLoaded && !loadingRef.current) {
       loadNamespace();
     }
-  }, [autoLoad, isLoaded, loadNamespace]);
+  }, [autoLoad, isLoaded, loadNamespace, language]);
 
   return useMemo(
     () => ({

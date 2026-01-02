@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import type { Session } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Monitor, Smartphone, Globe, Clock, XCircle, Loader2 } from 'lucide-react';

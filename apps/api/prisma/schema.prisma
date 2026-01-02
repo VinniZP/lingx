@@ -1,4 +1,4 @@
-// Localeflow Database Schema
+// Lingx Database Schema
 // Per Design Doc and ADR-0002 (Copy-on-Write Branch Storage)
 
 generator client {
@@ -16,17 +16,17 @@ datasource db {
 model User {
   id          String   @id @default(cuid())
   email       String   @unique
-  password    String?  // bcrypt hashed (cost factor 12), null for passwordless users
+  password    String? // bcrypt hashed (cost factor 12), null for passwordless users
   name        String?
   role        Role     @default(DEVELOPER)
-  avatarUrl   String?  // Path to uploaded avatar file
-  preferences Json?    // {theme, language, notifications, defaultProjectId}
+  avatarUrl   String? // Path to uploaded avatar file
+  preferences Json? // {theme, language, notifications, defaultProjectId}
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // TOTP Two-Factor Authentication
-  totpSecret         String?   // AES-256-GCM encrypted TOTP secret
-  totpSecretIv       String?   // Initialization vector for decryption
+  totpSecret         String? // AES-256-GCM encrypted TOTP secret
+  totpSecretIv       String? // Initialization vector for decryption
   totpEnabled        Boolean   @default(false)
   totpEnabledAt      DateTime?
   totpFailedAttempts Int       @default(0)
@@ -42,7 +42,7 @@ model User {
   sessions             Session[]
   backupCodes          BackupCode[]
   webauthnCredentials  WebAuthnCredential[]
-  translationApprovals Translation[] @relation("TranslationApprovals")
+  translationApprovals Translation[]        @relation("TranslationApprovals")
 
   @@index([email])
 }
@@ -50,12 +50,12 @@ model User {
 model Session {
   id           String    @id @default(cuid())
   userId       String
-  deviceInfo   String?   // Parsed browser/OS from user agent
-  userAgent    String?   // Raw user agent string
+  deviceInfo   String? // Parsed browser/OS from user agent
+  userAgent    String? // Raw user agent string
   ipAddress    String?
   lastActive   DateTime  @default(now())
   createdAt    DateTime  @default(now())
-  expiresAt    DateTime  // 24h from creation, matches JWT expiry
+  expiresAt    DateTime // 24h from creation, matches JWT expiry
   trustedUntil DateTime? // 2FA device trust expiry (30 days)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -67,7 +67,7 @@ model Session {
 model BackupCode {
   id        String    @id @default(cuid())
   userId    String
-  codeHash  String    // bcrypt hash of backup code
+  codeHash  String // bcrypt hash of backup code
   usedAt    DateTime? // null if unused
   createdAt DateTime  @default(now())
 
@@ -77,12 +77,12 @@ model BackupCode {
 }
 
 model WebAuthnCredential {
-  id           String   @id @default(cuid())
-  userId       String
+  id     String @id @default(cuid())
+  userId String
 
   // WebAuthn spec fields
   credentialId String   @unique // Base64URL encoded credential ID
-  publicKey    String            // Base64URL encoded COSE public key
+  publicKey    String // Base64URL encoded COSE public key
   counter      BigInt   @default(0) // Sign count for replay protection
   transports   String[] // ["internal", "usb", "ble", "nfc", "hybrid"]
 
@@ -92,7 +92,7 @@ model WebAuthnCredential {
   aaguid     String? // Authenticator AAGUID
 
   // User-friendly info
-  name       String    // User-given name: "MacBook Pro", "iPhone 15"
+  name       String // User-given name: "MacBook Pro", "iPhone 15"
   lastUsedAt DateTime?
   createdAt  DateTime  @default(now())
 
@@ -104,7 +104,7 @@ model WebAuthnCredential {
 model EmailVerification {
   id        String   @id @default(cuid())
   userId    String
-  newEmail  String   // The new email being verified
+  newEmail  String // The new email being verified
   token     String   @unique // Secure token for verification
   expiresAt DateTime // 24-hour expiry
   createdAt DateTime @default(now())
@@ -122,15 +122,15 @@ enum Role {
 }
 
 model ApiKey {
-  id          String    @id @default(cuid())
-  name        String
-  keyHash     String    @unique // SHA-256 hash of the actual key
-  keyPrefix   String    // First 8 chars for identification (lf_...)
-  userId      String
-  createdAt   DateTime  @default(now())
-  lastUsedAt  DateTime?
-  revokedAt   DateTime?
-  expiresAt   DateTime?
+  id         String    @id @default(cuid())
+  name       String
+  keyHash    String    @unique // SHA-256 hash of the actual key
+  keyPrefix  String // First 8 chars for identification (lf_...)
+  userId     String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  expiresAt  DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -169,8 +169,8 @@ model Project {
 model ProjectLanguage {
   id        String  @id @default(cuid())
   projectId String
-  code      String  // ISO 639-1 code (en, es, fr, etc.)
-  name      String  // Display name (English, Spanish, French)
+  code      String // ISO 639-1 code (en, es, fr, etc.)
+  name      String // Display name (English, Spanish, French)
   isDefault Boolean @default(false)
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -226,13 +226,13 @@ model Branch {
   name           String
   slug           String
   isDefault      Boolean  @default(false) // true for 'main' branch
-  sourceBranchId String?  // Branch this was created from (null for main)
+  sourceBranchId String? // Branch this was created from (null for main)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  space         Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  sourceBranch  Branch?           @relation("BranchToSource", fields: [sourceBranchId], references: [id])
-  childBranches Branch[]          @relation("BranchToSource")
+  space         Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  sourceBranch  Branch?          @relation("BranchToSource", fields: [sourceBranchId], references: [id])
+  childBranches Branch[]         @relation("BranchToSource")
   keys          TranslationKey[]
   environments  Environment[]
   activities    Activity[]
@@ -252,36 +252,53 @@ enum ApprovalStatus {
   REJECTED
 }
 
+enum RelationshipType {
+  SAME_FILE // Keys extracted from same source file
+  SAME_COMPONENT // Keys from same React component/function scope
+  SEMANTIC // Text similarity in source translations
+}
+
 model TranslationKey {
   id          String   @id @default(cuid())
   branchId    String
-  namespace   String?  // Optional namespace for grouping (null = root)
-  name        String   // The key identifier (e.g., "common.welcome")
-  description String?  // Context for translators
+  namespace   String? // Optional namespace for grouping (null = root)
+  name        String // The key identifier (e.g., "common.welcome")
+  description String? // Context for translators
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Source location metadata (from CLI extraction)
+  sourceFile      String? // Relative path: "src/components/Header.tsx"
+  sourceLine      Int? // Line number in file
+  sourceComponent String? // Component/function name: "HeaderNav"
+
   branch       Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
   translations Translation[]
+
+  // Key relationships for near-key context
+  relationshipsFrom KeyRelationship[] @relation("FromKey")
+  relationshipsTo   KeyRelationship[] @relation("ToKey")
 
   @@unique([branchId, namespace, name])
   @@index([branchId])
   @@index([branchId, namespace])
   @@index([name])
+  @@index([sourceFile])
+  @@index([sourceComponent])
 }
 
 model Translation {
   id        String   @id @default(cuid())
   keyId     String
-  language  String   // ISO 639-1 code
-  value     String   // The translated text (supports ICU MessageFormat)
+  language  String // ISO 639-1 code
+  value     String // The translated text (supports ICU MessageFormat)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Approval workflow
   status          ApprovalStatus @default(PENDING)
   statusUpdatedAt DateTime?
-  statusUpdatedBy String?        // userId who approved/rejected
+  statusUpdatedBy String? // userId who approved/rejected
 
   key        TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
   statusUser User?          @relation("TranslationApprovals", fields: [statusUpdatedBy], references: [id])
@@ -292,6 +309,24 @@ model Translation {
   @@index([status])
 }
 
+model KeyRelationship {
+  id         String           @id @default(cuid())
+  fromKeyId  String
+  toKeyId    String
+  type       RelationshipType
+  confidence Float            @default(1.0) // 0.0-1.0, useful for SEMANTIC
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  fromKey TranslationKey @relation("FromKey", fields: [fromKeyId], references: [id], onDelete: Cascade)
+  toKey   TranslationKey @relation("ToKey", fields: [toKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([fromKeyId, toKeyId, type])
+  @@index([fromKeyId])
+  @@index([toKeyId])
+  @@index([type])
+}
+
 // ============================================
 // ENVIRONMENTS
 // ============================================
@@ -299,9 +334,9 @@ model Translation {
 model Environment {
   id        String   @id @default(cuid())
   projectId String
-  name      String   // e.g., "production", "staging", "development"
+  name      String // e.g., "production", "staging", "development"
   slug      String
-  branchId  String   // Points to the active branch for this environment
+  branchId  String // Points to the active branch for this environment
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -320,7 +355,7 @@ model Environment {
 model Language {
   id   String @id @default(cuid())
   code String @unique // ISO 639-1 code
-  name String         // Display name
+  name String // Display name
 
   @@index([code])
 }
@@ -358,14 +393,14 @@ model Activity {
   branchId  String?
   userId    String
   type      ActivityType
-  metadata  Json         // Summary + first 10 changes preview
+  metadata  Json // Summary + first 10 changes preview
   count     Int          @default(1) // For grouped activities
   groupKey  String       @unique // Enables upsert for grouping
   createdAt DateTime     @default(now())
 
-  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  branch  Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch  Branch?          @relation(fields: [branchId], references: [id], onDelete: SetNull)
   changes ActivityChange[]
 
   @@index([projectId, createdAt(sort: Desc)])
@@ -378,12 +413,12 @@ model Activity {
 model ActivityChange {
   id         String   @id @default(cuid())
   activityId String
-  entityType String   // 'translation', 'key', etc.
-  entityId   String   // keyId, translationId, etc.
-  keyName    String?  // Denormalized for display without joins
-  language   String?  // For translation changes
-  oldValue   String?  // null for creates
-  newValue   String?  // null for deletes
+  entityType String // 'translation', 'key', etc.
+  entityId   String // keyId, translationId, etc.
+  keyName    String? // Denormalized for display without joins
+  language   String? // For translation changes
+  oldValue   String? // null for creates
+  newValue   String? // null for deletes
   createdAt  DateTime @default(now())
 
   activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
@@ -402,14 +437,14 @@ model ActivityChange {
 model TranslationMemory {
   id             String   @id @default(cuid())
   projectId      String
-  sourceLanguage String   // Default language code (source)
-  targetLanguage String   // Target language code
-  sourceText     String   // Original text (indexed for similarity search)
-  targetText     String   // Translated text
+  sourceLanguage String // Default language code (source)
+  targetLanguage String // Target language code
+  sourceText     String // Original text (indexed for similarity search)
+  targetText     String // Translated text
   usageCount     Int      @default(1) // Times this suggestion was applied
   lastUsedAt     DateTime @default(now())
-  sourceKeyId    String?  // Origin key ID for audit trail
-  sourceBranchId String?  // Origin branch ID
+  sourceKeyId    String? // Origin key ID for audit trail
+  sourceBranchId String? // Origin branch ID
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -435,8 +470,8 @@ model MachineTranslationConfig {
   id        String     @id @default(cuid())
   projectId String
   provider  MTProvider
-  apiKey    String     // AES-256-GCM encrypted API key
-  apiKeyIv  String     // Initialization vector for decryption
+  apiKey    String // AES-256-GCM encrypted API key
+  apiKeyIv  String // Initialization vector for decryption
   isActive  Boolean    @default(true)
   priority  Int        @default(0) // Lower = higher priority for auto-selection
   createdAt DateTime   @default(now())
@@ -457,12 +492,12 @@ model MachineTranslationCache {
   provider       MTProvider
   sourceLanguage String
   targetLanguage String
-  sourceTextHash String     // SHA-256 hash of source text (for indexing)
-  sourceText     String     // Original text
-  translatedText String     // MT result
-  characterCount Int        // For usage tracking
+  sourceTextHash String // SHA-256 hash of source text (for indexing)
+  sourceText     String // Original text
+  translatedText String // MT result
+  characterCount Int // For usage tracking
   createdAt      DateTime   @default(now())
-  expiresAt      DateTime   // 30-day TTL
+  expiresAt      DateTime // 30-day TTL
 
   // One cached result per unique source per language pair per provider
   @@unique([projectId, provider, sourceLanguage, targetLanguage, sourceTextHash])
@@ -475,7 +510,7 @@ model MachineTranslationUsage {
   id             String     @id @default(cuid())
   projectId      String
   provider       MTProvider
-  yearMonth      String     // "2025-01" format for monthly aggregation
+  yearMonth      String // "2025-01" format for monthly aggregation
   characterCount BigInt     @default(0)
   requestCount   Int        @default(0)
   cachedCount    Int        @default(0) // Requests served from cache
@@ -509,20 +544,20 @@ enum PartOfSpeech {
 model GlossaryEntry {
   id             String        @id @default(cuid())
   projectId      String
-  sourceTerm     String        // Term in source language
-  sourceLanguage String        // ISO 639-1 code
-  context        String?       // Usage context description
-  notes          String?       // Additional notes for translators
+  sourceTerm     String // Term in source language
+  sourceLanguage String // ISO 639-1 code
+  context        String? // Usage context description
+  notes          String? // Additional notes for translators
   partOfSpeech   PartOfSpeech?
   caseSensitive  Boolean       @default(false)
-  domain         String?       // Subject domain (legal, medical, tech, etc.)
+  domain         String? // Subject domain (legal, medical, tech, etc.)
   usageCount     Int           @default(0) // Times this term was applied
   lastUsedAt     DateTime?
-  createdBy      String?       // userId who created
+  createdBy      String? // userId who created
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  project      Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
   translations GlossaryTranslation[]
   tags         GlossaryEntryTag[]
 
@@ -536,9 +571,9 @@ model GlossaryEntry {
 model GlossaryTranslation {
   id             String   @id @default(cuid())
   entryId        String
-  targetLanguage String   // ISO 639-1 code
-  targetTerm     String   // Translated term
-  notes          String?  // Language-specific notes
+  targetLanguage String // ISO 639-1 code
+  targetTerm     String // Translated term
+  notes          String? // Language-specific notes
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -554,7 +589,7 @@ model GlossaryTag {
   id        String   @id @default(cuid())
   projectId String
   name      String
-  color     String?  // Hex color for UI display
+  color     String? // Hex color for UI display
   createdAt DateTime @default(now())
 
   project Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -583,7 +618,7 @@ model GlossaryProviderSync {
   id                 String     @id @default(cuid())
   projectId          String
   provider           MTProvider // DEEPL or GOOGLE_TRANSLATE
-  externalGlossaryId String     // Provider's glossary ID
+  externalGlossaryId String // Provider's glossary ID
   sourceLanguage     String
   targetLanguage     String
   entriesCount       Int        @default(0)

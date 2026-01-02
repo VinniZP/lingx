@@ -1,6 +1,6 @@
 # Error Handling
 
-LocaleFlow uses a typed error hierarchy for consistent error handling across the API.
+Lingx uses a typed error hierarchy for consistent error handling across the API.
 
 ## Error Hierarchy
 

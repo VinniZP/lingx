@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@localeflow/sdk-nextjs';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GlossaryEntry, GlossaryTag, PartOfSpeech } from '@/lib/api';
-import type { ProjectLanguage } from '@localeflow/shared';
+import type { ProjectLanguage } from '@lingx/shared';
 import { entryFormSchema, PART_OF_SPEECH_OPTIONS, type EntryFormData } from './constants';
 import { useCallback, useEffect } from 'react';
 
@@ -124,15 +124,15 @@ export function GlossaryEntryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto p-0 gap-0">
         {/* Premium Header with Gradient */}
-        <div className="relative px-7 pt-7 pb-5 border-b border-border/40 bg-gradient-to-br from-primary/[0.04] via-transparent to-transparent">
+        <div className="relative px-7 pt-7 pb-5 border-b border-border/40 bg-linear-to-br from-primary/[0.04] via-transparent to-transparent">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/[0.06] to-transparent rounded-bl-full" />
 
           <div className="relative flex items-start gap-4">
             <div className={cn(
               "size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
               editingEntry
-                ? "bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/20"
-                : "bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20"
+                ? "bg-linear-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-500/20"
+                : "bg-linear-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20"
             )}>
               {editingEntry ? (
                 <Pencil className="size-5 text-amber-500" />
@@ -339,7 +339,7 @@ export function GlossaryEntryDialog({
               control={form.control}
               name="caseSensitive"
               render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-xl border border-border/50 bg-gradient-to-r from-muted/40 via-muted/20 to-transparent p-4">
+                <FormItem className="flex items-center justify-between rounded-xl border border-border/50 bg-linear-to-r from-muted/40 via-muted/20 to-transparent p-4">
                   <div className="flex items-center gap-3">
                     <div className="size-9 rounded-lg bg-muted/60 flex items-center justify-center">
                       <span className="text-sm font-semibold text-muted-foreground">Aa</span>

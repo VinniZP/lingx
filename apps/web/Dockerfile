@@ -25,7 +25,7 @@ ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Build Next.js with standalone output
-RUN pnpm --filter=@localeflow/web build
+RUN pnpm --filter=@lingx/web build
 
 # Stage 2: Production
 FROM node:20-alpine AS runner
