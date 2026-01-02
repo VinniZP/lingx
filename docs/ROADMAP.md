@@ -1,6 +1,6 @@
 # Lingx Roadmap
 
-> **Updated**: 2026-01-02 (Phase 8 complete - Now on Phase 9: AI & Context)
+> **Updated**: 2026-01-02 (Phase 9 in progress - AI Translation & MCP Server complete)
 
 ---
 
@@ -42,6 +42,7 @@
 - [x] ICU syntax validation
 - [x] Branch operations
 - [x] Interactive conflict resolution
+- [x] Key management commands (add, remove, move)
 
 ### Phase 5: Next.js SDK ✅
 - [x] Translation hooks
@@ -129,8 +130,22 @@
 ## Current Development
 
 ### Phase 9: AI & Context 🚧
-- [ ] **AI-powered translation with context** (near-keys, glossary, domain)
-- [ ] **MCP Server** (Lingx as AI tool via Model Context Protocol)
+- [x] **AI-powered translation with context** (near-keys, glossary, domain, TM)
+  - [x] Multi-provider support (OpenAI, Anthropic, Google AI, Mistral) via Vercel AI SDK
+  - [x] Context-aware prompts (glossary terms, TM matches, related keys, project description)
+  - [x] Configurable context settings per project
+  - [x] Translation caching with 30-day TTL
+  - [x] Usage tracking and cost estimation
+  - [x] Background job processing for batch translations
+- [x] **MCP Server** (Lingx as AI tool via Model Context Protocol)
+  - [x] Stdio transport via `lingx mcp` command
+  - [x] Core tools (status, config, pull, push, sync, extract, check, types)
+  - [x] Key management tools (add, remove, move)
+  - [x] Branch operations (list, create, diff, merge)
+  - [x] Search tools (keys, translations, similar)
+  - [x] AI assistance (conflict analysis, key suggestions, quality checks, ICU validation)
+  - [x] Resources (config, translations, keys)
+  - [x] Prompt templates for common workflows
 - [x] **Near-key context detection** (unique feature - source file, component, semantic relationships)
 - [ ] **AI quality estimation** (auto-score translations)
 - [ ] Screenshot context system
@@ -162,8 +177,8 @@
 
 | Priority | Deliverable | Status |
 |----------|-------------|--------|
-| High | AI-powered translation with context | 📋 Planned |
-| High | MCP Server (Model Context Protocol) | 📋 Planned |
+| High | AI-powered translation with context | ✅ Complete |
+| High | MCP Server (Model Context Protocol) | ✅ Complete |
 | High | Near-key context detection | ✅ Complete |
 | Medium | AI quality estimation | 📋 Planned |
 | Medium | Screenshot context system | 📋 Planned |
@@ -177,6 +192,7 @@
 - `docs/STRATEGIC-ANALYSIS.md` - Competitive analysis & feature details
 - `docs/TODO-API-FEATURES.md` - API feature specs
 - `docs/ARCHITECTURE-IMPROVEMENTS.md` - Architecture migration tracking
+- `docs/design/MCP-SERVER.md` - MCP Server design specification
 - `docs/adr/` - Architecture decisions
 - `.claude/skills/target-be-architecture/` - Backend architecture patterns
 - `.claude/skills/target-fe-architecture/` - Frontend architecture patterns

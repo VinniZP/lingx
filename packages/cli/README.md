@@ -12,56 +12,142 @@ pnpm add -g @lingx/cli
 npx @lingx/cli
 ```
 
+## Quick Start
+
+```bash
+# Initialize a new project
+lingx init
+
+# Login with your API key
+lingx auth login
+
+# Pull translations from the platform
+lingx pull
+
+# Generate TypeScript types for type-safe translations
+lingx types
+
+# Push local changes back to the platform
+lingx push
+```
+
 ## Configuration
 
-Create `.lingx.yml` in your project root:
+Create `lingx.config.ts` in your project root (recommended):
+
+```typescript
+import type { LingxConfig } from '@lingx/cli';
+
+const config: LingxConfig = {
+  api: {
+    url: 'http://localhost:3001',
+  },
+  project: 'my-project-slug',
+  defaultSpace: 'frontend',
+  defaultBranch: 'main',
+  format: {
+    type: 'json',
+    nested: true,
+    indentation: 2,
+  },
+  paths: {
+    translations: './locales',
+    source: './src',
+  },
+  pull: {
+    languages: [],
+    filePattern: '{lang}.json',
+  },
+  push: {
+    filePattern: '{lang}.json',
+  },
+  extract: {
+    framework: 'nextjs',
+    patterns: ['./src/**/*.tsx', './src/**/*.ts'],
+    exclude: ['**/*.test.ts', '**/*.spec.ts'],
+    functions: ['t', 'useTranslation'],
+    markerFunctions: ['tKey'],
+  },
+  types: {
+    enabled: true,
+    output: './src/lingx.d.ts',
+    sourceLocale: 'en',
+  },
+};
+
+export default config;
+```
+
+Or use `.lingx.yml` (YAML format):
 
 ```yaml
-# API connection
-apiUrl: http://localhost:3001
+api:
+  url: http://localhost:3001
 
-# Project configuration
 project: my-project-slug
 defaultSpace: frontend
 defaultBranch: main
 
-# File paths
 paths:
   translations: ./src/locales
   source: ./src
 
-# Output format
 format:
-  type: json  # or yaml
+  type: json
   nested: true
   indentation: 2
 
-# Pull settings
 pull:
-  languages: []  # Empty means all languages
-  filePattern: "{lang}.json"
-
-# Push settings
-push:
   languages: []
   filePattern: "{lang}.json"
 
-# Extract settings
+push:
+  filePattern: "{lang}.json"
+
 extract:
-  framework: nextjs  # or angular
+  framework: nextjs
   patterns:
     - "**/*.tsx"
     - "**/*.ts"
   exclude:
     - "**/node_modules/**"
     - "**/*.test.*"
-    - "**/*.spec.*"
   functions:
     - t
     - useTranslation
+
+types:
+  enabled: true
+  output: ./src/lingx.d.ts
+  sourceLocale: en
 ```
 
 ## Commands
+
+### Initialize Project
+
+Create a new Lingx configuration file interactively.
+
+```bash
+# Interactive setup
+lingx init
+
+# Non-interactive with defaults
+lingx init -y
+
+# With options
+lingx init --project=my-app --space=frontend --format=json
+```
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--yes` | `-y` | Skip prompts, use defaults |
+| `--project <slug>` | `-p` | Project slug |
+| `--space <name>` | `-s` | Default space |
+| `--api-url <url>` | | API URL |
+| `--format <type>` | | Translation format: json or yaml |
+| `--framework <name>` | | Framework: nextjs, angular, or none |
 
 ### Authentication
 
@@ -186,7 +272,7 @@ lingx extract --output=extracted-keys.json
 | `--detect-icu` | | Detect ICU MessageFormat variables |
 
 **Supported patterns:**
-- Next.js: `t('key')`, `useTranslation()`, custom functions
+- Next.js: `t('key')`, `useTranslation()`, `tKey('key')` (marker function)
 - Angular: `{{ 'key' | translate }}`, `TranslateService.get('key')`
 
 ### Check Translations
@@ -203,8 +289,11 @@ lingx check --unused
 # Validate ICU MessageFormat syntax
 lingx check --validate-icu
 
+# Run quality checks (placeholders, whitespace)
+lingx check --quality
+
 # All checks at once
-lingx check --missing --unused --validate-icu
+lingx check --missing --unused --validate-icu --quality
 
 # Override configuration
 lingx check --project=my-app --space=frontend --branch=main
@@ -220,12 +309,135 @@ lingx check --project=my-app --space=frontend --branch=main
 | `--missing` | | Show keys in code but not in platform |
 | `--unused` | | Show keys in platform but not in code |
 | `--validate-icu` | | Validate ICU MessageFormat syntax |
+| `--quality` | | Run quality checks on translations |
 
 **Default behavior:** If no check options are specified, `--missing` and `--unused` are run by default.
+
+### Generate TypeScript Types
+
+Generate type definitions for type-safe translations.
+
+```bash
+# Generate types from translation files
+lingx types
+
+# Custom output path
+lingx types --output=./types/translations.d.ts
+
+# Use specific source locale
+lingx types --locale=en
+
+# Watch mode - regenerate on changes
+lingx types --watch
+```
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--output <file>` | `-o` | Output file path (overrides config) |
+| `--locale <code>` | `-l` | Source locale to use (overrides config) |
+| `--watch` | `-w` | Watch for changes and regenerate |
+
+The generated types enable:
+- Autocomplete for all translation keys
+- Compile-time validation of keys
+- ICU parameter type inference
+
+### Key Management
+
+Manage individual translation keys from the command line.
+
+#### Add a Key
+
+```bash
+# Add a new key with a default value
+lingx key add "button.submit" --value="Submit"
+
+# Add with namespace
+lingx key add "submit" --namespace=button --value="Submit"
+
+# Add with language-specific values
+lingx key add "greeting" --en="Hello" --de="Hallo" --fr="Bonjour"
+
+# Add and push to API
+lingx key add "button.cancel" --value="Cancel" --push
+```
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--namespace <ns>` | `-n` | Namespace for the key |
+| `--value <text>` | `-v` | Default value for all languages |
+| `--<lang> <text>` | | Language-specific value (e.g., --en, --de) |
+| `--push` | | Push to remote API |
+| `--project <slug>` | `-p` | Project slug (for --push) |
+| `--space <slug>` | `-s` | Space slug (for --push) |
+| `--branch <name>` | `-b` | Branch name (for --push) |
+
+#### Remove a Key
+
+```bash
+# Remove a key (with confirmation)
+lingx key remove "button.submit"
+
+# Remove with namespace
+lingx key remove "submit" --namespace=button
+
+# Force remove without confirmation
+lingx key remove "old.key" --force
+
+# Remove and delete from API
+lingx key remove "button.submit" --push
+```
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--namespace <ns>` | `-n` | Namespace for the key |
+| `--force` | `-f` | Skip confirmation prompt |
+| `--push` | | Delete from remote API |
+| `--project <slug>` | `-p` | Project slug (for --push) |
+| `--space <slug>` | `-s` | Space slug (for --push) |
+| `--branch <name>` | `-b` | Branch name (for --push) |
+
+#### Move/Rename a Key
+
+```bash
+# Rename a key
+lingx key move "old.key" "new.key"
+
+# Move to a different namespace
+lingx key move "button.submit" "actions:submit"
+
+# Move from namespace to root
+lingx key move "button:submit" "submitButton"
+
+# Move and update API
+lingx key move "old.key" "new.key" --push
+```
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--force` | `-f` | Skip confirmation prompt |
+| `--push` | | Push changes to remote API |
+| `--project <slug>` | `-p` | Project slug (for --push) |
+| `--space <slug>` | `-s` | Space slug (for --push) |
+| `--branch <name>` | `-b` | Branch name (for --push) |
 
 ### Branch Operations
 
 Manage translation branches from the command line.
+
+#### List Branches
+
+```bash
+# List all branches in configured space
+lingx branch list
+
+# Verbose output with key counts
+lingx branch list -v
+```
 
 #### Create Branch
 
@@ -241,16 +453,6 @@ lingx branch create hotfix-typo
 | Option | Description |
 |--------|-------------|
 | `--from <branch>` | Source branch to copy from |
-
-#### List Branches
-
-```bash
-# List all branches in configured space
-lingx branch list
-
-# Verbose output with key counts
-lingx branch list -v
-```
 
 #### Show Diff
 
@@ -286,6 +488,98 @@ lingx branch merge feature-checkout --into=main --dry-run
 | `--into <branch>` | Target branch to merge into |
 | `--interactive` | Resolve conflicts interactively |
 | `--dry-run` | Preview merge without applying |
+
+### Context Sync
+
+Sync translation key context and relationships to the platform.
+
+```bash
+# Sync context from source code
+lingx context
+
+# Dry run (preview what would be synced)
+lingx context --dry-run
+
+# Trigger semantic relationship analysis
+lingx context --semantic
+
+# Set minimum similarity for semantic matches
+lingx context --semantic --min-similarity=0.8
+```
+
+**Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--project <slug>` | `-p` | Project slug |
+| `--space <slug>` | `-s` | Space slug |
+| `--branch <name>` | `-b` | Branch name |
+| `--source <dir>` | `-S` | Source directory |
+| `--dry-run` | | Preview changes without syncing |
+| `--semantic` | | Trigger semantic relationship analysis |
+| `--min-similarity <value>` | | Minimum similarity (0.5-1.0, default: 0.7) |
+
+This command extracts:
+- Source file locations for each key
+- Line numbers where keys are used
+- React component context (if applicable)
+
+### MCP Server (AI Integration)
+
+Start an MCP (Model Context Protocol) server for AI assistant integration.
+
+```bash
+lingx mcp
+```
+
+This starts a server that integrates with AI assistants like Claude, Cursor, and others that support MCP. The server provides tools for:
+
+- **Core Operations**: status, config, pull, push, sync, extract, check, types
+- **Key Management**: add, remove, move keys
+- **Branch Operations**: list, create, diff, merge branches
+- **Search**: search keys by pattern, search translations by value, find similar keys
+- **AI Assistance**: analyze conflicts, suggest key names, check quality issues, validate ICU
+
+#### Claude Desktop Configuration
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "lingx": {
+      "command": "npx",
+      "args": ["@lingx/cli", "mcp"]
+    }
+  }
+}
+```
+
+#### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `lingx_status` | Get current configuration and connection status |
+| `lingx_get_config` | Get the current Lingx configuration |
+| `lingx_pull` | Download translations from platform |
+| `lingx_push` | Upload translations to platform |
+| `lingx_sync` | Bidirectional sync |
+| `lingx_extract` | Extract keys from source code |
+| `lingx_check` | Check translation coverage and quality |
+| `lingx_types` | Generate TypeScript types |
+| `lingx_key_add` | Add a new translation key |
+| `lingx_key_remove` | Remove a translation key |
+| `lingx_key_move` | Move/rename a translation key |
+| `lingx_branch_list` | List branches in a space |
+| `lingx_branch_create` | Create a new branch |
+| `lingx_branch_diff` | Compare two branches |
+| `lingx_branch_merge` | Merge branches |
+| `lingx_search_keys` | Search keys by name pattern |
+| `lingx_search_translations` | Search by translation value |
+| `lingx_find_similar_keys` | Find potentially duplicate keys |
+| `lingx_analyze_conflict` | Get AI-friendly conflict analysis |
+| `lingx_suggest_key_name` | Suggest key names based on value |
+| `lingx_check_quality_issues` | Analyze quality issues with fixes |
+| `lingx_validate_icu` | Validate ICU MessageFormat syntax |
 
 ## Exit Codes
 
@@ -359,7 +653,7 @@ Run `lingx auth login` with your API key. Check that the API key is valid and no
 
 ### "Project not found" error
 
-Verify your `.lingx.yml` project slug matches your project in Lingx.
+Verify your config file project slug matches your project in Lingx.
 
 ### "Space not found" error
 
@@ -381,7 +675,7 @@ Common ICU issues:
 ### Connection refused
 
 1. Check that the Lingx API is running
-2. Verify the `apiUrl` in your config
+2. Verify the `api.url` in your config
 3. Check for firewall or network issues
 
 ### Slow extraction
@@ -390,6 +684,12 @@ For large codebases:
 1. Narrow down `extract.patterns` to specific directories
 2. Add more exclusions to `extract.exclude`
 3. Split extraction by module/feature
+
+### Type generation issues
+
+1. Ensure translation files exist in `paths.translations`
+2. Run `lingx pull` to download translations first
+3. Check `types.sourceLocale` matches an existing language file
 
 ## Environment Variables
 

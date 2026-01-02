@@ -139,7 +139,7 @@
     "classification": "Классификация",
     "partOfSpeech": "Часть речи",
     "selectType": "Выберите тип",
-    "noneSpecified": "I'm ready to help with translation from English to Russian. However, I notice that you've provided related keys and context, but there is no source text to translate in the `<source>` field.\n\nPlease provide the text you'd like me to translate, and I'll return it in the proper format using the glossary terms and style guidelines you've established.",
+    "noneSpecified": "Не указано",
     "usageContext": "Контекст использования",
     "contextPlaceholder": "Приведите пример предложения или опишите, где используется этот термин...",
     "translatorNotes": "Примечания переводчика",

@@ -10,6 +10,7 @@ import { createBranchCommand } from './commands/branch/index.js';
 import { createKeyCommand } from './commands/key/index.js';
 import { createTypesCommand } from './commands/types.js';
 import { createContextCommand } from './commands/context.js';
+import { createMcpCommand } from './commands/mcp.js';
 
 const VERSION = '0.0.0';
 
@@ -33,6 +34,7 @@ export function createCLI(): Command {
   program.addCommand(createKeyCommand());
   program.addCommand(createTypesCommand());
   program.addCommand(createContextCommand());
+  program.addCommand(createMcpCommand());
 
   return program;
 }

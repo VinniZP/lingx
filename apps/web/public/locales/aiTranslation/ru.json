@@ -26,7 +26,7 @@
     "form": {
       "apiKey": "",
       "apiKeyKeepCurrent": "",
-      "apiKeyPlaceholder": "",
+      "apiKeyPlaceholder": "Введите API ключ {provider}",
       "apiKeyUpdatePlaceholder": "",
       "apiKeyHint": {
         "openai": "",
@@ -49,19 +49,19 @@
       "edit": ""
     },
     "removeDialog": {
-      "title": "",
-      "description": ""
+      "title": "Удалить {provider}",
+      "description": "Вы уверены, что хотите удалить {provider}?"
     }
   },
   "toasts": {
     "configSaved": "",
-    "configSavedDescription": "",
+    "configSavedDescription": "{provider} настроен.",
     "configSaveFailed": "",
     "configRemoved": "",
-    "configRemovedDescription": "",
+    "configRemovedDescription": "{provider} удалён.",
     "configRemoveFailed": "",
     "connectionSuccess": "",
-    "connectionSuccessDescription": "",
+    "connectionSuccessDescription": "Успешно подключено к {provider}.",
     "connectionFailed": "",
     "connectionTestFailed": "",
     "contextSaved": "",

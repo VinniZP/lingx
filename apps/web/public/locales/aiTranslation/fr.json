@@ -26,7 +26,7 @@
     "form": {
       "apiKey": "",
       "apiKeyKeepCurrent": "",
-      "apiKeyPlaceholder": "",
+      "apiKeyPlaceholder": "Entrez la clé API {provider}",
       "apiKeyUpdatePlaceholder": "",
       "apiKeyHint": {
         "openai": "",
@@ -49,19 +49,19 @@
       "edit": ""
     },
     "removeDialog": {
-      "title": "",
-      "description": ""
+      "title": "Supprimer {provider}",
+      "description": "Êtes-vous sûr de vouloir supprimer {provider}?"
     }
   },
   "toasts": {
     "configSaved": "",
-    "configSavedDescription": "",
+    "configSavedDescription": "{provider} a été configuré.",
     "configSaveFailed": "",
     "configRemoved": "",
-    "configRemovedDescription": "",
+    "configRemovedDescription": "{provider} a été supprimé.",
     "configRemoveFailed": "",
     "connectionSuccess": "",
-    "connectionSuccessDescription": "",
+    "connectionSuccessDescription": "Connecté avec succès à {provider}.",
     "connectionFailed": "",
     "connectionTestFailed": "",
     "contextSaved": "",

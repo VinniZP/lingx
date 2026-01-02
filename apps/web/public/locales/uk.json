@@ -312,8 +312,8 @@
   },
   "profile": {
     "preferences": {
-      "russian": "I'm ready to translate from English to Ukrainian. However, I notice you've provided related keys for reference and indicated the source as \"Russian\", but you haven't provided the actual text to translate.\n\nPlease provide the English text you'd like me to translate to Ukrainian, and I'll return it in the specified format.",
-      "ukrainian": "I appreciate your setup, but I notice the source language is listed as \"Ukrainian\" while the related keys show English source text that needs translation to Ukrainian.\n\nCould you please clarify by providing:\n1. The English text you need translated to Ukrainian\n2. Confirmation that the direction should be English → Ukrainian\n\nOnce you provide the specific English text to translate, I'll return it in the requested format with the <translation> tags.",
+      "russian": "Російська",
+      "ukrainian": "Українська",
       "activityDigest": "Дайджест активності",
       "theme": "Тема",
       "colorScheme": "Кольорова схема",
