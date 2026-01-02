@@ -3,7 +3,7 @@
 import type { ProjectLanguage } from '@lingx/shared';
 import { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { TrendingUp, Clock, Languages } from 'lucide-react';
+import { TrendingUp, Clock } from 'lucide-react';
 import { useTranslation } from '@lingx/sdk-nextjs';
 
 // Language flags mapping

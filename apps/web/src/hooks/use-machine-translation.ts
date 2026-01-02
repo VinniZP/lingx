@@ -4,9 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   machineTranslationApi,
   type MTProvider,
-  type MTConfig,
-  type MTTranslateResult,
-  type MTUsageStats,
 } from '@/lib/api';
 
 /**

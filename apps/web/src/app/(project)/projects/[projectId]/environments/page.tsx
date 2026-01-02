@@ -303,7 +303,7 @@ export default function EnvironmentsPage({ params }: PageProps) {
                 {t('environments.sdkIntegration.description')}
               </p>
               <div className="bg-muted/50 rounded-lg p-3 font-mono text-xs">
-                <span className="text-muted-foreground">// Initialize SDK</span>
+                <span className="text-muted-foreground">{'// Initialize SDK'}</span>
                 <br />
                 <span className="text-primary">lingx</span>.init(&#123;
                 <br />

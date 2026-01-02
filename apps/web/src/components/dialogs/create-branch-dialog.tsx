@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createBranchSchema, type CreateBranchInput } from '@lingx/shared';
 import { useTranslation } from '@lingx/sdk-nextjs';
@@ -84,8 +84,8 @@ export function CreateBranchDialog({
     },
   });
 
-  const branchName = form.watch('name');
-  const fromBranchId = form.watch('fromBranchId');
+  const branchName = useWatch({ control: form.control, name: 'name' });
+  const fromBranchId = useWatch({ control: form.control, name: 'fromBranchId' });
   const selectedSourceBranch = branches.find((b) => b.id === fromBranchId);
 
   // Reset form and set default source branch when dialog opens

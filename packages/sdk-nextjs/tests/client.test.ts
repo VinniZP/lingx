@@ -174,7 +174,7 @@ describe('LingxClient', () => {
   });
 
   describe('loadNamespace()', () => {
-    it('should load and merge namespace translations', async () => {
+    it('should load and merge namespace translations with prefix', async () => {
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
@@ -182,7 +182,8 @@ describe('LingxClient', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({ auth_login: 'Login' }),
+          // Namespace API returns keys without prefix
+          json: () => Promise.resolve({ login: 'Login' }),
         });
 
       const client = new LingxClient(localConfig);
@@ -190,9 +191,10 @@ describe('LingxClient', () => {
 
       await client.loadNamespace('auth');
 
+      // Client prefixes namespace keys as 'namespace:key'
       expect(client.getTranslations()).toEqual({
         common: 'Common',
-        auth_login: 'Login',
+        'auth:login': 'Login',
       });
     });
   });

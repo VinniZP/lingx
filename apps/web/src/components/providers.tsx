@@ -40,7 +40,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <AuthProvider>
             <LingxProvider
               defaultLanguage="en"
-              staticData={undefined}
+              staticData={{ en }}
               // API fetching (tries first, falls back to localePath)
               apiUrl={API_URL}
               project="lingx"

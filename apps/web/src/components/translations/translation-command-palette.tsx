@@ -112,6 +112,7 @@ export function TranslationCommandPalette({
   // Reset search when dialog closes
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: cleanup on close
       setSearch('');
     }
   }, [open]);

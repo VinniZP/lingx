@@ -58,7 +58,7 @@ export function TranslationEditor({
   const defaultLanguage = languages.find((l) => l.isDefault);
 
   // Handle applying TM match to focused language
-  const handleApplyTMMatch = (targetText: string, _matchId: string) => {
+  const handleApplyTMMatch = (targetText: string) => {
     if (translationKey && focusedLanguage) {
       onTranslationChange(translationKey.id, focusedLanguage, targetText);
     }

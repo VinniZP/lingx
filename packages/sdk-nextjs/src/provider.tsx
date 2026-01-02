@@ -138,7 +138,6 @@ export function LingxProvider({
       staticData: hasStaticData ? initialTranslations : undefined,
     };
     return new LingxClient(clientConfig);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTranslations]);
 
   // Initialize language detector service
@@ -244,7 +243,6 @@ export function LingxProvider({
       }
     }
     // Only run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Language change handler with hybrid loading
@@ -306,9 +304,26 @@ export function LingxProvider({
     (key: string, values?: Record<string, string | number | Date>) => {
       let translation = getNestedValue(translations, key);
 
-      // Fallback to default language if missing and not already on default
+      // Fallback #1: If namespaced key not found, try without namespace
+      if (!translation) {
+        const delimiterIndex = key.indexOf(NS_DELIMITER);
+        if (delimiterIndex !== -1) {
+          const keyWithoutNamespace = key.slice(delimiterIndex + 1);
+          translation = getNestedValue(translations, keyWithoutNamespace);
+        }
+      }
+
+      // Fallback #2: Default language fallback (for non-default language)
       if (!translation && language !== config.defaultLanguage) {
         translation = getNestedValue(fallbackTranslations, key);
+        // Also try without namespace in fallback
+        if (!translation) {
+          const delimiterIndex = key.indexOf(NS_DELIMITER);
+          if (delimiterIndex !== -1) {
+            const keyWithoutNamespace = key.slice(delimiterIndex + 1);
+            translation = getNestedValue(fallbackTranslations, keyWithoutNamespace);
+          }
+        }
       }
 
       // Return key if translation not found in current or fallback

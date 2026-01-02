@@ -27,6 +27,7 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: early validation error
       setState('error');
       setErrorMessage(t('verifyEmail.invalidLink'));
       return;

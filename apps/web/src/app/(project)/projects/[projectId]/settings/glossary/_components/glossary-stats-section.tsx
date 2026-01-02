@@ -10,7 +10,7 @@ import {
   Hash,
   TrendingUp,
 } from 'lucide-react';
-import type { GlossaryStats, GlossaryTag } from '@/lib/api';
+import type { GlossaryStats } from '@/lib/api';
 
 interface GlossaryStatsSectionProps {
   stats: GlossaryStats | undefined;

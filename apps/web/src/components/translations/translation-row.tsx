@@ -51,8 +51,6 @@ export function TranslationRow({
   visibleLanguages,
   getTranslationValue,
   onTranslationChange,
-  onSave,
-  hasUnsavedChanges,
   savingLanguages,
   savedLanguages,
   canApprove = false,
@@ -69,7 +67,6 @@ export function TranslationRow({
 
   // Get visible languages in order
   const visibleLangs = languages.filter((l) => visibleLanguages.has(l.code));
-  const defaultLang = languages.find((l) => l.isDefault);
 
   // Auto-resize textareas
   useEffect(() => {

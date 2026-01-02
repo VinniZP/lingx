@@ -5,13 +5,11 @@ import type { UserProfile } from '@/lib/api';
 
 interface ProfileSummaryWidgetProps {
   profile: UserProfile;
-  joinDate: string;
   memberDuration: string;
 }
 
 export function ProfileSummaryWidget({
   profile,
-  joinDate,
   memberDuration,
 }: ProfileSummaryWidgetProps) {
   const { t } = useTranslation();

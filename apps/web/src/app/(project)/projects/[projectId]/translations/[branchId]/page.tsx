@@ -139,7 +139,6 @@ export default function TranslationsPage({ params }: PageProps) {
     isKeyIdFocused,
   } = useKeyboardNavigation({
     keyCount: keys.length,
-    languageCount: languages.length,
     expandedKeyId,
     onExpandKey: setExpandedKeyId,
     getKeyIdByIndex: useCallback((index: number) => keys[index]?.id, [keys]),
@@ -227,7 +226,7 @@ export default function TranslationsPage({ params }: PageProps) {
     setSearch(keyName);
     setPage(1);
     setExpandedKeyId(null);
-  }, []);
+  }, [setSearch, setPage, setExpandedKeyId]);
 
   // Mobile layout
   if (isMobile) {

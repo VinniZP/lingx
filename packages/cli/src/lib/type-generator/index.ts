@@ -72,11 +72,12 @@ export async function generateTypes(
 
   // Read root locale file for TranslationResources.keys
   const rootFilePath = join(options.translationsPath, fileName);
-  let rootEntries: TranslationEntry[] = [];
 
-  if (existsSync(rootFilePath)) {
-    rootEntries = await readTranslationFile(rootFilePath, options.nested);
+  if (!existsSync(rootFilePath)) {
+    throw new Error(`Source locale file not found: ${rootFilePath}`);
   }
+
+  const rootEntries = await readTranslationFile(rootFilePath, options.nested);
 
   // Scan for namespace subdirectories
   const namespaceEntries: NamespaceEntries[] = [];
