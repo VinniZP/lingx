@@ -34,6 +34,7 @@ import aiTranslationRoutes from './routes/ai-translation.js';
 import glossaryRoutes from './routes/glossary.js';
 import keyContextRoutes from './routes/key-context.js';
 import environmentRoutes from './routes/environments.js';
+import qualityEstimationRoutes from './routes/quality-estimation.js';
 import sdkRoutes from './routes/sdk.js';
 import jobRoutes from './routes/jobs.js';
 import { startWorkers, stopWorkers } from './workers/index.js';
@@ -179,6 +180,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(glossaryRoutes);
   await fastify.register(keyContextRoutes);
   await fastify.register(environmentRoutes);
+  await fastify.register(qualityEstimationRoutes);
   await fastify.register(sdkRoutes);
   await fastify.register(jobRoutes);
 

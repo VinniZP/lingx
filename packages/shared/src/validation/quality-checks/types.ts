@@ -21,7 +21,9 @@ export type QualityCheckType =
   | 'whitespace_tab'
   | 'punctuation_mismatch'
   | 'length_too_long'
-  | 'length_critical';
+  | 'length_critical'
+  | 'icu_syntax' // ICU MessageFormat syntax errors
+  | 'glossary_missing'; // Missing required glossary terms (API-only check)
 
 /**
  * A single quality issue found in a translation

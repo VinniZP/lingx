@@ -10,12 +10,13 @@ import { redis } from '../lib/redis.js';
 import { MTService } from '../services/mt.service.js';
 import { AITranslationService } from '../services/ai-translation.service.js';
 import { TranslationService } from '../services/translation.service.js';
+import { QualityEstimationService } from '../services/quality-estimation.service.js';
 import type { MTProviderType } from '../services/providers/index.js';
 
 /**
  * Job types for MT batch processing
  */
-export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache' | 'bulk-translate-ui';
+export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache' | 'bulk-translate-ui' | 'quality-batch';
 
 /**
  * Job data for MT batch worker
@@ -34,6 +35,9 @@ export interface MTJobData {
   targetLanguages?: string[];
   // For bulk-translate-ui (supports both MT and AI)
   translationProvider?: 'MT' | 'AI';
+  // For quality-batch
+  translationIds?: string[];
+  forceAI?: boolean;
 }
 
 /**
@@ -63,6 +67,7 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
   const mtService = new MTService(prisma);
   const aiService = new AITranslationService(prisma);
   const translationService = new TranslationService(prisma);
+  const qualityService = new QualityEstimationService(prisma, aiService);
 
   const worker = new Worker<MTJobData>(
     'mt-batch',
@@ -84,6 +89,10 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
 
         case 'bulk-translate-ui':
           await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job);
+          break;
+
+        case 'quality-batch':
+          await handleQualityBatch(prisma, qualityService, job);
           break;
 
         default:
@@ -516,6 +525,49 @@ async function handleBulkTranslateUI(
   );
 
   return { translated, skipped, failed, errors };
+}
+
+/**
+ * Handle quality batch evaluation job
+ *
+ * Processes translations in batches to evaluate quality scores
+ */
+async function handleQualityBatch(
+  _prisma: PrismaClient,
+  qualityService: QualityEstimationService,
+  job: Job<MTJobData>
+): Promise<void> {
+  const { translationIds, forceAI } = job.data;
+
+  if (!translationIds || translationIds.length === 0) {
+    console.log('[MTWorker] Quality batch: no translation IDs provided');
+    return;
+  }
+
+  let processed = 0;
+  const total = translationIds.length;
+  const batchSize = 20;
+
+  console.log(`[MTWorker] Starting quality batch for ${total} translations`);
+
+  for (let i = 0; i < translationIds.length; i += batchSize) {
+    const batch = translationIds.slice(i, i + batchSize);
+
+    await Promise.all(
+      batch.map((id) =>
+        qualityService
+          .evaluate(id, { forceAI })
+          .catch((err) => {
+            console.error(`[MTWorker] Failed to evaluate ${id}:`, err.message);
+          })
+      )
+    );
+
+    processed += batch.length;
+    await job.updateProgress({ processed, total });
+  }
+
+  console.log(`[MTWorker] Quality batch complete: ${processed}/${total} translations evaluated`);
 }
 
 /**
