@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "Localeflow API Starting..."
+echo "Lingx API Starting..."
 echo "Running database migrations..."
 
 # Run Prisma migrations
