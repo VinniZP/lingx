@@ -65,12 +65,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
     .find((b) => b.isDefault);
 
   // All branches for merge dialog
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- Optional chaining in deps is intentional
   const allBranches = useMemo(() => {
     if (!tree?.spaces) return [];
     return tree.spaces.flatMap((space) => space.branches);
   }, [tree?.spaces]);
 
   // Calculate overall completion percentage
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- Optional chaining in deps is intentional
   const completionPercentage = useMemo(() => {
     if (!stats?.translationsByLanguage) return 0;
     const languages = Object.values(stats.translationsByLanguage);

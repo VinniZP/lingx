@@ -18,6 +18,20 @@ import * as React from 'react'
 
 // Import components to test
 import { AppSidebar, SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/layout/app-sidebar'
+import { LingxProvider } from '@lingx/sdk-nextjs'
+
+// Static translations for tests
+const staticTranslations = {
+  'sidebar.brand': 'Lingx',
+  'sidebar.tagline': 'Translation Management',
+  'sidebar.dashboard': 'Dashboard',
+  'sidebar.projects': 'Projects',
+  'sidebar.settings': 'Settings',
+  'sidebar.language': 'Language',
+  'sidebar.userFallback': 'User',
+  'sidebar.apiKeys': 'API Keys',
+  'sidebar.signOut': 'Sign out',
+}
 
 // =============================================================================
 // Test Utilities
@@ -95,9 +109,11 @@ function TestWrapper({
   defaultOpen?: boolean
 }) {
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      {children}
-    </SidebarProvider>
+    <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
+      <SidebarProvider defaultOpen={defaultOpen}>
+        {children}
+      </SidebarProvider>
+    </LingxProvider>
   )
 }
 
@@ -336,15 +352,17 @@ describe('UI Responsive Integration Tests', () => {
 
       // Act: Render the component with defaultOpen=false to simulate restored state
       render(
-        <SidebarProvider defaultOpen={false}>
-          <AppSidebar user={mockUser} pathname="/dashboard" onLogout={mockLogout} />
-          <SidebarInset>
-            <header className="hidden h-16 px-6 md:flex items-center" data-testid="desktop-header">
-              <SidebarTrigger className="size-8" data-testid="desktop-sidebar-trigger" />
-            </header>
-            <main data-testid="main-content">Content</main>
-          </SidebarInset>
-        </SidebarProvider>
+        <LingxProvider defaultLanguage="en" staticData={staticTranslations}>
+          <SidebarProvider defaultOpen={false}>
+            <AppSidebar user={mockUser} pathname="/dashboard" onLogout={mockLogout} />
+            <SidebarInset>
+              <header className="hidden h-16 px-6 md:flex items-center" data-testid="desktop-header">
+                <SidebarTrigger className="size-8" data-testid="desktop-sidebar-trigger" />
+              </header>
+              <main data-testid="main-content">Content</main>
+            </SidebarInset>
+          </SidebarProvider>
+        </LingxProvider>
       )
 
       // Assert: Sidebar should be in collapsed state (icons only, no text labels visible)

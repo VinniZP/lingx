@@ -1,7 +1,6 @@
 'use client';
 
 import { GitBranch, Users, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface BranchHeaderProps {

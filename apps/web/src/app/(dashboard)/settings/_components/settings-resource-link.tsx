@@ -1,7 +1,6 @@
 'use client';
 
 import { ExternalLink, BookOpen } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 /**
  * SettingsResourceLink - External documentation link with premium styling

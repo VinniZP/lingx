@@ -1,6 +1,7 @@
 /**
- * Namespace delimiter - Unit Separator (U+001F)
+ * Namespace delimiter - colon character
  * Used to separate namespace from key in translation lookups.
- * This matches the delimiter used by the API.
+ * This is the user-facing format (matching locale files and CLI extraction output).
+ * Note: The API uses \u001F internally, but SDK uses : for client-side keys.
  */
-export const NS_DELIMITER = '\u001F';
+export const NS_DELIMITER = ':';

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Languages, Globe, GitBranch, Users, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { useTranslation, tKey, type TranslationKey } from '@lingx/sdk-nextjs';
+import { useTranslation, tKey } from '@lingx/sdk-nextjs';
 
 export default function AuthLayout({
   children,
@@ -51,7 +51,8 @@ export default function AuthLayout({
       return () => clearTimeout(timer);
     }
 
-    // Route change - reset and retrigger
+    // Route change - reset and retrigger animation
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: animation reset requires synchronous state update
     setFormMounted(false);
     const timer = setTimeout(() => setFormMounted(true), 50);
     return () => clearTimeout(timer);

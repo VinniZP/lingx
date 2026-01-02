@@ -49,3 +49,12 @@ const activityIcons: Record<ActivityType, LucideIcon> = {
 export function getActivityIcon(type: ActivityType | string): LucideIcon {
   return activityIcons[type as ActivityType] || Activity;
 }
+
+/**
+ * ActivityIcon - renders the activity icon directly without creating component during render
+ * Use this instead of getActivityIcon() to avoid React Compiler warnings
+ */
+export function ActivityIcon({ type, className }: { type: ActivityType | string; className?: string }) {
+  const Icon = activityIcons[type as ActivityType] || Activity;
+  return <Icon className={className} />;
+}

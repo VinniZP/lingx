@@ -66,9 +66,15 @@ export function useTranslationsPageData({
     queryFn: () => translationApi.getNamespaces(branchId),
   });
 
-  // Derived data
-  const languages: ProjectLanguage[] = project?.languages || [];
-  const keys: TranslationKey[] = keysData?.keys || [];
+  // Derived data - memoized to prevent new references on each render
+  const languages: ProjectLanguage[] = useMemo(
+    () => project?.languages || [],
+    [project?.languages]
+  );
+  const keys: TranslationKey[] = useMemo(
+    () => keysData?.keys || [],
+    [keysData?.keys]
+  );
   const total = keysData?.total ?? 0;
   const totalPages = Math.ceil(total / 50);
 

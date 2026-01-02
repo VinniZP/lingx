@@ -26,8 +26,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Download,
-  Shield,
-  Fingerprint,
   ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

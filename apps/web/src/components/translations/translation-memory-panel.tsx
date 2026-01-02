@@ -46,6 +46,7 @@ export function TranslationMemoryPanel({
 
   // Reset MT result when source text changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: reset on dependency change
     setMtResult(null);
     setMtApplied(false);
   }, [debouncedSourceText, targetLanguage]);

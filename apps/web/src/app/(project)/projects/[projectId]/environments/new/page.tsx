@@ -4,7 +4,7 @@ import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEnvironmentSchema, type CreateEnvironmentInput } from '@lingx/shared';
 import { useTranslation } from '@lingx/sdk-nextjs';
@@ -153,10 +153,10 @@ export default function NewEnvironmentPage({ params }: PageProps) {
     createMutation.mutate(data);
   };
 
-  const selectedBranchId = form.watch('branchId');
+  const selectedBranchId = useWatch({ control: form.control, name: 'branchId' });
   const selectedBranch = allBranches?.find((b) => b.id === selectedBranchId);
-  const watchedName = form.watch('name');
-  const watchedSlug = form.watch('slug');
+  const watchedName = useWatch({ control: form.control, name: 'name' });
+  const watchedSlug = useWatch({ control: form.control, name: 'slug' });
 
   return (
     <div className="space-y-8">

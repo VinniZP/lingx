@@ -58,14 +58,6 @@ export default function ProfileSettingsPage() {
     return null;
   }
 
-  const joinDate = profile.createdAt
-    ? new Date(profile.createdAt).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : 'Recently';
-
   const memberDuration = profile.createdAt
     ? formatRelativeTime(new Date(profile.createdAt))
     : 'Just joined';
@@ -91,7 +83,6 @@ export default function ProfileSettingsPage() {
         widget={
           <ProfileSummaryWidget
             profile={profile}
-            joinDate={joinDate}
             memberDuration={memberDuration}
           />
         }

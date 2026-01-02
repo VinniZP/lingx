@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createProjectSchema, type CreateProjectInput } from '@lingx/shared';
 import { projectApi, ApiError } from '@/lib/api';
@@ -50,8 +50,8 @@ export default function NewProjectPage() {
     },
   });
 
-  const selectedLanguages = form.watch('languageCodes');
-  const defaultLanguage = form.watch('defaultLanguage');
+  const selectedLanguages = useWatch({ control: form.control, name: 'languageCodes' });
+  const defaultLanguage = useWatch({ control: form.control, name: 'defaultLanguage' });
 
   const createMutation = useMutation({
     mutationFn: (data: CreateProjectInput) => projectApi.create(data),

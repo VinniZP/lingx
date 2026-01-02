@@ -4,17 +4,11 @@ import { useState, useCallback, useEffect } from 'react';
 
 interface UseKeyboardNavigationOptions {
   keyCount: number;
-  languageCount: number;
   expandedKeyId: string | null;
   onExpandKey: (keyId: string | null) => void;
   getKeyIdByIndex: (index: number) => string | undefined;
   onOpenCommandPalette?: () => void;
   enabled?: boolean;
-}
-
-interface KeyboardNavigationState {
-  focusedKeyIndex: number | null;
-  focusedLanguage: string | null;
 }
 
 /**
@@ -28,7 +22,6 @@ interface KeyboardNavigationState {
  */
 export function useKeyboardNavigation({
   keyCount,
-  languageCount,
   expandedKeyId,
   onExpandKey,
   getKeyIdByIndex,
@@ -180,6 +173,7 @@ export function useKeyboardNavigation({
       // Find the index of the expanded key
       for (let i = 0; i < keyCount; i++) {
         if (getKeyIdByIndex(i) === expandedKeyId) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync state on dependency change
           setFocusedKeyIndex(i);
           break;
         }

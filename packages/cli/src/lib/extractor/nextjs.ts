@@ -26,7 +26,7 @@ import type {
   ComponentContext,
   ComponentType,
 } from './index.js';
-import { combineKey } from '@lingx/shared';
+import { toUserKey } from '@lingx/shared';
 import type { File } from '@babel/types';
 
 // Handle ESM/CJS interop - Babel exports default differently
@@ -265,8 +265,8 @@ export class NextjsExtractor implements Extractor {
                 }
               }
 
-              // Combine namespace + key using delimiter
-              const fullKey = combineKey(markerNamespace ?? null, keyValue);
+              // Combine namespace + key using user-facing delimiter
+              const fullKey = toUserKey(markerNamespace ?? null, keyValue);
 
               keys.push({
                 key: fullKey,
@@ -306,7 +306,7 @@ export class NextjsExtractor implements Extractor {
           ) {
             const keyValue = extractKeyFromArgs(path.node.arguments);
             if (keyValue) {
-              const fullKey = combineKey(currentNamespace ?? null, keyValue);
+              const fullKey = toUserKey(currentNamespace ?? null, keyValue);
               keys.push({
                 key: fullKey,
                 source: 'function',

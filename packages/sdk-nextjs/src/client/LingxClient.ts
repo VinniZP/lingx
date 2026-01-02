@@ -109,7 +109,7 @@ export class LingxClient {
    */
   private async withRetry<T>(
     operation: () => Promise<T>,
-    context: string
+    _context: string
   ): Promise<T> {
     const maxAttempts = this.config.retry?.maxAttempts ?? 3;
     const baseDelay = this.config.retry?.baseDelay ?? 1000;
@@ -232,7 +232,7 @@ export class LingxClient {
   private async doLoadTranslations(
     language: string,
     namespace: string | undefined,
-    cacheKey: string
+    _cacheKey: string
   ): Promise<TranslationBundle> {
     let translations: TranslationBundle;
 

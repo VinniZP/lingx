@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useRef, useEffect, useCallback, memo } from 'react';
 import type { ProjectLanguage } from '@lingx/shared';
 import { runQualityChecks } from '@lingx/shared';
 import { TranslationKey, type ApprovalStatus } from '@/lib/api';

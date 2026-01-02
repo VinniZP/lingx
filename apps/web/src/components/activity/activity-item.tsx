@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
 import type { Activity } from '@lingx/shared';
-import { getActivityIcon } from './activity-icon';
+import { ActivityIcon } from './activity-icon';
 import { getActivityDescription, formatRelativeTime, translateKey } from './activity-description';
 import { ActivityPreview } from './activity-preview';
 import { ActivityChangesModal } from './activity-changes-modal';
@@ -47,7 +47,6 @@ export function ActivityItem({
 }: ActivityItemProps) {
   const { t, td } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
-  const Icon = getActivityIcon(activity.type);
 
   const hasPreview =
     (activity.metadata?.preview && activity.metadata.preview.length > 0) ||
@@ -65,7 +64,7 @@ export function ActivityItem({
             )}
           >
             <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-              <Icon className="size-4 text-muted-foreground" />
+              <ActivityIcon type={activity.type} className="size-4 text-muted-foreground" />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -158,11 +157,10 @@ export function ActivityItemCompact({
   className?: string;
 }) {
   const { td } = useTranslation();
-  const Icon = getActivityIcon(activity.type);
 
   return (
     <div className={cn('flex items-center gap-2 text-sm', className)}>
-      <Icon className="size-4 text-muted-foreground shrink-0" />
+      <ActivityIcon type={activity.type} className="size-4 text-muted-foreground shrink-0" />
       <span className="truncate">{translateKey(td, getActivityDescription(activity))}</span>
       <span className="text-muted-foreground text-xs shrink-0">
         {translateKey(td, formatRelativeTime(activity.createdAt))}

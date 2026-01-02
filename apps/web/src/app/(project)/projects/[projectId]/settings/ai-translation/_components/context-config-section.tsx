@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tKey, useTranslation } from '@lingx/sdk-nextjs';
 import { toast } from 'sonner';
@@ -87,6 +87,12 @@ export function ContextConfigSection({ projectId }: ContextConfigSectionProps) {
     }
   }, [contextConfig, form]);
 
+  // Watch all source enable states at once for React Compiler compatibility
+  const watchedSourceStates = useWatch({
+    control: form.control,
+    name: ['includeGlossary', 'includeTM', 'includeRelatedKeys'] as const,
+  });
+
   const handleSave = async (data: ContextConfigFormData) => {
     try {
       await updateMutation.mutateAsync(data);
@@ -126,7 +132,7 @@ export function ContextConfigSection({ projectId }: ContextConfigSectionProps) {
           <div className="p-6 space-y-6">
             {/* Context Sources Grid */}
             <div className="grid gap-4">
-              {CONTEXT_SOURCES.map((source) => (
+              {CONTEXT_SOURCES.map((source, sourceIndex) => (
                 <div key={source.name} className="rounded-xl border border-border/60 bg-background/30 overflow-hidden">
                   <FormField
                     control={form.control}
@@ -155,7 +161,7 @@ export function ContextConfigSection({ projectId }: ContextConfigSectionProps) {
                   />
 
                   {/* Expanded settings when enabled */}
-                  {form.watch(source.name) && (
+                  {watchedSourceStates[sourceIndex] && (
                     <div className="px-4 pb-4 pt-0 ml-12 space-y-3">
                       <FormField
                         control={form.control}

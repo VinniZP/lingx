@@ -35,6 +35,7 @@ export function MergeBranchButton({
     enabled: open && !!spaceId,
   });
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- Optional chaining in deps is intentional
   const allBranches: ProjectTreeBranch[] = useMemo(() => {
     if (!branchesData?.branches) return [];
     return branchesData.branches.map((b) => ({
@@ -45,9 +46,6 @@ export function MergeBranchButton({
       keyCount: 0,
     }));
   }, [branchesData?.branches]);
-
-  // Need at least 2 branches to merge
-  const canMerge = allBranches.length >= 2;
 
   return (
     <>

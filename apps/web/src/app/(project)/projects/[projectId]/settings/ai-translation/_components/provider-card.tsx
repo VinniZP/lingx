@@ -47,7 +47,7 @@ import {
 } from '@/hooks/use-ai-translation';
 import type { AIProvider, AIConfig } from '@/lib/api';
 import { providerConfigSchema, type ProviderConfigFormData } from './schemas';
-import { getProviderLogo, getProviderColor } from './provider-logos';
+import { ProviderLogoIcon, getProviderColor } from './provider-logos';
 
 interface ProviderCardProps {
   projectId: string;
@@ -172,7 +172,6 @@ export function ProviderCard({ projectId, provider, config, onSave }: ProviderCa
     }
   };
 
-  const Logo = getProviderLogo(provider);
   const providerName = getAIProviderDisplayName(provider);
   const colorClasses = getProviderColor(provider);
 
@@ -182,7 +181,7 @@ export function ProviderCard({ projectId, provider, config, onSave }: ProviderCa
       <div className="p-5 border-b border-border/40">
         <div className="flex items-center gap-4">
           <div className={cn('size-12 rounded-xl bg-linear-to-br border flex items-center justify-center', colorClasses)}>
-            <Logo className="size-6" />
+            <ProviderLogoIcon provider={provider} className="size-6" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">

@@ -98,7 +98,7 @@ export default function RegisterPage() {
                         placeholder={t('auth.fullNamePlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('name')}
-                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
                         className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
                         autoComplete="name"
                       />
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                         placeholder={t('auth.emailPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('email')}
-                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
                         className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
                         autoComplete="email"
                       />
@@ -158,7 +158,7 @@ export default function RegisterPage() {
                         placeholder={t('auth.createPassword')}
                         {...field}
                         onFocus={() => setFocusedField('password')}
-                        onBlur={(e) => { field.onBlur(); setFocusedField(null); }}
+                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
                         className="h-12 w-full pl-12 pr-12 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
                         autoComplete="new-password"
                       />
