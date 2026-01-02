@@ -4,7 +4,25 @@
   "sections": {
     "providers": "AI Providers",
     "contextSettings": "Context Settings",
+    "qualityEvaluation": "Quality Evaluation",
     "usage": "Usage"
+  },
+  "quality": {
+    "title": "Quality Evaluation",
+    "description": "Configure AI-powered translation quality scoring",
+    "enable": "Enable AI Quality Evaluation",
+    "enableDescription": "Use AI to analyze translation accuracy and style",
+    "provider": "AI Provider",
+    "selectProvider": "Select a provider",
+    "providerDescription": "Choose which enabled AI provider to use for quality evaluation",
+    "model": "Model",
+    "selectModel": "Select a model",
+    "modelDescription": "Choose the model for quality analysis",
+    "noProvidersWarning": "No AI providers configured. Enable at least one provider above to use AI quality evaluation.",
+    "configuredWith": "Configured",
+    "save": "Save",
+    "saved": "Quality settings saved",
+    "saveFailed": "Failed to save quality settings"
   },
   "provider": {
     "status": {

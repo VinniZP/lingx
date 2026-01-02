@@ -4,7 +4,25 @@
   "sections": {
     "providers": "",
     "contextSettings": "",
+    "qualityEvaluation": "Qualitätsbewertung",
     "usage": ""
+  },
+  "quality": {
+    "title": "Qualitätsbewertung",
+    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
+    "enable": "AI-Qualitätsbewertung aktivieren",
+    "enableDescription": "AI zur Analyse von Übersetzungsgenauigkeit und -stil verwenden",
+    "provider": "AI-Anbieter",
+    "selectProvider": "Anbieter auswählen",
+    "providerDescription": "Wählen Sie den aktivierten AI-Anbieter für die Qualitätsbewertung",
+    "model": "Modell",
+    "selectModel": "Modell auswählen",
+    "modelDescription": "Wählen Sie das Modell für die Qualitätsanalyse",
+    "noProvidersWarning": "Keine AI-Anbieter konfiguriert. Aktivieren Sie mindestens einen Anbieter oben.",
+    "configuredWith": "Konfiguriert",
+    "save": "Speichern",
+    "saved": "Qualitätseinstellungen gespeichert",
+    "saveFailed": "Qualitätseinstellungen konnten nicht gespeichert werden"
   },
   "provider": {
     "status": {

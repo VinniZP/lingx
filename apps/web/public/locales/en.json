@@ -1117,6 +1117,11 @@
         "model": "AI Model",
         "modelPlaceholder": "e.g., claude-sonnet-4-5",
         "modelDescription": "Specific model to use for evaluation"
+      },
+      "loading": "Loading quality settings",
+      "aiProviderLink": {
+        "title": "AI Provider Settings",
+        "description": "Configure which AI provider to use for quality evaluation"
       }
     }
   },

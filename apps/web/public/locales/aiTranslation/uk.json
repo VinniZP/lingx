@@ -4,7 +4,25 @@
   "sections": {
     "providers": "",
     "contextSettings": "",
+    "qualityEvaluation": "Оцінка якості",
     "usage": ""
+  },
+  "quality": {
+    "title": "Оцінка якості",
+    "description": "Налаштуйте AI-оцінку якості перекладів",
+    "enable": "Увімкнути AI оцінку якості",
+    "enableDescription": "Використовувати AI для аналізу точності та стилю перекладу",
+    "provider": "AI провайдер",
+    "selectProvider": "Оберіть провайдера",
+    "providerDescription": "Оберіть увімкнений AI провайдер для оцінки якості",
+    "model": "Модель",
+    "selectModel": "Оберіть модель",
+    "modelDescription": "Оберіть модель для аналізу якості",
+    "noProvidersWarning": "AI провайдери не налаштовані. Увімкніть хоча б один провайдер вище.",
+    "configuredWith": "Налаштовано",
+    "save": "Зберегти",
+    "saved": "Налаштування якості збережено",
+    "saveFailed": "Не вдалося зберегти налаштування якості"
   },
   "provider": {
     "status": {

@@ -2,9 +2,9 @@
 
 import { use } from 'react';
 import { useTranslation } from '@lingx/sdk-nextjs';
-import { Sparkles, Zap, Brain, BarChart3 } from 'lucide-react';
+import { Sparkles, Zap, Brain, BarChart3, Gauge } from 'lucide-react';
 import { useAIConfigs } from '@/hooks/use-ai-translation';
-import { ProviderCard, ContextConfigSection, UsageSection } from './_components';
+import { ProviderCard, ContextConfigSection, UsageSection, QualityEvaluationSection } from './_components';
 import {LoadingPulse} from "@/components/namespace-loader";
 
 export default function AITranslationSettingsPage({
@@ -91,6 +91,17 @@ export default function AITranslationSettingsPage({
           </h3>
         </div>
         <ContextConfigSection projectId={projectId} />
+      </section>
+
+      {/* Quality Evaluation */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Gauge className="size-4 text-muted-foreground" />
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            {t('sections.qualityEvaluation')}
+          </h3>
+        </div>
+        <QualityEvaluationSection projectId={projectId} />
       </section>
 
       {/* Usage Statistics */}

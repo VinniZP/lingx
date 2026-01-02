@@ -4,7 +4,25 @@
   "sections": {
     "providers": "",
     "contextSettings": "",
+    "qualityEvaluation": "Évaluation de la qualité",
     "usage": ""
+  },
+  "quality": {
+    "title": "Évaluation de la qualité",
+    "description": "Configurez l'évaluation de la qualité des traductions par IA",
+    "enable": "Activer l'évaluation de la qualité par IA",
+    "enableDescription": "Utiliser l'IA pour analyser la précision et le style des traductions",
+    "provider": "Fournisseur IA",
+    "selectProvider": "Sélectionner un fournisseur",
+    "providerDescription": "Choisissez quel fournisseur IA activé utiliser pour l'évaluation de la qualité",
+    "model": "Modèle",
+    "selectModel": "Sélectionner un modèle",
+    "modelDescription": "Choisissez le modèle pour l'analyse de la qualité",
+    "noProvidersWarning": "Aucun fournisseur IA configuré. Activez au moins un fournisseur ci-dessus.",
+    "configuredWith": "Configuré",
+    "save": "Enregistrer",
+    "saved": "Paramètres de qualité enregistrés",
+    "saveFailed": "Échec de l'enregistrement des paramètres de qualité"
   },
   "provider": {
     "status": {
