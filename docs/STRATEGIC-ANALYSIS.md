@@ -69,7 +69,7 @@ This document provides a comprehensive analysis of Lingx's current capabilities,
 | Glossary/termbase | ❌ | ⚠️ Planned | ✅ | ❌ | ✅ |
 | Quality checks | ⚠️ ICU only | ✅ | ✅ | ❌ | ✅ |
 | Git integration | ❌ | ✅ | ✅ Native | ❌ | ✅ |
-| Import/export formats | ⚠️ JSON/YAML | ✅ Many | ✅ Many | ✅ Many |✅ Many |
+| Import/export formats | ⚠️ JSON/YAML | ✅ Many | ✅ Many | ✅ Many | ✅ Many |
 | Real-time collab | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Webhooks | ❌ | ✅ | ✅ | ❌ | ✅ |
 | Self-hosted | ✅ | ✅ | ✅ | ✅ | ❌ |

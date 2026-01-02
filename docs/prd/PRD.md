@@ -751,9 +751,6 @@ erDiagram
 
 ### A. References
 
-- [OVERVIEW.md](/Users/nick/projects/own/tolgee-clone/docs/OVERVIEW.md) - Product vision and feature overview
-- [SPECIFICATION.md](/Users/nick/projects/own/tolgee-clone/docs/SPECIFICATION.md) - Technical specifications
-- [Tolgee Platform](https://github.com/tolgee/tolgee-platform) - Reference implementation
 - [Translation Management Systems Market Report](https://www.marketsandmarkets.com/Market-Reports/translation-management-systems-market-62967239.html) - Market analysis
 - [Localization as Code](https://phrase.com/blog/posts/localization-as-code-composable-workflow/) - Industry trend
 
