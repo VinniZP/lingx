@@ -25,6 +25,7 @@ import { KeyContextService } from './key-context.service.js';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, type LanguageModel } from 'ai';
+import { z } from 'zod';
 import { createDecipheriv, createHash } from 'crypto';
 
 /**
@@ -126,8 +127,100 @@ Return ONLY valid JSON in this exact format:
 
 If no issues found, return empty issues array: {"accuracy":N,"fluency":N,"terminology":N,"issues":[]}`;
 
-/** Max retries for invalid JSON responses */
+/** Max retries for invalid JSON responses (single-language) */
 const MAX_RETRIES = 2;
+
+// ============================================
+// MULTI-LANGUAGE BATCH EVALUATION
+// ============================================
+
+/** Conversation retry settings for multi-language evaluation */
+const MAX_TURNS_PER_CONVERSATION = 7;
+const MAX_FRESH_STARTS = 3;
+
+/**
+ * Zod schema for a single language evaluation
+ */
+const languageEvaluationSchema = z.object({
+  accuracy: z.number().min(0).max(100),
+  fluency: z.number().min(0).max(100),
+  terminology: z.number().min(0).max(100),
+  issues: z.array(
+    z.object({
+      type: z.enum(['accuracy', 'fluency', 'terminology']),
+      severity: z.enum(['critical', 'major', 'minor']),
+      message: z.string(),
+    })
+  ).default([]),
+});
+
+// Type is inferred from schema where needed
+
+/**
+ * Create dynamic Zod schema for multi-language response
+ */
+function createMultiLanguageSchema(languages: string[]) {
+  return z.object({
+    evaluations: z.object(
+      Object.fromEntries(languages.map(lang => [lang, languageEvaluationSchema]))
+    ) as z.ZodObject<Record<string, typeof languageEvaluationSchema>>,
+  });
+}
+
+/**
+ * Multi-language MQM system prompt
+ * Emphasizes consistent scoring across languages
+ */
+const MQM_MULTI_LANGUAGE_SYSTEM_PROMPT = `You are an MQM (Multidimensional Quality Metrics) translation quality evaluator.
+
+CRITICAL: You are evaluating ALL translations for a single key. Apply CONSISTENT scoring across languages:
+- Same issues MUST have the same severity in all languages
+- Compare translations relative to each other for fair calibration
+- Do not be harsh on one language and lenient on another
+
+Score each dimension 0-100:
+
+1. ACCURACY: Does the translation preserve the original meaning?
+   - 100: Perfect semantic fidelity
+   - 80-99: Minor omissions that don't affect meaning
+   - 50-79: Some meaning lost
+   - 0-49: Significant errors (wrong meaning, AI hallucination, explanation instead of translation)
+
+2. FLUENCY: Does it read naturally in the target language?
+   - 100: Native-level, perfect grammar
+   - 80-99: Minor issues, still natural
+   - 50-79: Awkward phrasing
+   - 0-49: Hard to understand
+
+3. TERMINOLOGY: Are domain terms translated correctly?
+   - 100: All terms correct
+   - 80-99: Minor inconsistencies
+   - 50-79: Some wrong terms
+   - 0-49: Major term errors
+
+IMPORTANT: If any translation looks like an AI response/explanation rather than a translation (contains questions, clarification requests, or is much longer than expected), score its ACCURACY as 0.
+
+Return ONLY valid JSON in this EXACT format:
+{
+  "evaluations": {
+    "LANG_CODE": {
+      "accuracy": N,
+      "fluency": N,
+      "terminology": N,
+      "issues": [
+        { "type": "accuracy", "severity": "major", "message": "Description of issue" }
+      ]
+    }
+  }
+}
+
+ISSUE OBJECT FORMAT (MUST follow exactly):
+- type: ONLY "accuracy", "fluency", or "terminology" (lowercase, no other values)
+- severity: ONLY "critical", "major", or "minor" (lowercase, no other values)
+- message: string describing the specific issue
+
+If no issues for a language, use empty array: "issues": []
+Each language code must match exactly what was provided in the request.`;;
 
 /**
  * Quality Estimation Service
@@ -413,6 +506,242 @@ export class QualityEstimationService {
    */
   async validateICUSyntax(text: string): Promise<{ valid: boolean; error?: string }> {
     return validateICUSyntaxAsync(text);
+  }
+
+  // ============================================
+  // MULTI-LANGUAGE BATCH EVALUATION (PUBLIC)
+  // ============================================
+
+  /**
+   * Evaluate ALL languages for a single key in ONE AI call
+   *
+   * Benefits:
+   * - Consistent scoring across languages (same issue = same severity)
+   * - 5x fewer API calls (for 5 languages)
+   * - Better context with related keys in all languages
+   *
+   * @param keyId - Translation key ID
+   * @param keyName - Key name for context
+   * @param translations - All translations for this key
+   * @param sourceText - Source text
+   * @param sourceLocale - Source language code
+   * @param projectId - Project ID for config lookup
+   * @param heuristicResults - Map of language -> heuristic results
+   * @returns Map of language -> QualityScore
+   */
+  async evaluateKeyAllLanguages(
+    keyId: string,
+    keyName: string,
+    translations: Array<{ id: string; language: string; value: string }>,
+    sourceText: string,
+    sourceLocale: string,
+    projectId: string,
+    heuristicResults: Map<string, { score: number; issues: QualityIssue[] }>
+  ): Promise<Map<string, QualityScore>> {
+    const results = new Map<string, QualityScore>();
+    const languages = translations.map(t => t.language);
+
+    // Get config
+    const config = await this.getConfig(projectId);
+    const aiAvailable = config.aiEvaluationEnabled && config.aiEvaluationProvider && config.aiEvaluationModel;
+
+    // If AI not available, return heuristic results for all
+    if (!aiAvailable) {
+      console.log(`[Quality] AI not configured, using heuristics for key ${keyName}`);
+      for (const t of translations) {
+        const heuristic = heuristicResults.get(t.language) || { score: 100, issues: [] };
+        const contentHash = this.generateContentHash(sourceText, t.value);
+        const score = await this.saveScore(t.id, {
+          score: heuristic.score,
+          format: heuristic.score,
+          issues: heuristic.issues,
+          evaluationType: 'heuristic',
+          contentHash,
+        });
+        results.set(t.language, score);
+      }
+      return results;
+    }
+
+    // Fetch related keys with ALL language translations
+    let relatedKeys: Array<{
+      keyName: string;
+      source: string;
+      translations: Record<string, string>;
+    }> = [];
+
+    try {
+      const keyContextService = new KeyContextService(this.prisma);
+      const aiContext = await keyContextService.getAIContext(keyId, languages[0], sourceLocale);
+
+      // Transform to include all languages
+      for (const r of aiContext.relatedTranslations.slice(0, 5)) {
+        // r.translations already contains translations keyed by language code
+        // Filter to only include languages we're evaluating
+        const translationsMap: Record<string, string> = {};
+        for (const lang of languages) {
+          if (r.translations[lang]) {
+            translationsMap[lang] = r.translations[lang];
+          }
+        }
+
+        if (r.translations[sourceLocale]) {
+          relatedKeys.push({
+            keyName: r.keyName,
+            source: r.translations[sourceLocale],
+            translations: translationsMap,
+          });
+        }
+      }
+
+      relatedKeys = relatedKeys.filter(rk => rk.source); // Only include if has source
+    } catch (error) {
+      console.warn('[Quality] Failed to fetch related keys:', error);
+    }
+
+    // Get AI provider config
+    const aiConfig = await this.prisma.aITranslationConfig.findUnique({
+      where: {
+        projectId_provider: {
+          projectId,
+          provider: config.aiEvaluationProvider as AIProviderEnum,
+        },
+      },
+    });
+
+    if (!aiConfig?.isActive) {
+      console.log('[Quality] AI provider not active, using heuristics for all languages');
+      for (const t of translations) {
+        const heuristic = heuristicResults.get(t.language) || { score: 100, issues: [] };
+        const contentHash = this.generateContentHash(sourceText, t.value);
+        const score = await this.saveScore(t.id, {
+          score: heuristic.score,
+          format: heuristic.score,
+          issues: heuristic.issues,
+          evaluationType: 'heuristic',
+          contentHash,
+        });
+        results.set(t.language, score);
+      }
+      return results;
+    }
+
+    try {
+      const apiKey = this.decryptApiKey(aiConfig.apiKey, aiConfig.apiKeyIv);
+      const model = this.getLanguageModel(
+        config.aiEvaluationProvider as AIProviderEnum,
+        config.aiEvaluationModel!,
+        apiKey
+      );
+      const isAnthropic = config.aiEvaluationProvider === 'ANTHROPIC';
+
+      // Build multi-language prompt
+      const userPrompt = this.buildMultiLanguagePrompt(
+        keyName,
+        sourceText,
+        sourceLocale,
+        translations.map(t => ({ language: t.language, value: t.value })),
+        relatedKeys
+      );
+
+      // Create dynamic schema for these languages
+      const schema = createMultiLanguageSchema(languages);
+
+      // Call AI with conversation retry
+      console.log(`[Quality] AI MULTI-LANG START: ${keyName} (${languages.join(', ')})`);
+      const { result, totalUsage, cacheMetrics } = await this.callAIWithConversationRetry(
+        model,
+        userPrompt,
+        schema,
+        isAnthropic
+      );
+
+      // Log cache metrics
+      if (cacheMetrics.cacheRead > 0 || cacheMetrics.cacheCreation > 0) {
+        console.log(
+          `[Quality] CACHE: ${cacheMetrics.cacheRead} tokens read (90% cheaper), ${cacheMetrics.cacheCreation} tokens created`
+        );
+      }
+
+      // Process results for each language
+      for (const t of translations) {
+        const langResult = result.evaluations[t.language];
+        const heuristic = heuristicResults.get(t.language) || { score: 100, issues: [] };
+
+        if (!langResult) {
+          console.warn(`[Quality] No AI result for ${t.language}, using heuristic`);
+          const contentHash = this.generateContentHash(sourceText, t.value);
+          const score = await this.saveScore(t.id, {
+            score: heuristic.score,
+            format: heuristic.score,
+            issues: heuristic.issues,
+            evaluationType: 'heuristic',
+            contentHash,
+          });
+          results.set(t.language, score);
+          continue;
+        }
+
+        // Combine AI scores with heuristic format score
+        const combinedScore = Math.round(
+          langResult.accuracy * 0.4 +
+          langResult.fluency * 0.25 +
+          langResult.terminology * 0.15 +
+          heuristic.score * 0.2
+        );
+
+        // Map AI issues
+        const aiIssues: QualityIssue[] = langResult.issues.map((issue) => ({
+          type: `ai_${issue.type}` as QualityIssue['type'],
+          severity: issue.severity === 'critical' ? 'error' : issue.severity === 'major' ? 'warning' : 'info',
+          message: issue.message,
+        }));
+
+        const allIssues = [...heuristic.issues, ...aiIssues];
+        const contentHash = this.generateContentHash(sourceText, t.value);
+
+        const score = await this.saveScore(t.id, {
+          score: combinedScore,
+          accuracy: langResult.accuracy,
+          fluency: langResult.fluency,
+          terminology: langResult.terminology,
+          format: heuristic.score,
+          issues: allIssues,
+          evaluationType: 'ai',
+          provider: config.aiEvaluationProvider!,
+          model: config.aiEvaluationModel!,
+          inputTokens: Math.round(totalUsage.inputTokens / languages.length),
+          outputTokens: Math.round(totalUsage.outputTokens / languages.length),
+          contentHash,
+        });
+
+        results.set(t.language, score);
+      }
+
+      console.log(
+        `[Quality] AI MULTI-LANG DONE: ${keyName} (${languages.length} langs, ${totalUsage.inputTokens}in/${totalUsage.outputTokens}out)`
+      );
+
+      return results;
+
+    } catch (error) {
+      console.error('[Quality] Multi-language AI evaluation failed, falling back to heuristics:', error);
+
+      // Fallback to heuristics for all
+      for (const t of translations) {
+        const heuristic = heuristicResults.get(t.language) || { score: 100, issues: [] };
+        const contentHash = this.generateContentHash(sourceText, t.value);
+        const score = await this.saveScore(t.id, {
+          score: heuristic.score,
+          format: heuristic.score,
+          issues: heuristic.issues,
+          evaluationType: 'heuristic',
+          contentHash,
+        });
+        results.set(t.language, score);
+      }
+      return results;
+    }
   }
 
   // ============================================
@@ -773,6 +1102,189 @@ ${relatedKeys.map((r) => `- ${r.key}: "${r.source}" → "${r.target}"`).join('\n
     }
 
     return prompt;
+  }
+
+  /**
+   * Build multi-language XML prompt for batch evaluation
+   *
+   * Uses XML structure for clear separation of:
+   * - Key name
+   * - Source text
+   * - All target translations
+   * - Related keys with all language translations
+   */
+  private buildMultiLanguagePrompt(
+    keyName: string,
+    sourceText: string,
+    sourceLocale: string,
+    translations: Array<{ language: string; value: string }>,
+    relatedKeys: Array<{
+      keyName: string;
+      source: string;
+      translations: Record<string, string>;
+    }>
+  ): string {
+    const langs = translations.map(t => t.language);
+
+    let xml = `<evaluation_request>
+  <key>${this.escapeXml(keyName)}</key>
+  <source lang="${sourceLocale}">${this.escapeXml(sourceText)}</source>
+
+  <translations>
+${translations.map(t => `    <translation lang="${t.language}">${this.escapeXml(t.value)}</translation>`).join('\n')}
+  </translations>`;
+
+    if (relatedKeys.length > 0) {
+      xml += `
+
+  <related_keys>
+${relatedKeys.map(rk => `    <key name="${this.escapeXml(rk.keyName)}">
+      <source lang="${sourceLocale}">${this.escapeXml(rk.source)}</source>
+${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}">${this.escapeXml(rk.translations[l])}</translation>`).join('\n')}
+    </key>`).join('\n')}
+  </related_keys>`;
+    }
+
+    xml += `
+</evaluation_request>`;
+
+    return xml;
+  }
+
+  /**
+   * Escape XML special characters
+   */
+  private escapeXml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  /**
+   * Call AI with conversation-based retry for multi-language evaluation
+   *
+   * Strategy:
+   * - Keep conversation history so AI learns from mistakes
+   * - Max 7 turns per conversation
+   * - If still failing after 7 turns, clear history and start fresh
+   * - Max 3 fresh starts (21 total attempts)
+   *
+   * Uses Zod for validation with detailed path errors
+   */
+  private async callAIWithConversationRetry<T>(
+    model: LanguageModel,
+    userPrompt: string,
+    schema: z.ZodType<T>,
+    isAnthropic: boolean
+  ): Promise<{
+    result: T;
+    totalUsage: { inputTokens: number; outputTokens: number };
+    cacheMetrics: { cacheRead: number; cacheCreation: number };
+  }> {
+    for (let freshStart = 1; freshStart <= MAX_FRESH_STARTS; freshStart++) {
+      // Build conversation history - use separate arrays for each role to satisfy TypeScript
+      const systemMessage = {
+        role: 'system' as const,
+        content: MQM_MULTI_LANGUAGE_SYSTEM_PROMPT,
+        ...(isAnthropic && {
+          providerOptions: {
+            anthropic: { cacheControl: { type: 'ephemeral' } },
+          },
+        }),
+      };
+
+      // Start with system + initial user message
+      const conversationHistory: Array<
+        | { role: 'user'; content: string }
+        | { role: 'assistant'; content: string }
+      > = [
+        { role: 'user' as const, content: userPrompt },
+      ];
+
+      let totalUsage = { inputTokens: 0, outputTokens: 0 };
+      let cacheMetrics = { cacheRead: 0, cacheCreation: 0 };
+
+      for (let turn = 1; turn <= MAX_TURNS_PER_CONVERSATION; turn++) {
+        console.log(
+          `[Quality] Fresh start ${freshStart}/${MAX_FRESH_STARTS}, turn ${turn}/${MAX_TURNS_PER_CONVERSATION}`
+        );
+
+        // Build messages array for this call
+        const messages = [systemMessage, ...conversationHistory];
+
+        const { text, usage, providerMetadata } = await generateText({
+          model,
+          messages,
+        });
+
+        // Accumulate usage
+        totalUsage.inputTokens += usage?.inputTokens || 0;
+        totalUsage.outputTokens += usage?.outputTokens || 0;
+
+        // Extract cache metrics from Anthropic response
+        const anthropicMeta = providerMetadata?.anthropic as {
+          cacheReadInputTokens?: number;
+          cacheCreationInputTokens?: number;
+        } | undefined;
+
+        cacheMetrics.cacheRead += anthropicMeta?.cacheReadInputTokens || 0;
+        cacheMetrics.cacheCreation += anthropicMeta?.cacheCreationInputTokens || 0;
+
+        // Add assistant response to history
+        conversationHistory.push({ role: 'assistant' as const, content: text });
+
+        try {
+          // 1. Extract JSON from response (handle markdown code blocks)
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) {
+            throw new Error('No JSON object found in response');
+          }
+
+          // 2. Parse JSON
+          const parsed = JSON.parse(jsonMatch[0]);
+
+          // 3. Validate with Zod
+          const validated = schema.parse(parsed);
+
+          console.log(`[Quality] ✅ Success on fresh start ${freshStart}, turn ${turn}`);
+          return { result: validated, totalUsage, cacheMetrics };
+
+        } catch (error) {
+          // Format error message for AI to understand
+          let errorMessage: string;
+          if (error instanceof z.ZodError) {
+            errorMessage = error.issues
+              .map((e) => `Path: ${e.path.join('.')}, Error: ${e.message}`)
+              .join('\n');
+          } else if (error instanceof SyntaxError) {
+            errorMessage = `JSON syntax error: ${error.message}`;
+          } else {
+            errorMessage = String(error);
+          }
+
+          console.warn(`[Quality] Turn ${turn} failed:\n${errorMessage}`);
+
+          if (turn < MAX_TURNS_PER_CONVERSATION) {
+            // Add error feedback to conversation (AI sees its mistake + all previous attempts)
+            conversationHistory.push({
+              role: 'user' as const,
+              content: `<validation_error>\n${errorMessage}\n</validation_error>\n\nPlease fix the JSON and try again. Return ONLY the corrected JSON.`,
+            });
+          }
+        }
+      }
+
+      console.warn(
+        `[Quality] Fresh start ${freshStart} exhausted all ${MAX_TURNS_PER_CONVERSATION} turns, resetting...`
+      );
+    }
+
+    throw new Error(
+      `Failed after ${MAX_FRESH_STARTS} fresh starts × ${MAX_TURNS_PER_CONVERSATION} turns`
+    );
   }
 
   /**
