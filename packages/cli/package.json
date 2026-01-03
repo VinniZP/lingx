@@ -37,7 +37,7 @@
     "@babel/parser": "^7.28.5",
     "@babel/traverse": "^7.28.5",
     "@babel/types": "^7.28.5",
-    "@formatjs/icu-messageformat-parser": "^3.2.0",
+    "@formatjs/icu-messageformat-parser": "^3.2.1",
     "@inquirer/prompts": "^8.1.0",
     "@lingx/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.1",
@@ -50,6 +50,6 @@
     "jiti": "^2.6.1",
     "js-yaml": "^4.1.1",
     "ora": "^9.0.0",
-    "zod": "^4.2.1"
+    "zod": "^4.3.4"
   }
 }
