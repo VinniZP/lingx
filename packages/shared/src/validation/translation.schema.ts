@@ -132,6 +132,18 @@ export const keyFilterSchema = z.enum([
 export type KeyFilter = z.infer<typeof keyFilterSchema>;
 
 /**
+ * Quality score filter - filters by quality score ranges
+ */
+export const qualityScoreFilterSchema = z.enum([
+  'all',         // No filter
+  'excellent',   // Score >= 80
+  'good',        // Score 60-79
+  'needsReview', // Score < 60
+  'unscored',    // No quality score
+]);
+export type QualityScoreFilter = z.infer<typeof qualityScoreFilterSchema>;
+
+/**
  * Key list query with optional filter
  */
 export const keyListQuerySchema = z.object({
@@ -139,6 +151,7 @@ export const keyListQuerySchema = z.object({
   page: z.coerce.number().default(1),
   limit: z.coerce.number().max(100).default(50),
   filter: keyFilterSchema.optional(),
+  qualityFilter: qualityScoreFilterSchema.optional(), // Filter by quality score range
   namespace: z.string().optional(), // Filter by namespace (use "__root__" for keys without namespace)
 });
 

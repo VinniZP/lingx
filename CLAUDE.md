@@ -2,7 +2,7 @@
 
 ## Tech Stack
 - **Monorepo**: pnpm workspaces + Turborepo
-- **API**: Fastify 5, Prisma 7, PostgreSQL
+- **API**: Fastify 5, Prisma 7, PostgreSQL, Redis (BullMQ)
 - **Web**: Next.js 16 (App Router), React 19, shadcn/ui, TailwindCSS v4
 - **Auth**: JWT (24h) + API Keys
 - **Testing**: Vitest (unit/integration), Playwright (E2E)
@@ -19,6 +19,30 @@
 - NO `url` in `datasource` block - use `prisma.config.ts` instead
 - Use adapter-based client: `@prisma/adapter-pg` with `pg.Pool`
 - Docs: https://www.prisma.io/docs
+
+## API Architecture
+
+### Service Patterns
+- **Thin Routes**: Routes only validate → authorize → delegate to services
+- **AccessService**: Centralized authorization (`verifyTranslationAccess`, `verifyBranchAccess`, `verifyProjectAccess`)
+- **Factory Pattern**: Use factories for dependency injection (`createQualityEstimationService`)
+- **Repository Pattern**: Data access via repositories (`ScoreRepository`)
+
+### Shared Validation
+- Define Zod schemas in `@lingx/shared/src/validation/`
+- Import in both API routes and frontend for type safety
+- Never use `z.any()` - always define proper schemas
+
+### Background Jobs
+- Use BullMQ with Redis for async processing
+- Workers in `apps/api/src/workers/`
+- Circuit breaker pattern for external API calls (3 failures → 30s cooldown)
+
+### Security
+- Validate all user input (Zod schema + runtime checks)
+- Limit array sizes to prevent DoS (e.g., `MAX_BATCH_SIZE = 1000`)
+- AES-256-GCM for API key encryption (uses `AI_ENCRYPTION_KEY` env var)
+- Regex DoS protection: limit input size before applying patterns
 
 ## Documentation
 - `docs/prd/PRD.md` - Product requirements
@@ -199,6 +223,29 @@ export default {
 ```
 
 See `packages/sdk-nextjs/docs/type-safety.md` for full documentation.
+
+---
+
+## Testing Patterns
+
+### Test Structure
+```
+apps/api/tests/
+├── unit/           # Pure function tests, mocked dependencies
+├── integration/    # Database tests with real Prisma
+└── e2e/            # Full API tests (if applicable)
+```
+
+### Running Tests
+```bash
+pnpm --filter @lingx/api test              # Run all tests
+pnpm --filter @lingx/api test:integration  # Integration only
+```
+
+### Test Environment
+- Uses `TEST_DATABASE_URL` with `?schema=test` for isolation
+- Redis required for worker/queue tests
+- CI uses Docker services for Postgres and Redis
 
 ---
 

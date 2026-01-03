@@ -152,18 +152,19 @@ model Project {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  languages         ProjectLanguage[]
-  members           ProjectMember[]
-  spaces            Space[]
-  environments      Environment[]
-  activities        Activity[]
-  translationMemory TranslationMemory[]
-  mtConfigs         MachineTranslationConfig[]
-  aiConfigs         AITranslationConfig[]
-  aiContextConfig   AIContextConfig?
-  glossaryEntries   GlossaryEntry[]
-  glossaryTags      GlossaryTag[]
-  glossarySyncs     GlossaryProviderSync[]
+  languages            ProjectLanguage[]
+  members              ProjectMember[]
+  spaces               Space[]
+  environments         Environment[]
+  activities           Activity[]
+  translationMemory    TranslationMemory[]
+  mtConfigs            MachineTranslationConfig[]
+  aiConfigs            AITranslationConfig[]
+  aiContextConfig      AIContextConfig?
+  glossaryEntries      GlossaryEntry[]
+  glossaryTags         GlossaryTag[]
+  glossarySyncs        GlossaryProviderSync[]
+  qualityScoringConfig QualityScoringConfig?
 
   @@index([slug])
 }
@@ -302,8 +303,9 @@ model Translation {
   statusUpdatedAt DateTime?
   statusUpdatedBy String? // userId who approved/rejected
 
-  key        TranslationKey @relation(fields: [keyId], references: [id], onDelete: Cascade)
-  statusUser User?          @relation("TranslationApprovals", fields: [statusUpdatedBy], references: [id])
+  key          TranslationKey           @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  statusUser   User?                    @relation("TranslationApprovals", fields: [statusUpdatedBy], references: [id])
+  qualityScore TranslationQualityScore?
 
   @@unique([keyId, language])
   @@index([keyId])
@@ -727,4 +729,73 @@ model GlossaryProviderSync {
 
   @@unique([projectId, provider, sourceLanguage, targetLanguage])
   @@index([projectId, provider])
+}
+
+// ============================================
+// QUALITY ESTIMATION
+// ============================================
+
+/// Stores quality scores for translations (0-100 score)
+/// Supports both heuristic (free, fast) and AI evaluation (cost, slow)
+model TranslationQualityScore {
+  id           String   @id @default(cuid())
+  translationId String   @unique
+  translation   Translation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+
+  // Overall score 0-100
+  score Int
+
+  // Dimension breakdown (nullable - only set for AI evaluation)
+  accuracyScore    Int? // AI: semantic fidelity to source
+  fluencyScore     Int? // AI: natural language quality
+  terminologyScore Int? // Glossary + AI: domain terms
+  formatScore      Int  // Heuristic: ICU, placeholders, length
+
+  // Evaluation metadata
+  evaluationType String  // "heuristic" | "ai" | "hybrid"
+  provider       String? // AI provider used (if any)
+  model          String? // Model used (if any)
+
+  // Issues found (JSON array of QualityIssue objects)
+  issues Json // QualityIssue[]
+
+  // Token usage for cost tracking
+  inputTokens  Int @default(0)
+  outputTokens Int @default(0)
+
+  // Content hash for cache validation (hash of source+target)
+  // If content changes, score needs re-evaluation
+  contentHash String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([score])
+  @@index([evaluationType])
+  @@index([contentHash])
+  // Composite index for cache lookup pattern (translationId + contentHash validation)
+  @@index([translationId, contentHash])
+}
+
+/// Configuration for quality scoring per project
+model QualityScoringConfig {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Triggers - when to run quality scoring
+  scoreAfterAITranslation Boolean @default(true)
+  scoreBeforeMerge        Boolean @default(false)
+
+  // Thresholds - score ranges for quality tiers
+  autoApproveThreshold Int @default(80) // >=80 = auto-approve
+  flagThreshold        Int @default(60) // <60 = flag for review
+
+  // AI evaluation settings
+  aiEvaluationEnabled  Boolean @default(true)
+  aiEvaluationProvider String? // null = use project default
+  aiEvaluationModel    String? // null = use provider default
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

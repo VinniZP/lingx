@@ -15,6 +15,7 @@ import {
   Shield,
   Loader2,
   Sparkles,
+  Gauge,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMTConfigs } from '@/hooks/use-machine-translation';
@@ -46,6 +47,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
   const isIntegrationsActive = pathname === `/projects/${projectId}/settings/integrations`;
   const isAITranslationActive = pathname === `/projects/${projectId}/settings/ai-translation`;
   const isGlossaryActive = pathname === `/projects/${projectId}/settings/glossary`;
+  const isQualityActive = pathname === `/projects/${projectId}/settings/quality`;
 
   if (isLoading) {
     return (
@@ -98,6 +100,14 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       description: 'Configure AI providers for context-aware translations',
       isActive: isAITranslationActive,
       badge: aiConnectedCount > 0 ? `${aiConnectedCount}` : null,
+    },
+    {
+      href: `/projects/${projectId}/settings/quality`,
+      icon: Gauge,
+      label: 'Quality Scoring',
+      description: 'AI-powered translation quality evaluation',
+      isActive: isQualityActive,
+      badge: null,
     },
   ];
 

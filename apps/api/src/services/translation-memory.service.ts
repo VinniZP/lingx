@@ -233,7 +233,8 @@ export class TranslationMemoryService {
    * @param entryId - Translation memory entry ID
    */
   async recordUsage(entryId: string): Promise<void> {
-    await this.prisma.translationMemory.update({
+    // Use updateMany to gracefully handle missing entries (won't throw if not found)
+    await this.prisma.translationMemory.updateMany({
       where: { id: entryId },
       data: {
         usageCount: { increment: 1 },

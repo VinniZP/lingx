@@ -1,22 +1,57 @@
 {
+  "quality": {
+    "title": "Оценка качества",
+    "description": "Настройте AI-оценку качества переводов",
+    "enable": "Включить AI оценку качества",
+    "saved": "Настройки качества сохранены",
+    "save": "Сохранить",
+    "noProvidersWarning": "AI провайдеры не настроены. Включите хотя бы один провайдер выше.",
+    "provider": "AI провайдер",
+    "saveFailed": "Не удалось сохранить настройки качества",
+    "enableDescription": "Использовать AI для анализа точности и стиля перевода",
+    "selectProvider": "Выберите провайдера",
+    "providerDescription": "Выберите включенный AI провайдер для оценки качества",
+    "model": "Модель",
+    "selectModel": "Выберите модель",
+    "modelDescription": "Выберите модель для анализа качества",
+    "configuredWith": "Настроено"
+  },
+  "toasts": {
+    "configSaved": "",
+    "configRemoved": "",
+    "configRemovedDescription": "{provider} удалён.",
+    "configRemoveFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "Успешно подключено к {provider}.",
+    "connectionFailed": "",
+    "configSavedDescription": "{provider} настроен.",
+    "configSaveFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": ""
+  },
   "pageTitle": "AI Translation",
+  "usage": {
+    "stats": {
+      "totalTokens": "",
+      "requests": "",
+      "cacheHits": "",
+      "estCost": ""
+    },
+    "title": "",
+    "description": "",
+    "byProvider": "",
+    "tokens": "",
+    "requests": ""
+  },
   "pageDescription": "",
   "sections": {
     "providers": "",
     "contextSettings": "",
+    "qualityEvaluation": "Оценка качества",
     "usage": ""
   },
   "provider": {
-    "status": {
-      "active": "",
-      "inactive": ""
-    },
-    "openai": {
-      "description": ""
-    },
-    "anthropic": {
-      "description": ""
-    },
     "googleAI": {
       "description": ""
     },
@@ -24,10 +59,6 @@
       "description": ""
     },
     "form": {
-      "apiKey": "",
-      "apiKeyKeepCurrent": "",
-      "apiKeyPlaceholder": "Введите API ключ {provider}",
-      "apiKeyUpdatePlaceholder": "",
       "apiKeyHint": {
         "openai": "",
         "anthropic": "",
@@ -38,38 +69,47 @@
       "modelPlaceholder": "",
       "modelDescription": "",
       "enableProvider": "",
-      "enableProviderDescription": ""
+      "enableProviderDescription": "",
+      "apiKey": "",
+      "apiKeyKeepCurrent": "",
+      "apiKeyUpdatePlaceholder": "",
+      "apiKeyPlaceholder": "Введите API ключ {provider}"
+    },
+    "openai": {
+      "description": ""
+    },
+    "anthropic": {
+      "description": ""
+    },
+    "status": {
+      "active": "",
+      "inactive": ""
     },
     "actions": {
       "cancel": "",
-      "save": "",
       "saving": "",
+      "save": "",
       "remove": "",
       "test": "",
       "edit": ""
     },
     "removeDialog": {
       "title": "Удалить {provider}",
-      "description": "Вы уверены, что хотите удалить {provider}?"
+      "description": "Это удалит API ключ и отключит AI‑переводы с использованием {provider}. Вы сможете добавить его снова позже."
     }
-  },
-  "toasts": {
-    "configSaved": "",
-    "configSavedDescription": "{provider} настроен.",
-    "configSaveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} удалён.",
-    "configRemoveFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Успешно подключено к {provider}.",
-    "connectionFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": ""
   },
   "context": {
     "title": "",
     "description": "",
+    "maxItems": "",
+    "minSimilarity": "",
+    "customInstructions": {
+      "title": "",
+      "description": "",
+      "placeholder": ""
+    },
+    "saveNote": "",
+    "saveSettings": "",
     "glossary": {
       "label": "",
       "description": ""
@@ -81,28 +121,6 @@
     "relatedKeys": {
       "label": "",
       "description": ""
-    },
-    "maxItems": "",
-    "minSimilarity": "",
-    "customInstructions": {
-      "title": "",
-      "description": "",
-      "placeholder": ""
-    },
-    "saveNote": "",
-    "saveSettings": ""
-  },
-  "usage": {
-    "title": "",
-    "description": "",
-    "stats": {
-      "totalTokens": "",
-      "requests": "",
-      "cacheHits": "",
-      "estCost": ""
-    },
-    "byProvider": "",
-    "tokens": "",
-    "requests": ""
+    }
   }
 }

@@ -623,7 +623,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'projectDetail.translationCoverage.subtitle'
       | 'projectDetail.translationCoverage.title'
       | 'projects.card.keys'
-      | 'projects.card.main'
       | 'projects.card.progress'
       | 'projects.description'
       | 'projects.empty.cta'
@@ -707,6 +706,17 @@ declare module '@lingx/sdk-nextjs' {
       | 'projectSettings.toasts.projectUpdatedDescription'
       | 'projectSettings.toasts.projectUpdateFailed'
       | 'projectSettings.unsavedChanges'
+      | 'quality.bulkEvaluation.allCached'
+      | 'quality.bulkEvaluation.descriptionAll'
+      | 'quality.bulkEvaluation.descriptionSelected'
+      | 'quality.bulkEvaluation.evaluate'
+      | 'quality.bulkEvaluation.failed'
+      | 'quality.bulkEvaluation.infoAI'
+      | 'quality.bulkEvaluation.infoHeuristic'
+      | 'quality.bulkEvaluation.infoProcessing'
+      | 'quality.bulkEvaluation.queued'
+      | 'quality.bulkEvaluation.queuing'
+      | 'quality.bulkEvaluation.title'
       | 'security.activeSessions.activeNow'
       | 'security.activeSessions.current'
       | 'security.activeSessions.failedToLoad'
@@ -824,6 +834,23 @@ declare module '@lingx/sdk-nextjs' {
       | 'settings.joined'
       | 'settings.profile.description'
       | 'settings.profile.title'
+      | 'settings.quality.aiProviderLink.description'
+      | 'settings.quality.aiProviderLink.title'
+      | 'settings.quality.loading'
+      | 'settings.quality.saved'
+      | 'settings.quality.saveFailed'
+      | 'settings.quality.thresholds.autoApprove'
+      | 'settings.quality.thresholds.autoApproveDescription'
+      | 'settings.quality.thresholds.description'
+      | 'settings.quality.thresholds.flag'
+      | 'settings.quality.thresholds.flagDescription'
+      | 'settings.quality.thresholds.title'
+      | 'settings.quality.triggers.afterAI'
+      | 'settings.quality.triggers.afterAIDescription'
+      | 'settings.quality.triggers.beforeMerge'
+      | 'settings.quality.triggers.beforeMergeDescription'
+      | 'settings.quality.triggers.description'
+      | 'settings.quality.triggers.title'
       | 'settings.resources.api'
       | 'settings.resources.apiDesc'
       | 'settings.resources.cliGuide'
@@ -893,12 +920,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.commandPalette.searchPlaceholder'
       | 'translations.commandPalette.translateAllLanguages'
       | 'translations.commandPalette.translateCurrentField'
-      | 'translations.editor.default'
-      | 'translations.editor.enterTranslationPlaceholder'
-      | 'translations.editor.saveChanges'
-      | 'translations.editor.saving'
-      | 'translations.editor.selectKeyPrompt'
-      | 'translations.editor.unsavedChanges'
       | 'translations.empty.createFirst'
       | 'translations.empty.description'
       | 'translations.empty.title'
@@ -1017,6 +1038,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.toasts.failedToSave'
       | 'translations.toasts.failedToTranslate'
       | 'translations.toasts.failedToUpdateTranslations'
+      | 'translations.toasts.invalidICUSyntax'
       | 'translations.toasts.jobCancelled'
       | 'translations.toasts.keysDeleted'
       | 'translations.toasts.noEmptyTranslations'
@@ -1117,7 +1139,6 @@ declare module '@lingx/sdk-nextjs' {
         | 'context.tm.description'
         | 'context.tm.label'
         | 'pageDescription'
-        | 'pageTitle'
         | 'provider.actions.cancel'
         | 'provider.actions.edit'
         | 'provider.actions.remove'
@@ -1145,8 +1166,24 @@ declare module '@lingx/sdk-nextjs' {
         | 'provider.removeDialog.title'
         | 'provider.status.active'
         | 'provider.status.inactive'
+        | 'quality.configuredWith'
+        | 'quality.description'
+        | 'quality.enable'
+        | 'quality.enableDescription'
+        | 'quality.model'
+        | 'quality.modelDescription'
+        | 'quality.noProvidersWarning'
+        | 'quality.provider'
+        | 'quality.providerDescription'
+        | 'quality.save'
+        | 'quality.saved'
+        | 'quality.saveFailed'
+        | 'quality.selectModel'
+        | 'quality.selectProvider'
+        | 'quality.title'
         | 'sections.contextSettings'
         | 'sections.providers'
+        | 'sections.qualityEvaluation'
         | 'sections.usage'
         | 'toasts.configRemoved'
         | 'toasts.configRemovedDescription'
@@ -1457,6 +1494,8 @@ declare module '@lingx/sdk-nextjs' {
     'providerSync.connected': { count: string | number };
     /** {count} terms synced */
     'providerSync.termsSynced': { count: string | number };
+    /** Evaluate quality for {count} selected translations */
+    'quality.bulkEvaluation.descriptionSelected': { count: string | number };
     /** {count, plural, one {# other session} other {# other sessions}} */
     'security.activeSessions.otherSessions': { count: number };
     /** This will sign out all {count} other device(s) from your account. */
@@ -1495,8 +1534,6 @@ declare module '@lingx/sdk-nextjs' {
     'translations.branchHeader.translatorsOnline': { count: number };
     /** {count, plural, one {# translation} other {# translations}} processed successfully */
     'translations.bulkTranslate.completedMessage': { count: number };
-    /** Enter {language} translation... */
-    'translations.editor.enterTranslationPlaceholder': { language: string | number };
     /** from {source} */
     'translations.inlineSuggestion.from': { source: string | number };
     /** {count, plural, one {# more suggestion} other {# more suggestions}} */

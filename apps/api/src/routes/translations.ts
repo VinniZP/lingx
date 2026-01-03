@@ -71,7 +71,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, _reply) => {
       const { branchId } = request.params;
-      const { search, page, limit, filter, namespace } = request.query;
+      const { search, page, limit, filter, qualityFilter, namespace } = request.query;
 
       const projectId = await branchService.getProjectIdByBranchId(branchId);
       if (!projectId) {
@@ -91,6 +91,7 @@ const translationRoutes: FastifyPluginAsync = async (fastify) => {
         page,
         limit,
         filter,
+        qualityFilter,
         namespace,
       });
       return toKeyListResultDto(result);

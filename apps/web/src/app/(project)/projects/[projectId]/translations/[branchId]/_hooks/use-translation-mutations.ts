@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import { translationApi, TranslationKey, ApiError } from '@/lib/api';
+import { validateICUSyntax } from '@/lib/api/quality';
 import { toast } from 'sonner';
 
 interface UseTranslationMutationsOptions {
@@ -20,6 +21,7 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
   >({});
   const [savingKeys, setSavingKeys] = useState<Map<string, Set<string>>>(new Map());
   const [savedKeys, setSavedKeys] = useState<Map<string, Set<string>>>(new Map());
+  const [validationErrors, setValidationErrors] = useState<Map<string, string>>(new Map());
   const [approvingTranslations, setApprovingTranslations] = useState<Set<string>>(new Set());
   const [isBatchApproving, setIsBatchApproving] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
@@ -125,6 +127,31 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
     const timeout = setTimeout(async () => {
       const valueToSave = pendingSavesRef.current.get(saveKey);
       if (valueToSave === undefined) return;
+
+      // Validate ICU syntax if value contains braces
+      if (valueToSave.includes('{')) {
+        try {
+          const validation = await validateICUSyntax(valueToSave);
+          if (!validation.valid) {
+            // Show validation error
+            setValidationErrors((prev) => new Map(prev).set(saveKey, validation.error || 'Invalid ICU syntax'));
+            toast.error(t('translations.toasts.invalidICUSyntax'), {
+              description: validation.error
+            });
+            return; // Don't save if invalid
+          } else {
+            // Clear validation error if valid
+            setValidationErrors((prev) => {
+              const next = new Map(prev);
+              next.delete(saveKey);
+              return next;
+            });
+          }
+        } catch (err) {
+          // If validation fails, allow save (graceful degradation)
+          console.warn('[ICU Validation] Failed to validate:', err);
+        }
+      }
 
       setSavingKeys((prev) => {
         const next = new Map(prev);
@@ -273,6 +300,7 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
     editingTranslations,
     savingKeys,
     savedKeys,
+    validationErrors,
     approvingTranslations,
     isBatchApproving,
     isBulkDeleting,

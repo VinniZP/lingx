@@ -51,6 +51,7 @@ const LANGUAGE_RATIOS: Record<string, number> = {
  */
 const DEFAULT_WARNING_THRESHOLD = 1.5; // 150% of expected length
 const DEFAULT_ERROR_THRESHOLD = 2.0; // 200% of expected length
+const DEFAULT_EXTREME_THRESHOLD = 5.0; // 500% of expected length (likely AI hallucination)
 
 /**
  * Get the expected expansion ratio for a language.
@@ -88,6 +89,8 @@ export interface LengthCheckOptions {
   warningThreshold?: number;
   /** Error threshold as ratio of expected length (default: 2.0) */
   errorThreshold?: number;
+  /** Extreme threshold as ratio of expected length (default: 5.0) - likely AI hallucination */
+  extremeThreshold?: number;
 }
 
 /**
@@ -96,6 +99,7 @@ export interface LengthCheckOptions {
 export function createLengthChecker(options: LengthCheckOptions = {}): QualityChecker {
   const warningThreshold = options.warningThreshold ?? DEFAULT_WARNING_THRESHOLD;
   const errorThreshold = options.errorThreshold ?? DEFAULT_ERROR_THRESHOLD;
+  const extremeThreshold = options.extremeThreshold ?? DEFAULT_EXTREME_THRESHOLD;
 
   return {
     name: 'length',
@@ -111,8 +115,9 @@ export function createLengthChecker(options: LengthCheckOptions = {}): QualityCh
       const sourceLength = getEffectiveLength(input.source);
       const targetLength = getEffectiveLength(input.target);
 
-      // Skip very short strings (< 5 chars) - not meaningful
-      if (sourceLength < 5) {
+      // Skip very short strings (< 3 chars) - not meaningful
+      // But we need to catch cases like single words with AI hallucination
+      if (sourceLength < 3) {
         return issues;
       }
 
@@ -123,7 +128,20 @@ export function createLengthChecker(options: LengthCheckOptions = {}): QualityCh
       // Calculate how much the actual length exceeds expected
       const actualRatio = targetLength / expectedLength;
 
-      if (actualRatio >= errorThreshold) {
+      // Check for extreme length mismatch first (likely AI hallucination)
+      if (actualRatio >= extremeThreshold) {
+        const percentage = Math.round(actualRatio * 100);
+        issues.push({
+          type: 'length_extreme',
+          severity: 'error',
+          message: `Translation is ${percentage}% of expected length (likely incorrect or AI error)`,
+          context: {
+            expected: `~${Math.round(expectedLength)} chars`,
+            found: `${targetLength} chars`,
+            ratio: `${actualRatio.toFixed(1)}x`,
+          },
+        });
+      } else if (actualRatio >= errorThreshold) {
         const percentage = Math.round(actualRatio * 100);
         issues.push({
           type: 'length_critical',

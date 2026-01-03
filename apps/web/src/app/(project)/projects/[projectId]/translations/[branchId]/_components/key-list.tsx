@@ -19,6 +19,7 @@ interface KeyListProps {
   onTranslationChange: (keyId: string, lang: string, value: string) => void;
   savingKeys: Map<string, Set<string>>;
   savedKeys: Map<string, Set<string>>;
+  validationErrors?: Map<string, string>;
   canApprove: boolean;
   onApprove: (translationId: string, status: 'APPROVED' | 'REJECTED') => Promise<void>;
   approvingTranslations: Set<string>;
@@ -52,6 +53,7 @@ export function KeyList({
   onTranslationChange,
   savingKeys,
   savedKeys,
+  validationErrors,
   canApprove,
   onApprove,
   approvingTranslations,
@@ -98,6 +100,7 @@ export function KeyList({
           onTranslationChange={onTranslationChange}
           savingLanguages={savingKeys.get(key.id) || new Set()}
           savedLanguages={savedKeys.get(key.id) || new Set()}
+          validationErrors={validationErrors}
           canApprove={canApprove}
           onApprove={onApprove}
           approvingTranslations={approvingTranslations}

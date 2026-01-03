@@ -10,12 +10,15 @@ import { redis } from '../lib/redis.js';
 import { MTService } from '../services/mt.service.js';
 import { AITranslationService } from '../services/ai-translation.service.js';
 import { TranslationService } from '../services/translation.service.js';
+import { createQualityEstimationService } from '../services/quality/index.js';
+import type { QualityEstimationService } from '../services/quality-estimation.service.js';
 import type { MTProviderType } from '../services/providers/index.js';
+import { runQualityChecks, calculateScore, type QualityIssue } from '@lingx/shared';
 
 /**
  * Job types for MT batch processing
  */
-export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache' | 'bulk-translate-ui';
+export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache' | 'bulk-translate-ui' | 'quality-batch';
 
 /**
  * Job data for MT batch worker
@@ -34,6 +37,9 @@ export interface MTJobData {
   targetLanguages?: string[];
   // For bulk-translate-ui (supports both MT and AI)
   translationProvider?: 'MT' | 'AI';
+  // For quality-batch
+  translationIds?: string[];
+  forceAI?: boolean;
 }
 
 /**
@@ -63,6 +69,7 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
   const mtService = new MTService(prisma);
   const aiService = new AITranslationService(prisma);
   const translationService = new TranslationService(prisma);
+  const qualityService = createQualityEstimationService(prisma);
 
   const worker = new Worker<MTJobData>(
     'mt-batch',
@@ -83,7 +90,11 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
           break;
 
         case 'bulk-translate-ui':
-          await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job);
+          await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job, qualityService);
+          break;
+
+        case 'quality-batch':
+          await handleQualityBatch(prisma, qualityService, job);
           break;
 
         default:
@@ -371,7 +382,8 @@ async function handleBulkTranslateUI(
   mtService: MTService,
   aiService: AITranslationService,
   translationService: TranslationService,
-  job: Job<MTJobData>
+  job: Job<MTJobData>,
+  qualityService?: QualityEstimationService
 ): Promise<{ translated: number; skipped: number; failed: number; errors: Array<{ keyId: string; keyName: string; language: string; error: string }> }> {
   const { projectId, branchId, keyIds, targetLanguages, translationProvider } = job.data;
 
@@ -482,8 +494,26 @@ async function handleBulkTranslateUI(
         }
 
         // Save the translation
-        await translationService.setTranslation(key.id, targetLang, translatedText);
+        const savedTranslation = await translationService.setTranslation(key.id, targetLang, translatedText);
         translated++;
+
+        // Auto-score after AI translation if enabled
+        if (provider === 'AI' && qualityService && savedTranslation) {
+          try {
+            // Check if quality scoring is enabled for this project
+            const qualityConfig = await qualityService.getConfig(projectId);
+
+            if (qualityConfig.scoreAfterAITranslation) {
+              // Queue quality evaluation (non-blocking)
+              qualityService.evaluate(savedTranslation.id).catch(err => {
+                console.error(`[MTWorker] Quality evaluation failed for translation ${savedTranslation.id}:`, err.message);
+              });
+            }
+          } catch (err) {
+            // Don't fail the translation if quality scoring fails
+            console.error(`[MTWorker] Failed to queue quality evaluation:`, err instanceof Error ? err.message : 'Unknown error');
+          }
+        }
       } catch (error) {
         failed++;
         errors.push({
@@ -516,6 +546,205 @@ async function handleBulkTranslateUI(
   );
 
   return { translated, skipped, failed, errors };
+}
+
+/**
+ * Handle quality batch evaluation job
+ *
+ * NEW: Uses multi-language batch evaluation for consistent scoring across languages.
+ * Groups translations by key and evaluates ALL languages for each key in ONE AI call.
+ *
+ * Benefits:
+ * - Consistent scoring (same issue = same severity across languages)
+ * - 5x fewer API calls (for 5 languages)
+ * - Better AI context with related keys in all languages
+ */
+async function handleQualityBatch(
+  prisma: PrismaClient,
+  qualityService: QualityEstimationService,
+  job: Job<MTJobData>
+): Promise<void> {
+  const { translationIds, forceAI, branchId, projectId } = job.data;
+
+  if (!translationIds || translationIds.length === 0) {
+    console.log('[MTWorker] Quality batch: no translation IDs provided');
+    return;
+  }
+
+  console.log(`[MTWorker] ====== STARTING QUALITY BATCH JOB (MULTI-LANG) ======`);
+  console.log(`[MTWorker] Job ID: ${job.id}, Branch: ${branchId}`);
+  console.log(`[MTWorker] Translations to evaluate: ${translationIds.length}, Force AI: ${forceAI ?? false}`);
+
+  // 1. Fetch all translations with their key info
+  const translations = await prisma.translation.findMany({
+    where: { id: { in: translationIds } },
+    include: {
+      key: {
+        include: {
+          branch: {
+            include: {
+              space: {
+                include: { project: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (translations.length === 0) {
+    console.log('[MTWorker] No translations found');
+    return;
+  }
+
+  const project = translations[0].key.branch.space.project;
+  const sourceLanguage = project.defaultLanguage;
+
+  // 2. Group translations by key
+  const byKey = new Map<string, typeof translations>();
+  for (const t of translations) {
+    const keyId = t.keyId;
+    if (!byKey.has(keyId)) {
+      byKey.set(keyId, []);
+    }
+    byKey.get(keyId)!.push(t);
+  }
+
+  console.log(`[MTWorker] Grouped into ${byKey.size} keys`);
+
+  // 3. Fetch source translations for all keys
+  const keyIds = [...byKey.keys()];
+  const sourceTranslations = await prisma.translation.findMany({
+    where: {
+      keyId: { in: keyIds },
+      language: sourceLanguage,
+    },
+    select: { keyId: true, value: true },
+  });
+  const sourceMap = new Map(sourceTranslations.map((s) => [s.keyId, s.value]));
+
+  // 4. Process keys in parallel with concurrency limit
+  let processedTranslations = 0;
+  const totalTranslations = translationIds.length;
+  const CONCURRENCY = 3; // Process 3 keys in parallel
+
+  // Track failures for reporting
+  const failureTracking = {
+    perTranslation: 0, // Per-translation evaluation failures
+    perKey: 0, // Multi-language key evaluation failures
+    errors: [] as { keyName: string; error: string }[],
+  };
+
+  const keyEntries = [...byKey.entries()];
+
+  // Process in batches of CONCURRENCY
+  // Using Promise.allSettled to prevent worker crashes from unhandled rejections
+  for (let i = 0; i < keyEntries.length; i += CONCURRENCY) {
+    const batch = keyEntries.slice(i, i + CONCURRENCY);
+
+    const results = await Promise.allSettled(
+      batch.map(async ([keyId, keyTranslations]) => {
+        const keyName = keyTranslations[0].key.name;
+        const sourceText = sourceMap.get(keyId);
+
+        if (!sourceText) {
+          // No source - use per-translation format-only evaluation
+          console.log(`[MTWorker] Key ${keyName}: no source, using format-only evaluation`);
+          for (const t of keyTranslations) {
+            await qualityService.evaluate(t.id, { forceAI }).catch((err) => {
+              failureTracking.perTranslation++;
+              console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
+            });
+          }
+          return { keyName, status: 'format-only' };
+        }
+
+        // 5. Run heuristics for all languages (free, fast)
+        const heuristicResults = new Map<string, { score: number; issues: QualityIssue[] }>();
+
+        for (const t of keyTranslations) {
+          const checkResult = runQualityChecks({
+            source: sourceText,
+            target: t.value,
+            sourceLanguage,
+            targetLanguage: t.language,
+          });
+          const scoreResult = calculateScore(checkResult);
+          heuristicResults.set(t.language, {
+            score: scoreResult.score,
+            issues: scoreResult.issues,
+          });
+        }
+
+        // 6. Call multi-language AI evaluation (if applicable)
+        const needsAI = forceAI || [...heuristicResults.values()].some(
+          (h) => h.score < 80 || h.issues.some((i) => i.severity === 'error')
+        );
+
+        if (needsAI) {
+          console.log(`[MTWorker] Key ${keyName}: evaluating ${keyTranslations.length} languages with AI`);
+
+          await qualityService.evaluateKeyAllLanguages(
+            keyId,
+            keyName,
+            keyTranslations.map((t) => ({ id: t.id, language: t.language, value: t.value })),
+            sourceText,
+            sourceLanguage,
+            projectId,
+            heuristicResults
+          );
+          return { keyName, status: 'ai-evaluated' };
+        } else {
+          // All heuristics passed, save heuristic scores directly
+          console.log(`[MTWorker] Key ${keyName}: all heuristics passed, skipping AI`);
+          for (const t of keyTranslations) {
+            await qualityService.evaluate(t.id, { forceAI: false }).catch((err) => {
+              failureTracking.perTranslation++;
+              console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
+            });
+          }
+          return { keyName, status: 'heuristic-only' };
+        }
+      })
+    );
+
+    // Process results from allSettled to track failures
+    for (let j = 0; j < results.length; j++) {
+      const result = results[j];
+      if (result.status === 'rejected') {
+        const [, batchKeyTranslations] = batch[j];
+        const failedKeyName = batchKeyTranslations[0].key.name;
+        const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
+
+        failureTracking.perKey++;
+        failureTracking.errors.push({ keyName: failedKeyName, error: errorMessage });
+        console.error(
+          `[MTWorker] Quality evaluation failed for key: key=${failedKeyName}, languages=${batchKeyTranslations.length}, error=${errorMessage}`
+        );
+      }
+    }
+
+    // Update progress after each parallel batch
+    processedTranslations += batch.reduce((sum, [, trans]) => sum + trans.length, 0);
+    await job.updateProgress({ processed: processedTranslations, total: totalTranslations });
+  }
+
+  console.log(`[MTWorker] ====== QUALITY BATCH JOB COMPLETE ======`);
+  console.log(`[MTWorker] Evaluated: ${keyEntries.length} keys, ${processedTranslations} translations`);
+
+  // Report failures summary if any occurred
+  const totalFailures = failureTracking.perTranslation + failureTracking.perKey;
+  if (totalFailures > 0) {
+    console.warn(`[MTWorker] Quality evaluation failures summary:`);
+    console.warn(`[MTWorker]   - Per-translation failures: ${failureTracking.perTranslation}`);
+    console.warn(`[MTWorker]   - Per-key failures: ${failureTracking.perKey}`);
+    if (failureTracking.errors.length > 0 && failureTracking.errors.length <= 10) {
+      console.warn(`[MTWorker]   - Errors: ${failureTracking.errors.map(e => `${e.keyName}: ${e.error}`).join(', ')}`);
+    } else if (failureTracking.errors.length > 10) {
+      console.warn(`[MTWorker]   - First 10 errors: ${failureTracking.errors.slice(0, 10).map(e => `${e.keyName}: ${e.error}`).join(', ')}`);
+    }
+  }
 }
 
 /**

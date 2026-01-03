@@ -56,6 +56,7 @@ import {
   formatCharacterCount,
 } from '@/hooks/use-machine-translation';
 import type { MTProvider, MTConfig } from '@/lib/api';
+import { SettingsSectionHeader } from '@/components/settings';
 
 const configSchema = z.object({
   apiKey: z.string().min(1, 'API key is required'),
@@ -397,15 +398,11 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
     <div className="space-y-8">
       {/* Translation Providers Section */}
       <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
-            <Plug className="size-4.5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">{t('integrations.providers.title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('integrations.providers.subtitle')}</p>
-          </div>
-        </div>
+        <SettingsSectionHeader
+          icon={Plug}
+          title={t('integrations.providers.title')}
+          description={t('integrations.providers.subtitle')}
+        />
 
         <div className="space-y-4">
           <ProviderCard
@@ -425,15 +422,12 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
 
       {/* Usage Statistics - Always visible */}
       <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-linear-to-br from-emerald-500/15 to-emerald-500/5 border border-emerald-500/10 flex items-center justify-center">
-            <BarChart3 className="size-4.5 text-emerald-500" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">{t('integrations.usage.title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('integrations.usage.subtitle')}</p>
-          </div>
-        </div>
+        <SettingsSectionHeader
+          icon={BarChart3}
+          title={t('integrations.usage.title')}
+          description={t('integrations.usage.subtitle')}
+          color="emerald"
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           {/* Always show both provider cards */}
@@ -542,15 +536,12 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
 
       {/* Info Section */}
       <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-linear-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
-            <Info className="size-4.5 text-blue-500" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">{t('integrations.howItWorks.title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('integrations.howItWorks.subtitle')}</p>
-          </div>
-        </div>
+        <SettingsSectionHeader
+          icon={Info}
+          title={t('integrations.howItWorks.title')}
+          description={t('integrations.howItWorks.subtitle')}
+          color="blue"
+        />
 
         <div className="rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
           <div className="p-5 space-y-4">

@@ -2,10 +2,11 @@
 
 import { use } from 'react';
 import { useTranslation } from '@lingx/sdk-nextjs';
-import { Sparkles, Zap, Brain, BarChart3 } from 'lucide-react';
+import { Sparkles, Brain, BarChart3, Gauge } from 'lucide-react';
 import { useAIConfigs } from '@/hooks/use-ai-translation';
-import { ProviderCard, ContextConfigSection, UsageSection } from './_components';
-import {LoadingPulse} from "@/components/namespace-loader";
+import { ProviderCard, ContextConfigSection, UsageSection, QualityEvaluationSection } from './_components';
+import { LoadingPulse } from '@/components/namespace-loader';
+import { SettingsSectionHeader } from '@/components/settings';
 
 export default function AITranslationSettingsPage({
   params,
@@ -25,35 +26,21 @@ export default function AITranslationSettingsPage({
   // Show loading state while translations are loading
   if (!ready) {
     return (
-        <div className="flex items-center justify-center min-h-100">
-          <LoadingPulse />
-        </div>
+      <div className="flex items-center justify-center min-h-100">
+        <LoadingPulse />
+      </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
-      <div className="flex items-center gap-3 animate-fade-in-up">
-        <div className="size-12 rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 border border-primary/10 flex items-center justify-center">
-          <Sparkles className="size-5 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">{t('pageTitle')}</h2>
-          <p className="text-[13px] text-muted-foreground mt-0.5">
-            {t('pageDescription')}
-          </p>
-        </div>
-      </div>
-
       {/* Providers Section */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Zap className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            {t('sections.providers')}
-          </h3>
-        </div>
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={Sparkles}
+          title={t('sections.providers')}
+          description={t('pageDescription')}
+        />
         <div className="grid gap-4 lg:grid-cols-2">
           <ProviderCard
             projectId={projectId}
@@ -83,24 +70,35 @@ export default function AITranslationSettingsPage({
       </section>
 
       {/* Context Configuration */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Brain className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            {t('sections.contextSettings')}
-          </h3>
-        </div>
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={Brain}
+          title={t('sections.contextSettings')}
+          description="Fine-tune how AI understands your content"
+          color="blue"
+        />
         <ContextConfigSection projectId={projectId} />
       </section>
 
+      {/* Quality Evaluation */}
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={Gauge}
+          title={t('sections.qualityEvaluation')}
+          description="AI-powered translation quality scoring"
+          color="amber"
+        />
+        <QualityEvaluationSection projectId={projectId} />
+      </section>
+
       {/* Usage Statistics */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="size-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            {t('sections.usage')}
-          </h3>
-        </div>
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={BarChart3}
+          title={t('sections.usage')}
+          description="Monitor your AI translation usage and costs"
+          color="emerald"
+        />
         <UsageSection projectId={projectId} />
       </section>
     </div>

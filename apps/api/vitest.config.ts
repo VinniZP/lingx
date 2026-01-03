@@ -12,8 +12,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts'],
-    // TODO: Re-enable integration tests once request mocking is implemented
-    exclude: ['tests/integration/**/*.int.test.ts', 'node_modules/**'],
+    // Integration tests are included but use separate test database
+    exclude: ['node_modules/**'],
     // Run test files sequentially to avoid database race conditions
     fileParallelism: false,
     // Global setup/teardown for test database

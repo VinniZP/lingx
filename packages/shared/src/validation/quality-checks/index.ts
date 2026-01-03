@@ -21,6 +21,10 @@ export { placeholderChecker, extractPlaceholders } from './placeholder-check.js'
 export { whitespaceChecker } from './whitespace-check.js';
 export { punctuationChecker } from './punctuation-check.js';
 export { lengthChecker, createLengthChecker, type LengthCheckOptions } from './length-check.js';
+export { icuSyntaxChecker, validateICUSyntaxAsync } from './icu-syntax-check.js';
+
+// Score calculator
+export { calculateScore, type QualityScoreResult } from './score-calculator.js';
 
 // Runner
 export {

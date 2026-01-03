@@ -28,7 +28,7 @@ describe('NextjsExtractor', () => {
     `;
 
     const keys = extractor.extractFromCode(code);
-    expect(keys).toContain('common:title');
+    expect(keys).toContain('common\u001ftitle');
   });
 
   it('should skip dynamic keys', () => {

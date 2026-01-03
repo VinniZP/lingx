@@ -42,6 +42,7 @@ import { toast } from 'sonner';
 import { Trash2, Globe2, Check, Loader2, FileText, Hash, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AVAILABLE_LANGUAGES, getLanguageByCode } from '@/lib/languages';
+import { SettingsSectionHeader } from '@/components/settings';
 
 const settingsSchema = z.object({
   name: z
@@ -159,15 +160,11 @@ export default function ProjectSettingsPage({ params }: PageProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* Project Details Section */}
           <section className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center">
-                <FileText className="size-4.5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight">{t('projectSettings.details.title')}</h2>
-                <p className="text-sm text-muted-foreground">{t('projectSettings.details.subtitle')}</p>
-              </div>
-            </div>
+            <SettingsSectionHeader
+              icon={FileText}
+              title={t('projectSettings.details.title')}
+              description={t('projectSettings.details.subtitle')}
+            />
 
             <div className="rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
               <div className="p-6 space-y-5">
@@ -239,22 +236,16 @@ export default function ProjectSettingsPage({ params }: PageProps) {
 
           {/* Languages Section */}
           <section className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-linear-to-br from-blue-500/15 to-blue-500/5 border border-blue-500/10 flex items-center justify-center">
-                <Globe2 className="size-4.5 text-blue-500" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight">{t('projectSettings.languages.title')}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {t('projectSettings.languages.subtitle')}
-                  {selectedLanguages?.length > 0 && (
-                    <span className="ml-2 text-primary font-medium">
-                      · {t('projectSettings.languages.selectedCount', { count: selectedLanguages.length })}
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
+            <SettingsSectionHeader
+              icon={Globe2}
+              title={t('projectSettings.languages.title')}
+              description={
+                selectedLanguages?.length > 0
+                  ? `${t('projectSettings.languages.subtitle')} · ${t('projectSettings.languages.selectedCount', { count: selectedLanguages.length })}`
+                  : t('projectSettings.languages.subtitle')
+              }
+              color="blue"
+            />
 
             <div className="rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
               <div className="p-6 space-y-6">
@@ -369,15 +360,12 @@ export default function ProjectSettingsPage({ params }: PageProps) {
 
       {/* Danger Zone */}
       <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-linear-to-br from-destructive/15 to-destructive/5 border border-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="size-4.5 text-destructive" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-destructive">{t('projectSettings.dangerZone.title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('projectSettings.dangerZone.subtitle')}</p>
-          </div>
-        </div>
+        <SettingsSectionHeader
+          icon={AlertTriangle}
+          title={t('projectSettings.dangerZone.title')}
+          description={t('projectSettings.dangerZone.subtitle')}
+          color="destructive"
+        />
 
         <div className="rounded-2xl border border-destructive/20 bg-destructive/[0.02] overflow-hidden">
           <div className="p-6">

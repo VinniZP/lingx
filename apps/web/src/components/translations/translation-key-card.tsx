@@ -1,9 +1,11 @@
 'use client';
 
 import { useRef, useEffect, useCallback, memo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { ProjectLanguage } from '@lingx/shared';
 import { runQualityChecks } from '@lingx/shared';
 import { TranslationKey, type ApprovalStatus } from '@/lib/api';
+import { getCachedQualityScore } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import {
   Check,
@@ -28,7 +30,9 @@ import {
 } from '@/components/ui/tooltip';
 import { InlineSuggestion } from './inline-suggestion';
 import { QualityIssues } from './quality-issues';
+import { QualityIssuesInline } from './quality-issues-inline';
 import { RelatedKeysSection } from './related-keys-section';
+import { QualityScoreBadge, QualityScoreBadgeSkeleton } from './quality-score-badge';
 import { Kbd } from '@/components/ui/kbd';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
 import { useTranslation, tKey, type TranslationKey as TKey, type TranslationKeys } from '@lingx/sdk-nextjs';
@@ -53,6 +57,7 @@ interface TranslationKeyCardProps {
   onTranslationChange: (keyId: string, lang: string, value: string) => void;
   savingLanguages: Set<string>;
   savedLanguages: Set<string>;
+  validationErrors?: Map<string, string>;
   canApprove?: boolean;
   onApprove?: (translationId: string, status: 'APPROVED' | 'REJECTED') => Promise<void>;
   approvingTranslations?: Set<string>;
@@ -84,6 +89,7 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
   onTranslationChange,
   savingLanguages,
   savedLanguages,
+  validationErrors,
   canApprove = false,
   onApprove,
   approvingTranslations = new Set(),
@@ -453,6 +459,8 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                       {t('translations.keyCard.source')}
                     </span>
                   )}
+                  {/* Quality Score Badge */}
+                  {translationId && value && <TranslationQualityBadge translationId={translationId} />}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -691,6 +699,13 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
                   onDismiss={() => {}}
                 />
               )}
+
+              {/* Quality issues and validation errors */}
+              <QualityIssuesInline
+                validationError={validationErrors?.get(`${translationKey.id}-${lang.code}`)}
+                compact={!validationErrors?.has(`${translationKey.id}-${lang.code}`)}
+                className="mt-2"
+              />
             </div>
           );
         })}
@@ -722,3 +737,29 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
     </div>
   );
 });
+
+/**
+ * Translation Quality Badge with data fetching
+ *
+ * Fetches and displays quality score for a translation
+ */
+function TranslationQualityBadge({ translationId }: { translationId: string }) {
+  const { data: score, isLoading } = useQuery({
+    queryKey: ['quality-score', translationId],
+    queryFn: () => getCachedQualityScore(translationId),
+    // Cache for 30 minutes (read-only, won't change unless manually evaluated)
+    staleTime: 30 * 60 * 1000,
+    // Don't retry - if no cached score, just show nothing
+    retry: false,
+  });
+
+  if (isLoading) {
+    return <QualityScoreBadgeSkeleton size="sm" />;
+  }
+
+  if (!score) {
+    return null;
+  }
+
+  return <QualityScoreBadge score={score} size="sm" showDimensions />;
+}

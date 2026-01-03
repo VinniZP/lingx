@@ -49,7 +49,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <GitBranch className="size-4" />
-            <span>{t('projects.card.main')}</span>
+            <span>main</span>
           </div>
         </div>
 

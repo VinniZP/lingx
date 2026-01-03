@@ -34,10 +34,10 @@ const DEFAULT_CONTEXT_CONFIG: Omit<AIContextConfig, 'id' | 'projectId' | 'create
   customInstructions: null,
 };
 
-/** Supported AI providers and their models (December 2025) */
+/** Supported AI providers and their models (January 2026) */
 const PROVIDER_MODELS: Record<AIProviderEnum, string[]> = {
-  // OpenAI: GPT-5.2 (Dec 2025), GPT-5.1 (Nov 2025), GPT-4.1 (Apr 2025)
-  OPENAI: ['gpt-5.2', 'gpt-5.1', 'gpt-4.1', 'gpt-4.1-mini', 'o4-mini'],
+  // OpenAI: GPT-5.x series (full, mini, nano) + GPT-4.1 + o4
+  OPENAI: ['gpt-5.2', 'gpt-5.1', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1', 'gpt-4.1-mini', 'o4-mini'],
   // Anthropic: Claude 4.5 series - using alias format (auto-updates to latest)
   ANTHROPIC: ['claude-sonnet-4-5', 'claude-haiku-4-5', 'claude-opus-4-5'],
   // Google: Gemini 3 (Nov 2025), Gemini 2.0 (2024)
@@ -45,13 +45,16 @@ const PROVIDER_MODELS: Record<AIProviderEnum, string[]> = {
   MISTRAL: ['mistral-large-latest', 'mistral-small-latest'],
 };
 
-/** Pricing per 1M tokens (input, output) in USD - December 2025 */
+/** Pricing per 1M tokens (input, output) in USD - January 2026 */
 const PRICING: Record<string, { input: number; output: number }> = {
-  // OpenAI GPT-5.x series (2025)
+  // OpenAI GPT-5.x series (2025-2026)
   'gpt-5.2': { input: 1.75, output: 14.00 },
-  'gpt-5.1': { input: 2.00, output: 12.00 },
+  'gpt-5.1': { input: 1.25, output: 10.00 },
+  'gpt-5-mini': { input: 0.25, output: 2.00 },
+  'gpt-5-nano': { input: 0.05, output: 0.40 },
+  // OpenAI GPT-4.1 + o4 series
   'gpt-4.1': { input: 2.00, output: 8.00 },
-  'gpt-4.1-mini': { input: 0.10, output: 0.40 },
+  'gpt-4.1-mini': { input: 0.40, output: 1.60 },
   'o4-mini': { input: 1.10, output: 4.40 },
   // Anthropic Claude 4.5 series (2025)
   'claude-sonnet-4-5': { input: 3.00, output: 15.00 },
