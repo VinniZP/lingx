@@ -21,6 +21,7 @@ A self-hosted, developer-friendly localization management platform with git-like
 - Docker and Docker Compose
 - Node.js 20+ (for CLI/SDK development)
 - pnpm 10+
+- Redis 7+ (for job queues)
 
 ### Run with Docker
 
@@ -46,8 +47,8 @@ open http://localhost:3000
 # Install dependencies
 pnpm install
 
-# Start database
-docker-compose up -d postgres
+# Start database and Redis
+docker-compose up -d postgres redis
 
 # Run migrations
 pnpm --filter=@lingx/api prisma migrate dev
@@ -83,7 +84,7 @@ lingx/
 
 ## Tech Stack
 
-- **Backend**: Fastify 5, Prisma 7, PostgreSQL
+- **Backend**: Fastify 5, Prisma 7, PostgreSQL, Redis (BullMQ)
 - **Frontend**: Next.js 16, React 19, TailwindCSS, shadcn/ui
 - **CLI**: Commander.js, Node.js
 - **SDK**: React 19, @formatjs/intl-messageformat
