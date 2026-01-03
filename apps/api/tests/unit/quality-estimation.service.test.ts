@@ -109,7 +109,7 @@ describe('QualityEstimationService', () => {
       (mockPrisma.translation.findUnique as Mock).mockResolvedValue(null);
 
       await expect(service.evaluate('non-existent')).rejects.toThrow(
-        'Translation not found or empty'
+        'Translation'
       );
     });
 
@@ -120,7 +120,7 @@ describe('QualityEstimationService', () => {
       });
 
       await expect(service.evaluate('trans-1')).rejects.toThrow(
-        'Translation not found or empty'
+        'Translation value is empty'
       );
     });
 

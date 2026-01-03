@@ -21,6 +21,7 @@ import {
   type EvaluateOptions,
 } from '@lingx/shared';
 import { KeyContextService } from './key-context.service.js';
+import { NotFoundError, ValidationError } from '../plugins/error-handler.js';
 
 import {
   createLanguageModel,
@@ -39,6 +40,9 @@ import {
 } from './quality/index.js';
 
 export type { QualityScore, BranchQualitySummary, EvaluateOptions };
+
+/** Number of translations to evaluate in parallel per batch */
+const EVALUATION_BATCH_SIZE = 10;
 
 /**
  * Quality Estimation Service
@@ -93,8 +97,11 @@ export class QualityEstimationService {
       },
     });
 
-    if (!translation || !translation.value) {
-      throw new Error('Translation not found or empty');
+    if (!translation) {
+      throw new NotFoundError('Translation');
+    }
+    if (!translation.value) {
+      throw new ValidationError('Translation value is empty');
     }
 
     const project = translation.key.branch.space.project;
@@ -215,10 +222,9 @@ export class QualityEstimationService {
     options?: EvaluateOptions
   ): Promise<Map<string, QualityScore>> {
     const results = new Map<string, QualityScore>();
-    const batchSize = 10;
 
-    for (let i = 0; i < translationIds.length; i += batchSize) {
-      const batch = translationIds.slice(i, i + batchSize);
+    for (let i = 0; i < translationIds.length; i += EVALUATION_BATCH_SIZE) {
+      const batch = translationIds.slice(i, i + EVALUATION_BATCH_SIZE);
       const promises = batch.map((id) =>
         this.evaluate(id, options)
           .then((score) => results.set(id, score))
