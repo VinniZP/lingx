@@ -85,6 +85,9 @@ export type MultiLanguageEvaluationResult = z.infer<ReturnType<typeof createMult
 // JSON Extraction
 // ============================================
 
+/** Maximum response size to parse (50KB) - prevents regex DoS */
+const MAX_RESPONSE_SIZE = 50 * 1024;
+
 /**
  * Extract JSON object from AI response text.
  *
@@ -92,6 +95,8 @@ export type MultiLanguageEvaluationResult = z.infer<ReturnType<typeof createMult
  * - Plain JSON responses
  * - Markdown code blocks (```json ... ```)
  * - Text before/after JSON
+ *
+ * Security: Limits input to 50KB to prevent regex backtracking DoS.
  *
  * @param text - Raw AI response text
  * @returns Extracted JSON string
@@ -103,7 +108,12 @@ export type MultiLanguageEvaluationResult = z.infer<ReturnType<typeof createMult
  * extractJsonFromText('Here is the result: {"accuracy": 95}') // '{"accuracy": 95}'
  */
 export function extractJsonFromText(text: string): string {
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  // Prevent regex DoS on large malformed responses
+  const searchText = text.length > MAX_RESPONSE_SIZE
+    ? text.slice(0, MAX_RESPONSE_SIZE)
+    : text;
+
+  const jsonMatch = searchText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error('No JSON object found in response');
   }

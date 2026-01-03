@@ -218,7 +218,6 @@ export class QualityEstimationService {
    */
   async evaluateBatch(
     translationIds: string[],
-    _projectId: string,
     options?: EvaluateOptions
   ): Promise<Map<string, QualityScore>> {
     const results = new Map<string, QualityScore>();

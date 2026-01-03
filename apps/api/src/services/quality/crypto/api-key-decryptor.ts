@@ -55,5 +55,8 @@ export function decryptApiKey(encrypted: string, ivHex: string, key: Buffer): st
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
 
+  // Note: GCM's auth tag already validates integrity - if key/IV is wrong
+  // or data is tampered, decipher.final() throws. No additional validation needed.
+
   return decrypted;
 }

@@ -272,7 +272,7 @@ describe('QualityEstimationService', () => {
 
   describe('evaluateBatch', () => {
     it('should process empty array', async () => {
-      const result = await service.evaluateBatch([], 'proj-1');
+      const result = await service.evaluateBatch([]);
 
       expect(result.size).toBe(0);
     });
@@ -299,7 +299,7 @@ describe('QualityEstimationService', () => {
       (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock).mockResolvedValue(successScore);
 
-      const result = await service.evaluateBatch(['trans-1', 'trans-2'], 'proj-1');
+      const result = await service.evaluateBatch(['trans-1', 'trans-2']);
 
       // Should have one result (the one that succeeded)
       expect(result.size).toBe(1);
