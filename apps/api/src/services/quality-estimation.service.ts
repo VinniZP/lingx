@@ -138,6 +138,47 @@ const MAX_RETRIES = 2;
 const MAX_TURNS_PER_CONVERSATION = 7;
 const MAX_FRESH_STARTS = 3;
 
+// ============================================
+// SCORING WEIGHTS AND THRESHOLDS
+// ============================================
+
+/**
+ * Score dimension weights for calculating final combined score.
+ * Total must equal 1.0.
+ */
+const SCORE_WEIGHTS = {
+  /** AI accuracy weight (semantic fidelity to source) */
+  ACCURACY: 0.4,
+  /** AI fluency weight (natural language quality) */
+  FLUENCY: 0.25,
+  /** AI terminology weight (domain terms correctness) */
+  TERMINOLOGY: 0.15,
+  /** Heuristic format weight (ICU, placeholders, length) */
+  FORMAT: 0.2,
+} as const;
+
+/**
+ * Maximum score penalty applied from glossary validation.
+ * Prevents glossary issues from dominating the final score.
+ */
+const GLOSSARY_MAX_PENALTY = 10;
+
+/**
+ * Score deduction per missing glossary term.
+ * score = max(0, 100 - missingTerms.length * GLOSSARY_MISSING_TERM_PENALTY)
+ */
+const GLOSSARY_MISSING_TERM_PENALTY = 15;
+
+/**
+ * Score assigned to translations with invalid ICU syntax
+ */
+const ICU_INVALID_SCORE = 50;
+
+/**
+ * Score assigned to translations with valid ICU syntax (or no ICU)
+ */
+const ICU_VALID_SCORE = 100;
+
 /**
  * Zod schema for a single language evaluation
  */
@@ -326,8 +367,8 @@ export class QualityEstimationService {
     const allIssues = [...scoreResult.issues];
 
     if (glossaryResult && !glossaryResult.passed) {
-      // Reduce score for glossary issues (up to 10 points penalty)
-      finalScore -= Math.min(10, 100 - glossaryResult.score);
+      // Reduce score for glossary issues (up to GLOSSARY_MAX_PENALTY points)
+      finalScore -= Math.min(GLOSSARY_MAX_PENALTY, 100 - glossaryResult.score);
       if (glossaryResult.issue) allIssues.push(glossaryResult.issue);
       needsAI = true; // Glossary issues warrant deeper analysis
     }
@@ -684,10 +725,10 @@ export class QualityEstimationService {
 
         // Combine AI scores with heuristic format score
         const combinedScore = Math.round(
-          langResult.accuracy * 0.4 +
-          langResult.fluency * 0.25 +
-          langResult.terminology * 0.15 +
-          heuristic.score * 0.2
+          langResult.accuracy * SCORE_WEIGHTS.ACCURACY +
+          langResult.fluency * SCORE_WEIGHTS.FLUENCY +
+          langResult.terminology * SCORE_WEIGHTS.TERMINOLOGY +
+          heuristic.score * SCORE_WEIGHTS.FORMAT
         );
 
         // Map AI issues
@@ -783,7 +824,7 @@ export class QualityEstimationService {
       return { passed: true, score: 100 };
     }
 
-    const score = Math.max(0, 100 - missingTerms.length * 15);
+    const score = Math.max(0, 100 - missingTerms.length * GLOSSARY_MISSING_TERM_PENALTY);
 
     return {
       passed: false,
@@ -891,13 +932,12 @@ export class QualityEstimationService {
         );
       }
 
-      // Combine AI scores with heuristic format score
-      // Weights: accuracy 40%, fluency 25%, terminology 15%, format 20%
+      // Combine AI scores with heuristic format score using defined weights
       const combinedScore = Math.round(
-        result.accuracy * 0.4 +
-          result.fluency * 0.25 +
-          result.terminology * 0.15 +
-          heuristicResult.score * 0.2
+        result.accuracy * SCORE_WEIGHTS.ACCURACY +
+          result.fluency * SCORE_WEIGHTS.FLUENCY +
+          result.terminology * SCORE_WEIGHTS.TERMINOLOGY +
+          heuristicResult.score * SCORE_WEIGHTS.FORMAT
       );
 
       // Map AI issues to QualityIssue format
@@ -1311,22 +1351,43 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
 
   /**
    * Decrypt API key stored in database
+   *
+   * @param encrypted - The encrypted API key as hex string (includes auth tag as last 32 chars)
+   * @param ivHex - The initialization vector as 32-character hex string (16 bytes)
+   * @returns The decrypted API key
+   * @throws Error if validation fails or decryption fails
    */
   private decryptApiKey(encrypted: string, ivHex: string): string {
-    const key = this.getEncryptionKey();
-    const iv = Buffer.from(ivHex, 'hex');
+    try {
+      const key = this.getEncryptionKey();
 
-    // Split encrypted data and auth tag (last 32 hex chars = 16 bytes)
-    const authTag = Buffer.from(encrypted.slice(-32), 'hex');
-    const encryptedData = encrypted.slice(0, -32);
+      // Validate IV format (32 hex chars = 16 bytes for GCM)
+      if (!ivHex || !/^[0-9a-f]{32}$/i.test(ivHex)) {
+        throw new Error('Invalid IV format: must be 32 hex characters');
+      }
+      const iv = Buffer.from(ivHex, 'hex');
 
-    const decipher = createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(authTag);
+      // Validate encrypted data format (must be hex, minimum 32 chars for auth tag)
+      if (!encrypted || encrypted.length < 32 || !/^[0-9a-f]+$/i.test(encrypted)) {
+        throw new Error('Invalid encrypted data format');
+      }
 
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+      // Split encrypted data and auth tag (last 32 hex chars = 16 bytes)
+      const authTag = Buffer.from(encrypted.slice(-32), 'hex');
+      const encryptedData = encrypted.slice(0, -32);
 
-    return decrypted;
+      const decipher = createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(authTag);
+
+      let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+
+      return decrypted;
+    } catch (error) {
+      // Log error without exposing sensitive details
+      console.error('[Quality] Failed to decrypt API key:', error instanceof Error ? error.message : 'Unknown error');
+      throw new Error('Invalid or corrupted API key configuration');
+    }
   }
 
   /**
@@ -1441,7 +1502,7 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
   ): Promise<QualityScore> {
     // When there's no source to compare, just validate ICU syntax
     const icuCheck = await this.validateICUSyntax(text);
-    const score = icuCheck.valid ? 100 : 50;
+    const score = icuCheck.valid ? ICU_VALID_SCORE : ICU_INVALID_SCORE;
     const issues: QualityIssue[] = icuCheck.valid
       ? []
       : [

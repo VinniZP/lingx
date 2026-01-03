@@ -772,6 +772,7 @@ model TranslationQualityScore {
 
   @@index([score])
   @@index([evaluationType])
+  @@index([contentHash])
 }
 
 /// Configuration for quality scoring per project

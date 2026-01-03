@@ -628,6 +628,13 @@ async function handleQualityBatch(
   const totalTranslations = translationIds.length;
   const CONCURRENCY = 3; // Process 3 keys in parallel
 
+  // Track failures for reporting
+  const failureTracking = {
+    perTranslation: 0, // Per-translation evaluation failures
+    perKey: 0, // Multi-language key evaluation failures
+    errors: [] as { keyName: string; error: string }[],
+  };
+
   const keyEntries = [...byKey.entries()];
 
   // Process in batches of CONCURRENCY
@@ -644,7 +651,8 @@ async function handleQualityBatch(
           console.log(`[MTWorker] Key ${keyName}: no source, using format-only evaluation`);
           for (const t of keyTranslations) {
             await qualityService.evaluate(t.id, { forceAI }).catch((err) => {
-              console.error(`[MTWorker] Failed to evaluate ${t.id}:`, err.message);
+              failureTracking.perTranslation++;
+              console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
             });
           }
           return;
@@ -690,12 +698,16 @@ async function handleQualityBatch(
             console.log(`[MTWorker] Key ${keyName}: all heuristics passed, skipping AI`);
             for (const t of keyTranslations) {
               await qualityService.evaluate(t.id, { forceAI: false }).catch((err) => {
-                console.error(`[MTWorker] Failed to evaluate ${t.id}:`, err.message);
+                failureTracking.perTranslation++;
+                console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
               });
             }
           }
         } catch (error) {
-          console.error(`[MTWorker] Failed to evaluate key ${keyName}:`, error);
+          failureTracking.perKey++;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          failureTracking.errors.push({ keyName, error: errorMessage });
+          console.error(`[MTWorker] Quality evaluation failed for key: key=${keyName}, languages=${keyTranslations.length}, error=${errorMessage}`);
         }
       })
     );
@@ -707,6 +719,19 @@ async function handleQualityBatch(
 
   console.log(`[MTWorker] ====== QUALITY BATCH JOB COMPLETE ======`);
   console.log(`[MTWorker] Evaluated: ${keyEntries.length} keys, ${processedTranslations} translations`);
+
+  // Report failures summary if any occurred
+  const totalFailures = failureTracking.perTranslation + failureTracking.perKey;
+  if (totalFailures > 0) {
+    console.warn(`[MTWorker] Quality evaluation failures summary:`);
+    console.warn(`[MTWorker]   - Per-translation failures: ${failureTracking.perTranslation}`);
+    console.warn(`[MTWorker]   - Per-key failures: ${failureTracking.perKey}`);
+    if (failureTracking.errors.length > 0 && failureTracking.errors.length <= 10) {
+      console.warn(`[MTWorker]   - Errors: ${failureTracking.errors.map(e => `${e.keyName}: ${e.error}`).join(', ')}`);
+    } else if (failureTracking.errors.length > 10) {
+      console.warn(`[MTWorker]   - First 10 errors: ${failureTracking.errors.slice(0, 10).map(e => `${e.keyName}: ${e.error}`).join(', ')}`);
+    }
+  }
 }
 
 /**

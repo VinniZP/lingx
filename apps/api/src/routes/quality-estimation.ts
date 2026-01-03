@@ -13,7 +13,69 @@ import { z } from 'zod';
 import { QualityEstimationService } from '../services/quality-estimation.service.js';
 import { mtBatchQueue } from '../lib/queues.js';
 import type { MTJobData } from '../workers/mt-batch.worker.js';
-import { NotFoundError } from '../plugins/error-handler.js';
+import { NotFoundError, ForbiddenError } from '../plugins/error-handler.js';
+
+/**
+ * Maximum number of translation IDs that can be submitted in a single batch request
+ * to prevent DoS attacks via extremely large payloads.
+ */
+const MAX_BATCH_TRANSLATION_IDS = 1000;
+
+/**
+ * Zod schema for QualityIssueSeverity
+ */
+const qualityIssueSeveritySchema = z.enum(['error', 'warning', 'info']);
+
+/**
+ * Zod schema for QualityCheckType (all possible issue types)
+ */
+const qualityCheckTypeSchema = z.enum([
+  // Heuristic checks
+  'placeholder_missing',
+  'placeholder_extra',
+  'whitespace_leading',
+  'whitespace_trailing',
+  'whitespace_double',
+  'whitespace_tab',
+  'punctuation_mismatch',
+  'length_too_long',
+  'length_critical',
+  'length_extreme',
+  'icu_syntax',
+  'glossary_missing',
+  // AI evaluation issues
+  'ai_accuracy',
+  'ai_fluency',
+  'ai_terminology',
+]);
+
+/**
+ * Zod schema for QualityIssue - represents a single quality issue found in a translation
+ */
+const qualityIssueSchema = z.object({
+  /** Type of the issue */
+  type: qualityCheckTypeSchema,
+  /** Severity level */
+  severity: qualityIssueSeveritySchema,
+  /** Human-readable message */
+  message: z.string(),
+  /** Position in target string where issue occurs (if applicable) */
+  position: z
+    .object({
+      start: z.number(),
+      end: z.number(),
+    })
+    .optional(),
+  /** Additional context data */
+  context: z
+    .object({
+      expected: z.string().optional(),
+      found: z.string().optional(),
+      placeholder: z.string().optional(),
+      ratio: z.string().optional(),
+    })
+    .optional(),
+});
 
 const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -45,7 +107,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
             format: z.number().min(0).max(100).optional(),
             passed: z.boolean(),
             needsAIEvaluation: z.boolean(),
-            issues: z.array(z.any()),
+            issues: z.array(qualityIssueSchema),
             evaluationType: z.enum(['heuristic', 'ai', 'hybrid']),
             cached: z.boolean(),
           }),
@@ -55,6 +117,39 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { translationId } = request.params;
       const { forceAI } = request.body || {};
+
+      // Verify user has access to this translation's project
+      const translation = await fastify.prisma.translation.findUnique({
+        where: { id: translationId },
+        select: {
+          key: {
+            select: {
+              branch: {
+                select: {
+                  space: {
+                    select: {
+                      project: {
+                        select: {
+                          members: {
+                            where: { userId: request.user!.userId },
+                            select: { userId: true },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      if (!translation) {
+        throw new NotFoundError('Translation');
+      }
+      if (translation.key.branch.space.project.members.length === 0) {
+        throw new ForbiddenError('Not authorized to evaluate this translation');
+      }
 
       return qualityService.evaluate(translationId, { forceAI });
     }
@@ -83,7 +178,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
               terminology: z.number().min(0).max(100).optional(),
               format: z.number().min(0).max(100).optional(),
               passed: z.boolean(),
-              issues: z.array(z.any()),
+              issues: z.array(qualityIssueSchema),
               evaluationType: z.enum(['heuristic', 'ai', 'hybrid']),
             })
             .nullable(),
@@ -93,15 +188,45 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { translationId } = request.params;
 
-      // Just return cached score, don't evaluate
-      const cached = await fastify.prisma.translationQualityScore.findUnique({
-        where: { translationId },
+      // Verify user has access to this translation's project
+      const translation = await fastify.prisma.translation.findUnique({
+        where: { id: translationId },
+        select: {
+          qualityScore: true,
+          key: {
+            select: {
+              branch: {
+                select: {
+                  space: {
+                    select: {
+                      project: {
+                        select: {
+                          members: {
+                            where: { userId: request.user!.userId },
+                            select: { userId: true },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
+      if (!translation) {
+        return null;
+      }
+      if (translation.key.branch.space.project.members.length === 0) {
+        throw new ForbiddenError('Not authorized to view this translation');
+      }
 
-      if (!cached) {
+      if (!translation.qualityScore) {
         return null;
       }
 
+      const cached = translation.qualityScore;
       return {
         score: cached.score,
         accuracy: cached.accuracyScore ?? undefined,
@@ -109,7 +234,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
         terminology: cached.terminologyScore ?? undefined,
         format: cached.formatScore,
         passed: cached.score >= 80,
-        issues: cached.issues as any[],
+        issues: cached.issues as z.infer<typeof qualityIssueSchema>[],
         evaluationType: cached.evaluationType as 'heuristic' | 'ai' | 'hybrid',
       };
     }
@@ -132,7 +257,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
           branchId: z.string(),
         }),
         body: z.object({
-          translationIds: z.array(z.string()).optional(),
+          translationIds: z.array(z.string()).max(MAX_BATCH_TRANSLATION_IDS).optional(),
           forceAI: z.boolean().optional(),
         }),
         response: {
@@ -151,7 +276,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const { branchId } = request.params;
       const { translationIds, forceAI } = request.body || {};
 
-      // Get project ID and enabled languages from branch
+      // Get project ID and enabled languages from branch, include membership check
       const branch = await fastify.prisma.branch.findUnique({
         where: { id: branchId },
         select: {
@@ -162,6 +287,10 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
                   id: true,
                   defaultLanguage: true,
                   languages: { select: { code: true } },
+                  members: {
+                    where: { userId: request.user!.userId },
+                    select: { userId: true },
+                  },
                 },
               },
             },
@@ -171,6 +300,12 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       if (!branch) {
         throw new NotFoundError('Branch');
       }
+
+      // Verify user has access to this project
+      if (branch.space.project.members.length === 0) {
+        throw new ForbiddenError('Not authorized to evaluate translations in this project');
+      }
+
       const projectId = branch.space.project.id;
       const sourceLanguage = branch.space.project.defaultLanguage;
       const enabledLanguages = branch.space.project.languages.map((l) => l.code);
@@ -298,6 +433,32 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request) => {
       const { branchId } = request.params;
+
+      // Verify user has access to this branch's project
+      const branch = await fastify.prisma.branch.findUnique({
+        where: { id: branchId },
+        select: {
+          space: {
+            select: {
+              project: {
+                select: {
+                  members: {
+                    where: { userId: request.user!.userId },
+                    select: { userId: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      if (!branch) {
+        throw new NotFoundError('Branch');
+      }
+      if (branch.space.project.members.length === 0) {
+        throw new ForbiddenError('Not authorized to view this branch');
+      }
+
       return qualityService.getBranchSummary(branchId);
     }
   );
@@ -331,6 +492,20 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request) => {
       const { projectId } = request.params;
+
+      // Verify user has access to this project
+      const membership = await fastify.prisma.projectMember.findUnique({
+        where: {
+          projectId_userId: {
+            projectId,
+            userId: request.user!.userId,
+          },
+        },
+      });
+      if (!membership) {
+        throw new ForbiddenError('Not authorized to view this project');
+      }
+
       return qualityService.getConfig(projectId);
     }
   );
@@ -373,6 +548,24 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request) => {
       const { projectId } = request.params;
+
+      // Verify user has access to this project (admin/maintainer for updates)
+      const membership = await fastify.prisma.projectMember.findUnique({
+        where: {
+          projectId_userId: {
+            projectId,
+            userId: request.user!.userId,
+          },
+        },
+      });
+      if (!membership) {
+        throw new ForbiddenError('Not authorized to modify this project');
+      }
+      // Only OWNER, ADMIN, or MAINTAINER can update config
+      if (!['OWNER', 'ADMIN', 'MAINTAINER'].includes(membership.role)) {
+        throw new ForbiddenError('Insufficient permissions to update project configuration');
+      }
+
       await qualityService.updateConfig(projectId, request.body);
       return qualityService.getConfig(projectId);
     }
