@@ -267,8 +267,7 @@
     "saving": "Saving...",
     "switching": "Switching...",
     "verified": "Verified",
-    "viewAll": "View all",
-    "save": "Save"
+    "viewAll": "View all"
   },
   "dashboard": {
     "apiKeys": {
@@ -842,7 +841,6 @@
   "projects": {
     "card": {
       "keys": "{count} keys",
-      "main": "main",
       "progress": "Progress"
     },
     "description": "Manage your localization projects",
@@ -900,6 +898,21 @@
       "totalKeys": "Total Keys"
     },
     "title": "Projects"
+  },
+  "quality": {
+    "bulkEvaluation": {
+      "allCached": "All Cached",
+      "descriptionAll": "Evaluate quality for all translations in this branch",
+      "descriptionSelected": "Evaluate quality for {count} selected translations",
+      "evaluate": "Evaluate Quality",
+      "failed": "Failed to queue quality evaluation",
+      "infoAI": "AI evaluation for complex quality issues",
+      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
+      "infoProcessing": "Processing happens in the background",
+      "queued": "Quality evaluation queued",
+      "queuing": "Queuing...",
+      "title": "Evaluate Translation Quality"
+    }
   },
   "security": {
     "activeSessions": {
@@ -1061,6 +1074,31 @@
       "description": "Update your name, email, and profile settings",
       "title": "Profile"
     },
+    "quality": {
+      "aiProviderLink": {
+        "description": "Configure which AI provider to use for quality evaluation",
+        "title": "AI Provider Settings"
+      },
+      "loading": "Loading quality settings",
+      "saveFailed": "Failed to save quality settings",
+      "saved": "Quality settings saved",
+      "thresholds": {
+        "autoApprove": "Auto-approve threshold",
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "description": "Score thresholds for automated workflows",
+        "flag": "Flag threshold",
+        "flagDescription": "Flag translations with score < this value for review",
+        "title": "Quality Thresholds"
+      },
+      "triggers": {
+        "afterAI": "Score after AI translation",
+        "afterAIDescription": "Automatically score translations created by AI",
+        "beforeMerge": "Score before merge",
+        "beforeMergeDescription": "Require quality check before merging branches",
+        "description": "When to automatically score translations",
+        "title": "Scoring Triggers"
+      }
+    },
     "resources": {
       "api": "API Reference",
       "apiDesc": "Integrate with our REST API",
@@ -1083,47 +1121,7 @@
       "strongPasswordDesc": "Use a unique password with 12+ characters",
       "title": "Security Tips"
     },
-    "title": "Account Settings",
-    "quality": {
-      "saved": "Quality settings saved",
-      "saveFailed": "Failed to save quality settings",
-      "title": "Quality Scoring",
-      "description": "Configure automatic quality scoring for translations using heuristics and AI evaluation",
-      "triggers": {
-        "title": "Scoring Triggers",
-        "description": "When to automatically score translations",
-        "afterAI": "Score after AI translation",
-        "afterAIDescription": "Automatically score translations created by AI",
-        "beforeMerge": "Score before merge",
-        "beforeMergeDescription": "Require quality check before merging branches"
-      },
-      "thresholds": {
-        "title": "Quality Thresholds",
-        "description": "Score thresholds for automated workflows",
-        "autoApprove": "Auto-approve threshold",
-        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
-        "flag": "Flag threshold",
-        "flagDescription": "Flag translations with score < this value for review"
-      },
-      "ai": {
-        "title": "AI Evaluation",
-        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
-        "enabled": "Enable AI evaluation",
-        "enabledDescription": "Use AI to evaluate complex quality issues",
-        "provider": "AI Provider",
-        "providerPlaceholder": "Select provider",
-        "providerDescription": "AI provider for quality evaluation",
-        "useProjectDefault": "Use project default",
-        "model": "AI Model",
-        "modelPlaceholder": "e.g., claude-sonnet-4-5",
-        "modelDescription": "Specific model to use for evaluation"
-      },
-      "loading": "Loading quality settings",
-      "aiProviderLink": {
-        "title": "AI Provider Settings",
-        "description": "Configure which AI provider to use for quality evaluation"
-      }
-    }
+    "title": "Account Settings"
   },
   "sidebar": {
     "apiKeys": "API Keys",
@@ -1189,14 +1187,6 @@
       "searchPlaceholder": "Search keys or type a command...",
       "translateAllLanguages": "Translate all languages",
       "translateCurrentField": "Translate current field"
-    },
-    "editor": {
-      "default": "default",
-      "enterTranslationPlaceholder": "Enter {language} translation...",
-      "saveChanges": "Save Changes",
-      "saving": "Saving...",
-      "selectKeyPrompt": "Select a key from the list to edit translations",
-      "unsavedChanges": "Unsaved changes"
     },
     "empty": {
       "createFirst": "Create First Key",
@@ -1339,6 +1329,7 @@
       "failedToSave": "Failed to save translation",
       "failedToTranslate": "Failed to translate",
       "failedToUpdateTranslations": "Failed to update translations",
+      "invalidICUSyntax": "Invalid ICU syntax",
       "jobCancelled": "Translation job cancelled",
       "keysDeleted": "{count, plural, one {# key} other {# keys}} deleted",
       "noEmptyTranslations": "No empty translations to fill",
@@ -1346,8 +1337,7 @@
       "translationsApproved": "{count} translations approved",
       "translationsGenerated": "{count, plural, one {# translation} other {# translations}} generated",
       "translationsRejected": "{count} translations rejected",
-      "translationsUpdated": "{count} translations {status}",
-      "invalidICUSyntax": "Invalid ICU syntax"
+      "translationsUpdated": "{count} translations {status}"
     }
   },
   "twoFactor": {
@@ -1436,23 +1426,5 @@
     "successMessage": "Your email has been successfully changed to:",
     "verified": "Email Verified!",
     "verifying": "Verifying Email"
-  },
-  "quality": {
-    "bulkEvaluation": {
-      "queued": "Quality evaluation queued",
-      "jobId": "Job ID: {jobId}",
-      "failed": "Failed to queue quality evaluation",
-      "title": "Evaluate Translation Quality",
-      "descriptionSelected": "Evaluate quality for {count} selected translations",
-      "descriptionAll": "Evaluate quality for all translations in this branch",
-      "forceAI": "Force AI evaluation",
-      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
-      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
-      "infoAI": "AI evaluation for complex quality issues",
-      "infoProcessing": "Processing happens in the background",
-      "queuing": "Queuing...",
-      "evaluate": "Evaluate Quality",
-      "allCached": "All Cached"
-    }
   }
 }

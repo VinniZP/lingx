@@ -1,5 +1,49 @@
 {
+  "quality": {
+    "title": "Оцінка якості",
+    "description": "Налаштуйте AI-оцінку якості перекладів",
+    "enable": "Увімкнути AI оцінку якості",
+    "saved": "Налаштування якості збережено",
+    "save": "Зберегти",
+    "noProvidersWarning": "AI провайдери не налаштовані. Увімкніть хоча б один провайдер вище.",
+    "provider": "AI провайдер",
+    "saveFailed": "Не вдалося зберегти налаштування якості",
+    "enableDescription": "Використовувати AI для аналізу точності та стилю перекладу",
+    "selectProvider": "Оберіть провайдера",
+    "providerDescription": "Оберіть увімкнений AI провайдер для оцінки якості",
+    "model": "Модель",
+    "selectModel": "Оберіть модель",
+    "modelDescription": "Оберіть модель для аналізу якості",
+    "configuredWith": "Налаштовано"
+  },
+  "toasts": {
+    "configSaved": "",
+    "configRemoved": "",
+    "configRemovedDescription": "{provider} видалено.",
+    "configRemoveFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "Успішно підключено до {provider}.",
+    "connectionFailed": "",
+    "configSavedDescription": "{provider} налаштовано.",
+    "configSaveFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": ""
+  },
   "pageTitle": "AI Translation",
+  "usage": {
+    "stats": {
+      "totalTokens": "",
+      "requests": "",
+      "cacheHits": "",
+      "estCost": ""
+    },
+    "title": "",
+    "description": "",
+    "byProvider": "",
+    "tokens": "",
+    "requests": ""
+  },
   "pageDescription": "",
   "sections": {
     "providers": "",
@@ -7,34 +51,7 @@
     "qualityEvaluation": "Оцінка якості",
     "usage": ""
   },
-  "quality": {
-    "title": "Оцінка якості",
-    "description": "Налаштуйте AI-оцінку якості перекладів",
-    "enable": "Увімкнути AI оцінку якості",
-    "enableDescription": "Використовувати AI для аналізу точності та стилю перекладу",
-    "provider": "AI провайдер",
-    "selectProvider": "Оберіть провайдера",
-    "providerDescription": "Оберіть увімкнений AI провайдер для оцінки якості",
-    "model": "Модель",
-    "selectModel": "Оберіть модель",
-    "modelDescription": "Оберіть модель для аналізу якості",
-    "noProvidersWarning": "AI провайдери не налаштовані. Увімкніть хоча б один провайдер вище.",
-    "configuredWith": "Налаштовано",
-    "save": "Зберегти",
-    "saved": "Налаштування якості збережено",
-    "saveFailed": "Не вдалося зберегти налаштування якості"
-  },
   "provider": {
-    "status": {
-      "active": "",
-      "inactive": ""
-    },
-    "openai": {
-      "description": ""
-    },
-    "anthropic": {
-      "description": ""
-    },
     "googleAI": {
       "description": ""
     },
@@ -42,10 +59,6 @@
       "description": ""
     },
     "form": {
-      "apiKey": "",
-      "apiKeyKeepCurrent": "",
-      "apiKeyPlaceholder": "Введіть API ключ {provider}",
-      "apiKeyUpdatePlaceholder": "",
       "apiKeyHint": {
         "openai": "",
         "anthropic": "",
@@ -56,38 +69,47 @@
       "modelPlaceholder": "",
       "modelDescription": "",
       "enableProvider": "",
-      "enableProviderDescription": ""
+      "enableProviderDescription": "",
+      "apiKey": "",
+      "apiKeyKeepCurrent": "",
+      "apiKeyUpdatePlaceholder": "",
+      "apiKeyPlaceholder": "Введіть API ключ {provider}"
+    },
+    "openai": {
+      "description": ""
+    },
+    "anthropic": {
+      "description": ""
+    },
+    "status": {
+      "active": "",
+      "inactive": ""
     },
     "actions": {
       "cancel": "",
-      "save": "",
       "saving": "",
+      "save": "",
       "remove": "",
       "test": "",
       "edit": ""
     },
     "removeDialog": {
       "title": "Видалити {provider}",
-      "description": "Ви впевнені, що хочете видалити {provider}?"
+      "description": "Це видалить API ключ і вимкне переклад за допомогою ШІ через {provider}. Ви зможете додати його знову пізніше."
     }
-  },
-  "toasts": {
-    "configSaved": "",
-    "configSavedDescription": "{provider} налаштовано.",
-    "configSaveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} видалено.",
-    "configRemoveFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Успішно підключено до {provider}.",
-    "connectionFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": ""
   },
   "context": {
     "title": "",
     "description": "",
+    "maxItems": "",
+    "minSimilarity": "",
+    "customInstructions": {
+      "title": "",
+      "description": "",
+      "placeholder": ""
+    },
+    "saveNote": "",
+    "saveSettings": "",
     "glossary": {
       "label": "",
       "description": ""
@@ -99,28 +121,6 @@
     "relatedKeys": {
       "label": "",
       "description": ""
-    },
-    "maxItems": "",
-    "minSimilarity": "",
-    "customInstructions": {
-      "title": "",
-      "description": "",
-      "placeholder": ""
-    },
-    "saveNote": "",
-    "saveSettings": ""
-  },
-  "usage": {
-    "title": "",
-    "description": "",
-    "stats": {
-      "totalTokens": "",
-      "requests": "",
-      "cacheHits": "",
-      "estCost": ""
-    },
-    "byProvider": "",
-    "tokens": "",
-    "requests": ""
+    }
   }
 }

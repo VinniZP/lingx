@@ -1,13 +1,200 @@
 {
+  "quality": {
+    "bulkEvaluation": {
+      "forceAI": "Force AI evaluation",
+      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
+      "jobId": "Job ID: {jobId}",
+      "failed": "Failed to queue quality evaluation",
+      "queued": "Quality evaluation queued",
+      "title": "Evaluate Translation Quality",
+      "descriptionSelected": "Evaluate quality for {count} selected translations",
+      "descriptionAll": "Evaluate quality for all translations in this branch",
+      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
+      "infoAI": "AI evaluation for complex quality issues",
+      "infoProcessing": "Processing happens in the background",
+      "queuing": "Queuing...",
+      "evaluate": "Evaluate Quality"
+    }
+  },
+  "apiKeys": {
+    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
+    "revokeDialog": {
+      "cancel": "Abbrechen"
+    },
+    "copiedToClipboard": "In die Zwischenablage kopiert",
+    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
+    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
+    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
+    "activeKeys": "Aktive Schlüssel",
+    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
+    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt"
+  },
+  "projects": {
+    "search": {
+      "placeholder": "Projekte suchen...",
+      "noResults": "Keine Projekte gefunden",
+      "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
+    },
+    "filters": "Filter",
+    "title": "Projekte",
+    "description": "Verwalten Sie Ihre Lokalisierungsprojekte",
+    "stats": {
+      "totalKeys": "Schlüssel Gesamt"
+    },
+    "empty": {
+      "title": "Noch keine Projekte",
+      "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen.",
+      "cta": "Erstellen Sie Ihr erstes Projekt"
+    },
+    "card": {
+      "keys": "{count} Schlüssel",
+      "main": "main",
+      "progress": "Fortschritt"
+    }
+  },
+  "activity": {
+    "preview": {
+      "metadata": {
+        "source": "Quelle",
+        "target": "Ziel",
+        "conflictsResolved": "Konflikte gelöst",
+        "branch": "Branch",
+        "from": "Von",
+        "file": "Datei",
+        "keys": "Schlüssel",
+        "languages": "Sprachen",
+        "format": "Format",
+        "changed": "Geändert",
+        "environment": "Umgebung",
+        "to": "Zu"
+      },
+      "noDetails": "Keine Details verfügbar",
+      "loading": "Laden...",
+      "andMore": "+{count} weitere",
+      "empty": "leer",
+      "viewAllHint": "Klicken Sie, um {count} Änderungen anzuzeigen"
+    },
+    "noRecent": "Keine aktuelle Aktivität",
+    "viewAll": "Alle Änderungen anzeigen",
+    "viewAllChanges": "Alle {count} Änderungen anzeigen",
+    "description": {
+      "translationSingle": "Übersetzung aktualisiert{languages, select, undefined {} other { in {languages}}}",
+      "aiTranslateWithLanguages": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} zu {languages} übersetzt",
+      "aiTranslate": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} übersetzt",
+      "default": "Aktivität aufgezeichnet",
+      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
+      "keyAddSingle": "Übersetzungsschlüssel hinzugefügt",
+      "keyAddPlural": "Hinzugefügt {count} Übersetzungsschlüssel",
+      "keyDeleteSingle": "Übersetzungsschlüssel gelöscht",
+      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
+      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht",
+      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
+      "keyDeletePlural": "Gelöschte {count} Übersetzungsschlüssel",
+      "branchCreateWithSource": "Branch \"{branchName}\" wurde aus \"{sourceBranchName}\" erstellt",
+      "branchCreate": "Branch \"{branchName}\" erstellt",
+      "branchDelete": "Branch \"{branchName}\" gelöscht",
+      "merge": "Hat \"{sourceBranchName}\" in \"{targetBranchName}\" zusammengeführt",
+      "importWithFile": "Importierte {count, plural, one {# Schlüssel} other {# Schlüssel}} aus {fileName}",
+      "import": "Importiert {count, plural, one {# Schlüssel} other {# Schlüssel}}",
+      "export": "Übersetzungen in {format} exportiert",
+      "projectSettings": "Projekt {fields} aktualisiert"
+    },
+    "modal": {
+      "loadMore": "Mehr laden",
+      "empty": "Leer",
+      "noChanges": "Keine detaillierten Änderungen aufgezeichnet",
+      "noChangesHint": "Diese Aktivität verfügt nicht über detaillierte Änderungsverfolgung.",
+      "auditTrail": "Audit-Trail"
+    },
+    "title": "Aktuelle Aktivität",
+    "lastDay": "Letzte 24 Stunden",
+    "lastWeek": "Letzte 7 Tage",
+    "empty": "Aktivitäten erscheinen hier während Sie arbeiten"
+  },
+  "common": {
+    "delete": "Löschen",
+    "loading": "Laden...",
+    "cancel": "Abbrechen",
+    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
+    "viewAll": "Alle anzeigen",
+    "save": "Speichern"
+  },
+  "settings": {
+    "quality": {
+      "saved": "",
+      "saveFailed": "",
+      "loading": "Qualitätseinstellungen werden geladen",
+      "aiProviderLink": {
+        "title": "AI-Anbieter-Einstellungen",
+        "description": "Konfigurieren Sie, welcher AI-Anbieter für die Qualitätsbewertung verwendet werden soll"
+      },
+      "thresholds": {
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "flag": "Flag threshold",
+        "flagDescription": "Flag translations with score < this value for review",
+        "title": "Quality Thresholds",
+        "description": "Score thresholds for automated workflows",
+        "autoApprove": "Auto-approve threshold"
+      },
+      "title": "",
+      "description": "",
+      "ai": {
+        "title": "AI Evaluation",
+        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
+        "enabled": "Enable AI evaluation",
+        "enabledDescription": "Use AI to evaluate complex quality issues",
+        "provider": "AI Provider",
+        "providerPlaceholder": "Select provider",
+        "useProjectDefault": "Use project default",
+        "providerDescription": "AI provider for quality evaluation",
+        "model": "AI Model",
+        "modelPlaceholder": "e.g., claude-sonnet-4-5",
+        "modelDescription": "Specific model to use for evaluation"
+      },
+      "triggers": {
+        "title": "",
+        "description": "When to automatically score translations",
+        "afterAI": "Score after AI translation",
+        "afterAIDescription": "Automatically score translations created by AI",
+        "beforeMerge": "Score before merge",
+        "beforeMergeDescription": "Require quality check before merging branches"
+      }
+    }
+  },
   "auth": {
     "forgotPassword": "Passwort vergessen?"
   },
   "dashboard": {
+    "createProject": {
+      "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
+      "cta": "Loslegen",
+      "title": "Neues Projekt erstellen"
+    },
     "stats": {
-      "projects": "Projekte",
       "languages": "Sprachen",
-      "complete": "Fertig",
-      "keys": "Schlüssel"
+      "projects": "Projekte",
+      "keys": "Schlüssel",
+      "complete": "Fertig"
+    },
+    "resources": {
+      "docs": "Dokumentation",
+      "guide": "Erste Schritte",
+      "bestPractices": "Best Practices für Sprachen",
+      "title": "Ressourcen"
+    },
+    "recentProjects": "Aktuelle Projekte",
+    "quickActions": "Schnellaktionen",
+    "import": {
+      "title": "Übersetzungen importieren",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "API-Schlüssel",
+      "description": "Zugriff verwalten"
+    },
+    "branches": {
+      "title": "Branches verwalten",
+      "description": "Versionskontrolle"
     },
     "team": {
       "title": "Teammitglieder",
@@ -40,199 +227,12 @@
       "afternoon": "Guten Tag",
       "evening": "Guten Abend"
     },
-    "import": {
-      "title": "Übersetzungen importieren",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "API-Schlüssel",
-      "description": "Zugriff verwalten"
-    },
-    "recentProjects": "Aktuelle Projekte",
-    "quickActions": "Schnellaktionen",
-    "resources": {
-      "guide": "Erste Schritte",
-      "title": "Ressourcen",
-      "docs": "Dokumentation",
-      "bestPractices": "Best Practices für Sprachen"
-    },
-    "branches": {
-      "title": "Branches verwalten",
-      "description": "Versionskontrolle"
-    },
-    "createProject": {
-      "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
-      "cta": "Loslegen",
-      "title": "Neues Projekt erstellen"
-    },
     "overview": "Hier ist Ihre Übersetzungsübersicht",
     "progress": "Gesamtfortschritt der Übersetzungen"
-  },
-  "common": {
-    "loading": "Laden...",
-    "cancel": "Abbrechen",
-    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
-    "delete": "Löschen",
-    "viewAll": "Alle anzeigen",
-    "save": "Speichern"
-  },
-  "projects": {
-    "search": {
-      "placeholder": "Projekte suchen...",
-      "noResults": "Keine Projekte gefunden",
-      "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
-    },
-    "filters": "Filter",
-    "title": "Projekte",
-    "description": "Verwalten Sie Ihre Lokalisierungsprojekte",
-    "empty": {
-      "title": "Noch keine Projekte",
-      "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen.",
-      "cta": "Erstellen Sie Ihr erstes Projekt"
-    },
-    "stats": {
-      "totalKeys": "Schlüssel Gesamt"
-    },
-    "card": {
-      "keys": "{count} Schlüssel",
-      "main": "main",
-      "progress": "Fortschritt"
-    }
-  },
-  "activity": {
-    "noRecent": "Keine aktuelle Aktivität",
-    "preview": {
-      "andMore": "+{count} weitere",
-      "metadata": {
-        "branch": "Branch",
-        "from": "Von",
-        "format": "Format",
-        "changed": "Geändert",
-        "conflictsResolved": "Konflikte gelöst",
-        "file": "Datei",
-        "keys": "Schlüssel",
-        "languages": "Sprachen",
-        "source": "Quelle",
-        "target": "Ziel",
-        "environment": "Umgebung",
-        "to": "Zu"
-      },
-      "loading": "Laden...",
-      "empty": "leer",
-      "viewAllHint": "Klicken Sie, um {count} Änderungen anzuzeigen",
-      "noDetails": "Keine Details verfügbar"
-    },
-    "description": {
-      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
-      "aiTranslateWithLanguages": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} zu {languages} übersetzt",
-      "aiTranslate": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} übersetzt",
-      "default": "Aktivität aufgezeichnet",
-      "keyDeleteSingle": "Übersetzungsschlüssel gelöscht",
-      "keyDeletePlural": "Gelöschte {count} Übersetzungsschlüssel",
-      "branchCreateWithSource": "Branch \"{branchName}\" wurde aus \"{sourceBranchName}\" erstellt",
-      "branchCreate": "Branch \"{branchName}\" erstellt",
-      "keyAddPlural": "Hinzugefügt {count} Übersetzungsschlüssel",
-      "merge": "Hat \"{sourceBranchName}\" in \"{targetBranchName}\" zusammengeführt",
-      "importWithFile": "Importierte {count, plural, one {# Schlüssel} other {# Schlüssel}} aus {fileName}",
-      "import": "Importiert {count, plural, one {# Schlüssel} other {# Schlüssel}}",
-      "export": "Übersetzungen in {format} exportiert",
-      "keyAddSingle": "Übersetzungsschlüssel hinzugefügt",
-      "projectSettings": "Projekt {fields} aktualisiert",
-      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
-      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht",
-      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
-      "branchDelete": "Branch \"{branchName}\" gelöscht",
-      "translationSingle": "Übersetzung aktualisiert{languages, select, undefined {} other { in {languages}}}"
-    },
-    "modal": {
-      "noChangesHint": "Diese Aktivität verfügt nicht über detaillierte Änderungsverfolgung.",
-      "noChanges": "Keine detaillierten Änderungen aufgezeichnet",
-      "auditTrail": "Audit-Trail",
-      "loadMore": "Mehr laden",
-      "empty": "Leer"
-    },
-    "lastDay": "Letzte 24 Stunden",
-    "empty": "Aktivitäten erscheinen hier während Sie arbeiten",
-    "lastWeek": "Letzte 7 Tage",
-    "viewAll": "Alle Änderungen anzeigen",
-    "viewAllChanges": "Alle {count} Änderungen anzeigen",
-    "title": "Aktuelle Aktivität"
-  },
-  "apiKeys": {
-    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
-    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
-    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
-    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt",
-    "copiedToClipboard": "In die Zwischenablage kopiert",
-    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
-    "revokeDialog": {
-      "cancel": "Abbrechen"
-    },
-    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
-    "activeKeys": "Aktive Schlüssel"
-  },
-  "settings": {
-    "quality": {
-      "saved": "",
-      "saveFailed": "",
-      "title": "",
-      "description": "",
-      "triggers": {
-        "title": "",
-        "description": "When to automatically score translations",
-        "afterAI": "Score after AI translation",
-        "afterAIDescription": "Automatically score translations created by AI",
-        "beforeMerge": "Score before merge",
-        "beforeMergeDescription": "Require quality check before merging branches"
-      },
-      "thresholds": {
-        "title": "Quality Thresholds",
-        "description": "Score thresholds for automated workflows",
-        "autoApprove": "Auto-approve threshold",
-        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
-        "flag": "Flag threshold",
-        "flagDescription": "Flag translations with score < this value for review"
-      },
-      "ai": {
-        "title": "AI Evaluation",
-        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
-        "enabled": "Enable AI evaluation",
-        "enabledDescription": "Use AI to evaluate complex quality issues",
-        "provider": "AI Provider",
-        "providerPlaceholder": "Select provider",
-        "providerDescription": "AI provider for quality evaluation",
-        "useProjectDefault": "Use project default",
-        "model": "AI Model",
-        "modelPlaceholder": "e.g., claude-sonnet-4-5",
-        "modelDescription": "Specific model to use for evaluation"
-      },
-      "loading": "Qualitätseinstellungen werden geladen",
-      "aiProviderLink": {
-        "title": "AI-Anbieter-Einstellungen",
-        "description": "Konfigurieren Sie, welcher AI-Anbieter für die Qualitätsbewertung verwendet werden soll"
-      }
-    }
   },
   "translations": {
     "toasts": {
       "invalidICUSyntax": "Invalid ICU syntax"
-    }
-  },
-  "quality": {
-    "bulkEvaluation": {
-      "queued": "Quality evaluation queued",
-      "jobId": "Job ID: {jobId}",
-      "failed": "Failed to queue quality evaluation",
-      "title": "Evaluate Translation Quality",
-      "descriptionSelected": "Evaluate quality for {count} selected translations",
-      "descriptionAll": "Evaluate quality for all translations in this branch",
-      "forceAI": "Force AI evaluation",
-      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
-      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
-      "infoAI": "AI evaluation for complex quality issues",
-      "infoProcessing": "Processing happens in the background",
-      "queuing": "Queuing...",
-      "evaluate": "Evaluate Quality"
     }
   }
 }

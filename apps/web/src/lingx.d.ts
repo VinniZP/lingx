@@ -241,7 +241,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'common.optional'
       | 'common.pleaseWait'
       | 'common.remove'
-      | 'common.save'
       | 'common.saveChanges'
       | 'common.saving'
       | 'common.switching'
@@ -624,7 +623,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'projectDetail.translationCoverage.subtitle'
       | 'projectDetail.translationCoverage.title'
       | 'projects.card.keys'
-      | 'projects.card.main'
       | 'projects.card.progress'
       | 'projects.description'
       | 'projects.empty.cta'
@@ -713,12 +711,9 @@ declare module '@lingx/sdk-nextjs' {
       | 'quality.bulkEvaluation.descriptionSelected'
       | 'quality.bulkEvaluation.evaluate'
       | 'quality.bulkEvaluation.failed'
-      | 'quality.bulkEvaluation.forceAI'
-      | 'quality.bulkEvaluation.forceAIDescription'
       | 'quality.bulkEvaluation.infoAI'
       | 'quality.bulkEvaluation.infoHeuristic'
       | 'quality.bulkEvaluation.infoProcessing'
-      | 'quality.bulkEvaluation.jobId'
       | 'quality.bulkEvaluation.queued'
       | 'quality.bulkEvaluation.queuing'
       | 'quality.bulkEvaluation.title'
@@ -839,20 +834,8 @@ declare module '@lingx/sdk-nextjs' {
       | 'settings.joined'
       | 'settings.profile.description'
       | 'settings.profile.title'
-      | 'settings.quality.ai.description'
-      | 'settings.quality.ai.enabled'
-      | 'settings.quality.ai.enabledDescription'
-      | 'settings.quality.ai.model'
-      | 'settings.quality.ai.modelDescription'
-      | 'settings.quality.ai.modelPlaceholder'
-      | 'settings.quality.ai.provider'
-      | 'settings.quality.ai.providerDescription'
-      | 'settings.quality.ai.providerPlaceholder'
-      | 'settings.quality.ai.title'
-      | 'settings.quality.ai.useProjectDefault'
       | 'settings.quality.aiProviderLink.description'
       | 'settings.quality.aiProviderLink.title'
-      | 'settings.quality.description'
       | 'settings.quality.loading'
       | 'settings.quality.saved'
       | 'settings.quality.saveFailed'
@@ -862,7 +845,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'settings.quality.thresholds.flag'
       | 'settings.quality.thresholds.flagDescription'
       | 'settings.quality.thresholds.title'
-      | 'settings.quality.title'
       | 'settings.quality.triggers.afterAI'
       | 'settings.quality.triggers.afterAIDescription'
       | 'settings.quality.triggers.beforeMerge'
@@ -938,12 +920,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.commandPalette.searchPlaceholder'
       | 'translations.commandPalette.translateAllLanguages'
       | 'translations.commandPalette.translateCurrentField'
-      | 'translations.editor.default'
-      | 'translations.editor.enterTranslationPlaceholder'
-      | 'translations.editor.saveChanges'
-      | 'translations.editor.saving'
-      | 'translations.editor.selectKeyPrompt'
-      | 'translations.editor.unsavedChanges'
       | 'translations.empty.createFirst'
       | 'translations.empty.description'
       | 'translations.empty.title'
@@ -1163,7 +1139,6 @@ declare module '@lingx/sdk-nextjs' {
         | 'context.tm.description'
         | 'context.tm.label'
         | 'pageDescription'
-        | 'pageTitle'
         | 'provider.actions.cancel'
         | 'provider.actions.edit'
         | 'provider.actions.remove'
@@ -1521,8 +1496,6 @@ declare module '@lingx/sdk-nextjs' {
     'providerSync.termsSynced': { count: string | number };
     /** Evaluate quality for {count} selected translations */
     'quality.bulkEvaluation.descriptionSelected': { count: string | number };
-    /** Job ID: {jobId} */
-    'quality.bulkEvaluation.jobId': { jobId: string | number };
     /** {count, plural, one {# other session} other {# other sessions}} */
     'security.activeSessions.otherSessions': { count: number };
     /** This will sign out all {count} other device(s) from your account. */
@@ -1561,8 +1534,6 @@ declare module '@lingx/sdk-nextjs' {
     'translations.branchHeader.translatorsOnline': { count: number };
     /** {count, plural, one {# translation} other {# translations}} processed successfully */
     'translations.bulkTranslate.completedMessage': { count: number };
-    /** Enter {language} translation... */
-    'translations.editor.enterTranslationPlaceholder': { language: string | number };
     /** from {source} */
     'translations.inlineSuggestion.from': { source: string | number };
     /** {count, plural, one {# more suggestion} other {# more suggestions}} */

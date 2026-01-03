@@ -1,39 +1,58 @@
 {
-  "pageTitle": "AI Translation",
-  "pageDescription": "Configure AI providers for context-aware translation suggestions",
-  "sections": {
-    "providers": "AI Providers",
-    "contextSettings": "Context Settings",
-    "qualityEvaluation": "Quality Evaluation",
-    "usage": "Usage"
-  },
-  "quality": {
-    "title": "Quality Evaluation",
-    "description": "Configure AI-powered translation quality scoring",
-    "enable": "Enable AI Quality Evaluation",
-    "enableDescription": "Use AI to analyze translation accuracy and style",
-    "provider": "AI Provider",
-    "selectProvider": "Select a provider",
-    "providerDescription": "Choose which enabled AI provider to use for quality evaluation",
-    "model": "Model",
-    "selectModel": "Select a model",
-    "modelDescription": "Choose the model for quality analysis",
-    "noProvidersWarning": "No AI providers configured. Enable at least one provider above to use AI quality evaluation.",
-    "configuredWith": "Configured",
-    "save": "Save",
-    "saved": "Quality settings saved",
-    "saveFailed": "Failed to save quality settings"
-  },
-  "provider": {
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
+  "context": {
+    "customInstructions": {
+      "description": "Add specific guidance for the AI",
+      "placeholder": "e.g., 'Use formal language for German translations' or 'Keep translations concise for mobile UI'",
+      "title": "Custom Instructions"
     },
-    "openai": {
-      "description": "GPT-5 and GPT-4.1 models for high-quality translations"
+    "description": "Customize what context AI uses for smarter translations",
+    "glossary": {
+      "description": "Use your project glossary for consistent terminology",
+      "label": "Glossary Terms"
+    },
+    "maxItems": "Maximum items",
+    "minSimilarity": "Minimum similarity",
+    "relatedKeys": {
+      "description": "Consider translations from related keys",
+      "label": "Related Keys"
+    },
+    "saveNote": "Changes apply to all future AI translations",
+    "saveSettings": "Save Settings",
+    "title": "Context Configuration",
+    "tm": {
+      "description": "Reference similar translations from your TM",
+      "label": "Translation Memory"
+    }
+  },
+  "pageDescription": "Configure AI providers for context-aware translation suggestions",
+  "provider": {
+    "actions": {
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "remove": "Remove",
+      "save": "Save",
+      "saving": "Saving...",
+      "test": "Test"
     },
     "anthropic": {
       "description": "Claude 4.5 models for nuanced, context-aware translations"
+    },
+    "form": {
+      "apiKey": "API Key",
+      "apiKeyHint": {
+        "anthropic": "Get your API key from console.anthropic.com",
+        "googleAI": "Get your API key from aistudio.google.com",
+        "mistral": "Get your API key from console.mistral.ai",
+        "openai": "Get your API key from platform.openai.com"
+      },
+      "apiKeyKeepCurrent": "Leave empty to keep current",
+      "apiKeyPlaceholder": "Enter {provider} API key",
+      "apiKeyUpdatePlaceholder": "Enter new key to update",
+      "enableProvider": "Enable Provider",
+      "enableProviderDescription": "Allow this provider for AI translations",
+      "model": "Model",
+      "modelDescription": "Choose the model to use for AI translations",
+      "modelPlaceholder": "Select a model"
     },
     "googleAI": {
       "description": "Gemini 3 models for fast, cost-effective translations"
@@ -41,86 +60,66 @@
     "mistral": {
       "description": "Mistral models for efficient European language support"
     },
-    "form": {
-      "apiKey": "API Key",
-      "apiKeyKeepCurrent": "Leave empty to keep current",
-      "apiKeyPlaceholder": "Enter {provider} API key",
-      "apiKeyUpdatePlaceholder": "Enter new key to update",
-      "apiKeyHint": {
-        "openai": "Get your API key from platform.openai.com",
-        "anthropic": "Get your API key from console.anthropic.com",
-        "googleAI": "Get your API key from aistudio.google.com",
-        "mistral": "Get your API key from console.mistral.ai"
-      },
-      "model": "Model",
-      "modelPlaceholder": "Select a model",
-      "modelDescription": "Choose the model to use for AI translations",
-      "enableProvider": "Enable Provider",
-      "enableProviderDescription": "Allow this provider for AI translations"
-    },
-    "actions": {
-      "cancel": "Cancel",
-      "save": "Save",
-      "saving": "Saving...",
-      "remove": "Remove",
-      "test": "Test",
-      "edit": "Edit"
+    "openai": {
+      "description": "GPT-5 and GPT-4.1 models for high-quality translations"
     },
     "removeDialog": {
-      "title": "Remove {provider}?",
-      "description": "This will remove the API key and disable AI translations using {provider}. You can add it back later."
+      "description": "This will remove the API key and disable AI translations using {provider}. You can add it back later.",
+      "title": "Remove {provider}?"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
     }
   },
+  "quality": {
+    "configuredWith": "Configured",
+    "description": "Configure AI-powered translation quality scoring",
+    "enable": "Enable AI Quality Evaluation",
+    "enableDescription": "Use AI to analyze translation accuracy and style",
+    "model": "Model",
+    "modelDescription": "Choose the model for quality analysis",
+    "noProvidersWarning": "No AI providers configured. Enable at least one provider above to use AI quality evaluation.",
+    "provider": "AI Provider",
+    "providerDescription": "Choose which enabled AI provider to use for quality evaluation",
+    "save": "Save",
+    "saveFailed": "Failed to save quality settings",
+    "saved": "Quality settings saved",
+    "selectModel": "Select a model",
+    "selectProvider": "Select a provider",
+    "title": "Quality Evaluation"
+  },
+  "sections": {
+    "contextSettings": "Context Settings",
+    "providers": "AI Providers",
+    "qualityEvaluation": "Quality Evaluation",
+    "usage": "Usage"
+  },
   "toasts": {
-    "configSaved": "Configuration saved",
-    "configSavedDescription": "{provider} has been configured.",
-    "configSaveFailed": "Failed to save configuration",
+    "configRemoveFailed": "Failed to remove configuration",
     "configRemoved": "Configuration removed",
     "configRemovedDescription": "{provider} has been removed.",
-    "configRemoveFailed": "Failed to remove configuration",
+    "configSaveFailed": "Failed to save configuration",
+    "configSaved": "Configuration saved",
+    "configSavedDescription": "{provider} has been configured.",
+    "connectionFailed": "Connection failed",
     "connectionSuccess": "Connection successful",
     "connectionSuccessDescription": "Successfully connected to {provider}.",
-    "connectionFailed": "Connection failed",
     "connectionTestFailed": "Connection test failed",
-    "contextSaved": "Context settings saved",
-    "contextSaveFailed": "Failed to save context settings"
-  },
-  "context": {
-    "title": "Context Configuration",
-    "description": "Customize what context AI uses for smarter translations",
-    "glossary": {
-      "label": "Glossary Terms",
-      "description": "Use your project glossary for consistent terminology"
-    },
-    "tm": {
-      "label": "Translation Memory",
-      "description": "Reference similar translations from your TM"
-    },
-    "relatedKeys": {
-      "label": "Related Keys",
-      "description": "Consider translations from related keys"
-    },
-    "maxItems": "Maximum items",
-    "minSimilarity": "Minimum similarity",
-    "customInstructions": {
-      "title": "Custom Instructions",
-      "description": "Add specific guidance for the AI",
-      "placeholder": "e.g., 'Use formal language for German translations' or 'Keep translations concise for mobile UI'"
-    },
-    "saveNote": "Changes apply to all future AI translations",
-    "saveSettings": "Save Settings"
+    "contextSaveFailed": "Failed to save context settings",
+    "contextSaved": "Context settings saved"
   },
   "usage": {
-    "title": "Usage Statistics",
-    "description": "AI translation usage this month",
-    "stats": {
-      "totalTokens": "Total Tokens",
-      "requests": "Requests",
-      "cacheHits": "Cache Hits",
-      "estCost": "Est. Cost"
-    },
     "byProvider": "By Provider",
-    "tokens": "tokens",
-    "requests": "requests"
+    "description": "AI translation usage this month",
+    "requests": "requests",
+    "stats": {
+      "cacheHits": "Cache Hits",
+      "estCost": "Est. Cost",
+      "requests": "Requests",
+      "totalTokens": "Total Tokens"
+    },
+    "title": "Usage Statistics",
+    "tokens": "tokens"
   }
 }

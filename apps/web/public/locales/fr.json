@@ -1,13 +1,133 @@
 {
+  "quality": {
+    "bulkEvaluation": {
+      "forceAI": "Force AI evaluation",
+      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
+      "jobId": "Job ID: {jobId}",
+      "failed": "Failed to queue quality evaluation",
+      "queued": "Quality evaluation queued",
+      "title": "Evaluate Translation Quality",
+      "descriptionSelected": "Evaluate quality for {count} selected translations",
+      "descriptionAll": "Evaluate quality for all translations in this branch",
+      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
+      "infoAI": "AI evaluation for complex quality issues",
+      "infoProcessing": "Processing happens in the background",
+      "queuing": "Queuing...",
+      "evaluate": "Evaluate Quality"
+    }
+  },
+  "projects": {
+    "search": {
+      "placeholder": "Rechercher des projets...",
+      "noResults": "Aucun projet trouvé",
+      "noResultsHint": "Essayez d'ajuster votre recherche"
+    },
+    "filters": "Filtres",
+    "title": "Projets",
+    "description": "Gérez vos projets de localisation",
+    "stats": {
+      "totalKeys": "Clés Totales"
+    },
+    "empty": {
+      "title": "Pas encore de projets",
+      "description": "Créez votre premier projet pour commencer à gérer les traductions avec contrôle de version et collaboration.",
+      "cta": "Créez votre premier projet"
+    },
+    "card": {
+      "keys": "{count} clés",
+      "main": "main",
+      "progress": "Progression"
+    }
+  },
+  "common": {
+    "delete": "Supprimer",
+    "loading": "Chargement...",
+    "cancel": "Annuler",
+    "languages": "{count, plural, one {# langue} other {# langues}}",
+    "viewAll": "Voir tout",
+    "save": "Enregistrer"
+  },
+  "apiKeys": {
+    "revokeDialog": {
+      "cancel": "Annuler"
+    }
+  },
+  "settings": {
+    "quality": {
+      "saved": "",
+      "saveFailed": "",
+      "loading": "Chargement des paramètres de qualité",
+      "aiProviderLink": {
+        "title": "Paramètres du fournisseur IA",
+        "description": "Configurez quel fournisseur IA utiliser pour l'évaluation de la qualité"
+      },
+      "thresholds": {
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "flag": "Flag threshold",
+        "flagDescription": "Flag translations with score < this value for review",
+        "title": "Quality Thresholds",
+        "description": "Score thresholds for automated workflows",
+        "autoApprove": "Auto-approve threshold"
+      },
+      "title": "",
+      "description": "",
+      "ai": {
+        "title": "AI Evaluation",
+        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
+        "enabled": "Enable AI evaluation",
+        "enabledDescription": "Use AI to evaluate complex quality issues",
+        "provider": "AI Provider",
+        "providerPlaceholder": "Select provider",
+        "useProjectDefault": "Use project default",
+        "providerDescription": "AI provider for quality evaluation",
+        "model": "AI Model",
+        "modelPlaceholder": "e.g., claude-sonnet-4-5",
+        "modelDescription": "Specific model to use for evaluation"
+      },
+      "triggers": {
+        "title": "",
+        "description": "When to automatically score translations",
+        "afterAI": "Score after AI translation",
+        "afterAIDescription": "Automatically score translations created by AI",
+        "beforeMerge": "Score before merge",
+        "beforeMergeDescription": "Require quality check before merging branches"
+      }
+    }
+  },
   "auth": {
     "forgotPassword": "Mot de passe oublié ?"
   },
   "dashboard": {
+    "createProject": {
+      "description": "Démarrez un projet de localisation avec contrôle de version, branches et collaboration d'équipe",
+      "cta": "Commencer",
+      "title": "Créer un nouveau projet"
+    },
     "stats": {
-      "projects": "Projets",
       "languages": "Langues",
-      "complete": "Terminé",
-      "keys": "Clés"
+      "projects": "Projets",
+      "keys": "Clés",
+      "complete": "Terminé"
+    },
+    "resources": {
+      "docs": "Documentation",
+      "guide": "Guide de démarrage",
+      "bestPractices": "Meilleures pratiques linguistiques",
+      "title": "Ressources"
+    },
+    "recentProjects": "Projets Récents",
+    "quickActions": "Actions Rapides",
+    "import": {
+      "title": "Importer des traductions",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "Clés API",
+      "description": "Gérer l'accès"
+    },
+    "branches": {
+      "title": "Gérer les branches",
+      "description": "Contrôle de version"
     },
     "team": {
       "title": "Membres de l'équipe",
@@ -40,132 +160,12 @@
       "afternoon": "Bon après-midi",
       "evening": "Bonsoir"
     },
-    "import": {
-      "title": "Importer des traductions",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "Clés API",
-      "description": "Gérer l'accès"
-    },
-    "recentProjects": "Projets Récents",
-    "quickActions": "Actions Rapides",
-    "resources": {
-      "guide": "Guide de démarrage",
-      "title": "Ressources",
-      "docs": "Documentation",
-      "bestPractices": "Meilleures pratiques linguistiques"
-    },
-    "branches": {
-      "title": "Gérer les branches",
-      "description": "Contrôle de version"
-    },
-    "createProject": {
-      "description": "Démarrez un projet de localisation avec contrôle de version, branches et collaboration d'équipe",
-      "cta": "Commencer",
-      "title": "Créer un nouveau projet"
-    },
     "overview": "Voici votre aperçu des traductions",
     "progress": "Progression globale des traductions"
-  },
-  "common": {
-    "loading": "Chargement...",
-    "cancel": "Annuler",
-    "languages": "{count, plural, one {# langue} other {# langues}}",
-    "delete": "Supprimer",
-    "viewAll": "Voir tout",
-    "save": "Enregistrer"
-  },
-  "projects": {
-    "search": {
-      "placeholder": "Rechercher des projets...",
-      "noResults": "Aucun projet trouvé",
-      "noResultsHint": "Essayez d'ajuster votre recherche"
-    },
-    "filters": "Filtres",
-    "title": "Projets",
-    "description": "Gérez vos projets de localisation",
-    "empty": {
-      "title": "Pas encore de projets",
-      "description": "Créez votre premier projet pour commencer à gérer les traductions avec contrôle de version et collaboration.",
-      "cta": "Créez votre premier projet"
-    },
-    "stats": {
-      "totalKeys": "Clés Totales"
-    },
-    "card": {
-      "keys": "{count} clés",
-      "main": "main",
-      "progress": "Progression"
-    }
-  },
-  "apiKeys": {
-    "revokeDialog": {
-      "cancel": "Annuler"
-    }
-  },
-  "settings": {
-    "quality": {
-      "saved": "",
-      "saveFailed": "",
-      "title": "",
-      "description": "",
-      "triggers": {
-        "title": "",
-        "description": "When to automatically score translations",
-        "afterAI": "Score after AI translation",
-        "afterAIDescription": "Automatically score translations created by AI",
-        "beforeMerge": "Score before merge",
-        "beforeMergeDescription": "Require quality check before merging branches"
-      },
-      "thresholds": {
-        "title": "Quality Thresholds",
-        "description": "Score thresholds for automated workflows",
-        "autoApprove": "Auto-approve threshold",
-        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
-        "flag": "Flag threshold",
-        "flagDescription": "Flag translations with score < this value for review"
-      },
-      "ai": {
-        "title": "AI Evaluation",
-        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
-        "enabled": "Enable AI evaluation",
-        "enabledDescription": "Use AI to evaluate complex quality issues",
-        "provider": "AI Provider",
-        "providerPlaceholder": "Select provider",
-        "providerDescription": "AI provider for quality evaluation",
-        "useProjectDefault": "Use project default",
-        "model": "AI Model",
-        "modelPlaceholder": "e.g., claude-sonnet-4-5",
-        "modelDescription": "Specific model to use for evaluation"
-      },
-      "loading": "Chargement des paramètres de qualité",
-      "aiProviderLink": {
-        "title": "Paramètres du fournisseur IA",
-        "description": "Configurez quel fournisseur IA utiliser pour l'évaluation de la qualité"
-      }
-    }
   },
   "translations": {
     "toasts": {
       "invalidICUSyntax": "Invalid ICU syntax"
-    }
-  },
-  "quality": {
-    "bulkEvaluation": {
-      "queued": "Quality evaluation queued",
-      "jobId": "Job ID: {jobId}",
-      "failed": "Failed to queue quality evaluation",
-      "title": "Evaluate Translation Quality",
-      "descriptionSelected": "Evaluate quality for {count} selected translations",
-      "descriptionAll": "Evaluate quality for all translations in this branch",
-      "forceAI": "Force AI evaluation",
-      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
-      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
-      "infoAI": "AI evaluation for complex quality issues",
-      "infoProcessing": "Processing happens in the background",
-      "queuing": "Queuing...",
-      "evaluate": "Evaluate Quality"
     }
   }
 }
