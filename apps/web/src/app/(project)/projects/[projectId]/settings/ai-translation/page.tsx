@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { useTranslation } from '@lingx/sdk-nextjs';
-import { Sparkles, Zap, Brain, BarChart3, Gauge } from 'lucide-react';
+import { Sparkles, Brain, BarChart3, Gauge } from 'lucide-react';
 import { useAIConfigs } from '@/hooks/use-ai-translation';
 import { ProviderCard, ContextConfigSection, UsageSection, QualityEvaluationSection } from './_components';
 import { LoadingPulse } from '@/components/namespace-loader';

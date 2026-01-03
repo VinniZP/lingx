@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getBranchQualitySummary, type BranchQualitySummary } from '@/lib/api/quality';
+import { getBranchQualitySummary } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 
 interface QualitySummaryProps {

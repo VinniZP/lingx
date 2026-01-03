@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import { Sparkles, Loader2, Save, CheckCircle2 } from 'lucide-react';
@@ -39,45 +39,51 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
     queryFn: () => getQualityConfig(projectId),
   });
 
-  // Local state
-  const [aiEnabled, setAiEnabled] = useState(qualityConfig?.aiEvaluationEnabled ?? false);
-  const [selectedProvider, setSelectedProvider] = useState<string>(
-    qualityConfig?.aiEvaluationProvider || ''
-  );
-  const [selectedModel, setSelectedModel] = useState<string>(
-    qualityConfig?.aiEvaluationModel || ''
-  );
-  const [hasChanges, setHasChanges] = useState(false);
+  // Local state - initialized from config
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
-  // Fetch models for selected provider (hook internally checks enabled: !!provider)
-  const { data: modelsData } = useAISupportedModels(selectedProvider as AIProvider);
-  const models = modelsData?.models || [];
-
-  // Update local state when config loads
+  // Sync state when config loads - safe pattern for form initialization
   useEffect(() => {
     if (qualityConfig) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync form from server data
       setAiEnabled(qualityConfig.aiEvaluationEnabled);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync form from server data
       setSelectedProvider(qualityConfig.aiEvaluationProvider || '');
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync form from server data
       setSelectedModel(qualityConfig.aiEvaluationModel || '');
     }
   }, [qualityConfig]);
 
-  // Track changes
-  useEffect(() => {
-    if (!qualityConfig) return;
-    const changed =
+  // Fetch models for selected provider (hook internally checks enabled: !!provider)
+  const { data: modelsData } = useAISupportedModels(selectedProvider as AIProvider);
+  const models = useMemo(() => modelsData?.models || [], [modelsData?.models]);
+
+  // Track changes using useMemo
+  const hasChanges = useMemo(() => {
+    if (!qualityConfig) return false;
+    return (
       aiEnabled !== qualityConfig.aiEvaluationEnabled ||
       selectedProvider !== (qualityConfig.aiEvaluationProvider || '') ||
-      selectedModel !== (qualityConfig.aiEvaluationModel || '');
-    setHasChanges(changed);
+      selectedModel !== (qualityConfig.aiEvaluationModel || '')
+    );
   }, [aiEnabled, selectedProvider, selectedModel, qualityConfig]);
 
-  // Auto-select first model when provider changes
+  // Handle provider change - auto-select first model
+  const handleProviderChange = (provider: string) => {
+    setSelectedProvider(provider);
+    // Model will be validated after models load
+  };
+
+  // Auto-select first model when provider changes and models load
   useEffect(() => {
     if (models.length > 0 && !models.includes(selectedModel)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: auto-select valid model
       setSelectedModel(models[0]);
     }
-  }, [models, selectedModel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [models]);
 
   // Save mutation
   const saveMutation = useMutation({
@@ -90,7 +96,6 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
     onSuccess: () => {
       toast.success(t('quality.saved'));
       queryClient.invalidateQueries({ queryKey: ['quality-config', projectId] });
-      setHasChanges(false);
     },
     onError: (error: Error) => {
       toast.error(t('quality.saveFailed'), { description: error.message });
@@ -193,7 +198,7 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
             {/* Provider Select */}
             <div className="space-y-2.5">
               <Label className="text-sm font-medium">{t('quality.provider')}</Label>
-              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+              <Select value={selectedProvider} onValueChange={handleProviderChange}>
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder={t('quality.selectProvider')} />
                 </SelectTrigger>

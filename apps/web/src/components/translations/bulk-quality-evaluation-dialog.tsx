@@ -42,14 +42,15 @@ export function BulkQualityEvaluationDialog({
   const [forceAI, setForceAI] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Trigger entrance animation
+  // Trigger entrance animation - safe setState in effect for animation timing
   useEffect(() => {
     if (open) {
       const timer = setTimeout(() => setMounted(true), 50);
       return () => clearTimeout(timer);
-    } else {
-      setMounted(false);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: reset on dialog close
+    setMounted(false);
+    return undefined;
   }, [open]);
 
   const mutation = useMutation({
