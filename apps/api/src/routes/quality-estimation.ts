@@ -10,7 +10,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { QualityEstimationService } from '../services/quality-estimation.service.js';
+import { generateContentHash, createQualityEstimationService } from '../services/quality/index.js';
 import { mtBatchQueue } from '../lib/queues.js';
 import type { MTJobData } from '../workers/mt-batch.worker.js';
 import { NotFoundError, ForbiddenError } from '../plugins/error-handler.js';
@@ -79,7 +79,7 @@ const qualityIssueSchema = z.object({
 
 const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const qualityService = new QualityEstimationService(fastify.prisma);
+  const qualityService = createQualityEstimationService(fastify.prisma);
 
   /**
    * POST /api/translations/:translationId/quality - Evaluate single translation
@@ -377,7 +377,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         // Check content hash
-        const currentHash = qualityService.generateContentHash(sourceValue, t.value);
+        const currentHash = generateContentHash(sourceValue, t.value);
         if (t.qualityScore.contentHash !== currentHash) {
           // Content changed
           needsEvaluation.push(t.id);

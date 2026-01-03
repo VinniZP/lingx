@@ -4,6 +4,29 @@
  * Type-safe API calls for translation quality scoring operations
  */
 
+import type {
+  QualityScore,
+  QualityIssue,
+  BranchQualitySummary,
+  QualityScoringConfig,
+  BatchQualityJobResult,
+  ICUValidationResult,
+} from '@lingx/shared';
+
+// Re-export shared types for consumers
+export type {
+  QualityScore,
+  QualityIssue,
+  BranchQualitySummary,
+  ICUValidationResult,
+};
+
+// Backward-compatible alias
+export type BatchQualityResult = BatchQualityJobResult;
+
+// Alias for backward compatibility
+export type QualityConfig = QualityScoringConfig;
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 /**
@@ -51,65 +74,6 @@ async function fetchQualityApi<T>(endpoint: string, options: RequestInit = {}): 
 }
 
 // ============================================
-// TYPES
-// ============================================
-
-export interface QualityScore {
-  score: number; // 0-100
-  accuracy?: number; // AI: semantic fidelity
-  fluency?: number; // AI: natural language quality
-  terminology?: number; // Glossary + AI
-  format?: number; // Heuristic: ICU, placeholders, length
-  passed: boolean;
-  needsAIEvaluation: boolean;
-  issues: QualityIssue[];
-  evaluationType: 'heuristic' | 'ai' | 'hybrid';
-  cached: boolean;
-}
-
-export interface QualityIssue {
-  type: string;
-  severity: 'error' | 'warning' | 'info';
-  message: string;
-  position?: {
-    start: number;
-    end: number;
-  };
-  context?: {
-    expected?: string;
-    found?: string;
-    placeholder?: string;
-  };
-}
-
-export interface BranchQualitySummary {
-  averageScore: number;
-  distribution: {
-    excellent: number; // >=80
-    good: number; // 60-79
-    needsReview: number; // <60
-  };
-  byLanguage: Record<string, { average: number; count: number }>;
-  totalScored: number;
-  totalTranslations: number;
-}
-
-export interface QualityConfig {
-  scoreAfterAITranslation: boolean;
-  scoreBeforeMerge: boolean;
-  autoApproveThreshold: number;
-  flagThreshold: number;
-  aiEvaluationEnabled: boolean;
-  aiEvaluationProvider: string | null;
-  aiEvaluationModel: string | null;
-}
-
-export interface ICUValidationResult {
-  valid: boolean;
-  error?: string;
-}
-
-// ============================================
 // API FUNCTIONS
 // ============================================
 
@@ -142,18 +106,6 @@ export async function evaluateTranslationQuality(
     method: 'POST',
     body: JSON.stringify({ forceAI }),
   });
-}
-
-/**
- * Batch quality evaluation result with stats
- */
-export interface BatchQualityResult {
-  jobId: string;
-  stats: {
-    total: number;
-    cached: number;
-    queued: number;
-  };
 }
 
 /**

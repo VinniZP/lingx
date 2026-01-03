@@ -10,7 +10,8 @@ import { redis } from '../lib/redis.js';
 import { MTService } from '../services/mt.service.js';
 import { AITranslationService } from '../services/ai-translation.service.js';
 import { TranslationService } from '../services/translation.service.js';
-import { QualityEstimationService } from '../services/quality-estimation.service.js';
+import { createQualityEstimationService } from '../services/quality/index.js';
+import type { QualityEstimationService } from '../services/quality-estimation.service.js';
 import type { MTProviderType } from '../services/providers/index.js';
 import { runQualityChecks, calculateScore, type QualityIssue } from '@lingx/shared';
 
@@ -68,7 +69,7 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
   const mtService = new MTService(prisma);
   const aiService = new AITranslationService(prisma);
   const translationService = new TranslationService(prisma);
-  const qualityService = new QualityEstimationService(prisma);
+  const qualityService = createQualityEstimationService(prisma);
 
   const worker = new Worker<MTJobData>(
     'mt-batch',

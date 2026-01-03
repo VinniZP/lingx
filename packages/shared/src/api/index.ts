@@ -5,3 +5,4 @@
 export * from './activity.js';
 export * from './dashboard.js';
 export * from './project.js';
+export * from './quality.js';
