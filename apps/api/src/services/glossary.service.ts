@@ -5,12 +5,12 @@
  * CRUD operations, import/export, and MT provider synchronization.
  * Uses substring matching to find terms within source text.
  */
-import { PrismaClient, PartOfSpeech, Prisma } from '@prisma/client';
 import type {
   CreateGlossaryEntryInput,
-  UpdateGlossaryEntryInput,
   GlossaryListQuery,
+  UpdateGlossaryEntryInput,
 } from '@lingx/shared';
+import { PartOfSpeech, Prisma, PrismaClient } from '@prisma/client';
 
 export interface GlossaryMatch {
   id: string;
@@ -119,8 +119,11 @@ export class GlossaryService {
       return [];
     }
 
-    // Use raw SQL for flexible case-sensitive/insensitive matching
-    // We check each entry's caseSensitive flag individually
+    // Use raw SQL with PostgreSQL word boundary regex for intelligent matching
+    // \m matches start of word, \M matches end of word
+    // This ensures "AI" matches as a word but not inside "main" or "obtain"
+    // Works with ICU syntax since {, }, spaces are non-word characters
+    // regexp_replace escapes special regex chars in the term (. + * ? ^ | ( ) [ ] \)
     const results = await this.prisma.$queryRaw<GlossaryMatchRow[]>`
       SELECT
         ge.id,
@@ -138,11 +141,13 @@ export class GlossaryService {
         AND ge."sourceLanguage" = ${options.sourceLanguage}
         AND gt."targetLanguage" = ${options.targetLanguage}
         AND (
-          -- Case-sensitive matching when entry requires it
-          (ge."caseSensitive" = true AND ${options.sourceText} LIKE '%' || ge."sourceTerm" || '%')
+          -- Case-sensitive word boundary matching
+          (ge."caseSensitive" = true
+            AND ${options.sourceText} ~ ('\\m' || regexp_replace(ge."sourceTerm", '([.+*?^|()[\\]\\\\])', '\\\\\\1', 'g') || '\\M'))
           OR
-          -- Case-insensitive matching otherwise
-          (ge."caseSensitive" = false AND LOWER(${options.sourceText}) LIKE '%' || LOWER(ge."sourceTerm") || '%')
+          -- Case-insensitive word boundary matching
+          (ge."caseSensitive" = false
+            AND ${options.sourceText} ~* ('\\m' || regexp_replace(ge."sourceTerm", '([.+*?^|()[\\]\\\\])', '\\\\\\1', 'g') || '\\M'))
         )
       ORDER BY
         LENGTH(ge."sourceTerm") DESC,  -- Longer terms first (more specific)
@@ -506,29 +511,24 @@ export class GlossaryService {
    * @param projectId - Project ID
    */
   async getStats(projectId: string): Promise<GlossaryStats> {
-    const [
-      totalEntries,
-      totalTranslations,
-      languagePairsRaw,
-      topDomainsRaw,
-      topTagsRaw,
-    ] = await Promise.all([
-      // Total entries
-      this.prisma.glossaryEntry.count({
-        where: { projectId },
-      }),
+    const [totalEntries, totalTranslations, languagePairsRaw, topDomainsRaw, topTagsRaw] =
+      await Promise.all([
+        // Total entries
+        this.prisma.glossaryEntry.count({
+          where: { projectId },
+        }),
 
-      // Total translations
-      this.prisma.glossaryTranslation.count({
-        where: {
-          entry: { projectId },
-        },
-      }),
+        // Total translations
+        this.prisma.glossaryTranslation.count({
+          where: {
+            entry: { projectId },
+          },
+        }),
 
-      // Language pairs
-      this.prisma.$queryRaw<
-        Array<{ sourceLanguage: string; targetLanguage: string; count: bigint }>
-      >`
+        // Language pairs
+        this.prisma.$queryRaw<
+          Array<{ sourceLanguage: string; targetLanguage: string; count: bigint }>
+        >`
         SELECT
           ge."sourceLanguage",
           gt."targetLanguage",
@@ -540,24 +540,24 @@ export class GlossaryService {
         ORDER BY count DESC
       `,
 
-      // Top domains
-      this.prisma.glossaryEntry.groupBy({
-        by: ['domain'],
-        where: {
-          projectId,
-          domain: { not: null },
-        },
-        _count: true,
-        orderBy: {
-          _count: {
-            domain: 'desc',
+        // Top domains
+        this.prisma.glossaryEntry.groupBy({
+          by: ['domain'],
+          where: {
+            projectId,
+            domain: { not: null },
           },
-        },
-        take: 10,
-      }),
+          _count: true,
+          orderBy: {
+            _count: {
+              domain: 'desc',
+            },
+          },
+          take: 10,
+        }),
 
-      // Top tags
-      this.prisma.$queryRaw<Array<{ id: string; name: string; count: bigint }>>`
+        // Top tags
+        this.prisma.$queryRaw<Array<{ id: string; name: string; count: bigint }>>`
         SELECT
           gt.id,
           gt.name,
@@ -570,7 +570,7 @@ export class GlossaryService {
         ORDER BY count DESC
         LIMIT 10
       `,
-    ]);
+      ]);
 
     return {
       totalEntries,
@@ -711,9 +711,7 @@ export class GlossaryService {
     // Parse header
     const header = this.parseCSVLine(lines[0]);
     const requiredColumns = ['source_term', 'source_language', 'target_term', 'target_language'];
-    const missingColumns = requiredColumns.filter(
-      (col) => !header.includes(col)
-    );
+    const missingColumns = requiredColumns.filter((col) => !header.includes(col));
     if (missingColumns.length > 0) {
       result.errors.push(`Missing required columns: ${missingColumns.join(', ')}`);
       return result;
@@ -775,7 +773,18 @@ export class GlossaryService {
         if (idx.partOfSpeech >= 0 && values[idx.partOfSpeech]) {
           const pos = values[idx.partOfSpeech].trim().toUpperCase();
           if (
-            ['NOUN', 'VERB', 'ADJECTIVE', 'ADVERB', 'PRONOUN', 'PREPOSITION', 'CONJUNCTION', 'INTERJECTION', 'DETERMINER', 'OTHER'].includes(pos)
+            [
+              'NOUN',
+              'VERB',
+              'ADJECTIVE',
+              'ADVERB',
+              'PRONOUN',
+              'PREPOSITION',
+              'CONJUNCTION',
+              'INTERJECTION',
+              'DETERMINER',
+              'OTHER',
+            ].includes(pos)
           ) {
             partOfSpeech = pos as PartOfSpeech;
           }
@@ -954,13 +963,16 @@ export class GlossaryService {
 
       // Match both termEntry (TBX 2.0) and conceptEntry (TBX 3.0)
       const termEntries = tbxContent.match(/<termEntry[^>]*>[\s\S]*?<\/termEntry>/gi) || [];
-      const conceptEntries = tbxContent.match(/<conceptEntry[^>]*>[\s\S]*?<\/conceptEntry>/gi) || [];
+      const conceptEntries =
+        tbxContent.match(/<conceptEntry[^>]*>[\s\S]*?<\/conceptEntry>/gi) || [];
       const allEntries = [...termEntries, ...conceptEntries];
 
       for (const entry of allEntries) {
         try {
           // Extract subject field (domain)
-          const domainMatch = entry.match(/<descrip[^>]*type="subjectField"[^>]*>([^<]+)<\/descrip>/i);
+          const domainMatch = entry.match(
+            /<descrip[^>]*type="subjectField"[^>]*>([^<]+)<\/descrip>/i
+          );
           const domain = domainMatch ? domainMatch[1].trim() : null;
 
           // Extract language sections - support both langSet (TBX 2.0) and langSec (TBX 3.0)

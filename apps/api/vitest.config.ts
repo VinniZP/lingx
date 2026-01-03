@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import dotenv from 'dotenv';
+import { defineConfig } from 'vitest/config';
 
 // Load environment variables from .env
 dotenv.config();
@@ -9,6 +9,7 @@ process.env.NODE_ENV = 'test';
 
 export default defineConfig({
   test: {
+    watch: false,
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts'],

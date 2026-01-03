@@ -1,6 +1,6 @@
 # Lingx Roadmap
 
-> **Updated**: 2026-01-02 (Phase 9 in progress - AI Translation & MCP Server complete)
+> **Updated**: 2026-01-03 (Phase 9 in progress - AI Quality Estimation complete)
 
 ---
 
@@ -147,7 +147,13 @@
   - [x] Resources (config, translations, keys)
   - [x] Prompt templates for common workflows
 - [x] **Near-key context detection** (unique feature - source file, component, semantic relationships)
-- [ ] **AI quality estimation** (auto-score translations)
+- [x] **AI quality estimation** (MQM-based scoring with multi-language batch evaluation)
+  - [x] Tiered evaluation (heuristic → glossary → AI) for cost optimization
+  - [x] Multi-language batch processing (5x fewer API calls)
+  - [x] Circuit breaker pattern for AI resilience
+  - [x] Content hash caching for smart invalidation
+  - [x] Quality dashboard widget & settings page
+  - [x] Bulk evaluation dialog with progress tracking
 - [ ] Screenshot context system
 - [ ] Additional file formats (XLIFF, Gettext, etc.)
 
@@ -180,7 +186,7 @@
 | High | AI-powered translation with context | ✅ Complete |
 | High | MCP Server (Model Context Protocol) | ✅ Complete |
 | High | Near-key context detection | ✅ Complete |
-| Medium | AI quality estimation | 📋 Planned |
+| High | AI quality estimation | ✅ Complete |
 | Medium | Screenshot context system | 📋 Planned |
 | Low | Additional file formats (XLIFF, Gettext) | 📋 Planned |
 

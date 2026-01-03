@@ -1,22 +1,47 @@
 /**
  * Translation DTOs - transforms Prisma Translation/TranslationKey models to API response format
  */
-import type { TranslationKey, Translation } from '@prisma/client';
 import type {
-  TranslationValue,
-  TranslationKeyResponse,
+  EmbeddedQualityScore,
   KeyListResponse,
+  TranslationKeyResponse,
+  TranslationValue,
 } from '@lingx/shared';
+import type { Translation, TranslationKey, TranslationQualityScore } from '@prisma/client';
 
-/** Prisma TranslationKey with translations included */
-type KeyWithTranslations = TranslationKey & {
-  translations: Translation[];
+/** Prisma Translation with optional quality score included */
+type TranslationWithOptionalQuality = Translation & {
+  qualityScore?: TranslationQualityScore | null;
 };
+
+/** Prisma TranslationKey with translations (including optional quality scores) included */
+type KeyWithTranslations = TranslationKey & {
+  translations: TranslationWithOptionalQuality[];
+};
+
+/**
+ * Transform Prisma TranslationQualityScore to EmbeddedQualityScore
+ */
+function toQualityScoreDto(
+  score: TranslationQualityScore | null | undefined
+): EmbeddedQualityScore | null {
+  if (!score) return null;
+  return {
+    score: score.score,
+    accuracy: score.accuracyScore,
+    fluency: score.fluencyScore,
+    terminology: score.terminologyScore,
+    format: score.formatScore,
+    evaluationType: score.evaluationType as 'heuristic' | 'ai' | 'hybrid',
+  };
+}
 
 /**
  * Transform Prisma Translation to TranslationValue
  */
-export function toTranslationValueDto(translation: Translation): TranslationValue {
+export function toTranslationValueDto(
+  translation: TranslationWithOptionalQuality
+): TranslationValue {
   return {
     id: translation.id,
     language: translation.language,
@@ -26,6 +51,7 @@ export function toTranslationValueDto(translation: Translation): TranslationValu
     statusUpdatedBy: translation.statusUpdatedBy,
     createdAt: translation.createdAt.toISOString(),
     updatedAt: translation.updatedAt.toISOString(),
+    qualityScore: toQualityScoreDto(translation.qualityScore),
   };
 }
 
