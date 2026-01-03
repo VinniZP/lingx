@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { translationMemoryApi } from '@/lib/api';
 import type { UnifiedSuggestion } from '@/hooks/use-suggestions';
+import { translationMemoryApi } from '@/lib/api';
+import { useEffect, useRef } from 'react';
 
 interface UseTMSuggestionsOptions {
   projectId: string;
@@ -57,7 +57,8 @@ export function useTMSuggestions({
               type: 'tm' as const,
               text: match.targetText,
               confidence: Math.round(match.similarity * 100),
-              source: match.sourceText.substring(0, 30) + (match.sourceText.length > 30 ? '...' : ''),
+              source:
+                match.sourceText.substring(0, 30) + (match.sourceText.length > 30 ? '...' : ''),
             }));
             setSuggestion(expandedKeyId, targetLang, suggestions);
           }

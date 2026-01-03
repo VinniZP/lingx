@@ -1,10 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -12,15 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  ArrowLeft,
-  Search,
-  Plus,
-  Sparkles,
-  GitBranch,
-  Languages,
-  Key,
-} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ArrowLeft, GitBranch, Key, Languages, Plus, Search, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { type FilterType, type QualityFilterType } from '../_hooks';
 
 interface WorkbenchToolbarProps {
@@ -61,7 +53,7 @@ export function WorkbenchToolbar({
   onEvaluateQuality,
 }: WorkbenchToolbarProps) {
   return (
-    <div className="flex items-center gap-4 px-4 py-3 border-b border-border bg-card">
+    <div className="border-border bg-card flex items-center gap-4 border-b px-4 py-3">
       {/* Back Button */}
       <Link href={`/projects/${projectId}`}>
         <Button variant="ghost" size="sm" className="gap-2">
@@ -70,12 +62,12 @@ export function WorkbenchToolbar({
         </Button>
       </Link>
 
-      <div className="h-6 w-px bg-border" />
+      <div className="bg-border h-6 w-px" />
 
       {/* Branch Stats */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5 text-sm">
-          <GitBranch className="size-4 text-muted-foreground" />
+          <GitBranch className="text-muted-foreground size-4" />
           <span className="font-medium">{branchName}</span>
         </div>
         <Badge
@@ -91,11 +83,11 @@ export function WorkbenchToolbar({
         >
           {completionPercent}%
         </Badge>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-1 text-xs">
           <Key className="size-3" />
           <span>{totalKeys}</span>
         </div>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-1 text-xs">
           <Languages className="size-3" />
           <span>{languageCount}</span>
         </div>
@@ -104,19 +96,19 @@ export function WorkbenchToolbar({
       <div className="flex-1" />
 
       {/* Search */}
-      <div className="relative w-64 focus-within:w-80 transition-all">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <div className="relative w-64 transition-all focus-within:w-80">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
         <Input
           placeholder="Search keys..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 h-9"
+          className="h-9 pl-9"
         />
       </div>
 
       {/* Filters */}
       <Select value={filter} onValueChange={onFilterChange}>
-        <SelectTrigger className="w-[130px] h-9">
+        <SelectTrigger className="h-9 w-[130px]">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
@@ -131,7 +123,7 @@ export function WorkbenchToolbar({
       </Select>
 
       <Select value={qualityFilter} onValueChange={onQualityFilterChange}>
-        <SelectTrigger className="w-[130px] h-9">
+        <SelectTrigger className="h-9 w-[130px]">
           <SelectValue placeholder="Quality" />
         </SelectTrigger>
         <SelectContent>
@@ -144,8 +136,11 @@ export function WorkbenchToolbar({
       </Select>
 
       {namespaces.length > 0 && (
-        <Select value={namespace || 'all'} onValueChange={(v) => onNamespaceChange(v === 'all' ? '' : v)}>
-          <SelectTrigger className="w-[140px] h-9">
+        <Select
+          value={namespace || 'all'}
+          onValueChange={(v) => onNamespaceChange(v === 'all' ? '' : v)}
+        >
+          <SelectTrigger className="h-9 w-[140px]">
             <SelectValue placeholder="Namespace" />
           </SelectTrigger>
           <SelectContent>
@@ -159,7 +154,7 @@ export function WorkbenchToolbar({
         </Select>
       )}
 
-      <div className="h-6 w-px bg-border" />
+      <div className="bg-border h-6 w-px" />
 
       {/* Actions */}
       <Button variant="ghost" size="sm" onClick={onEvaluateQuality} className="gap-2">

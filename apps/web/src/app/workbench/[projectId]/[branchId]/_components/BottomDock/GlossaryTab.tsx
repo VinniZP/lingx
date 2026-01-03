@@ -1,16 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { cn } from '@/lib/utils';
-import { useGlossarySearch, useRecordGlossaryUsage, type GlossaryMatch } from '@/hooks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, CheckCircle2, Tag, BookOpen } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useGlossarySearch, useRecordGlossaryUsage, type GlossaryMatch } from '@/hooks';
+import { cn } from '@/lib/utils';
+import { BookOpen, CheckCircle2, Copy, Loader2, Tag } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface GlossaryTabProps {
   projectId: string;
@@ -47,11 +43,11 @@ export function GlossaryTab({
   // Empty state - no source text
   if (!sourceText || sourceText.length < 2) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center">
-        <div className="size-10 rounded-xl bg-muted/50 flex items-center justify-center mb-2">
-          <BookOpen className="size-5 text-muted-foreground" />
+      <div className="flex h-full flex-col items-center justify-center text-center">
+        <div className="bg-muted/50 mb-2 flex size-10 items-center justify-center rounded-xl">
+          <BookOpen className="text-muted-foreground size-5" />
         </div>
-        <p className="text-sm text-muted-foreground">Enter source text to find glossary terms</p>
+        <p className="text-muted-foreground text-sm">Enter source text to find glossary terms</p>
       </div>
     );
   }
@@ -122,10 +118,10 @@ function GlossaryLanguageSection({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
           {targetLanguage}
         </p>
-        {isLoading && <Loader2 className="size-3 animate-spin text-muted-foreground" />}
+        {isLoading && <Loader2 className="text-muted-foreground size-3 animate-spin" />}
       </div>
       <div className="space-y-1.5">
         {matches.slice(0, 3).map((match) => (
@@ -149,42 +145,38 @@ interface TermCardProps {
 
 function TermCard({ match, onApply, isApplied }: TermCardProps) {
   const isExact = match.matchType === 'exact';
-  const posLabel = match.partOfSpeech
-    ? match.partOfSpeech.toLowerCase().replace(/_/g, ' ')
-    : null;
+  const posLabel = match.partOfSpeech ? match.partOfSpeech.toLowerCase().replace(/_/g, ' ') : null;
 
   return (
-    <div className="group flex items-start gap-2 p-2 rounded-lg bg-muted/30 hover:bg-primary/5 transition-colors">
+    <div className="group bg-muted/30 hover:bg-primary/5 flex items-start gap-2 rounded-lg p-2 transition-colors">
       {/* Match type indicator */}
       <div
         className={cn(
-          'shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium',
-          isExact
-            ? 'bg-success/20 text-success'
-            : 'bg-primary/20 text-primary'
+          'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+          isExact ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'
         )}
       >
         {isExact ? 'exact' : 'found'}
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0 space-y-1">
+      <div className="min-w-0 flex-1 space-y-1">
         {/* Source → Target */}
         <div className="flex items-center gap-1 text-xs">
-          <span className="font-mono truncate">{match.sourceTerm}</span>
+          <span className="truncate font-mono">{match.sourceTerm}</span>
           <span className="text-muted-foreground">→</span>
-          <span className="font-medium truncate">{match.targetTerm}</span>
+          <span className="truncate font-medium">{match.targetTerm}</span>
         </div>
 
         {/* Badges */}
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex flex-wrap items-center gap-1">
           {posLabel && (
-            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+            <Badge variant="secondary" className="h-4 px-1 py-0 text-[9px]">
               {posLabel}
             </Badge>
           )}
           {match.domain && (
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 gap-0.5">
+            <Badge variant="outline" className="h-4 gap-0.5 px-1 py-0 text-[9px]">
               <Tag className="size-2" />
               {match.domain}
             </Badge>
@@ -192,7 +184,7 @@ function TermCard({ match, onApply, isApplied }: TermCardProps) {
           {match.caseSensitive && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+                <Badge variant="outline" className="h-4 px-1 py-0 text-[9px]">
                   Aa
                 </Badge>
               </TooltipTrigger>
@@ -206,12 +198,12 @@ function TermCard({ match, onApply, isApplied }: TermCardProps) {
       <Button
         size="sm"
         variant={isApplied ? 'outline' : 'ghost'}
-        className="shrink-0 h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="h-7 shrink-0 px-2 opacity-0 transition-opacity group-hover:opacity-100"
         onClick={onApply}
         disabled={isApplied}
       >
         {isApplied ? (
-          <CheckCircle2 className="size-3.5 text-success" />
+          <CheckCircle2 className="text-success size-3.5" />
         ) : (
           <Copy className="size-3.5" />
         )}

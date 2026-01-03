@@ -9,37 +9,37 @@
  * Cost target: <$0.50/10K translations via aggressive heuristic-first strategy
  */
 
-import { PrismaClient, AIProvider as AIProviderEnum } from '@prisma/client';
 import {
-  runQualityChecks,
   calculateScore,
+  runQualityChecks,
   validateICUSyntaxAsync,
+  type BranchQualitySummary,
+  type EvaluateOptions,
   type QualityIssue,
   type QualityScore,
-  type BranchQualitySummary,
   type QualityScoringConfig,
-  type EvaluateOptions,
 } from '@lingx/shared';
-import { KeyContextService } from './key-context.service.js';
+import { AIProvider as AIProviderEnum, PrismaClient } from '@prisma/client';
 import { NotFoundError, ValidationError } from '../plugins/error-handler.js';
+import { KeyContextService } from './key-context.service.js';
 
 import {
-  createLanguageModel,
-  type AIProvider,
-  generateContentHash,
-  GlossaryEvaluator,
-  GLOSSARY_MAX_PENALTY,
   AIEvaluator,
-  ScoreRepository,
-  getEncryptionKey,
-  decryptApiKey,
-  calculateCombinedScore,
-  mapAIIssuesToQualityIssues,
   buildFormatOnlyResult,
+  calculateCombinedScore,
+  createLanguageModel,
+  decryptApiKey,
   DEFAULT_QUALITY_CONFIG,
+  generateContentHash,
+  getEncryptionKey,
+  GLOSSARY_MAX_PENALTY,
+  GlossaryEvaluator,
+  mapAIIssuesToQualityIssues,
+  ScoreRepository,
+  type AIProvider,
 } from './quality/index.js';
 
-export type { QualityScore, BranchQualitySummary, EvaluateOptions };
+export type { BranchQualitySummary, EvaluateOptions, QualityScore };
 
 /** Number of translations to evaluate in parallel per batch */
 const EVALUATION_BATCH_SIZE = 10;
@@ -53,7 +53,7 @@ export class QualityEstimationService {
     private scoreRepository: ScoreRepository,
     private aiEvaluator: AIEvaluator,
     private glossaryEvaluator: GlossaryEvaluator,
-    private keyContextService: KeyContextService,
+    private keyContextService: KeyContextService
   ) {}
 
   /**
@@ -63,6 +63,29 @@ export class QualityEstimationService {
   async getCachedScore(translationId: string): Promise<QualityScore | null> {
     const result = await this.scoreRepository.findByTranslationId(translationId);
     return result?.score ?? null;
+  }
+
+  /**
+   * Get quality issues for all translations of a key, grouped by language code
+   * Returns empty object if no issues exist
+   */
+  async getKeyQualityIssues(keyId: string): Promise<Record<string, QualityIssue[]>> {
+    const translations = await this.prisma.translation.findMany({
+      where: { keyId },
+      include: { qualityScore: true },
+    });
+
+    const issuesByLanguage: Record<string, QualityIssue[]> = {};
+    for (const t of translations) {
+      if (t.qualityScore?.issues) {
+        const issues = t.qualityScore.issues as unknown as QualityIssue[];
+        if (issues.length > 0) {
+          issuesByLanguage[t.language] = issues;
+        }
+      }
+    }
+
+    return issuesByLanguage;
   }
 
   /**
@@ -121,7 +144,9 @@ export class QualityEstimationService {
     if (translation.qualityScore && sourceTranslation?.value) {
       const currentHash = generateContentHash(sourceTranslation.value, translation.value);
       if (translation.qualityScore.contentHash === currentHash) {
-        console.log(`[Quality] CACHE HIT: ${keyName}/${lang} score=${translation.qualityScore.score}`);
+        console.log(
+          `[Quality] CACHE HIT: ${keyName}/${lang} score=${translation.qualityScore.score}`
+        );
         return this.scoreRepository.formatStoredScore(translation.qualityScore);
       }
       // Content changed, fall through to re-evaluate
@@ -169,12 +194,15 @@ export class QualityEstimationService {
 
     // Level 3: AI evaluation (if enabled and provider configured)
     const config = await this.getConfig(project.id);
-    const aiAvailable = config.aiEvaluationEnabled && config.aiEvaluationProvider && config.aiEvaluationModel;
+    const aiAvailable =
+      config.aiEvaluationEnabled && config.aiEvaluationProvider && config.aiEvaluationModel;
 
     // If heuristics pass and AI not forced/needed, return heuristic score
     // forceAI=true means "always use AI" (but still respect cache)
     if (scoreResult.passed && !options?.forceAI && !needsAI) {
-      console.log(`[Quality] HEURISTIC PASS: ${keyName}/${lang} score=${Math.round(finalScore)} (skipping AI)`);
+      console.log(
+        `[Quality] HEURISTIC PASS: ${keyName}/${lang} score=${Math.round(finalScore)} (skipping AI)`
+      );
       return this.scoreRepository.save(translationId, {
         score: Math.round(finalScore),
         format: scoreResult.score,
@@ -185,8 +213,14 @@ export class QualityEstimationService {
     }
 
     if (aiAvailable) {
-      const reason = options?.forceAI ? 'forceAI=true' : needsAI ? 'heuristics flagged issues' : 'heuristics failed';
-      console.log(`[Quality] AI EVAL START: ${keyName}/${lang} (${reason}) provider=${config.aiEvaluationProvider} model=${config.aiEvaluationModel}`);
+      const reason = options?.forceAI
+        ? 'forceAI=true'
+        : needsAI
+          ? 'heuristics flagged issues'
+          : 'heuristics failed';
+      console.log(
+        `[Quality] AI EVAL START: ${keyName}/${lang} (${reason}) provider=${config.aiEvaluationProvider} model=${config.aiEvaluationModel}`
+      );
       return this.evaluateWithAI(
         translationId,
         translation.keyId, // Key ID for fetching related keys
@@ -201,7 +235,9 @@ export class QualityEstimationService {
       );
     }
 
-    console.log(`[Quality] HEURISTIC ONLY: ${keyName}/${lang} score=${Math.round(finalScore)} (AI not configured)`);
+    console.log(
+      `[Quality] HEURISTIC ONLY: ${keyName}/${lang} score=${Math.round(finalScore)} (AI not configured)`
+    );
     return this.scoreRepository.save(translationId, {
       score: Math.round(finalScore),
       format: scoreResult.score,
@@ -259,10 +295,7 @@ export class QualityEstimationService {
   /**
    * Update quality scoring config
    */
-  async updateConfig(
-    projectId: string,
-    input: Partial<QualityScoringConfig>
-  ): Promise<void> {
+  async updateConfig(projectId: string, input: Partial<QualityScoringConfig>): Promise<void> {
     await this.prisma.qualityScoringConfig.upsert({
       where: { projectId },
       update: input,
@@ -310,10 +343,11 @@ export class QualityEstimationService {
     heuristicResults: Map<string, { score: number; issues: QualityIssue[] }>
   ): Promise<Map<string, QualityScore>> {
     const results = new Map<string, QualityScore>();
-    const languages = translations.map(t => t.language);
+    const languages = translations.map((t) => t.language);
 
     const config = await this.getConfig(projectId);
-    const aiAvailable = config.aiEvaluationEnabled && config.aiEvaluationProvider && config.aiEvaluationModel;
+    const aiAvailable =
+      config.aiEvaluationEnabled && config.aiEvaluationProvider && config.aiEvaluationModel;
 
     if (!aiAvailable) {
       console.log(`[Quality] AI not configured, using heuristics for key ${keyName}`);
@@ -328,7 +362,11 @@ export class QualityEstimationService {
     }> = [];
 
     try {
-      const aiContext = await this.keyContextService.getAIContext(keyId, languages[0], sourceLocale);
+      const aiContext = await this.keyContextService.getAIContext(
+        keyId,
+        languages[0],
+        sourceLocale
+      );
 
       for (const r of aiContext.relatedTranslations.slice(0, 5)) {
         // r.translations is keyed by language code - filter to languages we're evaluating
@@ -348,7 +386,7 @@ export class QualityEstimationService {
         }
       }
 
-      relatedKeys = relatedKeys.filter(rk => rk.source);
+      relatedKeys = relatedKeys.filter((rk) => rk.source);
     } catch (error) {
       console.warn('[Quality] Failed to fetch related keys:', error);
     }
@@ -381,7 +419,7 @@ export class QualityEstimationService {
         keyName,
         sourceText,
         sourceLocale,
-        translations.map(t => ({ language: t.language, value: t.value })),
+        translations.map((t) => ({ language: t.language, value: t.value })),
         relatedKeys,
         { model, isAnthropic }
       );
@@ -452,13 +490,14 @@ export class QualityEstimationService {
       );
 
       return results;
-
     } catch (error) {
-      console.error('[Quality] Multi-language AI evaluation failed, falling back to heuristics:', error);
+      console.error(
+        '[Quality] Multi-language AI evaluation failed, falling back to heuristics:',
+        error
+      );
       return this.saveHeuristicResults(translations, sourceText, heuristicResults);
     }
   }
-
 
   /**
    * Save heuristic results for translations (helper to reduce duplication)
@@ -522,7 +561,11 @@ export class QualityEstimationService {
 
     let relatedKeys: Array<{ key: string; source: string; target: string }> = [];
     try {
-      const aiContext = await this.keyContextService.getAIContext(keyId, targetLocale, sourceLocale);
+      const aiContext = await this.keyContextService.getAIContext(
+        keyId,
+        targetLocale,
+        sourceLocale
+      );
       relatedKeys = aiContext.relatedTranslations
         .slice(0, 10)
         .map((r) => ({
@@ -631,15 +674,15 @@ export class QualityEstimationService {
       const key = getEncryptionKey();
       return decryptApiKey(encrypted, ivHex, key);
     } catch (error) {
-      console.error('[Quality] Failed to decrypt API key:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        '[Quality] Failed to decrypt API key:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw new Error('Invalid or corrupted API key configuration');
     }
   }
 
-  private async scoreFormatOnly(
-    translationId: string,
-    text: string
-  ): Promise<QualityScore> {
+  private async scoreFormatOnly(translationId: string, text: string): Promise<QualityScore> {
     const icuCheck = await this.validateICUSyntax(text);
     const result = buildFormatOnlyResult(icuCheck);
 

@@ -1,10 +1,10 @@
 'use client';
 
-import { FileText, FolderOpen, Brain, Loader2, Link2Off } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { useRelatedKeys, type RelatedKey } from '@/hooks/use-related-keys';
 import type { TranslationKey } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { Brain, FileText, FolderOpen, Link2Off, Loader2 } from 'lucide-react';
 
 interface RelatedKeysTabProps {
   keyData: TranslationKey;
@@ -50,32 +50,28 @@ function RelatedKeyItem({
   return (
     <button
       className={cn(
-        'w-full text-left p-2.5 rounded-lg border transition-all duration-200',
+        'w-full rounded-lg border p-2.5 text-left transition-all duration-200',
         'hover:bg-muted/50 hover:border-border',
         'bg-card border-border/50'
       )}
       onClick={() => onSelect?.(relatedKey.id)}
     >
       <div className="flex items-start gap-2">
-        <div className={cn('p-1.5 rounded-md', config.bgColor)}>
+        <div className={cn('rounded-md p-1.5', config.bgColor)}>
           <Icon className={cn('size-3.5', config.color)} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-sm font-medium font-mono truncate">
-              {relatedKey.name}
-            </span>
-            <Badge variant="outline" className="text-[10px] shrink-0">
+        <div className="min-w-0 flex-1">
+          <div className="mb-0.5 flex items-center gap-2">
+            <span className="truncate font-mono text-sm font-medium">{relatedKey.name}</span>
+            <Badge variant="outline" className="shrink-0 text-[10px]">
               {confidencePercent}%
             </Badge>
           </div>
           {relatedKey.namespace && (
-            <p className="text-xs text-muted-foreground truncate">
-              {relatedKey.namespace}
-            </p>
+            <p className="text-muted-foreground truncate text-xs">{relatedKey.namespace}</p>
           )}
           {(relatedKey.sourceFile || relatedKey.sourceComponent) && (
-            <p className="text-[11px] text-muted-foreground/70 truncate mt-0.5">
+            <p className="text-muted-foreground/70 mt-0.5 truncate text-[11px]">
               {relatedKey.sourceComponent || relatedKey.sourceFile}
             </p>
           )}
@@ -110,12 +106,7 @@ function RelationshipSection({
       </div>
       <div className="space-y-1.5">
         {keys.map((key) => (
-          <RelatedKeyItem
-            key={key.id}
-            relatedKey={key}
-            type={type}
-            onSelect={onSelectKey}
-          />
+          <RelatedKeyItem key={key.id} relatedKey={key} type={type} onSelect={onSelectKey} />
         ))}
       </div>
     </div>
@@ -129,7 +120,7 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <Loader2 className="text-muted-foreground size-5 animate-spin" />
       </div>
     );
   }
@@ -137,9 +128,9 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
   // Error state
   if (error) {
     return (
-      <div className="text-center py-6">
-        <p className="text-sm text-destructive">Failed to load related keys</p>
-        <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+      <div className="py-6 text-center">
+        <p className="text-destructive text-sm">Failed to load related keys</p>
+        <p className="text-muted-foreground mt-1 text-xs">Please try again later</p>
       </div>
     );
   }
@@ -154,16 +145,17 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
   // Empty state
   if (!hasRelatedKeys) {
     return (
-      <div className="text-center py-6 space-y-3">
+      <div className="space-y-3 py-6 text-center">
         <div className="flex justify-center">
-          <div className="p-3 rounded-full bg-muted">
-            <Link2Off className="size-5 text-muted-foreground" />
+          <div className="bg-muted rounded-full p-3">
+            <Link2Off className="text-muted-foreground size-5" />
           </div>
         </div>
         <div>
           <p className="text-sm font-medium">No related keys found</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Related keys will appear here when keys share the same file, component, or have similar translations
+          <p className="text-muted-foreground mt-1 text-xs">
+            Related keys will appear here when keys share the same file, component, or have similar
+            translations
           </p>
         </div>
       </div>

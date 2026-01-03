@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from '@lingx/sdk-nextjs';
-import { Settings, Key, Edit, Zap } from 'lucide-react';
+import { Edit, Key, Settings, Zap } from 'lucide-react';
 import { QuickActionCard } from './quick-action-card';
 
 interface QuickActionsCardProps {
@@ -16,14 +16,14 @@ export function QuickActionsCard({ projectId, defaultBranchId }: QuickActionsCar
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-3 animate-fade-in-up stagger-3">
-      <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
+    <div className="animate-fade-in-up stagger-3 space-y-3">
+      <h2 className="text-muted-foreground px-1 text-xs font-medium tracking-wider uppercase">
         {t('projectDetail.quickActions.title')}
       </h2>
       <div className="space-y-3">
         {defaultBranchId && (
           <QuickActionCard
-            href={`/projects/${projectId}/translations/${defaultBranchId}`}
+            href={`/workbench/${projectId}/${defaultBranchId}`}
             icon={Edit}
             title={t('projectDetail.quickActions.editTranslations')}
             subtitle={t('projectDetail.quickActions.editTranslationsSubtitle')}

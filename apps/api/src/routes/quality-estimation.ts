@@ -3,28 +3,30 @@
  *
  * Thin route handlers that delegate to services.
  */
+import {
+  batchQualityBodySchema,
+  batchQualityJobResponseSchema,
+  branchIdParamsSchema,
+  branchQualitySummaryResponseSchema,
+  evaluateQualityBodySchema,
+  icuValidationResultSchema,
+  keyIdParamsSchema,
+  keyQualityIssuesResponseSchema,
+  projectIdParamsSchema,
+  qualityScoreResponseSchema,
+  qualityScoringConfigSchema,
+  translationIdParamsSchema,
+  updateQualityScoringConfigSchema,
+  validateIcuBodySchema,
+} from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import {
-  translationIdParamsSchema,
-  branchIdParamsSchema,
-  projectIdParamsSchema,
-  evaluateQualityBodySchema,
-  batchQualityBodySchema,
-  validateIcuBodySchema,
-  qualityScoreResponseSchema,
-  batchQualityJobResponseSchema,
-  branchQualitySummaryResponseSchema,
-  qualityScoringConfigSchema,
-  updateQualityScoringConfigSchema,
-  icuValidationResultSchema,
-} from '@lingx/shared';
-import {
-  createQualityEstimationService,
-  createBatchEvaluationService,
-} from '../services/quality/index.js';
-import { createAccessService } from '../services/access.service.js';
 import { mtBatchQueue } from '../lib/queues.js';
+import { createAccessService } from '../services/access.service.js';
+import {
+  createBatchEvaluationService,
+  createQualityEstimationService,
+} from '../services/quality/index.js';
 
 const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -108,10 +110,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const { branchId } = request.params;
       const { translationIds, forceAI } = request.body || {};
 
-      const projectInfo = await accessService.verifyBranchAccess(
-        request.user!.userId,
-        branchId
-      );
+      const projectInfo = await accessService.verifyBranchAccess(request.user!.userId, branchId);
 
       return batchService.evaluateBranch(branchId, request.user!.userId, projectInfo, {
         translationIds,
@@ -221,6 +220,32 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { text } = request.body;
       return qualityService.validateICUSyntax(text);
+    }
+  );
+
+  /**
+   * GET /api/keys/:keyId/quality/issues - Get quality issues for all translations of a key
+   */
+  app.get(
+    '/api/keys/:keyId/quality/issues',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Get quality issues for all translations of a key, grouped by language',
+        tags: ['Quality'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: keyIdParamsSchema,
+        response: {
+          200: keyQualityIssuesResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { keyId } = request.params;
+
+      await accessService.verifyKeyAccess(request.user!.userId, keyId);
+      const issues = await qualityService.getKeyQualityIssues(keyId);
+      return { issues };
     }
   );
 };

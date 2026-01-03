@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import type { TranslationKey } from '@/lib/api';
+import { useCallback, useState } from 'react';
 
 interface UseKeySelectionOptions {
   keys: TranslationKey[];
@@ -26,13 +26,16 @@ export function useKeySelection({ keys }: UseKeySelectionOptions) {
     });
   }, []);
 
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      setSelectedKeys(new Set(keys.map((k) => k.id)));
-    } else {
-      setSelectedKeys(new Set());
-    }
-  }, [keys]);
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        setSelectedKeys(new Set(keys.map((k) => k.id)));
+      } else {
+        setSelectedKeys(new Set());
+      }
+    },
+    [keys]
+  );
 
   const clearSelection = useCallback(() => {
     setSelectedKeys(new Set());

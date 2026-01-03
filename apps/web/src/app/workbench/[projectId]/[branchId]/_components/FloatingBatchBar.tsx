@@ -1,6 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,16 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  CheckSquare,
-  Check,
-  X,
-  Trash2,
-  Wand2,
-  Sparkles,
-  Loader2,
-  ChevronDown,
-} from 'lucide-react';
+import { Check, CheckSquare, ChevronDown, Loader2, Sparkles, Trash2, Wand2, X } from 'lucide-react';
 
 interface FloatingBatchBarProps {
   selectedCount: number;
@@ -49,14 +39,12 @@ export function FloatingBatchBar({
   hasAI,
 }: FloatingBatchBarProps) {
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in-up">
-      <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/50 shadow-2xl ring-1 ring-white/10">
+    <div className="animate-fade-in-up fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
+      <div className="bg-card/90 border-border/50 flex items-center gap-2 rounded-2xl border px-4 py-3 shadow-2xl ring-1 ring-white/10 backdrop-blur-xl">
         {/* Selection indicator */}
-        <div className="flex items-center gap-2 pr-3 border-r border-border">
-          <CheckSquare className="size-4 text-primary" />
-          <span className="text-sm font-medium tabular-nums">
-            {selectedCount} selected
-          </span>
+        <div className="border-border flex items-center gap-2 border-r pr-3">
+          <CheckSquare className="text-primary size-4" />
+          <span className="text-sm font-medium tabular-nums">{selectedCount} selected</span>
         </div>
 
         {/* Translate dropdown */}
@@ -65,24 +53,24 @@ export function FloatingBatchBar({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" disabled={isTranslating}>
                 {isTranslating ? (
-                  <Loader2 className="size-4 animate-spin mr-1.5" />
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
                 ) : (
-                  <Wand2 className="size-4 mr-1.5" />
+                  <Wand2 className="mr-1.5 size-4" />
                 )}
                 Translate
-                <ChevronDown className="size-3.5 ml-1" />
+                <ChevronDown className="ml-1 size-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {hasMT && (
                 <DropdownMenuItem onClick={() => onTranslate('MT')}>
-                  <Wand2 className="size-4 mr-2" />
+                  <Wand2 className="mr-2 size-4" />
                   Machine Translate
                 </DropdownMenuItem>
               )}
               {hasAI && (
                 <DropdownMenuItem onClick={() => onTranslate('AI')}>
-                  <Sparkles className="size-4 mr-2" />
+                  <Sparkles className="mr-2 size-4" />
                   AI Translate
                 </DropdownMenuItem>
               )}
@@ -97,7 +85,7 @@ export function FloatingBatchBar({
           onClick={onEvaluateQuality}
           className="text-primary hover:text-primary"
         >
-          <Sparkles className="size-4 mr-1.5" />
+          <Sparkles className="mr-1.5 size-4" />
           Quality
         </Button>
 
@@ -110,9 +98,9 @@ export function FloatingBatchBar({
           className="text-success hover:text-success"
         >
           {isApproving ? (
-            <Loader2 className="size-4 animate-spin mr-1.5" />
+            <Loader2 className="mr-1.5 size-4 animate-spin" />
           ) : (
-            <Check className="size-4 mr-1.5" />
+            <Check className="mr-1.5 size-4" />
           )}
           Approve
         </Button>
@@ -125,7 +113,7 @@ export function FloatingBatchBar({
           disabled={isApproving}
           className="text-destructive hover:text-destructive"
         >
-          <X className="size-4 mr-1.5" />
+          <X className="mr-1.5 size-4" />
           Reject
         </Button>
 
@@ -138,14 +126,14 @@ export function FloatingBatchBar({
           className="text-destructive hover:text-destructive"
         >
           {isDeleting ? (
-            <Loader2 className="size-4 animate-spin mr-1.5" />
+            <Loader2 className="mr-1.5 size-4 animate-spin" />
           ) : (
-            <Trash2 className="size-4 mr-1.5" />
+            <Trash2 className="mr-1.5 size-4" />
           )}
           Delete
         </Button>
 
-        <div className="h-5 w-px bg-border" />
+        <div className="bg-border h-5 w-px" />
 
         {/* Clear */}
         <Button variant="ghost" size="icon" className="size-8" onClick={onClear}>

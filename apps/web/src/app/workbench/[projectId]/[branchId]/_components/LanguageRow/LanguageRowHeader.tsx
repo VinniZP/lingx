@@ -1,31 +1,36 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  ChevronRight,
-  Wand2,
-  Sparkles,
-  Check,
-  X,
-  Loader2,
-} from 'lucide-react';
-import type { ProjectLanguage } from '@lingx/shared';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { EmbeddedQualityScore } from '@/lib/api';
-import { StatusBadge, QualityMeter } from '../shared';
+import { cn } from '@/lib/utils';
+import type { ProjectLanguage } from '@lingx/shared';
+import { Check, ChevronRight, Loader2, Sparkles, Wand2, X } from 'lucide-react';
+import { QualityMeter, StatusBadge } from '../shared';
 
 // Language code to flag emoji mapping
 function getFlagEmoji(code: string): string {
   const flags: Record<string, string> = {
-    en: '🇺🇸', de: '🇩🇪', fr: '🇫🇷', es: '🇪🇸', it: '🇮🇹',
-    pt: '🇵🇹', nl: '🇳🇱', pl: '🇵🇱', ru: '🇷🇺', ja: '🇯🇵',
-    ko: '🇰🇷', zh: '🇨🇳', ar: '🇸🇦', tr: '🇹🇷', uk: '🇺🇦',
-    cs: '🇨🇿', sv: '🇸🇪', da: '🇩🇰', fi: '🇫🇮', no: '🇳🇴',
+    en: '🇺🇸',
+    de: '🇩🇪',
+    fr: '🇫🇷',
+    es: '🇪🇸',
+    it: '🇮🇹',
+    pt: '🇵🇹',
+    nl: '🇳🇱',
+    pl: '🇵🇱',
+    ru: '🇷🇺',
+    ja: '🇯🇵',
+    ko: '🇰🇷',
+    zh: '🇨🇳',
+    ar: '🇸🇦',
+    tr: '🇹🇷',
+    uk: '🇺🇦',
+    cs: '🇨🇿',
+    sv: '🇸🇪',
+    da: '🇩🇰',
+    fi: '🇫🇮',
+    no: '🇳🇴',
   };
   return flags[code.toLowerCase()] || '🌐';
 }
@@ -76,7 +81,7 @@ export function LanguageRowHeader({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors',
+        'flex cursor-pointer items-center gap-3 px-3 py-2 transition-colors',
         isExpanded ? 'bg-muted/50' : 'hover:bg-muted/30'
       )}
       onClick={onToggle}
@@ -84,14 +89,14 @@ export function LanguageRowHeader({
       {/* Expand indicator */}
       <ChevronRight
         className={cn(
-          'size-4 text-muted-foreground transition-transform',
+          'text-muted-foreground size-4 transition-transform',
           isExpanded && 'rotate-90'
         )}
       />
 
       {/* Language info */}
       <span className="text-lg">{getFlagEmoji(language.code)}</span>
-      <span className="text-sm font-medium w-20">{language.name}</span>
+      <span className="w-20 text-sm font-medium">{language.name}</span>
 
       {/* Status & Quality */}
       <StatusBadge status={status} size="sm" />
@@ -110,14 +115,10 @@ export function LanguageRowHeader({
 
       {/* Preview (when collapsed) */}
       {!isExpanded && hasValue && (
-        <p className="flex-1 text-xs text-muted-foreground truncate">
-          {value}
-        </p>
+        <p className="text-muted-foreground flex-1 truncate text-xs">{value}</p>
       )}
       {!isExpanded && !hasValue && (
-        <p className="flex-1 text-xs text-muted-foreground/50 italic">
-          No translation
-        </p>
+        <p className="text-muted-foreground/50 flex-1 text-xs italic">No translation</p>
       )}
 
       {/* Spacer */}
@@ -125,13 +126,13 @@ export function LanguageRowHeader({
 
       {/* Save indicator */}
       {isSaving && (
-        <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+        <span className="text-muted-foreground bg-muted/50 flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
           <Loader2 className="size-3 animate-spin" />
           Saving
         </span>
       )}
       {isSaved && !isSaving && (
-        <span className="flex items-center gap-1.5 text-xs text-success bg-success/10 px-2 py-0.5 rounded-full animate-fade-in-up">
+        <span className="text-success bg-success/10 animate-fade-in-up flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
           <Check className="size-3" />
           Saved
         </span>
@@ -194,7 +195,7 @@ export function LanguageRowHeader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-7 text-success hover:text-success"
+                  className="text-success hover:text-success size-7"
                   onClick={onApprove}
                   disabled={isApproving || status === 'APPROVED'}
                 >
@@ -213,7 +214,7 @@ export function LanguageRowHeader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-7 text-destructive hover:text-destructive"
+                  className="text-destructive hover:text-destructive size-7"
                   onClick={onReject}
                   disabled={isApproving || status === 'REJECTED'}
                 >

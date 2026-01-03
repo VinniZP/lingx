@@ -3,8 +3,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Trash2, Sparkles, Loader2 } from 'lucide-react';
 import type { TranslationKey } from '@/lib/api';
+import { Loader2, Sparkles, Trash2 } from 'lucide-react';
 
 interface KeyHeaderProps {
   keyData: TranslationKey;
@@ -24,25 +24,23 @@ export function KeyHeader({
     : keyData.name;
 
   return (
-    <div className="flex items-start justify-between gap-4 px-4 py-3 border-b border-border bg-card">
-      <div className="flex-1 min-w-0">
+    <div className="border-border bg-card flex items-start justify-between gap-4 border-b px-4 py-3">
+      <div className="min-w-0 flex-1">
         {/* Namespace */}
         {keyData.namespace && (
-          <Badge variant="outline" className="text-[10px] font-mono mb-1">
+          <Badge variant="outline" className="mb-1 font-mono text-[10px]">
             {keyData.namespace}
           </Badge>
         )}
 
         {/* Key name */}
-        <h2 className="text-lg font-semibold font-mono truncate" title={keyData.name}>
+        <h2 className="truncate font-mono text-lg font-semibold" title={keyData.name}>
           {displayName}
         </h2>
 
         {/* Description */}
         {keyData.description && (
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-            {keyData.description}
-          </p>
+          <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">{keyData.description}</p>
         )}
       </div>
 
@@ -54,23 +52,27 @@ export function KeyHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-primary hover:text-primary"
+                className="text-primary hover:text-primary h-8"
                 onClick={onEvaluateQuality}
                 disabled={isEvaluatingQuality}
               >
                 {isEvaluatingQuality ? (
-                  <Loader2 className="size-4 mr-1.5 animate-spin" />
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
                 ) : (
-                  <Sparkles className="size-4 mr-1.5" />
+                  <Sparkles className="mr-1.5 size-4" />
                 )}
                 {isEvaluatingQuality ? 'Evaluating...' : 'Evaluate Quality'}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Evaluate quality for this key's translations</TooltipContent>
+            <TooltipContent>Evaluate quality for this key&apos;s translations</TooltipContent>
           </Tooltip>
         )}
         {onDelete && (
-          <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive size-8"
+          >
             <Trash2 className="size-4" />
           </Button>
         )}

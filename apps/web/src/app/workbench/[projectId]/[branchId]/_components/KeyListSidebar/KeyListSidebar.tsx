@@ -1,12 +1,11 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { TranslationKey } from '@/lib/api';
 import type { ProjectLanguage } from '@lingx/shared';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { KeyListItem } from './KeyListItem';
 
 interface KeyListSidebarProps {
@@ -45,23 +44,16 @@ export function KeyListSidebar({
   onPageChange,
 }: KeyListSidebarProps) {
   return (
-    <div className="w-72 border-r border-border flex flex-col bg-card">
+    <div className="border-border bg-card flex w-72 flex-col border-r">
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-        {canApprove && (
-          <Checkbox
-            checked={isAllSelected}
-            onCheckedChange={onSelectAll}
-          />
-        )}
-        <span className="text-sm font-medium flex-1">Keys</span>
+      <div className="border-border flex items-center gap-2 border-b px-3 py-2">
+        {canApprove && <Checkbox checked={isAllSelected} onCheckedChange={onSelectAll} />}
+        <span className="flex-1 text-sm font-medium">Keys</span>
         <Badge variant="outline" className="text-xs tabular-nums">
           {keys.length}
         </Badge>
         {selectedKeys.size > 0 && (
-          <Badge className="text-xs tabular-nums">
-            {selectedKeys.size} selected
-          </Badge>
+          <Badge className="text-xs tabular-nums">{selectedKeys.size} selected</Badge>
         )}
       </div>
 
@@ -69,17 +61,15 @@ export function KeyListSidebar({
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            <Loader2 className="text-muted-foreground size-6 animate-spin" />
           </div>
         ) : keys.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-            <p className="text-sm text-muted-foreground">No keys found</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              Try adjusting your filters
-            </p>
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+            <p className="text-muted-foreground text-sm">No keys found</p>
+            <p className="text-muted-foreground/70 mt-1 text-xs">Try adjusting your filters</p>
           </div>
         ) : (
-          <div className="divide-y divide-border/50">
+          <div className="divide-border/50 divide-y">
             {keys.map((key) => (
               <KeyListItem
                 key={key.id}
@@ -90,11 +80,8 @@ export function KeyListSidebar({
                 onCheck={(checked) => onSelectionChange(key.id, checked)}
                 canApprove={canApprove}
                 targetLanguages={targetLanguages}
-                getTranslationValue={getTranslationValue}
                 sourcePreview={
-                  defaultLanguage
-                    ? getTranslationValue(key, defaultLanguage.code)
-                    : ''
+                  defaultLanguage ? getTranslationValue(key, defaultLanguage.code) : ''
                 }
               />
             ))}
@@ -104,7 +91,7 @@ export function KeyListSidebar({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-3 py-2 border-t border-border">
+        <div className="border-border flex items-center justify-between border-t px-3 py-2">
           <Button
             variant="ghost"
             size="icon"
@@ -114,7 +101,7 @@ export function KeyListSidebar({
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span className="text-xs text-muted-foreground tabular-nums">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {page} / {totalPages}
           </span>
           <Button

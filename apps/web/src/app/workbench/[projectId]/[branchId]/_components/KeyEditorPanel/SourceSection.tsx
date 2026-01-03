@@ -1,20 +1,36 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, Copy, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ProjectLanguage } from '@lingx/shared';
+import { Check, Copy, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 // Language code to flag emoji mapping
 function getFlagEmoji(code: string): string {
   const flags: Record<string, string> = {
-    en: '🇺🇸', de: '🇩🇪', fr: '🇫🇷', es: '🇪🇸', it: '🇮🇹',
-    pt: '🇵🇹', nl: '🇳🇱', pl: '🇵🇱', ru: '🇷🇺', ja: '🇯🇵',
-    ko: '🇰🇷', zh: '🇨🇳', ar: '🇸🇦', tr: '🇹🇷', uk: '🇺🇦',
-    cs: '🇨🇿', sv: '🇸🇪', da: '🇩🇰', fi: '🇫🇮', no: '🇳🇴',
+    en: '🇺🇸',
+    de: '🇩🇪',
+    fr: '🇫🇷',
+    es: '🇪🇸',
+    it: '🇮🇹',
+    pt: '🇵🇹',
+    nl: '🇳🇱',
+    pl: '🇵🇱',
+    ru: '🇷🇺',
+    ja: '🇯🇵',
+    ko: '🇰🇷',
+    zh: '🇨🇳',
+    ar: '🇸🇦',
+    tr: '🇹🇷',
+    uk: '🇺🇦',
+    cs: '🇨🇿',
+    sv: '🇸🇪',
+    da: '🇩🇰',
+    fi: '🇫🇮',
+    no: '🇳🇴',
   };
   return flags[code.toLowerCase()] || '🌐';
 }
@@ -60,21 +76,19 @@ export function SourceSection({
   const isEditable = !!onChange;
 
   return (
-    <div className="px-5 py-4 border-b border-border bg-muted/30">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="border-border bg-muted/30 border-b px-5 py-4">
+      <div className="mb-3 flex items-center gap-2">
         <span className="text-xl">{getFlagEmoji(language.code)}</span>
         <span className="text-base font-medium">{language.name}</span>
-        <Badge variant="outline" className="text-xs">Source</Badge>
+        <Badge variant="outline" className="text-xs">
+          Source
+        </Badge>
 
         {/* Status indicators */}
-        {isSaving && (
-          <Loader2 className="size-4 animate-spin text-muted-foreground" />
-        )}
-        {isSaved && !isSaving && (
-          <Check className="size-4 text-success" />
-        )}
+        {isSaving && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
+        {isSaved && !isSaving && <Check className="text-success size-4" />}
 
-        <span className="text-sm text-muted-foreground ml-auto tabular-nums">
+        <span className="text-muted-foreground ml-auto text-sm tabular-nums">
           {localValue.length} chars
         </span>
         {placeholderCount > 0 && (
@@ -82,17 +96,8 @@ export function SourceSection({
             {placeholderCount} placeholder{placeholderCount !== 1 ? 's' : ''}
           </Badge>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8"
-          onClick={handleCopy}
-        >
-          {copied ? (
-            <Check className="size-4 text-success" />
-          ) : (
-            <Copy className="size-4" />
-          )}
+        <Button variant="ghost" size="icon" className="size-8" onClick={handleCopy}>
+          {copied ? <Check className="text-success size-4" /> : <Copy className="size-4" />}
         </Button>
       </div>
 
@@ -103,13 +108,13 @@ export function SourceSection({
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           className={cn(
-            'font-mono text-base leading-relaxed min-h-[80px] resize-none',
+            'min-h-[80px] resize-none font-mono text-base leading-relaxed',
             'bg-background/50'
           )}
           placeholder="Enter source text..."
         />
       ) : (
-        <div className="font-mono text-base leading-relaxed bg-background/50 rounded-xl px-4 py-3 border border-border">
+        <div className="bg-background/50 border-border rounded-xl border px-4 py-3 font-mono text-base leading-relaxed">
           {localValue || <span className="text-muted-foreground italic">No source text</span>}
         </div>
       )}

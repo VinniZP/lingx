@@ -1,13 +1,9 @@
 'use client';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import type { QualityIssue } from '@/lib/api/quality';
 
 interface QualityIssuesInlineProps {
   issues: QualityIssue[];
@@ -42,14 +38,12 @@ export function QualityIssuesInline({ issues }: QualityIssuesInlineProps) {
             <TooltipTrigger asChild>
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium cursor-help',
+                  'inline-flex cursor-help items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-medium',
                   config.className
                 )}
               >
                 <Icon className="size-3" />
-                <span className="truncate max-w-[150px]">
-                  {issue.message.split(':')[0]}
-                </span>
+                <span className="max-w-[150px] truncate">{issue.message.split(':')[0]}</span>
               </span>
             </TooltipTrigger>
             <TooltipContent>

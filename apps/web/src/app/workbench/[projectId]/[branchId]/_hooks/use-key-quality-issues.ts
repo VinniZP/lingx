@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { getKeyQualityIssues } from '@/lib/api/quality';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Hook to fetch quality issues for all translations of a key

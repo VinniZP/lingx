@@ -1,11 +1,3 @@
-export default function WorkbenchLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="h-screen w-screen overflow-hidden bg-background">
-      {children}
-    </div>
-  );
+export default function WorkbenchLayout({ children }: { children: React.ReactNode }) {
+  return <div className="bg-background h-screen w-screen overflow-hidden">{children}</div>;
 }

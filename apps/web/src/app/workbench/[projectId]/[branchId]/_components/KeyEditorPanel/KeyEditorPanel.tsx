@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
-import type { TranslationKey, Translation } from '@/lib/api';
+import type { TranslationKey } from '@/lib/api';
 import type { ProjectLanguage } from '@lingx/shared';
+import { useMemo } from 'react';
 import { useKeyQualityEvaluation, useKeyQualityIssues } from '../../_hooks';
+import { BottomDock } from '../BottomDock';
+import { LanguageRow } from '../LanguageRow';
 import { KeyHeader } from './KeyHeader';
 import { SourceSection } from './SourceSection';
-import { LanguageRow } from '../LanguageRow';
-import { BottomDock } from '../BottomDock';
 
 interface UnifiedSuggestion {
   id: string;
@@ -81,20 +81,19 @@ export function KeyEditorPanel({
   }, [languages]);
 
   // Source value
-  const sourceValue = keyData && defaultLanguage
-    ? getTranslationValue(keyData, defaultLanguage.code)
-    : '';
+  const sourceValue =
+    keyData && defaultLanguage ? getTranslationValue(keyData, defaultLanguage.code) : '';
 
   if (!keyData) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-muted/30">
+      <div className="bg-muted/30 flex flex-1 items-center justify-center">
         <p className="text-muted-foreground">Select a key to edit</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+    <div className="bg-background flex flex-1 flex-col overflow-hidden">
       {/* Key Header */}
       <KeyHeader
         keyData={keyData}
@@ -115,11 +114,9 @@ export function KeyEditorPanel({
 
       {/* Language Rows (scrollable) */}
       <div className="flex-1 overflow-y-auto">
-        <div className="divide-y divide-border/50">
+        <div className="divide-border/50 divide-y">
           {targetLanguageObjects.map((lang) => {
-            const translation = keyData.translations.find(
-              (t) => t.language === lang.code
-            );
+            const translation = keyData.translations.find((t) => t.language === lang.code);
             const value = getTranslationValue(keyData, lang.code);
             const isSaving = savingKeys.get(keyData.id)?.has(lang.code) ?? false;
             const isSaved = savedKeys.get(keyData.id)?.has(lang.code) ?? false;
@@ -131,7 +128,6 @@ export function KeyEditorPanel({
             return (
               <LanguageRow
                 key={lang.code}
-                keyId={keyData.id}
                 language={lang}
                 translation={translation}
                 value={value}
@@ -170,7 +166,9 @@ export function KeyEditorPanel({
         sourceText={sourceValue}
         targetLanguages={targetLanguages}
         getSuggestions={getSuggestions}
-        onApplyGlossaryMatch={(targetLang, text) => onTranslationChange(keyData.id, targetLang, text)}
+        onApplyGlossaryMatch={(targetLang, text) =>
+          onTranslationChange(keyData.id, targetLang, text)
+        }
       />
     </div>
   );

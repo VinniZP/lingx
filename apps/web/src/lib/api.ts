@@ -1,9 +1,9 @@
 import type {
+  BranchDiffResponse,
+  ConflictEntry,
   FieldError,
   ProjectResponse,
   ProjectWithStats,
-  ConflictEntry,
-  BranchDiffResponse,
 } from '@lingx/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -41,12 +41,7 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
       code: 'UNKNOWN_ERROR',
       message: 'An unexpected error occurred',
     }));
-    throw new ApiError(
-      response.status,
-      error.code,
-      error.message,
-      error.fieldErrors
-    );
+    throw new ApiError(response.status, error.code, error.message, error.fieldErrors);
   }
 
   // Handle 204 No Content
@@ -77,8 +72,7 @@ export const authApi = {
       body: JSON.stringify({}), // Fastify requires body when Content-Type is application/json
     }),
 
-  me: () =>
-    fetchApi<{ user: User }>('/api/auth/me'),
+  me: () => fetchApi<{ user: User }>('/api/auth/me'),
 };
 
 // Types
@@ -148,14 +142,14 @@ export interface ProjectTree {
 }
 
 // Dashboard API
-import type { DashboardStats, Activity, ActivityChange } from '@lingx/shared';
+import type { Activity, ActivityChange, DashboardStats } from '@lingx/shared';
 
 export const dashboardApi = {
   getStats: () => fetchApi<DashboardStats>('/api/dashboard/stats'),
 };
 
 // Re-export for convenience
-export type { DashboardStats, Activity, ActivityChange };
+export type { Activity, ActivityChange, DashboardStats };
 
 // Activity API
 export const activityApi = {
@@ -205,11 +199,9 @@ export const projectApi = {
       method: 'DELETE',
     }),
 
-  getStats: (id: string) =>
-    fetchApi<ProjectStatsDetailed>(`/api/projects/${id}/stats`),
+  getStats: (id: string) => fetchApi<ProjectStatsDetailed>(`/api/projects/${id}/stats`),
 
-  getTree: (id: string) =>
-    fetchApi<ProjectTree>(`/api/projects/${id}/tree`),
+  getTree: (id: string) => fetchApi<ProjectTree>(`/api/projects/${id}/tree`),
 
   /** Get project-specific activities */
   getActivity: (id: string, params?: { limit?: number; cursor?: string }) => {
@@ -292,8 +284,7 @@ export interface UpdateSpaceInput {
 
 // Space API
 export const spaceApi = {
-  list: (projectId: string) =>
-    fetchApi<{ spaces: Space[] }>(`/api/projects/${projectId}/spaces`),
+  list: (projectId: string) => fetchApi<{ spaces: Space[] }>(`/api/projects/${projectId}/spaces`),
 
   get: (id: string) => fetchApi<SpaceWithBranches>(`/api/spaces/${id}`),
 
@@ -337,8 +328,7 @@ export interface MergeResult {
 
 // Branch API
 export const branchApi = {
-  list: (spaceId: string) =>
-    fetchApi<{ branches: Branch[] }>(`/api/spaces/${spaceId}/branches`),
+  list: (spaceId: string) => fetchApi<{ branches: Branch[] }>(`/api/spaces/${spaceId}/branches`),
 
   get: (id: string) => fetchApi<BranchWithSpace>(`/api/branches/${id}`),
 
@@ -354,9 +344,7 @@ export const branchApi = {
     }),
 
   diff: (sourceBranchId: string, targetBranchId: string) =>
-    fetchApi<BranchDiffResponse>(
-      `/api/branches/${sourceBranchId}/diff/${targetBranchId}`
-    ),
+    fetchApi<BranchDiffResponse>(`/api/branches/${sourceBranchId}/diff/${targetBranchId}`),
 
   merge: (sourceBranchId: string, request: MergeRequest) =>
     fetchApi<MergeResult>(`/api/branches/${sourceBranchId}/merge`, {
@@ -367,8 +355,24 @@ export const branchApi = {
 
 // Translation types
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type KeyFilter = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
+export type KeyFilter =
+  | 'all'
+  | 'missing'
+  | 'complete'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'warnings';
 export type QualityScoreFilter = 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
+
+export interface EmbeddedQualityScore {
+  score: number;
+  accuracy: number | null;
+  fluency: number | null;
+  terminology: number | null;
+  format: number;
+  evaluationType: 'heuristic' | 'ai' | 'hybrid';
+}
 
 export interface Translation {
   id: string;
@@ -379,6 +383,7 @@ export interface Translation {
   statusUpdatedBy: string | null;
   createdAt: string;
   updatedAt: string;
+  qualityScore: EmbeddedQualityScore | null;
 }
 
 export interface TranslationKey {
@@ -420,14 +425,22 @@ export interface NamespaceCount {
 export const translationApi = {
   listKeys: (
     branchId: string,
-    params?: { search?: string; page?: number; limit?: number; filter?: KeyFilter; qualityFilter?: QualityScoreFilter; namespace?: string }
+    params?: {
+      search?: string;
+      page?: number;
+      limit?: number;
+      filter?: KeyFilter;
+      qualityFilter?: QualityScoreFilter;
+      namespace?: string;
+    }
   ) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.filter && params.filter !== 'all') query.set('filter', params.filter);
-    if (params?.qualityFilter && params.qualityFilter !== 'all') query.set('qualityFilter', params.qualityFilter);
+    if (params?.qualityFilter && params.qualityFilter !== 'all')
+      query.set('qualityFilter', params.qualityFilter);
     if (params?.namespace) query.set('namespace', params.namespace);
     const queryString = query.toString();
     return fetchApi<KeyListResult>(
@@ -436,9 +449,7 @@ export const translationApi = {
   },
 
   getNamespaces: (branchId: string) =>
-    fetchApi<{ namespaces: NamespaceCount[] }>(
-      `/api/branches/${branchId}/keys/namespaces`
-    ),
+    fetchApi<{ namespaces: NamespaceCount[] }>(`/api/branches/${branchId}/keys/namespaces`),
 
   getKey: (id: string) => fetchApi<TranslationKey>(`/api/keys/${id}`),
 
@@ -460,13 +471,10 @@ export const translationApi = {
     }),
 
   bulkDeleteKeys: (branchId: string, keyIds: string[]) =>
-    fetchApi<{ deleted: number }>(
-      `/api/branches/${branchId}/keys/bulk-delete`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ keyIds }),
-      }
-    ),
+    fetchApi<{ deleted: number }>(`/api/branches/${branchId}/keys/bulk-delete`, {
+      method: 'POST',
+      body: JSON.stringify({ keyIds }),
+    }),
 
   updateKeyTranslations: (keyId: string, translations: Record<string, string>) =>
     fetchApi<TranslationKey>(`/api/keys/${keyId}/translations`, {
@@ -501,13 +509,10 @@ export const translationApi = {
     provider: 'MT' | 'AI',
     targetLanguages?: string[]
   ) =>
-    fetchApi<BulkTranslateResponse>(
-      `/api/branches/${branchId}/keys/bulk-translate`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ keyIds, provider, targetLanguages }),
-      }
-    ),
+    fetchApi<BulkTranslateResponse>(`/api/branches/${branchId}/keys/bulk-translate`, {
+      method: 'POST',
+      body: JSON.stringify({ keyIds, provider, targetLanguages }),
+    }),
 };
 
 // Bulk translate response types
@@ -525,7 +530,9 @@ export type BulkTranslateAsyncResult = {
 
 export type BulkTranslateResponse = BulkTranslateSyncResult | BulkTranslateAsyncResult;
 
-export function isBulkTranslateAsync(response: BulkTranslateResponse): response is BulkTranslateAsyncResult {
+export function isBulkTranslateAsync(
+  response: BulkTranslateResponse
+): response is BulkTranslateAsyncResult {
   return 'async' in response && response.async === true;
 }
 
@@ -546,7 +553,9 @@ export interface JobStatus {
   name: string;
   status: 'waiting' | 'active' | 'completed' | 'failed' | 'delayed';
   progress?: JobProgress;
-  result?: BulkTranslateSyncResult & { errors?: Array<{ keyId: string; keyName: string; language: string; error: string }> };
+  result?: BulkTranslateSyncResult & {
+    errors?: Array<{ keyId: string; keyName: string; language: string; error: string }>;
+  };
   failedReason?: string;
   createdAt: string;
   finishedAt?: string;
@@ -598,9 +607,7 @@ export interface UpdateEnvironmentInput {
 // Environment API
 export const environmentApi = {
   list: (projectId: string) =>
-    fetchApi<{ environments: Environment[] }>(
-      `/api/projects/${projectId}/environments`
-    ),
+    fetchApi<{ environments: Environment[] }>(`/api/projects/${projectId}/environments`),
 
   get: (id: string) => fetchApi<Environment>(`/api/environments/${id}`),
 
@@ -649,8 +656,7 @@ export interface CreateApiKeyResponse {
 
 // API Key API
 export const apiKeyApi = {
-  list: () =>
-    fetchApi<{ apiKeys: ApiKey[] }>('/api/auth/api-keys'),
+  list: () => fetchApi<{ apiKeys: ApiKey[] }>('/api/auth/api-keys'),
 
   create: (name: string) =>
     fetchApi<CreateApiKeyResponse>('/api/auth/api-keys', {
@@ -802,8 +808,7 @@ export const securityApi = {
     }),
 
   /** Get all active sessions */
-  getSessions: () =>
-    fetchApi<{ sessions: Session[] }>('/api/security/sessions'),
+  getSessions: () => fetchApi<{ sessions: Session[] }>('/api/security/sessions'),
 
   /** Revoke a specific session */
   revokeSession: (sessionId: string) =>
@@ -897,10 +902,7 @@ export const totpApi = {
 };
 
 // WebAuthn / Passkey types
-import type {
-  WebAuthnCredential,
-  WebAuthnStatusResponse,
-} from '@lingx/shared';
+import type { WebAuthnCredential, WebAuthnStatusResponse } from '@lingx/shared';
 
 export interface WebAuthnRegisterOptionsResponse {
   options: PublicKeyCredentialCreationOptions;
@@ -927,11 +929,7 @@ export const webauthnApi = {
     }),
 
   /** Verify registration and store the new passkey */
-  verifyRegistration: (data: {
-    name: string;
-    challengeToken: string;
-    response: unknown;
-  }) =>
+  verifyRegistration: (data: { name: string; challengeToken: string; response: unknown }) =>
     fetchApi<{ credential: WebAuthnCredential }>('/api/webauthn/register/verify', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1026,8 +1024,7 @@ export const translationMemoryApi = {
     }),
 
   /** Get TM statistics */
-  getStats: (projectId: string) =>
-    fetchApi<TMStats>(`/api/projects/${projectId}/tm/stats`),
+  getStats: (projectId: string) => fetchApi<TMStats>(`/api/projects/${projectId}/tm/stats`),
 
   /** Trigger TM reindex (MANAGER/OWNER only) */
   reindex: (projectId: string) =>
@@ -1077,12 +1074,15 @@ export const machineTranslationApi = {
     fetchApi<{ configs: MTConfig[] }>(`/api/projects/${projectId}/mt/config`),
 
   /** Save MT provider configuration */
-  saveConfig: (projectId: string, data: {
-    provider: MTProvider;
-    apiKey: string;
-    isActive?: boolean;
-    priority?: number;
-  }) =>
+  saveConfig: (
+    projectId: string,
+    data: {
+      provider: MTProvider;
+      apiKey: string;
+      isActive?: boolean;
+      priority?: number;
+    }
+  ) =>
     fetchApi<MTConfig>(`/api/projects/${projectId}/mt/config`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1096,48 +1096,62 @@ export const machineTranslationApi = {
 
   /** Test MT provider connection */
   testConnection: (projectId: string, provider: MTProvider) =>
-    fetchApi<{ success: boolean; error?: string }>(`/api/projects/${projectId}/mt/test/${provider}`, {
-      method: 'POST',
-    }),
+    fetchApi<{ success: boolean; error?: string }>(
+      `/api/projects/${projectId}/mt/test/${provider}`,
+      {
+        method: 'POST',
+      }
+    ),
 
   /** Translate a single text */
-  translate: (projectId: string, data: {
-    text: string;
-    sourceLanguage: string;
-    targetLanguage: string;
-    provider?: MTProvider;
-  }) =>
+  translate: (
+    projectId: string,
+    data: {
+      text: string;
+      sourceLanguage: string;
+      targetLanguage: string;
+      provider?: MTProvider;
+    }
+  ) =>
     fetchApi<MTTranslateResult>(`/api/projects/${projectId}/mt/translate`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   /** Translate a single text with AI context from related translations and glossary */
-  translateWithContext: (projectId: string, data: {
-    branchId: string;
-    keyId: string;
-    text: string;
-    sourceLanguage: string;
-    targetLanguage: string;
-    provider?: MTProvider;
-  }) =>
-    fetchApi<MTTranslateResult & {
-      context?: {
-        relatedTranslations: number;
-        glossaryTerms: number;
-      };
-    }>(`/api/projects/${projectId}/mt/translate/context`, {
+  translateWithContext: (
+    projectId: string,
+    data: {
+      branchId: string;
+      keyId: string;
+      text: string;
+      sourceLanguage: string;
+      targetLanguage: string;
+      provider?: MTProvider;
+    }
+  ) =>
+    fetchApi<
+      MTTranslateResult & {
+        context?: {
+          relatedTranslations: number;
+          glossaryTerms: number;
+        };
+      }
+    >(`/api/projects/${projectId}/mt/translate/context`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   /** Translate a single text to multiple languages at once */
-  translateMulti: (projectId: string, data: {
-    text: string;
-    sourceLanguage: string;
-    targetLanguages: string[];
-    provider?: MTProvider;
-  }) =>
+  translateMulti: (
+    projectId: string,
+    data: {
+      text: string;
+      sourceLanguage: string;
+      targetLanguages: string[];
+      provider?: MTProvider;
+    }
+  ) =>
     fetchApi<{
       translations: Record<string, MTTranslateResult>;
       totalCharacters: number;
@@ -1147,12 +1161,15 @@ export const machineTranslationApi = {
     }),
 
   /** Queue batch translation for multiple keys */
-  translateBatch: (projectId: string, data: {
-    keyIds: string[];
-    targetLanguage: string;
-    provider?: MTProvider;
-    overwriteExisting?: boolean;
-  }) =>
+  translateBatch: (
+    projectId: string,
+    data: {
+      keyIds: string[];
+      targetLanguage: string;
+      provider?: MTProvider;
+      overwriteExisting?: boolean;
+    }
+  ) =>
     fetchApi<{
       message: string;
       jobId?: string;
@@ -1164,11 +1181,14 @@ export const machineTranslationApi = {
     }),
 
   /** Pre-translate missing translations for a branch */
-  preTranslate: (projectId: string, data: {
-    branchId: string;
-    targetLanguages: string[];
-    provider?: MTProvider;
-  }) =>
+  preTranslate: (
+    projectId: string,
+    data: {
+      branchId: string;
+      targetLanguages: string[];
+      provider?: MTProvider;
+    }
+  ) =>
     fetchApi<{
       message: string;
       jobId: string;
@@ -1252,13 +1272,16 @@ export const aiTranslationApi = {
     fetchApi<{ configs: AIConfig[] }>(`/api/projects/${projectId}/ai/config`),
 
   /** Save AI provider configuration (apiKey optional for updates) */
-  saveConfig: (projectId: string, data: {
-    provider: AIProvider;
-    apiKey?: string;
-    model: string;
-    isActive?: boolean;
-    priority?: number;
-  }) =>
+  saveConfig: (
+    projectId: string,
+    data: {
+      provider: AIProvider;
+      apiKey?: string;
+      model: string;
+      isActive?: boolean;
+      priority?: number;
+    }
+  ) =>
     fetchApi<AIConfig>(`/api/projects/${projectId}/ai/config`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1283,23 +1306,29 @@ export const aiTranslationApi = {
 
   /** Test AI provider connection */
   testConnection: (projectId: string, provider: AIProvider) =>
-    fetchApi<{ success: boolean; error?: string }>(`/api/projects/${projectId}/ai/test/${provider}`, {
-      method: 'POST',
-    }),
+    fetchApi<{ success: boolean; error?: string }>(
+      `/api/projects/${projectId}/ai/test/${provider}`,
+      {
+        method: 'POST',
+      }
+    ),
 
   /** Get supported models for a provider */
   getSupportedModels: (provider: AIProvider) =>
     fetchApi<{ models: string[] }>(`/api/ai/models/${provider}`),
 
   /** Translate text using AI */
-  translate: (projectId: string, data: {
-    text: string;
-    sourceLanguage: string;
-    targetLanguage: string;
-    keyId?: string;
-    branchId?: string;
-    provider?: AIProvider;
-  }) =>
+  translate: (
+    projectId: string,
+    data: {
+      text: string;
+      sourceLanguage: string;
+      targetLanguage: string;
+      keyId?: string;
+      branchId?: string;
+      provider?: AIProvider;
+    }
+  ) =>
     fetchApi<AITranslateResult>(`/api/projects/${projectId}/ai/translate`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1544,12 +1573,9 @@ export const glossaryApi = {
 
   /** Record usage when a glossary term is applied */
   recordUsage: (projectId: string, entryId: string) =>
-    fetchApi<{ success: boolean }>(
-      `/api/projects/${projectId}/glossary/${entryId}/record-usage`,
-      {
-        method: 'POST',
-      }
-    ),
+    fetchApi<{ success: boolean }>(`/api/projects/${projectId}/glossary/${entryId}/record-usage`, {
+      method: 'POST',
+    }),
 
   /** List glossary tags */
   getTags: (projectId: string) =>

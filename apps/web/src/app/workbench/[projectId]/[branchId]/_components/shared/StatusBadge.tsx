@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Check, X, Clock } from 'lucide-react';
+import { Check, Clock, X } from 'lucide-react';
 
 type Status = 'APPROVED' | 'REJECTED' | 'PENDING' | 'empty';
 

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import type { Translation } from '@/lib/api';
+import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import type { ProjectLanguage } from '@lingx/shared';
-import type { TranslationKey, Translation } from '@/lib/api';
-import type { QualityIssue } from '@/lib/api/quality';
-import { LanguageRowHeader } from './LanguageRowHeader';
+import { useMemo, useState } from 'react';
 import { LanguageRowContent } from './LanguageRowContent';
+import { LanguageRowHeader } from './LanguageRowHeader';
 
 interface UnifiedSuggestion {
   id: string;
@@ -18,7 +18,6 @@ interface UnifiedSuggestion {
 }
 
 interface LanguageRowProps {
-  keyId: string;
   language: ProjectLanguage;
   translation?: Translation;
   value: string;
@@ -43,7 +42,6 @@ interface LanguageRowProps {
 }
 
 export function LanguageRow({
-  keyId,
   language,
   translation,
   value,
@@ -66,24 +64,19 @@ export function LanguageRow({
   hasMT,
   hasAI,
 }: LanguageRowProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Smart expand: auto-expand if empty, pending, or rejected
-  useEffect(() => {
-    const status = getStatus();
-    if (status === 'empty' || status === 'PENDING' || status === 'REJECTED') {
-      setIsExpanded(true);
-    } else {
-      setIsExpanded(false);
-    }
-  }, [keyId, translation?.status, value]);
-
   const getStatus = (): 'APPROVED' | 'REJECTED' | 'PENDING' | 'empty' => {
     if (!value) return 'empty';
     return translation?.status || 'PENDING';
   };
 
   const status = getStatus();
+
+  // Compute initial expanded state based on status
+  const shouldAutoExpand = useMemo(() => {
+    return status === 'empty' || status === 'PENDING' || status === 'REJECTED';
+  }, [status]);
+
+  const [isExpanded, setIsExpanded] = useState(shouldAutoExpand);
   const isEmpty = !value;
 
   // Source stats
@@ -132,7 +125,6 @@ export function LanguageRow({
           <LanguageRowContent
             value={value}
             onChange={onChange}
-            sourceValue={sourceValue}
             sourceCharCount={sourceCharCount}
             sourcePlaceholderCount={sourcePlaceholderCount}
             validationError={validationError}

@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queueBatchQuality } from '@/lib/api/quality';
 import type { TranslationKey } from '@/lib/api';
+import { queueBatchQuality } from '@/lib/api/quality';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UseKeyQualityEvaluationOptions {
   branchId: string;

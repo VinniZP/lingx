@@ -1,28 +1,25 @@
 'use client';
 
-import { use, useState, useCallback, useMemo } from 'react';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import type { TranslationKey } from '@/lib/api';
+import { BulkTranslateProgress } from '@/components/bulk-translate-progress';
+import { KeyFormDialog } from '@/components/key-form-dialog';
+import { BulkQualityEvaluationDialog } from '@/components/translations/bulk-quality-evaluation-dialog';
 import { useKeySuggestions, useRecordTMUsage } from '@/hooks';
 import { useBulkTranslateJob } from '@/hooks/use-bulk-translate-job';
-import { KeyFormDialog } from '@/components/key-form-dialog';
-import { BulkTranslateProgress } from '@/components/bulk-translate-progress';
-import { BulkQualityEvaluationDialog } from '@/components/translations/bulk-quality-evaluation-dialog';
+import type { TranslationKey } from '@/lib/api';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { use, useCallback, useMemo, useState } from 'react';
+import { FloatingBatchBar } from './_components/FloatingBatchBar';
+import { KeyEditorPanel } from './_components/KeyEditorPanel';
+import { KeyListSidebar } from './_components/KeyListSidebar';
+import { WorkbenchToolbar } from './_components/WorkbenchToolbar';
 import {
-  useTranslationsPageData,
-  useTranslationMutations,
   useKeySelection,
   useTMSuggestions,
+  useTranslationMutations,
+  useTranslationsPageData,
   type FilterType,
   type QualityFilterType,
 } from './_hooks';
-import { WorkbenchToolbar } from './_components/WorkbenchToolbar';
-import { KeyListSidebar } from './_components/KeyListSidebar';
-import { KeyEditorPanel } from './_components/KeyEditorPanel';
-import { FloatingBatchBar } from './_components/FloatingBatchBar';
 
 interface PageProps {
   params: Promise<{ projectId: string; branchId: string }>;
@@ -48,7 +45,6 @@ export default function WorkbenchPage({ params }: PageProps) {
 
   // Data hook
   const {
-    project,
     branch,
     languages,
     keys,
@@ -86,20 +82,15 @@ export default function WorkbenchPage({ params }: PageProps) {
   } = useTranslationMutations({ branchId });
 
   // Selection hook
-  const {
-    selectedKeys,
-    handleSelectionChange,
-    handleSelectAll,
-    clearSelection,
-    isAllSelected,
-  } = useKeySelection({ keys });
+  const { selectedKeys, handleSelectionChange, handleSelectAll, clearSelection, isAllSelected } =
+    useKeySelection({ keys });
 
   // Compute translation IDs from selected keys for quality evaluation
   const selectedTranslationIds = useMemo(() => {
     if (selectedKeys.size === 0) return undefined;
     return keys
-      .filter(key => selectedKeys.has(key.id))
-      .flatMap(key => key.translations.map(t => t.id));
+      .filter((key) => selectedKeys.has(key.id))
+      .flatMap((key) => key.translations.map((t) => t.id));
   }, [selectedKeys, keys]);
 
   // Bulk translate job
@@ -128,9 +119,8 @@ export default function WorkbenchPage({ params }: PageProps) {
 
   // TM suggestions for selected key
   const selectedKey = selectedKeyId ? keys.find((k) => k.id === selectedKeyId) : null;
-  const sourceText = selectedKey && defaultLanguage
-    ? getTranslationValue(selectedKey, defaultLanguage.code)
-    : '';
+  const sourceText =
+    selectedKey && defaultLanguage ? getTranslationValue(selectedKey, defaultLanguage.code) : '';
 
   useTMSuggestions({
     projectId,
@@ -142,20 +132,29 @@ export default function WorkbenchPage({ params }: PageProps) {
   });
 
   // Handlers
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value);
-    setPage(1);
-  }, [setSearch, setPage]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value);
+      setPage(1);
+    },
+    [setSearch, setPage]
+  );
 
-  const handleFilterChange = useCallback((value: FilterType) => {
-    setFilter(value);
-    setPage(1);
-  }, [setFilter, setPage]);
+  const handleFilterChange = useCallback(
+    (value: FilterType) => {
+      setFilter(value);
+      setPage(1);
+    },
+    [setFilter, setPage]
+  );
 
-  const handleNamespaceChange = useCallback((value: string) => {
-    setNamespace(value);
-    setPage(1);
-  }, [setNamespace, setPage]);
+  const handleNamespaceChange = useCallback(
+    (value: string) => {
+      setNamespace(value);
+      setPage(1);
+    },
+    [setNamespace, setPage]
+  );
 
   const handleApplySuggestion = useCallback(
     (keyId: string, lang: string, text: string, suggestionId: string) => {
@@ -196,12 +195,9 @@ export default function WorkbenchPage({ params }: PageProps) {
     [handleBatchApprove, selectedKeys, keys, clearSelection]
   );
 
-  const onBulkDelete = useCallback(
-    async () => {
-      await handleBulkDelete(selectedKeys, clearSelection);
-    },
-    [handleBulkDelete, selectedKeys, clearSelection]
-  );
+  const onBulkDelete = useCallback(async () => {
+    await handleBulkDelete(selectedKeys, clearSelection);
+  }, [handleBulkDelete, selectedKeys, clearSelection]);
 
   const onBulkTranslate = useCallback(
     (provider: 'MT' | 'AI') => {
@@ -216,7 +212,7 @@ export default function WorkbenchPage({ params }: PageProps) {
   const effectiveSelectedKeyId = selectedKeyId ?? keys[0]?.id ?? null;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex h-full flex-col">
       {/* Toolbar */}
       <WorkbenchToolbar
         projectId={projectId}
@@ -238,7 +234,7 @@ export default function WorkbenchPage({ params }: PageProps) {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Key List Sidebar */}
         <KeyListSidebar
           keys={keys}

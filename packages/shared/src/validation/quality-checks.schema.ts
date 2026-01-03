@@ -118,6 +118,13 @@ export const projectIdParamsSchema = z.object({
 });
 
 /**
+ * Params: keyId
+ */
+export const keyIdParamsSchema = z.object({
+  keyId: z.string(),
+});
+
+/**
  * Body: Evaluate single translation quality
  */
 export const evaluateQualityBodySchema = z.object({
@@ -226,6 +233,14 @@ export const icuValidationResultSchema = z.object({
   error: z.string().optional(),
 });
 
+/**
+ * Response for key quality issues
+ * GET /api/keys/:keyId/quality/issues
+ */
+export const keyQualityIssuesResponseSchema = z.object({
+  issues: z.record(z.string(), z.array(qualityIssueSchema)),
+});
+
 export type QualityIssueSeverityDto = z.infer<typeof qualityIssueSeveritySchema>;
 export type QualityCheckTypeDto = z.infer<typeof qualityCheckTypeSchema>;
 export type QualityIssueDto = z.infer<typeof qualityIssueSchema>;
@@ -242,6 +257,8 @@ export type ICUValidationResultDto = z.infer<typeof icuValidationResultSchema>;
 export type TranslationIdParams = z.infer<typeof translationIdParamsSchema>;
 export type BranchIdParams = z.infer<typeof branchIdParamsSchema>;
 export type ProjectIdParams = z.infer<typeof projectIdParamsSchema>;
+export type KeyIdParams = z.infer<typeof keyIdParamsSchema>;
 export type EvaluateQualityBody = z.infer<typeof evaluateQualityBodySchema>;
 export type BatchQualityBody = z.infer<typeof batchQualityBodySchema>;
 export type ValidateIcuBody = z.infer<typeof validateIcuBodySchema>;
+export type KeyQualityIssuesResponseDto = z.infer<typeof keyQualityIssuesResponseSchema>;

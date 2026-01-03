@@ -1,16 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  translationApi,
-  branchApi,
-  projectApi,
-  type TranslationKey,
-} from '@/lib/api';
+import { branchApi, projectApi, translationApi, type TranslationKey } from '@/lib/api';
 import type { ProjectLanguage } from '@lingx/shared';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-export type FilterType = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
+export type FilterType =
+  | 'all'
+  | 'missing'
+  | 'complete'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'warnings';
 export type QualityFilterType = 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
 
 interface UseTranslationsPageDataOptions {
@@ -55,14 +57,15 @@ export function useTranslationsPageData({
   // Keys query with pagination and filtering
   const { data: keysData, isLoading } = useQuery({
     queryKey: ['keys', branchId, search, page, filter, qualityFilter, namespace],
-    queryFn: () => translationApi.listKeys(branchId, {
-      search,
-      page,
-      limit: 50,
-      filter,
-      qualityFilter,
-      namespace: namespace || undefined,
-    }),
+    queryFn: () =>
+      translationApi.listKeys(branchId, {
+        search,
+        page,
+        limit: 50,
+        filter,
+        qualityFilter,
+        namespace: namespace || undefined,
+      }),
   });
 
   // Namespaces query for filter dropdown
@@ -76,17 +79,11 @@ export function useTranslationsPageData({
     () => project?.languages || [],
     [project?.languages]
   );
-  const keys: TranslationKey[] = useMemo(
-    () => keysData?.keys || [],
-    [keysData?.keys]
-  );
+  const keys: TranslationKey[] = useMemo(() => keysData?.keys || [], [keysData?.keys]);
   const total = keysData?.total ?? 0;
   const totalPages = Math.ceil(total / 50);
 
-  const defaultLanguage = useMemo(
-    () => languages.find((l) => l.isDefault),
-    [languages]
-  );
+  const defaultLanguage = useMemo(() => languages.find((l) => l.isDefault), [languages]);
 
   const targetLanguages = useMemo(
     () => languages.filter((l) => !l.isDefault).map((l) => l.code),
@@ -129,9 +126,10 @@ export function useTranslationsPageData({
 
   // Namespaces for filter dropdown - extract namespace strings, filter out nulls
   const namespaces = useMemo(
-    () => (namespacesData?.namespaces || [])
-      .map((n) => n.namespace)
-      .filter((ns): ns is string => ns !== null),
+    () =>
+      (namespacesData?.namespaces || [])
+        .map((n) => n.namespace)
+        .filter((ns): ns is string => ns !== null),
     [namespacesData?.namespaces]
   );
 

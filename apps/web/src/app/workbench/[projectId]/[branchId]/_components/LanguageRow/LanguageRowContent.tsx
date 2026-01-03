@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Wand2, Sparkles, Loader2, Zap, Database, Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import type { QualityIssue } from '@/lib/api/quality';
+import { cn } from '@/lib/utils';
+import { Brain, Database, Loader2, Sparkles, Wand2, Zap } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { QualityIssuesInline } from '../shared';
 
 interface UnifiedSuggestion {
@@ -21,7 +21,6 @@ interface UnifiedSuggestion {
 interface LanguageRowContentProps {
   value: string;
   onChange: (value: string) => void;
-  sourceValue: string;
   sourceCharCount: number;
   sourcePlaceholderCount: number;
   validationError?: string;
@@ -40,7 +39,6 @@ interface LanguageRowContentProps {
 export function LanguageRowContent({
   value,
   onChange,
-  sourceValue,
   sourceCharCount,
   sourcePlaceholderCount,
   validationError,
@@ -104,17 +102,19 @@ export function LanguageRowContent({
   // Empty state - show when isEmpty AND not manually showing editor
   if (isEmpty && !showEditor) {
     return (
-      <div className="px-4 py-8 border-t border-border/30 bg-gradient-to-b from-muted/20 to-transparent">
-        <div className="flex flex-col items-center justify-center text-center space-y-4">
+      <div className="border-border/30 from-muted/20 border-t bg-gradient-to-b to-transparent px-4 py-8">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="relative">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-inner">
-              <Sparkles className="size-5 text-primary" />
+            <div className="from-primary/20 to-primary/5 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br shadow-inner">
+              <Sparkles className="text-primary size-5" />
             </div>
-            <div className="absolute inset-0 size-12 rounded-2xl bg-primary/10 animate-ping opacity-30" />
+            <div className="bg-primary/10 absolute inset-0 size-12 animate-ping rounded-2xl opacity-30" />
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium">No translation yet</p>
-            <p className="text-xs text-muted-foreground">Add a translation using AI or start typing manually</p>
+            <p className="text-muted-foreground text-xs">
+              Add a translation using AI or start typing manually
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {hasMT && (
@@ -126,9 +126,9 @@ export function LanguageRowContent({
                 disabled={isFetchingMT}
               >
                 {isFetchingMT ? (
-                  <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                  <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                 ) : (
-                  <Wand2 className="size-3.5 mr-1.5" />
+                  <Wand2 className="mr-1.5 size-3.5" />
                 )}
                 {isFetchingMT ? 'Translating...' : 'Machine Translate'}
               </Button>
@@ -141,16 +141,16 @@ export function LanguageRowContent({
                 disabled={isFetchingAI}
               >
                 {isFetchingAI ? (
-                  <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                  <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                 ) : (
-                  <Sparkles className="size-3.5 mr-1.5" />
+                  <Sparkles className="mr-1.5 size-3.5" />
                 )}
                 {isFetchingAI ? 'Translating...' : 'AI Translate'}
               </Button>
             )}
           </div>
           <button
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
+            className="text-muted-foreground hover:text-foreground text-xs underline-offset-2 transition-colors hover:underline"
             onClick={handleStartTyping}
           >
             or start typing
@@ -185,7 +185,7 @@ export function LanguageRowContent({
   };
 
   return (
-    <div className="px-5 py-4 border-t border-border/30 space-y-4">
+    <div className="border-border/30 space-y-4 border-t px-5 py-4">
       {/* Textarea - larger font for readability */}
       <div className="relative">
         <Textarea
@@ -194,7 +194,7 @@ export function LanguageRowContent({
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           className={cn(
-            'font-mono text-base leading-relaxed min-h-[100px] resize-none',
+            'min-h-[100px] resize-none font-mono text-base leading-relaxed',
             validationError && 'border-destructive focus-visible:ring-destructive'
           )}
           placeholder="Enter translation..."
@@ -202,18 +202,18 @@ export function LanguageRowContent({
       </div>
 
       {/* Validation error */}
-      {validationError && (
-        <p className="text-sm text-destructive font-medium">{validationError}</p>
-      )}
+      {validationError && <p className="text-destructive text-sm font-medium">{validationError}</p>}
 
       {/* Stats row - slightly larger */}
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex items-center gap-3 text-sm">
         {/* Character count */}
-        <span className={cn(
-          'tabular-nums',
-          hasLengthWarning && 'text-destructive font-medium',
-          hasLengthCaution && 'text-warning font-medium'
-        )}>
+        <span
+          className={cn(
+            'tabular-nums',
+            hasLengthWarning && 'text-destructive font-medium',
+            hasLengthCaution && 'text-warning font-medium'
+          )}
+        >
           {localValue.length} / {sourceCharCount} chars
           {hasLengthWarning && ' (too long)'}
           {hasLengthCaution && ' (long)'}
@@ -223,10 +223,7 @@ export function LanguageRowContent({
         {sourcePlaceholderCount > 0 && (
           <Badge
             variant="outline"
-            className={cn(
-              'text-xs',
-              placeholderMismatch && 'border-destructive text-destructive'
-            )}
+            className={cn('text-xs', placeholderMismatch && 'border-destructive text-destructive')}
           >
             {placeholderCount}/{sourcePlaceholderCount} placeholders
           </Badge>
@@ -234,14 +231,12 @@ export function LanguageRowContent({
       </div>
 
       {/* Quality issues */}
-      {qualityIssues.length > 0 && (
-        <QualityIssuesInline issues={qualityIssues} />
-      )}
+      {qualityIssues.length > 0 && <QualityIssuesInline issues={qualityIssues} />}
 
       {/* Suggestions - MUCH more prominent */}
       {suggestions.length > 0 && (
         <div className="space-y-3 pt-1">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
             Suggestions
           </p>
           <div className="flex flex-col gap-2">
@@ -249,23 +244,28 @@ export function LanguageRowContent({
               <button
                 key={suggestion.id}
                 className={cn(
-                  'group relative px-4 py-3 rounded-xl text-left transition-all duration-200',
+                  'group relative rounded-xl px-4 py-3 text-left transition-all duration-200',
                   'hover:scale-[1.01] active:scale-[0.99]',
-                  suggestion.type === 'tm' && 'bg-info/8 border-2 border-info/25 hover:border-info/50 hover:bg-info/12',
-                  suggestion.type === 'mt' && 'bg-warning/8 border-2 border-warning/25 hover:border-warning/50 hover:bg-warning/12',
-                  suggestion.type === 'ai' && 'bg-primary/8 border-2 border-primary/25 hover:border-primary/50 hover:bg-primary/12'
+                  suggestion.type === 'tm' &&
+                    'bg-info/8 border-info/25 hover:border-info/50 hover:bg-info/12 border-2',
+                  suggestion.type === 'mt' &&
+                    'bg-warning/8 border-warning/25 hover:border-warning/50 hover:bg-warning/12 border-2',
+                  suggestion.type === 'ai' &&
+                    'bg-primary/8 border-primary/25 hover:border-primary/50 hover:bg-primary/12 border-2'
                 )}
                 onClick={() => onApplySuggestion(suggestion.text, suggestion.id)}
                 title={`Click to apply: ${suggestion.text}`}
               >
                 {/* Header row with type badge */}
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={cn(
-                    'flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
-                    suggestion.type === 'tm' && 'bg-info/15 text-info',
-                    suggestion.type === 'mt' && 'bg-warning/15 text-warning',
-                    suggestion.type === 'ai' && 'bg-primary/15 text-primary'
-                  )}>
+                <div className="mb-2 flex items-center gap-2">
+                  <div
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium',
+                      suggestion.type === 'tm' && 'bg-info/15 text-info',
+                      suggestion.type === 'mt' && 'bg-warning/15 text-warning',
+                      suggestion.type === 'ai' && 'bg-primary/15 text-primary'
+                    )}
+                  >
                     {getSuggestionIcon(suggestion.type)}
                     <span>{getSuggestionLabel(suggestion.type)}</span>
                     {suggestion.type === 'tm' && (
@@ -273,20 +273,18 @@ export function LanguageRowContent({
                     )}
                   </div>
                   {suggestion.provider && (
-                    <span className="text-xs text-muted-foreground">
-                      via {suggestion.provider}
-                    </span>
+                    <span className="text-muted-foreground text-xs">via {suggestion.provider}</span>
                   )}
                 </div>
 
                 {/* Suggestion text - prominent and readable */}
-                <p className="text-sm font-mono leading-relaxed text-foreground line-clamp-2">
+                <p className="text-foreground line-clamp-2 font-mono text-sm leading-relaxed">
                   {suggestion.text}
                 </p>
 
                 {/* Click hint */}
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs text-muted-foreground">Click to apply</span>
+                <div className="absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="text-muted-foreground text-xs">Click to apply</span>
                 </div>
               </button>
             ))}
