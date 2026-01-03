@@ -138,6 +138,118 @@ const MAX_RETRIES = 2;
 const MAX_TURNS_PER_CONVERSATION = 7;
 const MAX_FRESH_STARTS = 3;
 
+/**
+ * Circuit breaker settings to prevent cost explosion.
+ * If too many failures occur in a window, further AI calls are blocked.
+ */
+const CIRCUIT_BREAKER = {
+  /** Maximum consecutive failures before circuit opens */
+  FAILURE_THRESHOLD: 5,
+  /** Time window in ms to reset failure count (5 minutes) */
+  RESET_TIMEOUT_MS: 5 * 60 * 1000,
+  /** How long circuit stays open before allowing retry (30 seconds) */
+  OPEN_DURATION_MS: 30 * 1000,
+} as const;
+
+/**
+ * Exponential backoff settings for retries within a conversation.
+ */
+const RETRY_BACKOFF = {
+  /** Initial delay in ms before first retry */
+  INITIAL_DELAY_MS: 100,
+  /** Maximum delay between retries (cap) */
+  MAX_DELAY_MS: 5000,
+  /** Multiplier for each subsequent retry */
+  MULTIPLIER: 2,
+} as const;
+
+/**
+ * Circuit breaker state for AI calls.
+ * Shared across all evaluations to prevent cascading failures.
+ */
+interface CircuitBreakerState {
+  failureCount: number;
+  lastFailureTime: number;
+  isOpen: boolean;
+  openedAt: number;
+}
+
+/** Global circuit breaker state */
+let circuitBreaker: CircuitBreakerState = {
+  failureCount: 0,
+  lastFailureTime: 0,
+  isOpen: false,
+  openedAt: 0,
+};
+
+/**
+ * Check if circuit breaker allows AI calls.
+ * Returns true if allowed, false if circuit is open.
+ */
+function checkCircuitBreaker(): boolean {
+  const now = Date.now();
+
+  // Check if failure count should be reset (window expired)
+  if (now - circuitBreaker.lastFailureTime > CIRCUIT_BREAKER.RESET_TIMEOUT_MS) {
+    circuitBreaker.failureCount = 0;
+  }
+
+  // Check if circuit is open
+  if (circuitBreaker.isOpen) {
+    // Check if it's time to try again (half-open state)
+    if (now - circuitBreaker.openedAt > CIRCUIT_BREAKER.OPEN_DURATION_MS) {
+      console.log('[Quality] Circuit breaker: transitioning to half-open state');
+      circuitBreaker.isOpen = false;
+      return true;
+    }
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Record a failure in the circuit breaker.
+ */
+function recordCircuitBreakerFailure(): void {
+  const now = Date.now();
+  circuitBreaker.failureCount++;
+  circuitBreaker.lastFailureTime = now;
+
+  if (circuitBreaker.failureCount >= CIRCUIT_BREAKER.FAILURE_THRESHOLD) {
+    circuitBreaker.isOpen = true;
+    circuitBreaker.openedAt = now;
+    console.warn(
+      `[Quality] Circuit breaker OPEN: ${circuitBreaker.failureCount} failures in window. ` +
+      `Blocking AI calls for ${CIRCUIT_BREAKER.OPEN_DURATION_MS / 1000}s`
+    );
+  }
+}
+
+/**
+ * Record a success in the circuit breaker (resets failure count).
+ */
+function recordCircuitBreakerSuccess(): void {
+  circuitBreaker.failureCount = 0;
+  circuitBreaker.isOpen = false;
+}
+
+/**
+ * Calculate exponential backoff delay for a given attempt.
+ * @param attempt - 0-indexed attempt number
+ */
+function calculateBackoffDelay(attempt: number): number {
+  const delay = RETRY_BACKOFF.INITIAL_DELAY_MS * Math.pow(RETRY_BACKOFF.MULTIPLIER, attempt);
+  return Math.min(delay, RETRY_BACKOFF.MAX_DELAY_MS);
+}
+
+/**
+ * Sleep for the specified duration.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // ============================================
 // SCORING WEIGHTS AND THRESHOLDS
 // ============================================
@@ -741,6 +853,9 @@ export class QualityEstimationService {
         const allIssues = [...heuristic.issues, ...aiIssues];
         const contentHash = this.generateContentHash(sourceText, t.value);
 
+        // Distribute token usage across languages (guard against division by zero)
+        const languageCount = languages.length || 1;
+
         const score = await this.saveScore(t.id, {
           score: combinedScore,
           accuracy: langResult.accuracy,
@@ -751,8 +866,8 @@ export class QualityEstimationService {
           evaluationType: 'ai',
           provider: config.aiEvaluationProvider!,
           model: config.aiEvaluationModel!,
-          inputTokens: Math.round(totalUsage.inputTokens / languages.length),
-          outputTokens: Math.round(totalUsage.outputTokens / languages.length),
+          inputTokens: Math.round(totalUsage.inputTokens / languageCount),
+          outputTokens: Math.round(totalUsage.outputTokens / languageCount),
           contentHash,
         });
 
@@ -1192,25 +1307,44 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
   }
 
   /**
-   * Escape XML special characters
+   * Escape XML special characters and invalid control characters.
+   *
+   * Handles:
+   * - Standard XML entities (&, <, >, ", ')
+   * - Control characters (ASCII 0-31 except tab, newline, carriage return)
+   * - CDATA end sequence (]]>)
+   * - Invalid Unicode surrogate pairs
    */
   private escapeXml(text: string): string {
-    return text
+    // First, remove or replace invalid control characters (except tab, LF, CR)
+    // Valid XML characters: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
+    let sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+
+    // Remove unpaired surrogates (invalid in XML)
+    sanitized = sanitized.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+
+    // Escape XML special characters
+    return sanitized
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+      .replace(/'/g, '&apos;')
+      // Escape CDATA end sequence (]]>) by breaking it up
+      .replace(/\]\]>/g, ']]&gt;');
   }
 
   /**
    * Call AI with conversation-based retry for multi-language evaluation
    *
    * Strategy:
-   * - Keep conversation history so AI learns from mistakes
+   * - Check circuit breaker before making any AI calls
+   * - Keep conversation history so AI learns from mistakes (max 10 messages to prevent memory leaks)
+   * - Apply exponential backoff between retries
    * - Max 7 turns per conversation
    * - If still failing after 7 turns, clear history and start fresh
    * - Max 3 fresh starts (21 total attempts)
+   * - Record success/failure in circuit breaker
    *
    * Uses Zod for validation with detailed path errors
    */
@@ -1224,6 +1358,19 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
     totalUsage: { inputTokens: number; outputTokens: number };
     cacheMetrics: { cacheRead: number; cacheCreation: number };
   }> {
+    // Check circuit breaker before attempting AI calls
+    if (!checkCircuitBreaker()) {
+      throw new Error(
+        'Circuit breaker is open: too many AI failures. Retry after ' +
+        `${Math.ceil((CIRCUIT_BREAKER.OPEN_DURATION_MS - (Date.now() - circuitBreaker.openedAt)) / 1000)}s`
+      );
+    }
+
+    /** Maximum conversation history messages to prevent memory leaks */
+    const MAX_CONVERSATION_MESSAGES = 10;
+
+    let totalAttempts = 0;
+
     for (let freshStart = 1; freshStart <= MAX_FRESH_STARTS; freshStart++) {
       // Build conversation history - use separate arrays for each role to satisfy TypeScript
       const systemMessage = {
@@ -1248,35 +1395,53 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
       let cacheMetrics = { cacheRead: 0, cacheCreation: 0 };
 
       for (let turn = 1; turn <= MAX_TURNS_PER_CONVERSATION; turn++) {
+        totalAttempts++;
+
+        // Apply exponential backoff for retries (skip for first turn of first fresh start)
+        if (totalAttempts > 1) {
+          const backoffDelay = calculateBackoffDelay(totalAttempts - 2);
+          console.log(`[Quality] Backoff: waiting ${backoffDelay}ms before retry`);
+          await sleep(backoffDelay);
+        }
+
         console.log(
-          `[Quality] Fresh start ${freshStart}/${MAX_FRESH_STARTS}, turn ${turn}/${MAX_TURNS_PER_CONVERSATION}`
+          `[Quality] Fresh start ${freshStart}/${MAX_FRESH_STARTS}, turn ${turn}/${MAX_TURNS_PER_CONVERSATION} (total attempts: ${totalAttempts})`
         );
 
         // Build messages array for this call
         const messages = [systemMessage, ...conversationHistory];
 
-        const { text, usage, providerMetadata } = await generateText({
-          model,
-          messages,
-        });
-
-        // Accumulate usage
-        totalUsage.inputTokens += usage?.inputTokens || 0;
-        totalUsage.outputTokens += usage?.outputTokens || 0;
-
-        // Extract cache metrics from Anthropic response
-        const anthropicMeta = providerMetadata?.anthropic as {
-          cacheReadInputTokens?: number;
-          cacheCreationInputTokens?: number;
-        } | undefined;
-
-        cacheMetrics.cacheRead += anthropicMeta?.cacheReadInputTokens || 0;
-        cacheMetrics.cacheCreation += anthropicMeta?.cacheCreationInputTokens || 0;
-
-        // Add assistant response to history
-        conversationHistory.push({ role: 'assistant' as const, content: text });
-
         try {
+          const { text, usage, providerMetadata } = await generateText({
+            model,
+            messages,
+          });
+
+          // Accumulate usage
+          totalUsage.inputTokens += usage?.inputTokens || 0;
+          totalUsage.outputTokens += usage?.outputTokens || 0;
+
+          // Extract cache metrics from Anthropic response
+          const anthropicMeta = providerMetadata?.anthropic as {
+            cacheReadInputTokens?: number;
+            cacheCreationInputTokens?: number;
+          } | undefined;
+
+          cacheMetrics.cacheRead += anthropicMeta?.cacheReadInputTokens || 0;
+          cacheMetrics.cacheCreation += anthropicMeta?.cacheCreationInputTokens || 0;
+
+          // Add assistant response to history (with memory limit)
+          conversationHistory.push({ role: 'assistant' as const, content: text });
+
+          // Trim conversation history if too long (keep first user message + recent exchanges)
+          if (conversationHistory.length > MAX_CONVERSATION_MESSAGES) {
+            const firstMessage = conversationHistory[0];
+            const recentMessages = conversationHistory.slice(-MAX_CONVERSATION_MESSAGES + 1);
+            conversationHistory.length = 0;
+            conversationHistory.push(firstMessage, ...recentMessages);
+            console.log(`[Quality] Trimmed conversation history to ${conversationHistory.length} messages`);
+          }
+
           // 1. Extract JSON from response (handle markdown code blocks)
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (!jsonMatch) {
@@ -1289,7 +1454,8 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
           // 3. Validate with Zod
           const validated = schema.parse(parsed);
 
-          console.log(`[Quality] ✅ Success on fresh start ${freshStart}, turn ${turn}`);
+          console.log(`[Quality] ✅ Success on fresh start ${freshStart}, turn ${turn} (${totalAttempts} total attempts)`);
+          recordCircuitBreakerSuccess();
           return { result: validated, totalUsage, cacheMetrics };
 
         } catch (error) {
@@ -1305,7 +1471,7 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
             errorMessage = String(error);
           }
 
-          console.warn(`[Quality] Turn ${turn} failed:\n${errorMessage}`);
+          console.warn(`[Quality] Turn ${turn} failed (attempt ${totalAttempts}): ${errorMessage.slice(0, 200)}`);
 
           if (turn < MAX_TURNS_PER_CONVERSATION) {
             // Add error feedback to conversation (AI sees its mistake + all previous attempts)
@@ -1322,8 +1488,11 @@ ${langs.filter(l => rk.translations[l]).map(l => `      <translation lang="${l}"
       );
     }
 
+    // Record failure in circuit breaker after exhausting all attempts
+    recordCircuitBreakerFailure();
+
     throw new Error(
-      `Failed after ${MAX_FRESH_STARTS} fresh starts × ${MAX_TURNS_PER_CONVERSATION} turns`
+      `Failed after ${MAX_FRESH_STARTS} fresh starts × ${MAX_TURNS_PER_CONVERSATION} turns (${totalAttempts} total attempts)`
     );
   }
 

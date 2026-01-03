@@ -773,6 +773,8 @@ model TranslationQualityScore {
   @@index([score])
   @@index([evaluationType])
   @@index([contentHash])
+  // Composite index for cache lookup pattern (translationId + contentHash validation)
+  @@index([translationId, contentHash])
 }
 
 /// Configuration for quality scoring per project

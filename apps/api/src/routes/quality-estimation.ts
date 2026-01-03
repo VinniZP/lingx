@@ -276,6 +276,15 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const { branchId } = request.params;
       const { translationIds, forceAI } = request.body || {};
 
+      // Defense-in-depth: runtime validation before database query
+      // (Zod already validates at schema level, but we double-check here)
+      if (translationIds && translationIds.length > MAX_BATCH_TRANSLATION_IDS) {
+        throw new ForbiddenError(
+          `Batch size exceeds maximum allowed (${MAX_BATCH_TRANSLATION_IDS}). ` +
+          `Received: ${translationIds.length}`
+        );
+      }
+
       // Get project ID and enabled languages from branch, include membership check
       const branch = await fastify.prisma.branch.findUnique({
         where: { id: branchId },
@@ -342,6 +351,14 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const sourceMap = new Map(sourceTranslations.map((s) => [s.keyId, s.value]));
 
       // Separate cache hits from misses
+      // NOTE: This cache check is performed outside a transaction for performance.
+      // Race condition mitigation:
+      // - If translation changes after this check but before worker processes it,
+      //   the worker will re-fetch current content and evaluate correctly.
+      // - Worst case: we skip a translation that becomes stale, but it will be
+      //   caught on the next batch evaluation.
+      // - The contentHash-based caching ensures correctness: if content changed,
+      //   the worker will detect it and re-evaluate.
       const needsEvaluation: string[] = [];
       let cacheHits = 0;
 

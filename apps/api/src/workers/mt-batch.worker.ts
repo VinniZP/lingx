@@ -638,10 +638,11 @@ async function handleQualityBatch(
   const keyEntries = [...byKey.entries()];
 
   // Process in batches of CONCURRENCY
+  // Using Promise.allSettled to prevent worker crashes from unhandled rejections
   for (let i = 0; i < keyEntries.length; i += CONCURRENCY) {
     const batch = keyEntries.slice(i, i + CONCURRENCY);
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       batch.map(async ([keyId, keyTranslations]) => {
         const keyName = keyTranslations[0].key.name;
         const sourceText = sourceMap.get(keyId);
@@ -655,7 +656,7 @@ async function handleQualityBatch(
               console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
             });
           }
-          return;
+          return { keyName, status: 'format-only' };
         }
 
         // 5. Run heuristics for all languages (free, fast)
@@ -676,41 +677,52 @@ async function handleQualityBatch(
         }
 
         // 6. Call multi-language AI evaluation (if applicable)
-        try {
-          const needsAI = forceAI || [...heuristicResults.values()].some(
-            (h) => h.score < 80 || h.issues.some((i) => i.severity === 'error')
+        const needsAI = forceAI || [...heuristicResults.values()].some(
+          (h) => h.score < 80 || h.issues.some((i) => i.severity === 'error')
+        );
+
+        if (needsAI) {
+          console.log(`[MTWorker] Key ${keyName}: evaluating ${keyTranslations.length} languages with AI`);
+
+          await qualityService.evaluateKeyAllLanguages(
+            keyId,
+            keyName,
+            keyTranslations.map((t) => ({ id: t.id, language: t.language, value: t.value })),
+            sourceText,
+            sourceLanguage,
+            projectId,
+            heuristicResults
           );
-
-          if (needsAI) {
-            console.log(`[MTWorker] Key ${keyName}: evaluating ${keyTranslations.length} languages with AI`);
-
-            await qualityService.evaluateKeyAllLanguages(
-              keyId,
-              keyName,
-              keyTranslations.map((t) => ({ id: t.id, language: t.language, value: t.value })),
-              sourceText,
-              sourceLanguage,
-              projectId,
-              heuristicResults
-            );
-          } else {
-            // All heuristics passed, save heuristic scores directly
-            console.log(`[MTWorker] Key ${keyName}: all heuristics passed, skipping AI`);
-            for (const t of keyTranslations) {
-              await qualityService.evaluate(t.id, { forceAI: false }).catch((err) => {
-                failureTracking.perTranslation++;
-                console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
-              });
-            }
+          return { keyName, status: 'ai-evaluated' };
+        } else {
+          // All heuristics passed, save heuristic scores directly
+          console.log(`[MTWorker] Key ${keyName}: all heuristics passed, skipping AI`);
+          for (const t of keyTranslations) {
+            await qualityService.evaluate(t.id, { forceAI: false }).catch((err) => {
+              failureTracking.perTranslation++;
+              console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
+            });
           }
-        } catch (error) {
-          failureTracking.perKey++;
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          failureTracking.errors.push({ keyName, error: errorMessage });
-          console.error(`[MTWorker] Quality evaluation failed for key: key=${keyName}, languages=${keyTranslations.length}, error=${errorMessage}`);
+          return { keyName, status: 'heuristic-only' };
         }
       })
     );
+
+    // Process results from allSettled to track failures
+    for (let j = 0; j < results.length; j++) {
+      const result = results[j];
+      if (result.status === 'rejected') {
+        const [, batchKeyTranslations] = batch[j];
+        const failedKeyName = batchKeyTranslations[0].key.name;
+        const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
+
+        failureTracking.perKey++;
+        failureTracking.errors.push({ keyName: failedKeyName, error: errorMessage });
+        console.error(
+          `[MTWorker] Quality evaluation failed for key: key=${failedKeyName}, languages=${batchKeyTranslations.length}, error=${errorMessage}`
+        );
+      }
+    }
 
     // Update progress after each parallel batch
     processedTranslations += batch.reduce((sum, [, trans]) => sum + trans.length, 0);
