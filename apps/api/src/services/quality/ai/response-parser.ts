@@ -60,10 +60,15 @@ export type LanguageEvaluation = z.infer<typeof languageEvaluationSchema>;
 /**
  * Create dynamic Zod schema for multi-language response
  *
- * @param languages - List of language codes to include
+ * @param languages - List of language codes to include (must be non-empty)
  * @returns Zod schema for validating multi-language AI response
+ * @throws Error if languages array is empty
  */
 export function createMultiLanguageSchema(languages: string[]) {
+  if (!languages || languages.length === 0) {
+    throw new Error('Languages array must not be empty');
+  }
+
   return z.object({
     evaluations: z.object(
       Object.fromEntries(languages.map((lang) => [lang, languageEvaluationSchema]))
