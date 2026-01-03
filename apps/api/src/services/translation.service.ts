@@ -132,6 +132,7 @@ export class TranslationService {
       page?: number;
       limit?: number;
       filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
+      qualityFilter?: 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
       namespace?: string; // Use "__root__" for keys without namespace
     } = {}
   ): Promise<KeyListResult> {
@@ -169,6 +170,12 @@ export class TranslationService {
     if (options.filter === 'warnings') {
       const sourceLanguage = branch?.space.project.languages[0]?.code || 'en'; // First language as source
       return this.findKeysByQualityFilter(branchId, options, sourceLanguage);
+    }
+
+    // For quality score filters, use dedicated method
+    if (options.qualityFilter && options.qualityFilter !== 'all') {
+      const enabledLanguages = branch?.space.project.languages.map((l) => l.code) || [];
+      return this.findKeysByQualityScoreFilter(branchId, options, enabledLanguages);
     }
 
     // Build the where clause for other filters
@@ -410,6 +417,106 @@ export class TranslationService {
 
     return {
       keys: paginatedKeys,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Find keys by quality score filter (excellent, good, needsReview, unscored)
+   * Filters based on TranslationQualityScore records
+   */
+  private async findKeysByQualityScoreFilter(
+    branchId: string,
+    options: {
+      search?: string;
+      page?: number;
+      limit?: number;
+      filter?: 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
+      qualityFilter?: 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
+      namespace?: string;
+    },
+    enabledLanguages: string[]
+  ): Promise<KeyListResult> {
+    const page = options.page || 1;
+    const limit = options.limit || 50;
+
+    // Build base where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { branchId };
+
+    if (options.namespace !== undefined) {
+      where.namespace = options.namespace === '__root__' ? null : options.namespace;
+    }
+
+    if (options.search) {
+      where.OR = [
+        { name: { contains: options.search, mode: 'insensitive' } },
+        { description: { contains: options.search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Build quality score filter conditions - only check enabled languages
+    const qualityFilter = options.qualityFilter;
+    if (qualityFilter === 'unscored') {
+      // Keys where at least one enabled language translation has no quality score
+      where.translations = {
+        some: {
+          language: { in: enabledLanguages },
+          value: { not: '' },
+          qualityScore: null,
+        },
+      };
+    } else if (qualityFilter === 'excellent') {
+      // Keys where at least one enabled language translation has score >= 80
+      where.translations = {
+        some: {
+          language: { in: enabledLanguages },
+          qualityScore: {
+            score: { gte: 80 },
+          },
+        },
+      };
+    } else if (qualityFilter === 'good') {
+      // Keys where at least one enabled language translation has score 60-79
+      where.translations = {
+        some: {
+          language: { in: enabledLanguages },
+          qualityScore: {
+            AND: [{ score: { gte: 60 } }, { score: { lt: 80 } }],
+          },
+        },
+      };
+    } else if (qualityFilter === 'needsReview') {
+      // Keys where at least one enabled language translation has score < 60
+      where.translations = {
+        some: {
+          language: { in: enabledLanguages },
+          qualityScore: {
+            score: { lt: 60 },
+          },
+        },
+      };
+    }
+
+    const [keys, total] = await Promise.all([
+      this.prisma.translationKey.findMany({
+        where,
+        include: {
+          translations: {
+            orderBy: { language: 'asc' },
+          },
+        },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.translationKey.count({ where }),
+    ]);
+
+    return {
+      keys,
       total,
       page,
       limit,

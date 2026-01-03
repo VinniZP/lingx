@@ -13,6 +13,7 @@ export type QualityIssueSeverity = 'error' | 'warning' | 'info';
  * Types of quality checks
  */
 export type QualityCheckType =
+  // Heuristic checks
   | 'placeholder_missing'
   | 'placeholder_extra'
   | 'whitespace_leading'
@@ -22,8 +23,13 @@ export type QualityCheckType =
   | 'punctuation_mismatch'
   | 'length_too_long'
   | 'length_critical'
+  | 'length_extreme' // Extreme length mismatch (5x+, likely AI hallucination)
   | 'icu_syntax' // ICU MessageFormat syntax errors
-  | 'glossary_missing'; // Missing required glossary terms (API-only check)
+  | 'glossary_missing' // Missing required glossary terms (API-only check)
+  // AI evaluation issues
+  | 'ai_accuracy' // AI-detected accuracy/meaning issue
+  | 'ai_fluency' // AI-detected fluency/grammar issue
+  | 'ai_terminology'; // AI-detected terminology issue
 
 /**
  * A single quality issue found in a translation
@@ -45,6 +51,7 @@ export interface QualityIssue {
     expected?: string;
     found?: string;
     placeholder?: string;
+    ratio?: string; // For length checks: actual/expected ratio
   };
 }
 

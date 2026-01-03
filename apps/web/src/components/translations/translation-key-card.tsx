@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ProjectLanguage } from '@lingx/shared';
 import { runQualityChecks } from '@lingx/shared';
 import { TranslationKey, type ApprovalStatus } from '@/lib/api';
-import { evaluateTranslationQuality } from '@/lib/api/quality';
+import { getCachedQualityScore } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import {
   Check,
@@ -746,12 +746,11 @@ export const TranslationKeyCard = memo(function TranslationKeyCard({
 function TranslationQualityBadge({ translationId }: { translationId: string }) {
   const { data: score, isLoading } = useQuery({
     queryKey: ['quality-score', translationId],
-    queryFn: () => evaluateTranslationQuality(translationId),
-    // Cache quality scores for 10 minutes
-    staleTime: 10 * 60 * 1000,
-    // Retry once on failure, then show nothing
-    retry: 1,
-    retryDelay: 1000,
+    queryFn: () => getCachedQualityScore(translationId),
+    // Cache for 30 minutes (read-only, won't change unless manually evaluated)
+    staleTime: 30 * 60 * 1000,
+    // Don't retry - if no cached score, just show nothing
+    retry: false,
   });
 
   if (isLoading) {

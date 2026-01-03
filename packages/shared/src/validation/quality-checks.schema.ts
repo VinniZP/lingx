@@ -15,6 +15,7 @@ export const qualityIssueSeveritySchema = z.enum(['error', 'warning', 'info']);
  * Types of quality checks
  */
 export const qualityCheckTypeSchema = z.enum([
+  // Heuristic checks
   'placeholder_missing',
   'placeholder_extra',
   'whitespace_leading',
@@ -24,8 +25,13 @@ export const qualityCheckTypeSchema = z.enum([
   'punctuation_mismatch',
   'length_too_long',
   'length_critical',
+  'length_extreme', // 5x+ expected length, likely AI hallucination
   'icu_syntax',
   'glossary_missing',
+  // AI evaluation issues
+  'ai_accuracy',
+  'ai_fluency',
+  'ai_terminology',
 ]);
 
 /**
@@ -43,6 +49,7 @@ export const qualityIssueContextSchema = z.object({
   expected: z.string().optional(),
   found: z.string().optional(),
   placeholder: z.string().optional(),
+  ratio: z.string().optional(), // For length checks: actual/expected ratio
 });
 
 /**

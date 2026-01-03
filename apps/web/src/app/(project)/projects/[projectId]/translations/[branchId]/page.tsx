@@ -69,7 +69,7 @@ export default function TranslationsPage({ params }: PageProps) {
     completionStats,
     namespaces,
     isLoading,
-  } = useTranslationsPageData({ projectId, branchId, search, page, filter: filter as FilterType, namespace });
+  } = useTranslationsPageData({ projectId, branchId, search, page, filter: filter as FilterType, qualityFilter, namespace });
 
   // Mutations hook
   const {

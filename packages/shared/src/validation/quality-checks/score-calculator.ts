@@ -14,9 +14,10 @@ import type { QualityCheckResult, QualityIssue } from './types.js';
  */
 const ISSUE_WEIGHTS: Record<string, number> = {
   // Critical issues (high impact on functionality)
+  length_extreme: 80, // Almost certainly wrong (AI hallucination, wrong translation)
   placeholder_missing: 30,
   icu_syntax: 25,
-  length_critical: 20,
+  length_critical: 25,
 
   // Major issues (medium impact)
   placeholder_extra: 15,
@@ -94,7 +95,7 @@ export function calculateScore(result: QualityCheckResult): QualityScoreResult {
     score -= penalty;
 
     // Track length issues for AI escalation
-    if (issue.type === 'length_too_long' || issue.type === 'length_critical') {
+    if (issue.type === 'length_too_long' || issue.type === 'length_critical' || issue.type === 'length_extreme') {
       hasLengthIssues = true;
     }
   }

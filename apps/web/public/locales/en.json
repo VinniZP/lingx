@@ -1451,7 +1451,8 @@
       "infoAI": "AI evaluation for complex quality issues",
       "infoProcessing": "Processing happens in the background",
       "queuing": "Queuing...",
-      "evaluate": "Evaluate Quality"
+      "evaluate": "Evaluate Quality",
+      "allCached": "All Cached"
     }
   }
 }

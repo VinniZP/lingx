@@ -763,6 +763,10 @@ model TranslationQualityScore {
   inputTokens  Int @default(0)
   outputTokens Int @default(0)
 
+  // Content hash for cache validation (hash of source+target)
+  // If content changes, score needs re-evaluation
+  contentHash String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

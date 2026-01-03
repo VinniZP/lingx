@@ -67,7 +67,7 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
   const mtService = new MTService(prisma);
   const aiService = new AITranslationService(prisma);
   const translationService = new TranslationService(prisma);
-  const qualityService = new QualityEstimationService(prisma, aiService);
+  const qualityService = new QualityEstimationService(prisma);
 
   const worker = new Worker<MTJobData>(
     'mt-batch',
@@ -556,7 +556,7 @@ async function handleQualityBatch(
   qualityService: QualityEstimationService,
   job: Job<MTJobData>
 ): Promise<void> {
-  const { translationIds, forceAI } = job.data;
+  const { translationIds, forceAI, branchId } = job.data;
 
   if (!translationIds || translationIds.length === 0) {
     console.log('[MTWorker] Quality batch: no translation IDs provided');
@@ -565,12 +565,18 @@ async function handleQualityBatch(
 
   let processed = 0;
   const total = translationIds.length;
-  const batchSize = 20;
+  const batchSize = 10; // Parallel AI requests per batch (~1,200 RPM with 500ms delay)
 
-  console.log(`[MTWorker] Starting quality batch for ${total} translations`);
+  console.log(`[MTWorker] ====== STARTING QUALITY BATCH JOB ======`);
+  console.log(`[MTWorker] Job ID: ${job.id}, Branch: ${branchId}`);
+  console.log(`[MTWorker] Translations to evaluate: ${total}, Force AI: ${forceAI ?? false}`);
 
   for (let i = 0; i < translationIds.length; i += batchSize) {
     const batch = translationIds.slice(i, i + batchSize);
+    const batchNum = Math.floor(i / batchSize) + 1;
+    const totalBatches = Math.ceil(translationIds.length / batchSize);
+
+    console.log(`[MTWorker] Processing batch ${batchNum}/${totalBatches} (${batch.length} translations)`);
 
     await Promise.all(
       batch.map((id) =>
@@ -584,9 +590,15 @@ async function handleQualityBatch(
 
     processed += batch.length;
     await job.updateProgress({ processed, total });
+
+    // Throttle between batches to avoid rate limiting
+    if (i + batchSize < translationIds.length) {
+      await delay(500); // 500ms delay between batches
+    }
   }
 
-  console.log(`[MTWorker] Quality batch complete: ${processed}/${total} translations evaluated`);
+  console.log(`[MTWorker] ====== QUALITY BATCH JOB COMPLETE ======`);
+  console.log(`[MTWorker] Evaluated: ${processed}/${total} translations`);
 }
 
 /**

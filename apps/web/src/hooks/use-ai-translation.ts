@@ -188,11 +188,14 @@ export function getAIProviderDisplayName(provider: AIProvider): string {
  * Helper: Get model display name (truncate long model names)
  */
 export function getModelDisplayName(model: string): string {
-  // Map common models to friendly names (December 2025)
+  // Map common models to friendly names (January 2026)
   const modelNames: Record<string, string> = {
-    // OpenAI GPT-5.x and GPT-4.1 series (2025)
+    // OpenAI GPT-5.x series (2025)
     'gpt-5.2': 'GPT-5.2',
     'gpt-5.1': 'GPT-5.1',
+    'gpt-5-mini': 'GPT-5 Mini',
+    'gpt-5-nano': 'GPT-5 Nano',
+    // OpenAI GPT-4.1 series (2025)
     'gpt-4.1': 'GPT-4.1',
     'gpt-4.1-mini': 'GPT-4.1 Mini',
     'o4-mini': 'o4-mini',

@@ -11,7 +11,6 @@ import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { QualityEstimationService } from '../services/quality-estimation.service.js';
-import { BranchService } from '../services/branch.service.js';
 import { mtBatchQueue } from '../lib/queues.js';
 import type { MTJobData } from '../workers/mt-batch.worker.js';
 import { NotFoundError } from '../plugins/error-handler.js';
@@ -19,7 +18,6 @@ import { NotFoundError } from '../plugins/error-handler.js';
 const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
   const qualityService = new QualityEstimationService(fastify.prisma);
-  const branchService = new BranchService(fastify.prisma);
 
   /**
    * POST /api/translations/:translationId/quality - Evaluate single translation
@@ -63,7 +61,64 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
+   * GET /api/translations/:translationId/quality - Get cached quality score (no evaluation)
+   */
+  app.get(
+    '/api/translations/:translationId/quality',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Get cached quality score for a translation (does not trigger evaluation)',
+        tags: ['Quality'],
+        security: [{ bearerAuth: [] }, { apiKey: [] }],
+        params: z.object({
+          translationId: z.string(),
+        }),
+        response: {
+          200: z
+            .object({
+              score: z.number().min(0).max(100),
+              accuracy: z.number().min(0).max(100).optional(),
+              fluency: z.number().min(0).max(100).optional(),
+              terminology: z.number().min(0).max(100).optional(),
+              format: z.number().min(0).max(100).optional(),
+              passed: z.boolean(),
+              issues: z.array(z.any()),
+              evaluationType: z.enum(['heuristic', 'ai', 'hybrid']),
+            })
+            .nullable(),
+        },
+      },
+    },
+    async (request) => {
+      const { translationId } = request.params;
+
+      // Just return cached score, don't evaluate
+      const cached = await fastify.prisma.translationQualityScore.findUnique({
+        where: { translationId },
+      });
+
+      if (!cached) {
+        return null;
+      }
+
+      return {
+        score: cached.score,
+        accuracy: cached.accuracyScore ?? undefined,
+        fluency: cached.fluencyScore ?? undefined,
+        terminology: cached.terminologyScore ?? undefined,
+        format: cached.formatScore,
+        passed: cached.score >= 80,
+        issues: cached.issues as any[],
+        evaluationType: cached.evaluationType as 'heuristic' | 'ai' | 'hybrid',
+      };
+    }
+  );
+
+  /**
    * POST /api/branches/:branchId/quality/batch - Queue batch evaluation job
+   *
+   * Optimized: Pre-filters cache hits to avoid unnecessary evaluations
    */
   app.post(
     '/api/branches/:branchId/quality/batch',
@@ -83,6 +138,11 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
         response: {
           200: z.object({
             jobId: z.string(),
+            stats: z.object({
+              total: z.number(),
+              cached: z.number(),
+              queued: z.number(),
+            }),
           }),
         },
       },
@@ -91,33 +151,116 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const { branchId } = request.params;
       const { translationIds, forceAI } = request.body || {};
 
-      // Get project ID from branch
-      const projectId = await branchService.getProjectIdByBranchId(branchId);
-      if (!projectId) {
+      // Get project ID and enabled languages from branch
+      const branch = await fastify.prisma.branch.findUnique({
+        where: { id: branchId },
+        select: {
+          space: {
+            select: {
+              project: {
+                select: {
+                  id: true,
+                  defaultLanguage: true,
+                  languages: { select: { code: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+      if (!branch) {
         throw new NotFoundError('Branch');
       }
+      const projectId = branch.space.project.id;
+      const sourceLanguage = branch.space.project.defaultLanguage;
+      const enabledLanguages = branch.space.project.languages.map((l) => l.code);
 
-      // If no translation IDs provided, get all translations in branch
-      const ids =
-        translationIds ||
-        (
-          await fastify.prisma.translation.findMany({
-            where: { key: { branchId }, value: { not: '' } },
-            select: { id: true },
-          })
-        ).map((t) => t.id);
+      // Get all translations with their quality scores
+      const translations = await fastify.prisma.translation.findMany({
+        where: translationIds
+          ? { id: { in: translationIds } }
+          : {
+              key: { branchId },
+              value: { not: '' },
+              language: { in: enabledLanguages },
+            },
+        select: {
+          id: true,
+          keyId: true,
+          language: true,
+          value: true,
+          qualityScore: {
+            select: { contentHash: true },
+          },
+        },
+      });
 
-      // Queue batch job
+      // Get source translations for hash comparison (cache is ALWAYS checked)
+      const keyIds = [...new Set(translations.map((t) => t.keyId))];
+      const sourceTranslations = await fastify.prisma.translation.findMany({
+        where: {
+          keyId: { in: keyIds },
+          language: sourceLanguage,
+        },
+        select: { keyId: true, value: true },
+      });
+      const sourceMap = new Map(sourceTranslations.map((s) => [s.keyId, s.value]));
+
+      // Separate cache hits from misses
+      const needsEvaluation: string[] = [];
+      let cacheHits = 0;
+
+      for (const t of translations) {
+        const sourceValue = sourceMap.get(t.keyId);
+        if (!sourceValue) {
+          // No source - needs format-only evaluation
+          needsEvaluation.push(t.id);
+          continue;
+        }
+
+        if (!t.qualityScore?.contentHash) {
+          // No cached score
+          needsEvaluation.push(t.id);
+          continue;
+        }
+
+        // Check content hash
+        const currentHash = qualityService.generateContentHash(sourceValue, t.value);
+        if (t.qualityScore.contentHash !== currentHash) {
+          // Content changed
+          needsEvaluation.push(t.id);
+        } else {
+          // Cache hit!
+          cacheHits++;
+        }
+      }
+
+      console.log(
+        `[Quality Batch] Pre-filter: ${translations.length} total, ${cacheHits} cached, ${needsEvaluation.length} need evaluation`
+      );
+
+      // If nothing needs evaluation, return early
+      if (needsEvaluation.length === 0) {
+        return {
+          jobId: '',
+          stats: { total: translations.length, cached: cacheHits, queued: 0 },
+        };
+      }
+
+      // Queue only translations that need evaluation
       const job = await mtBatchQueue.add('quality-batch', {
         type: 'quality-batch',
         projectId,
         userId: request.user!.userId,
         branchId,
-        translationIds: ids,
-        forceAI,
+        translationIds: needsEvaluation,
+        forceAI: forceAI ?? false, // Pass through to worker (affects AI vs heuristic choice, not cache)
       } as MTJobData);
 
-      return { jobId: job.id || '' };
+      return {
+        jobId: job.id || '',
+        stats: { total: translations.length, cached: cacheHits, queued: needsEvaluation.length },
+      };
     }
   );
 

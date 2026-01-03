@@ -6,6 +6,7 @@ import { Sparkles, Loader2, Zap, Brain, Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -54,10 +55,18 @@ export function BulkQualityEvaluationDialog({
   const mutation = useMutation({
     mutationFn: () => queueBatchQuality(branchId, translationIds, forceAI),
     onSuccess: (result) => {
-      toast.success(t('quality.bulkEvaluation.queued'), {
-        description: t('quality.bulkEvaluation.jobId', { jobId: result.jobId }),
-      });
+      const { stats } = result;
+      if (stats.queued === 0) {
+        toast.success(t('quality.bulkEvaluation.allCached'), {
+          description: `All ${stats.total} translations already have valid cached scores.`,
+        });
+      } else {
+        toast.success(t('quality.bulkEvaluation.queued'), {
+          description: `Queued ${stats.queued} of ${stats.total} translations (${stats.cached} cached)`,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['quality-summary', branchId] });
+      queryClient.invalidateQueries({ queryKey: ['quality-score'] });
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -119,7 +128,7 @@ export function BulkQualityEvaluationDialog({
             </div>
 
             {/* Title */}
-            <h2
+            <DialogTitle
               className={cn(
                 "text-2xl font-semibold tracking-tight text-foreground mb-2",
                 "opacity-0 transition-all duration-500 delay-75 ease-out",
@@ -128,7 +137,7 @@ export function BulkQualityEvaluationDialog({
               )}
             >
               {t('quality.bulkEvaluation.title')}
-            </h2>
+            </DialogTitle>
 
             {/* Description */}
             <p
@@ -182,7 +191,32 @@ export function BulkQualityEvaluationDialog({
               </div>
             </div>
 
-            {/* AI Tier - Optional */}
+            {/* AI Tier - included when configured */}
+            <div className="group relative rounded-xl border border-border/60 bg-card/50 p-4 transition-all hover:border-primary/30 hover:bg-card">
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 text-primary/70 shrink-0">
+                  <Brain className="size-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-foreground">AI Evaluation</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary/60">
+                      If configured
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {t('quality.bulkEvaluation.infoAI')}
+                  </p>
+                </div>
+                <div className="text-emerald-500">
+                  <svg className="size-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Always use AI option */}
             <div
               className={cn(
                 "group relative rounded-xl border p-4 transition-all cursor-pointer",
@@ -199,22 +233,22 @@ export function BulkQualityEvaluationDialog({
                     ? "bg-primary/20 text-primary"
                     : "bg-primary/10 text-primary/70"
                 )}>
-                  <Brain className="size-5" />
+                  <Sparkles className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-foreground">AI Evaluation</span>
+                    <span className="font-medium text-foreground">Always Use AI</span>
                     <span className={cn(
                       "text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full transition-colors",
                       forceAI
                         ? "bg-primary/20 text-primary"
                         : "bg-primary/10 text-primary/60"
                     )}>
-                      Enhanced
+                      Optional
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {t('quality.bulkEvaluation.infoAI')}
+                    Use AI for all translations, even when heuristics pass. Cache is still respected.
                   </p>
                 </div>
                 <Switch

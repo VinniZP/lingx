@@ -708,6 +708,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'projectSettings.toasts.projectUpdatedDescription'
       | 'projectSettings.toasts.projectUpdateFailed'
       | 'projectSettings.unsavedChanges'
+      | 'quality.bulkEvaluation.allCached'
       | 'quality.bulkEvaluation.descriptionAll'
       | 'quality.bulkEvaluation.descriptionSelected'
       | 'quality.bulkEvaluation.evaluate'

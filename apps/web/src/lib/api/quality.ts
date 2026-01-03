@@ -114,7 +114,21 @@ export interface ICUValidationResult {
 // ============================================
 
 /**
- * Evaluate quality score for a single translation
+ * Get cached quality score for a translation (does not trigger evaluation)
+ *
+ * @param translationId - Translation ID
+ * @returns Cached quality score or null if not evaluated yet
+ */
+export async function getCachedQualityScore(
+  translationId: string
+): Promise<QualityScore | null> {
+  return fetchQualityApi<QualityScore | null>(`/api/translations/${translationId}/quality`, {
+    method: 'GET',
+  });
+}
+
+/**
+ * Evaluate quality score for a single translation (triggers evaluation)
  *
  * @param translationId - Translation ID to evaluate
  * @param forceAI - Force AI evaluation even if heuristics pass
@@ -131,19 +145,31 @@ export async function evaluateTranslationQuality(
 }
 
 /**
+ * Batch quality evaluation result with stats
+ */
+export interface BatchQualityResult {
+  jobId: string;
+  stats: {
+    total: number;
+    cached: number;
+    queued: number;
+  };
+}
+
+/**
  * Queue batch quality evaluation job for translations
  *
  * @param branchId - Branch ID
  * @param translationIds - Optional array of translation IDs (defaults to all in branch)
- * @param forceAI - Force AI evaluation for all translations
- * @returns Job ID for tracking progress
+ * @param forceAI - Force AI evaluation for all translations (bypasses cache)
+ * @returns Job ID and stats (total, cached, queued)
  */
 export async function queueBatchQuality(
   branchId: string,
   translationIds?: string[],
   forceAI?: boolean
-): Promise<{ jobId: string }> {
-  return fetchQualityApi<{ jobId: string }>(`/api/branches/${branchId}/quality/batch`, {
+): Promise<BatchQualityResult> {
+  return fetchQualityApi<BatchQualityResult>(`/api/branches/${branchId}/quality/batch`, {
     method: 'POST',
     body: JSON.stringify({ translationIds, forceAI }),
   });

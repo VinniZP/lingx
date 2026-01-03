@@ -23,6 +23,7 @@ import { getQualityConfig, updateQualityConfig } from '@/lib/api/quality';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { SettingsSectionHeader } from '@/components/settings';
 
 /**
  * Quality Settings Page
@@ -104,44 +105,18 @@ export default function QualitySettingsPage() {
   }
 
   return (
-    <div className="relative">
-      {/* Subtle ambient gradient */}
-      <div className="absolute -top-20 -right-20 size-80 rounded-full bg-linear-to-br from-primary/5 via-transparent to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 size-60 rounded-full bg-linear-to-tr from-[#E8916F]/5 to-transparent blur-2xl pointer-events-none" />
+    <div className="space-y-8">
+      {/* Scoring Triggers */}
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={Zap}
+          title={t('settings.quality.triggers.title')}
+          description={t('settings.quality.triggers.description')}
+          color="emerald"
+        />
 
-      <div className="relative space-y-8">
-        {/* Header */}
-        <div className="animate-fade-in-up stagger-1">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="flex items-center justify-center size-12 rounded-2xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 shadow-sm">
-              <Gauge className="size-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {t('settings.quality.title')}
-              </h1>
-              <p className="text-muted-foreground text-sm mt-0.5">
-                {t('settings.quality.description')}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Scoring Triggers */}
-        <div className="island p-6 animate-fade-in-up stagger-2">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-500/10">
-              <Zap className="size-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">{t('settings.quality.triggers.title')}</h2>
-              <p className="text-sm text-muted-foreground">
-                {t('settings.quality.triggers.description')}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-5">
+        <div className="rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
+          <div className="p-6 space-y-5">
             {/* After AI Translation */}
             <SettingToggle
               id="scoreAfterAI"
@@ -167,118 +142,135 @@ export default function QualitySettingsPage() {
             />
           </div>
         </div>
+      </section>
 
-        {/* Thresholds */}
-        <div className="island p-6 animate-fade-in-up stagger-3">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center size-10 rounded-xl bg-amber-500/10">
-              <Target className="size-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">{t('settings.quality.thresholds.title')}</h2>
-              <p className="text-sm text-muted-foreground">
-                {t('settings.quality.thresholds.description')}
-              </p>
-            </div>
-          </div>
+      {/* Thresholds */}
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={Target}
+          title={t('settings.quality.thresholds.title')}
+          description={t('settings.quality.thresholds.description')}
+          color="amber"
+        />
 
-          {/* Visual Threshold Bar */}
-          <div className="mb-8 p-4 rounded-xl bg-muted/30 border border-border/50">
-            <div className="relative h-3 rounded-full bg-linear-to-r from-destructive/20 via-warning/20 to-success/20 overflow-hidden">
-              {/* Threshold markers */}
-              <div
-                className="absolute top-0 bottom-0 w-0.5 bg-warning transition-all duration-300"
-                style={{ left: `${flagThreshold}%` }}
+        <div className="rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
+          <div className="p-6 space-y-6">
+            {/* Visual Threshold Bar */}
+            <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+              <div className="relative h-3 rounded-full bg-linear-to-r from-destructive/20 via-warning/20 to-success/20 overflow-hidden">
+                {/* Threshold markers */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-warning transition-all duration-300"
+                  style={{ left: `${flagThreshold}%` }}
+                />
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-success transition-all duration-300"
+                  style={{ left: `${autoApproveThreshold}%` }}
+                />
+              </div>
+              {/* Labels positioned relative to the bar */}
+              <div className="relative mt-2 text-[10px] font-medium text-muted-foreground h-4">
+                {/* Fixed left label */}
+                <div className="absolute left-0 flex items-center gap-1">
+                  <AlertTriangle className="size-3 text-destructive" />
+                  <span>Needs Review</span>
+                </div>
+                {/* Flag threshold label - positioned at threshold % */}
+                <div
+                  className="absolute flex items-center gap-1 -translate-x-1/2 transition-all duration-300"
+                  style={{ left: `${flagThreshold}%` }}
+                >
+                  <span className="text-warning">Flag at {flagThreshold}</span>
+                </div>
+                {/* Auto-approve label - positioned at threshold % */}
+                <div
+                  className="absolute flex items-center gap-1 -translate-x-1/2 transition-all duration-300"
+                  style={{ left: `${autoApproveThreshold}%` }}
+                >
+                  <span className="text-success">Auto-approve at {autoApproveThreshold}</span>
+                </div>
+                {/* Fixed right label */}
+                <div className="absolute right-0 flex items-center gap-1">
+                  <CheckCircle2 className="size-3 text-success" />
+                  <span>Excellent</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Auto Approve Threshold */}
+              <ThresholdInput
+                id="autoApprove"
+                value={autoApproveThreshold}
+                onChange={setAutoApproveThreshold}
+                label={t('settings.quality.thresholds.autoApprove')}
+                description={t('settings.quality.thresholds.autoApproveDescription')}
+                color="success"
+                icon={<CheckCircle2 className="size-4" />}
               />
-              <div
-                className="absolute top-0 bottom-0 w-0.5 bg-success transition-all duration-300"
-                style={{ left: `${autoApproveThreshold}%` }}
+
+              {/* Flag Threshold */}
+              <ThresholdInput
+                id="flagThreshold"
+                value={flagThreshold}
+                onChange={setFlagThreshold}
+                label={t('settings.quality.thresholds.flag')}
+                description={t('settings.quality.thresholds.flagDescription')}
+                color="warning"
+                icon={<AlertTriangle className="size-4" />}
               />
             </div>
-            <div className="flex justify-between mt-2 text-[10px] font-medium text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <AlertTriangle className="size-3 text-destructive" />
-                <span>Needs Review</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-warning">Flag at {flagThreshold}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-success">Auto-approve at {autoApproveThreshold}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle2 className="size-3 text-success" />
-                <span>Excellent</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            {/* Auto Approve Threshold */}
-            <ThresholdInput
-              id="autoApprove"
-              value={autoApproveThreshold}
-              onChange={setAutoApproveThreshold}
-              label={t('settings.quality.thresholds.autoApprove')}
-              description={t('settings.quality.thresholds.autoApproveDescription')}
-              color="success"
-              icon={<CheckCircle2 className="size-4" />}
-            />
-
-            {/* Flag Threshold */}
-            <ThresholdInput
-              id="flagThreshold"
-              value={flagThreshold}
-              onChange={setFlagThreshold}
-              label={t('settings.quality.thresholds.flag')}
-              description={t('settings.quality.thresholds.flagDescription')}
-              color="warning"
-              icon={<AlertTriangle className="size-4" />}
-            />
           </div>
         </div>
+      </section>
 
-        {/* AI Provider Link */}
+      {/* AI Provider Link */}
+      <section className="space-y-6">
+        <SettingsSectionHeader
+          icon={Sparkles}
+          title={t('settings.quality.aiProviderLink.title')}
+          description={t('settings.quality.aiProviderLink.description')}
+        />
+
         <Link
           href={`/projects/${projectId}/settings/ai-translation`}
-          className="island p-5 flex items-center justify-between group hover:border-primary/20 transition-colors animate-fade-in-up stagger-4"
+          className="flex items-center justify-between p-5 rounded-2xl border border-border/60 bg-card/50 group hover:border-primary/20 transition-colors"
         >
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Sparkles className="size-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-medium text-sm">{t('settings.quality.aiProviderLink.title')}</h3>
+              <p className="font-medium text-sm">Configure AI Providers</p>
               <p className="text-xs text-muted-foreground">
-                {t('settings.quality.aiProviderLink.description')}
+                Set up OpenAI, Anthropic, Google AI, or Mistral for quality evaluation
               </p>
             </div>
           </div>
           <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
         </Link>
+      </section>
 
-        {/* Floating Save Button */}
-        <div className="sticky bottom-6 flex justify-end animate-fade-in-up stagger-5">
+      {/* Save Footer */}
+      <div className="rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <p className="text-[11px] text-muted-foreground">
+            {t('projectSettings.unsavedChanges')}
+          </p>
           <Button
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className={cn(
-              'gap-2.5 h-12 px-8 rounded-xl shadow-lg',
-              'bg-linear-to-r from-primary to-primary/90',
-              'hover:from-primary/90 hover:to-primary/80',
-              'shadow-primary/25 hover:shadow-primary/35',
-              'transition-all duration-300'
-            )}
+            className="min-w-[120px]"
           >
             {saveMutation.isPending ? (
               <>
-                <Loader2 className="size-4.5 animate-spin" />
-                <span className="font-medium">{t('common.saving')}</span>
+                <Loader2 className="size-4 animate-spin" />
+                {t('common.saving')}
               </>
             ) : (
               <>
-                <Save className="size-4.5" />
-                <span className="font-medium">{t('common.save')}</span>
+                <Save className="size-4" />
+                {t('common.saveChanges')}
               </>
             )}
           </Button>

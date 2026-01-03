@@ -368,6 +368,7 @@ export const branchApi = {
 // Translation types
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type KeyFilter = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected' | 'warnings';
+export type QualityScoreFilter = 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
 
 export interface Translation {
   id: string;
@@ -419,13 +420,14 @@ export interface NamespaceCount {
 export const translationApi = {
   listKeys: (
     branchId: string,
-    params?: { search?: string; page?: number; limit?: number; filter?: KeyFilter; namespace?: string }
+    params?: { search?: string; page?: number; limit?: number; filter?: KeyFilter; qualityFilter?: QualityScoreFilter; namespace?: string }
   ) => {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
     if (params?.filter && params.filter !== 'all') query.set('filter', params.filter);
+    if (params?.qualityFilter && params.qualityFilter !== 'all') query.set('qualityFilter', params.qualityFilter);
     if (params?.namespace) query.set('namespace', params.namespace);
     const queryString = query.toString();
     return fetchApi<KeyListResult>(

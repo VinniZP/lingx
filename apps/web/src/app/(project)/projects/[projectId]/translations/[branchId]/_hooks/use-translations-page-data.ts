@@ -11,12 +11,15 @@ import {
 import type { ProjectLanguage } from '@lingx/shared';
 import type { FilterType } from '../_components';
 
+export type QualityFilterType = 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
+
 interface UseTranslationsPageDataOptions {
   projectId: string;
   branchId: string;
   search: string;
   page: number;
   filter: FilterType;
+  qualityFilter: QualityFilterType;
   namespace: string;
 }
 
@@ -34,6 +37,7 @@ export function useTranslationsPageData({
   search,
   page,
   filter,
+  qualityFilter,
   namespace,
 }: UseTranslationsPageDataOptions) {
   // Project query
@@ -50,12 +54,13 @@ export function useTranslationsPageData({
 
   // Keys query with pagination and filtering
   const { data: keysData, isLoading } = useQuery({
-    queryKey: ['keys', branchId, search, page, filter, namespace],
+    queryKey: ['keys', branchId, search, page, filter, qualityFilter, namespace],
     queryFn: () => translationApi.listKeys(branchId, {
       search,
       page,
       limit: 50,
       filter,
+      qualityFilter,
       namespace: namespace || undefined,
     }),
   });

@@ -144,10 +144,31 @@ export function QualityScoreBadge({
             </div>
           )}
 
-          {/* Issues count */}
+          {/* Issues list */}
           {score.issues.length > 0 && (
-            <div className="text-[10px] opacity-75 pt-1 border-t border-current/20">
-              {score.issues.length} issue{score.issues.length > 1 ? 's' : ''} detected
+            <div className="text-[10px] pt-1.5 border-t border-current/20 space-y-1">
+              <div className="font-medium opacity-90">
+                {score.issues.length} issue{score.issues.length > 1 ? 's' : ''} detected:
+              </div>
+              <ul className="space-y-0.5 max-h-32 overflow-y-auto">
+                {score.issues.map((issue, idx) => (
+                  <li key={idx} className="flex items-start gap-1.5">
+                    <span
+                      className={cn(
+                        'shrink-0 mt-0.5',
+                        issue.severity === 'error'
+                          ? 'text-rose-500'
+                          : issue.severity === 'warning'
+                            ? 'text-amber-500'
+                            : 'text-muted-foreground'
+                      )}
+                    >
+                      {issue.severity === 'error' ? '✗' : issue.severity === 'warning' ? '!' : '○'}
+                    </span>
+                    <span className="opacity-80">{issue.message}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
