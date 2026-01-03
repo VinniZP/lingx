@@ -53,6 +53,15 @@ export class QualityEstimationService {
   ) {}
 
   /**
+   * Get cached quality score for a translation (no evaluation)
+   * Returns null if no cached score exists
+   */
+  async getCachedScore(translationId: string): Promise<QualityScore | null> {
+    const result = await this.scoreRepository.findByTranslationId(translationId);
+    return result?.score ?? null;
+  }
+
+  /**
    * Evaluate translation quality using tiered approach
    *
    * Flow:
