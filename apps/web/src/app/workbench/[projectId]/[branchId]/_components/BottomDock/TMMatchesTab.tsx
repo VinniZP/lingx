@@ -2,15 +2,8 @@
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import type { UnifiedSuggestion } from '@/types';
 import { Loader2 } from 'lucide-react';
-
-interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number;
-  source?: string;
-}
 
 interface TMMatchesTabProps {
   keyId: string;

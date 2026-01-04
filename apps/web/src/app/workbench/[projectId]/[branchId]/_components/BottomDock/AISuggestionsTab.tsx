@@ -1,15 +1,8 @@
 'use client';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import type { UnifiedSuggestion } from '@/types';
 import { AlertTriangle, Brain, Check, Loader2, Sparkles } from 'lucide-react';
-
-interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number;
-  provider?: string;
-}
 
 interface AISuggestionsTabProps {
   keyId: string;

@@ -1,6 +1,7 @@
 'use client';
 
 import type { TranslationKey } from '@/lib/api';
+import type { UnifiedSuggestion } from '@/types';
 import type { ProjectLanguage } from '@lingx/shared';
 import { useMemo } from 'react';
 import { useKeyQualityEvaluation, useKeyQualityIssues } from '../../_hooks';
@@ -8,15 +9,6 @@ import { BottomDock } from '../BottomDock';
 import { LanguageRow } from '../LanguageRow';
 import { KeyHeader } from './KeyHeader';
 import { SourceSection } from './SourceSection';
-
-interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number;
-  source?: string;
-  provider?: string;
-}
 
 interface KeyEditorPanelProps {
   keyData?: TranslationKey;

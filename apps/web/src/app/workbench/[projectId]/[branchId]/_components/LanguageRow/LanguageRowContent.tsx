@@ -5,18 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
+import type { UnifiedSuggestion } from '@/types';
 import { Brain, Database, Loader2, Sparkles, Wand2, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { QualityIssuesInline } from '../shared';
-
-interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number;
-  source?: string;
-  provider?: string;
-}
 
 interface LanguageRowContentProps {
   value: string;

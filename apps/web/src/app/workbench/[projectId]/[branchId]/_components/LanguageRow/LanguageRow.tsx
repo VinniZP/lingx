@@ -3,19 +3,11 @@
 import type { Translation } from '@/lib/api';
 import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
+import type { UnifiedSuggestion } from '@/types';
 import type { ProjectLanguage } from '@lingx/shared';
 import { useMemo, useState } from 'react';
 import { LanguageRowContent } from './LanguageRowContent';
 import { LanguageRowHeader } from './LanguageRowHeader';
-
-interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number;
-  source?: string;
-  provider?: string;
-}
 
 interface LanguageRowProps {
   language: ProjectLanguage;

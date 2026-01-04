@@ -1,5 +1,6 @@
 'use client';
 
+import type { UnifiedSuggestion } from '@/types';
 import { useCallback, useMemo, useState } from 'react';
 import {
   getAIProviderDisplayName,
@@ -15,25 +16,8 @@ import {
 } from './use-machine-translation';
 import { useTranslationMemorySearch, type TMMatch } from './use-translation-memory';
 
-/**
- * Unified suggestion type that can represent TM, MT, and AI suggestions.
- */
-export interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number; // 0-100 for TM, always 100 for MT/AI
-  source?: string; // Source key name for TM, provider name for MT/AI
-  provider?: string; // MT/AI provider display name
-  model?: string; // AI model name
-  cached?: boolean; // Whether MT/AI result was cached
-  context?: {
-    // AI context metadata
-    glossaryTerms: number;
-    tmMatches: number;
-    relatedKeys: number;
-  };
-}
+// Re-export for convenience
+export type { UnifiedSuggestion } from '@/types';
 
 /**
  * Suggestions state for a single key across all target languages.

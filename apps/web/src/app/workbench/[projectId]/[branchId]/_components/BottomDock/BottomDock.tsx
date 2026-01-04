@@ -2,6 +2,7 @@
 
 import type { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import type { UnifiedSuggestion } from '@/types';
 import { BookOpen, GripHorizontal, Link2, Sparkles, Type } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -13,15 +14,6 @@ import { AISuggestionsTab } from './AISuggestionsTab';
 import { GlossaryTab } from './GlossaryTab';
 import { RelatedKeysTab } from './RelatedKeysTab';
 import { TMMatchesTab } from './TMMatchesTab';
-
-interface UnifiedSuggestion {
-  id: string;
-  type: 'tm' | 'mt' | 'ai';
-  text: string;
-  confidence: number;
-  source?: string;
-  provider?: string;
-}
 
 type TabId = 'tm' | 'glossary' | 'ai' | 'related';
 
