@@ -6,9 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import type { UnifiedSuggestion } from '@/types';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Brain, Database, Loader2, Sparkles, Wand2, Zap } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { QualityIssuesInline } from '../shared';
+
+type FocusMode = 'keys' | 'source' | 'language' | 'suggestion';
 
 interface LanguageRowContentProps {
   value: string;
@@ -26,6 +29,13 @@ interface LanguageRowContentProps {
   isFetchingAI: boolean;
   hasMT: boolean;
   hasAI: boolean;
+  // Keyboard navigation props
+  registerTextareaRef?: (ref: HTMLTextAreaElement | null) => void;
+  languageName?: string;
+  isLanguageFocused?: boolean;
+  isSuggestionFocused?: (index: number) => boolean;
+  focusMode?: FocusMode;
+  onFocus?: () => void;
 }
 
 export function LanguageRowContent({
@@ -44,10 +54,27 @@ export function LanguageRowContent({
   isFetchingAI,
   hasMT,
   hasAI,
+  // Keyboard navigation props
+  registerTextareaRef,
+  languageName,
+  isLanguageFocused = false,
+  isSuggestionFocused,
+  focusMode,
+  onFocus,
 }: LanguageRowContentProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { t } = useTranslation();
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [localValue, setLocalValue] = useState(value);
   const [showEditor, setShowEditor] = useState(!isEmpty);
+
+  // Register textarea ref with parent
+  const setTextareaRef = useCallback(
+    (ref: HTMLTextAreaElement | null) => {
+      textareaRef.current = ref;
+      registerTextareaRef?.(ref);
+    },
+    [registerTextareaRef]
+  );
 
   // Sync with external value
   useEffect(() => {
@@ -181,15 +208,17 @@ export function LanguageRowContent({
       {/* Textarea - larger font for readability */}
       <div className="relative">
         <Textarea
-          ref={textareaRef}
+          ref={setTextareaRef}
           value={localValue}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
+          onFocus={onFocus}
           className={cn(
             'min-h-[100px] resize-none font-mono text-base leading-relaxed',
             validationError && 'border-destructive focus-visible:ring-destructive'
           )}
           placeholder="Enter translation..."
+          aria-label={languageName ? `${languageName} translation text` : 'Translation text'}
         />
       </div>
 
@@ -231,55 +260,68 @@ export function LanguageRowContent({
           <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
             Suggestions
           </p>
-          <div className="flex flex-col gap-2">
-            {suggestions.slice(0, 3).map((suggestion) => (
-              <button
-                key={suggestion.id}
-                className={cn(
-                  'group relative rounded-xl px-4 py-3 text-left transition-all duration-200',
-                  'hover:scale-[1.01] active:scale-[0.99]',
-                  suggestion.type === 'tm' &&
-                    'bg-info/8 border-info/25 hover:border-info/50 hover:bg-info/12 border-2',
-                  suggestion.type === 'mt' &&
-                    'bg-warning/8 border-warning/25 hover:border-warning/50 hover:bg-warning/12 border-2',
-                  suggestion.type === 'ai' &&
-                    'bg-primary/8 border-primary/25 hover:border-primary/50 hover:bg-primary/12 border-2'
-                )}
-                onClick={() => onApplySuggestion(suggestion.text, suggestion.id)}
-                title={`Click to apply: ${suggestion.text}`}
-              >
-                {/* Header row with type badge */}
-                <div className="mb-2 flex items-center gap-2">
-                  <div
-                    className={cn(
-                      'flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium',
-                      suggestion.type === 'tm' && 'bg-info/15 text-info',
-                      suggestion.type === 'mt' && 'bg-warning/15 text-warning',
-                      suggestion.type === 'ai' && 'bg-primary/15 text-primary'
-                    )}
-                  >
-                    {getSuggestionIcon(suggestion.type)}
-                    <span>{getSuggestionLabel(suggestion.type)}</span>
-                    {suggestion.type === 'tm' && (
-                      <span className="ml-1 opacity-80">{suggestion.confidence}%</span>
+          <div className="flex flex-col gap-2" role="listbox" aria-label="Translation suggestions">
+            {suggestions.slice(0, 3).map((suggestion, index) => {
+              const isThisSuggestionFocused =
+                isLanguageFocused && focusMode === 'suggestion' && isSuggestionFocused?.(index);
+
+              return (
+                <button
+                  key={suggestion.id}
+                  role="option"
+                  aria-selected={isThisSuggestionFocused}
+                  tabIndex={isThisSuggestionFocused ? 0 : -1}
+                  className={cn(
+                    'group relative rounded-xl px-4 py-3 text-left transition-all duration-200 outline-none',
+                    'hover:scale-[1.01] active:scale-[0.99]',
+                    suggestion.type === 'tm' &&
+                      'bg-info/8 border-info/25 hover:border-info/50 hover:bg-info/12 border-2',
+                    suggestion.type === 'mt' &&
+                      'bg-warning/8 border-warning/25 hover:border-warning/50 hover:bg-warning/12 border-2',
+                    suggestion.type === 'ai' &&
+                      'bg-primary/8 border-primary/25 hover:border-primary/50 hover:bg-primary/12 border-2',
+                    isThisSuggestionFocused && 'ring-primary ring-2 ring-offset-2'
+                  )}
+                  onClick={() => onApplySuggestion(suggestion.text, suggestion.id)}
+                  title={`${t('workbench.suggestion.clickToApply')}: ${suggestion.text}`}
+                >
+                  {/* Header row with type badge */}
+                  <div className="mb-2 flex items-center gap-2">
+                    <div
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium',
+                        suggestion.type === 'tm' && 'bg-info/15 text-info',
+                        suggestion.type === 'mt' && 'bg-warning/15 text-warning',
+                        suggestion.type === 'ai' && 'bg-primary/15 text-primary'
+                      )}
+                    >
+                      {getSuggestionIcon(suggestion.type)}
+                      <span>{getSuggestionLabel(suggestion.type)}</span>
+                      {suggestion.type === 'tm' && (
+                        <span className="ml-1 opacity-80">{suggestion.confidence}%</span>
+                      )}
+                    </div>
+                    {suggestion.provider && (
+                      <span className="text-muted-foreground text-xs">
+                        via {suggestion.provider}
+                      </span>
                     )}
                   </div>
-                  {suggestion.provider && (
-                    <span className="text-muted-foreground text-xs">via {suggestion.provider}</span>
-                  )}
-                </div>
 
-                {/* Suggestion text - prominent and readable */}
-                <p className="text-foreground line-clamp-2 font-mono text-sm leading-relaxed">
-                  {suggestion.text}
-                </p>
+                  {/* Suggestion text - prominent and readable */}
+                  <p className="text-foreground line-clamp-2 font-mono text-sm leading-relaxed">
+                    {suggestion.text}
+                  </p>
 
-                {/* Click hint */}
-                <div className="absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="text-muted-foreground text-xs">Click to apply</span>
-                </div>
-              </button>
-            ))}
+                  {/* Click hint */}
+                  <div className="absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="text-muted-foreground text-xs">
+                      {t('workbench.suggestion.clickToApply')}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

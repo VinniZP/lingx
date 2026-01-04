@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { ProjectLanguage } from '@lingx/shared';
 import { Check, Copy, Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+import { useEffect, useState } from 'react';
 
 // Language code to flag emoji mapping
 function getFlagEmoji(code: string): string {
@@ -41,6 +42,9 @@ interface SourceSectionProps {
   onChange?: (value: string) => void;
   isSaving?: boolean;
   isSaved?: boolean;
+  textareaRef?: RefObject<HTMLTextAreaElement | null>;
+  isFocused?: boolean;
+  onFocus?: () => void;
 }
 
 export function SourceSection({
@@ -49,10 +53,12 @@ export function SourceSection({
   onChange,
   isSaving = false,
   isSaved = false,
+  textareaRef,
+  isFocused = false,
+  onFocus,
 }: SourceSectionProps) {
   const [copied, setCopied] = useState(false);
   const [localValue, setLocalValue] = useState(value);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sync with external value
   useEffect(() => {
@@ -103,15 +109,18 @@ export function SourceSection({
 
       {isEditable ? (
         <Textarea
-          ref={textareaRef}
+          ref={textareaRef as React.RefObject<HTMLTextAreaElement>}
           value={localValue}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
+          onFocus={onFocus}
           className={cn(
             'min-h-[80px] resize-none font-mono text-base leading-relaxed',
-            'bg-background/50'
+            'bg-background/50',
+            isFocused && 'ring-primary ring-2'
           )}
           placeholder="Enter source text..."
+          aria-label={`${language.name} source text`}
         />
       ) : (
         <div className="bg-background/50 border-border rounded-xl border px-4 py-3 font-mono text-base leading-relaxed">

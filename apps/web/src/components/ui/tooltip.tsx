@@ -3,6 +3,7 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import * as React from 'react';
 
+import { usePlatform } from '@/hooks';
 import { cn } from '@/lib/utils';
 
 function TooltipProvider({
@@ -31,7 +32,7 @@ function TooltipTrigger({ ...props }: React.ComponentProps<typeof TooltipPrimiti
 }
 
 interface TooltipContentProps extends React.ComponentProps<typeof TooltipPrimitive.Content> {
-  /** Optional keyboard shortcut to display */
+  /** Optional keyboard shortcut to display (use ⌘ for modifier, will be converted to Ctrl on non-Mac) */
   kbd?: string;
 }
 
@@ -42,6 +43,21 @@ function TooltipContent({
   kbd,
   ...props
 }: TooltipContentProps) {
+  const { isMac } = usePlatform();
+
+  // Transform kbd string for non-Mac platforms: ⌘ → Ctrl+, ⌥ → Alt+, ⇧ → Shift+
+  const displayKbd = React.useMemo(() => {
+    if (!kbd) return undefined;
+    if (isMac) return kbd;
+
+    return kbd
+      .replace(/⌘/g, 'Ctrl+')
+      .replace(/⌥/g, 'Alt+')
+      .replace(/⇧/g, 'Shift+')
+      .replace(/⏎/g, 'Enter')
+      .replace(/⌫/g, 'Backspace');
+  }, [kbd, isMac]);
+
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
@@ -70,11 +86,11 @@ function TooltipContent({
         )}
         {...props}
       >
-        {kbd ? (
+        {displayKbd ? (
           <div className="flex items-center justify-between gap-3">
             <span>{children}</span>
-            <kbd className="shrink-0 rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[11px] font-normal text-zinc-400">
-              {kbd}
+            <kbd className="font-kbd shrink-0 rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-[11px] font-normal text-zinc-400">
+              {displayKbd}
             </kbd>
           </div>
         ) : (

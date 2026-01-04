@@ -3,9 +3,9 @@
     "title": "",
     "description": "",
     "addTag": "",
+    "noTagsYet": "",
     "createToOrganize": "",
-    "createFirstTag": "",
-    "noTagsYet": ""
+    "createFirstTag": ""
   },
   "common": {
     "cancel": "Abbrechen"

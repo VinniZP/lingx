@@ -19,28 +19,28 @@
   "pageTitle": "AI Translation",
   "toasts": {
     "configSaved": "",
+    "configSavedDescription": "{provider} налаштовано.",
+    "configSaveFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": "",
     "configRemoved": "",
     "configRemovedDescription": "{provider} видалено.",
     "configRemoveFailed": "",
     "connectionSuccess": "",
     "connectionSuccessDescription": "Успішно підключено до {provider}.",
-    "connectionFailed": "",
-    "configSavedDescription": "{provider} налаштовано.",
-    "configSaveFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": ""
+    "connectionFailed": ""
   },
   "usage": {
     "stats": {
-      "cacheHits": "",
       "totalTokens": "",
       "requests": "",
+      "cacheHits": "",
       "estCost": ""
     },
     "title": "",
-    "description": "",
     "byProvider": "",
+    "description": "",
     "tokens": "",
     "requests": ""
   },
@@ -50,30 +50,29 @@
     "qualityEvaluation": "Оцінка якості",
     "usage": ""
   },
-  "pageDescription": "Налаштуйте провайдерів ШІ для контекстних підказок перекладу",
   "provider": {
-    "googleAI": {
-      "description": ""
-    },
-    "mistral": {
-      "description": ""
-    },
     "form": {
+      "apiKeyPlaceholder": "Введіть API ключ {provider}",
       "apiKeyHint": {
         "openai": "",
         "anthropic": "",
         "googleAI": "",
         "mistral": ""
       },
-      "model": "",
       "modelPlaceholder": "",
       "modelDescription": "",
       "enableProvider": "",
       "enableProviderDescription": "",
+      "model": "",
       "apiKey": "",
       "apiKeyKeepCurrent": "",
-      "apiKeyUpdatePlaceholder": "",
-      "apiKeyPlaceholder": "Введіть API ключ {provider}"
+      "apiKeyUpdatePlaceholder": ""
+    },
+    "googleAI": {
+      "description": ""
+    },
+    "mistral": {
+      "description": ""
     },
     "openai": {
       "description": ""
@@ -81,14 +80,10 @@
     "anthropic": {
       "description": ""
     },
-    "status": {
-      "active": "",
-      "inactive": ""
-    },
     "actions": {
-      "save": "Зберегти",
       "cancel": "Скасувати",
       "saving": "Збереження...",
+      "save": "Зберегти",
       "remove": "Видалити",
       "test": "Тест",
       "edit": "Редагувати"
@@ -96,18 +91,22 @@
     "removeDialog": {
       "title": "Видалити {provider}",
       "description": "Це видалить API ключ і вимкне переклад за допомогою ШІ через {provider}. Ви зможете додати його знову пізніше."
+    },
+    "status": {
+      "active": "",
+      "inactive": ""
     }
   },
   "context": {
+    "customInstructions": {
+      "placeholder": "наприклад, «Використовуйте формальний стиль для перекладів німецькою» або «Робіть переклади лаконічними для мобільного інтерфейсу»",
+      "title": "Користувацькі інструкції",
+      "description": "Додайте конкретні інструкції для ШІ"
+    },
     "title": "Налаштування контексту",
     "description": "Налаштуйте, який контекст ШІ використовує для розумніших перекладів",
     "maxItems": "Максимальна кількість елементів",
     "minSimilarity": "Мінімальна схожість",
-    "customInstructions": {
-      "title": "Користувацькі інструкції",
-      "description": "Додайте конкретні інструкції для ШІ",
-      "placeholder": "наприклад, «Використовуйте формальний стиль для перекладів німецькою» або «Робіть переклади лаконічними для мобільного інтерфейсу»"
-    },
     "saveNote": "Зміни застосовуються до всіх майбутніх перекладів ШІ",
     "saveSettings": "Зберегти налаштування",
     "glossary": {
@@ -122,5 +121,6 @@
       "label": "Пов’язані ключі",
       "description": "Враховуйте переклади з пов’язаних ключів"
     }
-  }
+  },
+  "pageDescription": "Налаштуйте провайдерів ШІ для контекстних підказок перекладу"
 }
