@@ -1,3 +1,14 @@
+/**
+ * Knip Configuration
+ *
+ * Detects unused files, dependencies, and exports across the monorepo.
+ *
+ * Usage:
+ *   pnpm knip        - Check for dead code
+ *   pnpm knip:fix    - Auto-remove unused deps (review changes before committing!)
+ *
+ * @see https://knip.dev/
+ */
 import type { KnipConfig } from 'knip';
 
 const config: KnipConfig = {
