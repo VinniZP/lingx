@@ -58,6 +58,7 @@ export {
   type UpdateGlossaryEntryInput,
 } from './use-glossary';
 export { useIsMobile } from './use-mobile';
+export { usePlatform } from './use-platform';
 export { useProjects } from './use-projects';
 export {
   useRelatedKeys,

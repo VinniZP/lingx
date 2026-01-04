@@ -3,12 +3,15 @@
 import type { TranslationKey } from '@/lib/api';
 import type { UnifiedSuggestion } from '@/types';
 import type { ProjectLanguage } from '@lingx/shared';
+import type { RefObject } from 'react';
 import { useMemo } from 'react';
 import { useKeyQualityEvaluation, useKeyQualityIssues } from '../../_hooks';
 import { BottomDock } from '../BottomDock';
 import { LanguageRow } from '../LanguageRow';
 import { KeyHeader } from './KeyHeader';
 import { SourceSection } from './SourceSection';
+
+type FocusMode = 'keys' | 'source' | 'language' | 'suggestion';
 
 interface KeyEditorPanelProps {
   keyData?: TranslationKey;
@@ -33,6 +36,16 @@ interface KeyEditorPanelProps {
   hasAI: boolean;
   projectId: string;
   branchId: string;
+  // Keyboard navigation props
+  expandedLanguages: Set<string>;
+  onExpandLanguage: (lang: string, expanded: boolean) => void;
+  sourceTextareaRef: RefObject<HTMLTextAreaElement | null>;
+  registerLanguageTextarea: (lang: string, ref: HTMLTextAreaElement | null) => void;
+  isLanguageFocused: (lang: string) => boolean;
+  isSuggestionFocused: (index: number) => boolean;
+  focusMode: FocusMode;
+  onSourceFocus: () => void;
+  onLanguageFocus: (lang: string) => void;
 }
 
 export function KeyEditorPanel({
@@ -58,6 +71,16 @@ export function KeyEditorPanel({
   hasAI,
   projectId,
   branchId,
+  // Keyboard navigation props
+  expandedLanguages,
+  onExpandLanguage,
+  sourceTextareaRef,
+  registerLanguageTextarea,
+  isLanguageFocused,
+  isSuggestionFocused,
+  focusMode,
+  onSourceFocus,
+  onLanguageFocus,
 }: KeyEditorPanelProps) {
   // Quality evaluation hook
   const { evaluateKeyQuality, isEvaluating } = useKeyQualityEvaluation({
@@ -101,6 +124,9 @@ export function KeyEditorPanel({
           onChange={(newValue) => onTranslationChange(keyData.id, defaultLanguage.code, newValue)}
           isSaving={savingKeys.get(keyData.id)?.has(defaultLanguage.code) ?? false}
           isSaved={savedKeys.get(keyData.id)?.has(defaultLanguage.code) ?? false}
+          textareaRef={sourceTextareaRef}
+          isFocused={focusMode === 'source'}
+          onFocus={onSourceFocus}
         />
       )}
 
@@ -116,6 +142,8 @@ export function KeyEditorPanel({
             const isFetchingMT = getFetchingMTSet(keyData.id).has(lang.code);
             const isFetchingAI = getFetchingAISet(keyData.id).has(lang.code);
             const qualityIssues = qualityIssuesData?.issues?.[lang.code] ?? [];
+
+            const suggestions = getSuggestions(keyData.id).get(lang.code) || [];
 
             return (
               <LanguageRow
@@ -133,7 +161,7 @@ export function KeyEditorPanel({
                 onApprove={() => translation && onApprove(translation.id, 'APPROVED')}
                 onReject={() => translation && onApprove(translation.id, 'REJECTED')}
                 isApproving={translation ? approvingTranslations.has(translation.id) : false}
-                suggestions={getSuggestions(keyData.id).get(lang.code) || []}
+                suggestions={suggestions}
                 onApplySuggestion={(text, suggestionId) =>
                   onApplySuggestion(keyData.id, lang.code, text, suggestionId)
                 }
@@ -143,6 +171,14 @@ export function KeyEditorPanel({
                 isFetchingAI={isFetchingAI}
                 hasMT={hasMT}
                 hasAI={hasAI}
+                // Keyboard navigation props
+                isExpanded={expandedLanguages.has(lang.code)}
+                onToggleExpand={(expanded) => onExpandLanguage(lang.code, expanded)}
+                registerTextareaRef={(ref) => registerLanguageTextarea(lang.code, ref)}
+                isFocused={isLanguageFocused(lang.code)}
+                isSuggestionFocused={isSuggestionFocused}
+                focusMode={focusMode}
+                onFocus={() => onLanguageFocus(lang.code)}
               />
             );
           })}

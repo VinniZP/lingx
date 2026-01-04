@@ -7,12 +7,13 @@ import { useKeySuggestions, useRecordTMUsage } from '@/hooks';
 import { useBulkTranslateJob } from '@/hooks/use-bulk-translate-job';
 import type { TranslationKey } from '@/lib/api';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { use, useCallback, useMemo, useState } from 'react';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import { FloatingBatchBar } from './_components/FloatingBatchBar';
 import { KeyEditorPanel } from './_components/KeyEditorPanel';
 import { KeyListSidebar } from './_components/KeyListSidebar';
 import { WorkbenchToolbar } from './_components/WorkbenchToolbar';
 import {
+  useKeyboardNavigation,
   useKeySelection,
   useTMSuggestions,
   useTranslationMutations,
@@ -42,6 +43,9 @@ export default function WorkbenchPage({ params }: PageProps) {
   const [bulkTranslateDialogOpen, setBulkTranslateDialogOpen] = useState(false);
   const [bulkTranslateProvider, setBulkTranslateProvider] = useState<'MT' | 'AI' | null>(null);
   const [bulkQualityDialogOpen, setBulkQualityDialogOpen] = useState(false);
+
+  // Language row expansion state (lifted for keyboard navigation)
+  const [expandedLanguages, setExpandedLanguages] = useState<Set<string>>(new Set());
 
   // Data hook
   const {
@@ -84,6 +88,52 @@ export default function WorkbenchPage({ params }: PageProps) {
   // Selection hook
   const { selectedKeys, handleSelectionChange, handleSelectAll, clearSelection, isAllSelected } =
     useKeySelection({ keys });
+
+  // Expansion handlers
+  const handleExpandLanguage = useCallback((lang: string, expanded: boolean) => {
+    setExpandedLanguages((prev) => {
+      const next = new Set(prev);
+      if (expanded) {
+        next.add(lang);
+      } else {
+        next.delete(lang);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleCollapseAllLanguages = useCallback(() => {
+    setExpandedLanguages(new Set());
+  }, []);
+
+  // Get target language objects for expansion logic
+  const targetLanguageObjects = useMemo(() => {
+    return languages.filter((l) => !l.isDefault);
+  }, [languages]);
+
+  // Auto-expand languages based on status when key changes
+  useEffect(() => {
+    if (!selectedKeyId) {
+      setExpandedLanguages(new Set());
+      return;
+    }
+
+    const selectedKey = keys.find((k) => k.id === selectedKeyId);
+    if (!selectedKey) return;
+
+    const toExpand = new Set<string>();
+    targetLanguageObjects.forEach((lang) => {
+      const translation = selectedKey.translations.find((t) => t.language === lang.code);
+      const value = translation?.value || '';
+      const status = !value ? 'empty' : translation?.status || 'PENDING';
+
+      // Auto-expand empty, pending, or rejected
+      if (status === 'empty' || status === 'PENDING' || status === 'REJECTED') {
+        toExpand.add(lang.code);
+      }
+    });
+    setExpandedLanguages(toExpand);
+  }, [selectedKeyId, keys, targetLanguageObjects]);
 
   // Stable string representation for dependency arrays (Sets lack equality checking)
   const selectedKeysString = useMemo(
@@ -173,6 +223,96 @@ export default function WorkbenchPage({ params }: PageProps) {
     [handleTranslationChange, recordTMUsage]
   );
 
+  // Get current translation ID for approve shortcut
+  const getCurrentTranslationId = useCallback(
+    (lang: string) => {
+      if (!selectedKeyId) return undefined;
+      const selectedKeyData = keys.find((k) => k.id === selectedKeyId);
+      return selectedKeyData?.translations.find((t) => t.language === lang)?.id;
+    },
+    [selectedKeyId, keys]
+  );
+
+  // Get suggestion count for a language
+  const getSuggestionCount = useCallback(
+    (lang: string) => {
+      if (!selectedKeyId) return 0;
+      return getSuggestions(selectedKeyId).get(lang)?.length ?? 0;
+    },
+    [selectedKeyId, getSuggestions]
+  );
+
+  // Apply suggestion by index
+  const handleApplySuggestionByIndex = useCallback(
+    (lang: string, index: number) => {
+      if (!selectedKeyId) return;
+      const langSuggestions = getSuggestions(selectedKeyId).get(lang);
+      const suggestion = langSuggestions?.[index];
+      if (suggestion) {
+        handleApplySuggestion(selectedKeyId, lang, suggestion.text, suggestion.id);
+      }
+    },
+    [selectedKeyId, getSuggestions, handleApplySuggestion]
+  );
+
+  // MT/AI fetch handlers for keyboard shortcuts (use selectedKeyId)
+  const handleFetchMTForKeyboard = useCallback(
+    (lang: string) => {
+      if (!selectedKeyId) return;
+      const key = keys.find((k) => k.id === selectedKeyId);
+      if (!key || !defaultLanguage) return;
+      const source = getTranslationValue(key, defaultLanguage.code);
+      if (!source) return;
+      fetchMT(selectedKeyId, source, defaultLanguage.code, lang);
+    },
+    [selectedKeyId, keys, defaultLanguage, getTranslationValue, fetchMT]
+  );
+
+  const handleFetchAIForKeyboard = useCallback(
+    (lang: string) => {
+      if (!selectedKeyId) return;
+      const key = keys.find((k) => k.id === selectedKeyId);
+      if (!key || !defaultLanguage) return;
+      const source = getTranslationValue(key, defaultLanguage.code);
+      if (!source) return;
+      fetchAI(selectedKeyId, source, defaultLanguage.code, lang);
+    },
+    [selectedKeyId, keys, defaultLanguage, getTranslationValue, fetchAI]
+  );
+
+  // Keyboard navigation hook
+  const {
+    focusMode,
+    keyListContainerRef,
+    sourceTextareaRef,
+    isKeyFocused,
+    isLanguageFocused,
+    isSuggestionFocused,
+    registerLanguageTextarea,
+    handleSourceFocus,
+    handleLanguageFocus,
+  } = useKeyboardNavigation({
+    keys,
+    selectedKeyId,
+    onSelectKey: setSelectedKeyId,
+    page,
+    totalPages,
+    onPageChange: setPage,
+    languages,
+    defaultLanguage: defaultLanguage ?? null,
+    expandedLanguages,
+    onExpandLanguage: handleExpandLanguage,
+    onCollapseAllLanguages: handleCollapseAllLanguages,
+    onApprove: handleApprove,
+    getCurrentTranslationId,
+    getSuggestionCount,
+    onApplySuggestion: handleApplySuggestionByIndex,
+    onFetchMT: handleFetchMTForKeyboard,
+    onFetchAI: handleFetchAIForKeyboard,
+    hasMT,
+    hasAI,
+  });
+
   const handleFetchMT = useCallback(
     (keyId: string, lang: string) => {
       const key = keys.find((k) => k.id === keyId);
@@ -244,6 +384,7 @@ export default function WorkbenchPage({ params }: PageProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* Key List Sidebar */}
         <KeyListSidebar
+          ref={keyListContainerRef}
           keys={keys}
           selectedKeyId={effectiveSelectedKeyId}
           onSelectKey={setSelectedKeyId}
@@ -259,6 +400,7 @@ export default function WorkbenchPage({ params }: PageProps) {
           page={page}
           totalPages={totalPages}
           onPageChange={setPage}
+          isKeyFocused={isKeyFocused}
         />
 
         {/* Editor Panel */}
@@ -285,6 +427,16 @@ export default function WorkbenchPage({ params }: PageProps) {
           hasAI={hasAI}
           projectId={projectId}
           branchId={branchId}
+          // Keyboard navigation props
+          expandedLanguages={expandedLanguages}
+          onExpandLanguage={handleExpandLanguage}
+          sourceTextareaRef={sourceTextareaRef}
+          registerLanguageTextarea={registerLanguageTextarea}
+          isLanguageFocused={isLanguageFocused}
+          isSuggestionFocused={isSuggestionFocused}
+          focusMode={focusMode}
+          onSourceFocus={handleSourceFocus}
+          onLanguageFocus={handleLanguageFocus}
         />
       </div>
 

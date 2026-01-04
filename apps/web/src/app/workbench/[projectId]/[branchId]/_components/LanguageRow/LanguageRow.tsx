@@ -5,9 +5,10 @@ import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import type { UnifiedSuggestion } from '@/types';
 import type { ProjectLanguage } from '@lingx/shared';
-import { useMemo, useState } from 'react';
 import { LanguageRowContent } from './LanguageRowContent';
 import { LanguageRowHeader } from './LanguageRowHeader';
+
+type FocusMode = 'keys' | 'source' | 'language' | 'suggestion';
 
 interface LanguageRowProps {
   language: ProjectLanguage;
@@ -31,6 +32,14 @@ interface LanguageRowProps {
   isFetchingAI: boolean;
   hasMT: boolean;
   hasAI: boolean;
+  // Keyboard navigation props
+  isExpanded: boolean;
+  onToggleExpand: (expanded: boolean) => void;
+  registerTextareaRef?: (ref: HTMLTextAreaElement | null) => void;
+  isFocused?: boolean;
+  isSuggestionFocused?: (index: number) => boolean;
+  focusMode?: FocusMode;
+  onFocus?: () => void;
 }
 
 export function LanguageRow({
@@ -55,6 +64,14 @@ export function LanguageRow({
   isFetchingAI,
   hasMT,
   hasAI,
+  // Keyboard navigation props
+  isExpanded,
+  onToggleExpand,
+  registerTextareaRef,
+  isFocused = false,
+  isSuggestionFocused,
+  focusMode,
+  onFocus,
 }: LanguageRowProps) {
   const getStatus = (): 'APPROVED' | 'REJECTED' | 'PENDING' | 'empty' => {
     if (!value) return 'empty';
@@ -62,13 +79,6 @@ export function LanguageRow({
   };
 
   const status = getStatus();
-
-  // Compute initial expanded state based on status
-  const shouldAutoExpand = useMemo(() => {
-    return status === 'empty' || status === 'PENDING' || status === 'REJECTED';
-  }, [status]);
-
-  const [isExpanded, setIsExpanded] = useState(shouldAutoExpand);
   const isEmpty = !value;
 
   // Source stats
@@ -77,18 +87,20 @@ export function LanguageRow({
 
   return (
     <div
+      aria-label={`${language.name} translation`}
       className={cn(
         'group border-l-3 transition-all',
         status === 'APPROVED' && 'border-l-success bg-success/5',
         status === 'REJECTED' && 'border-l-destructive bg-destructive/5',
         status === 'PENDING' && 'border-l-warning',
-        status === 'empty' && 'border-l-muted-foreground/30 border-dashed'
+        status === 'empty' && 'border-l-muted-foreground/30 border-dashed',
+        isFocused && 'ring-primary ring-2 ring-inset'
       )}
     >
       <LanguageRowHeader
         language={language}
         isExpanded={isExpanded}
-        onToggle={() => setIsExpanded(!isExpanded)}
+        onToggle={() => onToggleExpand(!isExpanded)}
         value={value}
         status={status}
         qualityScore={translation?.qualityScore ?? null}
@@ -130,6 +142,13 @@ export function LanguageRow({
             isFetchingAI={isFetchingAI}
             hasMT={hasMT}
             hasAI={hasAI}
+            // Keyboard navigation props
+            registerTextareaRef={registerTextareaRef}
+            languageName={language.name}
+            isLanguageFocused={isFocused}
+            isSuggestionFocused={isSuggestionFocused}
+            focusMode={focusMode}
+            onFocus={onFocus}
           />
         </div>
       </div>
