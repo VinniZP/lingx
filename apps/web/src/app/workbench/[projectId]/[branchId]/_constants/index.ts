@@ -5,7 +5,17 @@
 // Pagination
 export const KEYS_PER_PAGE = 50;
 
-// Batch operations
+/**
+ * Batch operation size for bulk approval/rejection.
+ *
+ * Rationale: 100 items per chunk balances:
+ * - API response time (larger batches = slower individual requests)
+ * - Database transaction size (prevent lock contention)
+ * - Memory usage on client and server
+ * - User experience (parallel chunks provide faster completion)
+ *
+ * This matches the backend MAX_BATCH_SIZE validation limit.
+ */
 export const BATCH_SIZE = 100;
 
 // Auto-save debounce delay in milliseconds

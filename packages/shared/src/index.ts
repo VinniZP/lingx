@@ -9,3 +9,6 @@ export * from './validation/index.js';
 
 // Constants
 export * from './constants/namespace.js';
+
+// Utilities
+export * from './utils/content-hash.js';

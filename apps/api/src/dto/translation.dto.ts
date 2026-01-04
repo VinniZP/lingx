@@ -21,6 +21,9 @@ type KeyWithTranslations = TranslationKey & {
 
 /**
  * Transform Prisma TranslationQualityScore to EmbeddedQualityScore
+ *
+ * The contentHash is exposed so the frontend can detect stale scores
+ * by comparing with generateContentHash(sourceValue, targetValue).
  */
 function toQualityScoreDto(
   score: TranslationQualityScore | null | undefined
@@ -33,6 +36,7 @@ function toQualityScoreDto(
     terminology: score.terminologyScore,
     format: score.formatScore,
     evaluationType: score.evaluationType as 'heuristic' | 'ai' | 'hybrid',
+    contentHash: score.contentHash,
   };
 }
 

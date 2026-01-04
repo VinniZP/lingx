@@ -4,7 +4,7 @@ import { ApiError, translationApi, TranslationKey } from '@/lib/api';
 import { validateICUSyntax } from '@/lib/api/quality';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AUTO_SAVE_DEBOUNCE_MS, BATCH_SIZE, SAVED_INDICATOR_DURATION_MS } from '../_constants';
 
@@ -30,6 +30,17 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
   // Auto-save refs
   const saveTimeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const pendingSavesRef = useRef<Map<string, string>>(new Map());
+  // Ref to track in-flight saves (avoids stale closure issue with state)
+  const savingKeysRef = useRef<Map<string, Set<string>>>(new Map());
+
+  // Cleanup timeouts on unmount to prevent memory leaks
+  useEffect(() => {
+    const timeoutRefs = saveTimeoutRefs.current;
+    return () => {
+      timeoutRefs.forEach((timeout) => clearTimeout(timeout));
+      timeoutRefs.clear();
+    };
+  }, []);
 
   // Update translation mutation
   const updateTranslationMutation = useMutation({
@@ -50,6 +61,13 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
         next.set(variables.keyId, existing);
         return next;
       });
+      // Clear ref immediately
+      const existingRef = savingKeysRef.current.get(variables.keyId);
+      if (existingRef) {
+        langs.forEach((l) => existingRef.delete(l));
+        if (existingRef.size === 0) savingKeysRef.current.delete(variables.keyId);
+      }
+      // Clear state for UI
       setSavingKeys((prev) => {
         const next = new Map(prev);
         const existing = next.get(variables.keyId);
@@ -69,6 +87,9 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
     },
     onError: (error: ApiError, variables) => {
       toast.error(t('translations.toasts.failedToSave'), { description: error.message });
+      // Clear ref immediately
+      savingKeysRef.current.delete(variables.keyId);
+      // Clear state for UI
       setSavingKeys((prev) => {
         const next = new Map(prev);
         next.delete(variables.keyId);
@@ -133,8 +154,8 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
         const valueToSave = pendingSavesRef.current.get(saveKey);
         if (valueToSave === undefined) return;
 
-        // Check if already saving this translation (prevent race condition)
-        if (savingKeys.get(keyId)?.has(lang)) {
+        // Check if already saving this translation using ref (prevents stale closure)
+        if (savingKeysRef.current.get(keyId)?.has(lang)) {
           return;
         }
 
@@ -166,6 +187,12 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
           }
         }
 
+        // Update ref immediately (for next closure check)
+        const existingRef = savingKeysRef.current.get(keyId) || new Set();
+        existingRef.add(lang);
+        savingKeysRef.current.set(keyId, existingRef);
+
+        // Update state for UI
         setSavingKeys((prev) => {
           const next = new Map(prev);
           const existing = next.get(keyId) || new Set();
@@ -197,7 +224,7 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
 
       saveTimeoutRefs.current.set(saveKey, timeout);
     },
-    [updateTranslationMutation, t, savingKeys]
+    [updateTranslationMutation, t]
   );
 
   // Handle approval

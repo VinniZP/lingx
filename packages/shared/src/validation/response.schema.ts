@@ -396,6 +396,12 @@ export const embeddedQualityScoreSchema = z.object({
   terminology: z.number().nullable(),
   format: z.number(),
   evaluationType: z.enum(['heuristic', 'ai', 'hybrid']),
+  /**
+   * Content hash used for cache validation.
+   * Compare with generateContentHash(sourceValue, targetValue) to detect staleness.
+   * If null, score was created before content-hash caching was implemented.
+   */
+  contentHash: z.string().nullable(),
 });
 
 export type EmbeddedQualityScore = z.infer<typeof embeddedQualityScoreSchema>;
