@@ -1,46 +1,47 @@
-import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import Fastify, { FastifyInstance } from 'fastify';
 import {
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
-  jsonSchemaTransform,
 } from 'fastify-type-provider-zod';
 
-import prismaPlugin from './plugins/prisma.js';
-import errorHandlerPlugin from './plugins/error-handler.js';
+import { closeQueueEvents } from './lib/queue-events.js';
+import { closeQueues } from './lib/queues.js';
+import { closeRedis } from './lib/redis.js';
 import authPlugin from './plugins/auth.js';
+import cqrsPlugin from './plugins/cqrs.js';
+import errorHandlerPlugin from './plugins/error-handler.js';
+import prismaPlugin from './plugins/prisma.js';
 import profilePlugin from './plugins/profile.js';
 import totpPlugin from './plugins/totp.js';
 import webauthnPlugin from './plugins/webauthn.js';
-import healthRoutes from './routes/health.js';
-import authRoutes from './routes/auth.js';
-import securityRoutes from './routes/security.js';
-import totpRoutes from './routes/totp.js';
-import webauthnRoutes from './routes/webauthn.js';
-import profileRoutes from './routes/profile.js';
-import dashboardRoutes from './routes/dashboard.js';
 import activityRoutes from './routes/activity.js';
-import projectRoutes from './routes/projects.js';
-import spaceRoutes from './routes/spaces.js';
-import branchRoutes from './routes/branches.js';
-import translationRoutes from './routes/translations.js';
-import translationMemoryRoutes from './routes/translation-memory.js';
-import machineTranslationRoutes from './routes/machine-translation.js';
 import aiTranslationRoutes from './routes/ai-translation.js';
-import glossaryRoutes from './routes/glossary.js';
-import keyContextRoutes from './routes/key-context.js';
+import authRoutes from './routes/auth.js';
+import branchRoutes from './routes/branches.js';
+import dashboardRoutes from './routes/dashboard.js';
 import environmentRoutes from './routes/environments.js';
+import glossaryRoutes from './routes/glossary.js';
+import healthRoutes from './routes/health.js';
+import jobRoutes from './routes/jobs.js';
+import keyContextRoutes from './routes/key-context.js';
+import machineTranslationRoutes from './routes/machine-translation.js';
+import profileRoutes from './routes/profile.js';
+import projectRoutes from './routes/projects.js';
 import qualityEstimationRoutes from './routes/quality-estimation.js';
 import sdkRoutes from './routes/sdk.js';
-import jobRoutes from './routes/jobs.js';
+import securityRoutes from './routes/security.js';
+import spaceRoutes from './routes/spaces.js';
+import totpRoutes from './routes/totp.js';
+import translationMemoryRoutes from './routes/translation-memory.js';
+import translationRoutes from './routes/translations.js';
+import webauthnRoutes from './routes/webauthn.js';
 import { startWorkers, stopWorkers } from './workers/index.js';
-import { closeQueues } from './lib/queues.js';
-import { closeQueueEvents } from './lib/queue-events.js';
-import { closeRedis } from './lib/redis.js';
 
 /**
  * Application configuration options
@@ -62,13 +63,16 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   const fastify = Fastify({
     logger: options.logger ?? {
       level: process.env.LOG_LEVEL || 'info',
-      transport: process.env.NODE_ENV === 'development' ? {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      } : undefined,
+      transport:
+        process.env.NODE_ENV === 'development'
+          ? {
+              target: 'pino-pretty',
+              options: {
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+              },
+            }
+          : undefined,
     },
   });
 
@@ -102,7 +106,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(cors, {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
-    methods: ['GET', 'HEAD', 'POST', 'PUT', "DELETE", "PATCH"]
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH'],
   });
 
   // Disable rate limiting in test mode to prevent test failures
@@ -156,6 +160,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   // Register custom plugins
   await fastify.register(errorHandlerPlugin);
   await fastify.register(prismaPlugin);
+  await fastify.register(cqrsPlugin);
   await fastify.register(authPlugin);
   await fastify.register(profilePlugin);
   await fastify.register(totpPlugin);
