@@ -840,6 +840,9 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.bulkTranslate.translating'
       | 'translations.bulkTranslate.usingAI'
       | 'translations.bulkTranslate.usingMT'
+      | 'translations.dialogs.bulkDeleteKeys.confirm'
+      | 'translations.dialogs.bulkDeleteKeys.description'
+      | 'translations.dialogs.bulkDeleteKeys.title'
       | 'translations.toasts.failedToApprove'
       | 'translations.toasts.failedToApproveTranslations'
       | 'translations.toasts.failedToDeleteKeys'
@@ -1509,6 +1512,10 @@ declare module '@lingx/sdk-nextjs' {
     'toasts.syncSuccess': { provider: string | number };
     /** {count, plural, one {# translation} other {# translations}} processed successfully */
     'translations.bulkTranslate.completedMessage': { count: number };
+    /** Delete {count, plural, one {Key} other {Keys}} */
+    'translations.dialogs.bulkDeleteKeys.confirm': { count: number };
+    /** Delete {count, plural, one {# key} other {# keys}}? */
+    'translations.dialogs.bulkDeleteKeys.title': { count: number };
     /** {count, plural, one {# key} other {# keys}} deleted */
     'translations.toasts.keysDeleted': { count: number };
     /** {count} translations approved */

@@ -1110,6 +1110,13 @@
       "translationsGenerated": "{count, plural, one {# translation} other {# translations}} generated",
       "translationsRejected": "{count} translations rejected",
       "translationsUpdated": "{count} translations {status}"
+    },
+    "dialogs": {
+      "bulkDeleteKeys": {
+        "title": "Delete {count, plural, one {# key} other {# keys}}?",
+        "description": "This will permanently delete the selected translation keys and all their translations. This action cannot be undone.",
+        "confirm": "Delete {count, plural, one {Key} other {Keys}}"
+      }
     }
   },
   "twoFactor": {

@@ -182,6 +182,13 @@
       "translationsApproved": "{count} переводов одобрено",
       "translationsRejected": "{count} переводов отклонено"
     },
+    "dialogs": {
+      "bulkDeleteKeys": {
+        "title": "Удалить {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}?",
+        "description": "Это навсегда удалит выбранные ключи перевода и все их переводы. Это действие нельзя отменить.",
+        "confirm": "Удалить {count, plural, one {ключ} few {ключа} many {ключей} other {ключей}}"
+      }
+    },
     "inlineSuggestion": {
       "from": "из {source}",
       "cached": "кэшировано",
