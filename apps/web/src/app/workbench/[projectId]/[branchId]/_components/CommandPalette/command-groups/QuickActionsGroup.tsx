@@ -49,10 +49,13 @@ export function QuickActionsGroup({
                   key={command.id}
                   onSelect={() => onExecute(command)}
                   disabled={command.disabled}
+                  aria-label={`${label}${command.shortcut ? `, ${t('workbench.commandPalette.a11y.shortcut')}: ${command.shortcut}` : ''}`}
                 >
-                  <Icon className="text-muted-foreground" />
+                  <Icon className="text-muted-foreground" aria-hidden="true" />
                   <span className="flex-1">{label}</span>
-                  {command.shortcut && <CommandShortcut>{command.shortcut}</CommandShortcut>}
+                  {command.shortcut && (
+                    <CommandShortcut aria-hidden="true">{command.shortcut}</CommandShortcut>
+                  )}
                 </CommandItem>
               );
             })}

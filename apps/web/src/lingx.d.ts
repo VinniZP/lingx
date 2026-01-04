@@ -922,6 +922,10 @@ declare module '@lingx/sdk-nextjs' {
       | 'verifyEmail.successMessage'
       | 'verifyEmail.verified'
       | 'verifyEmail.verifying'
+      | 'workbench.commandPalette.a11y.keyNameMatch'
+      | 'workbench.commandPalette.a11y.recentKey'
+      | 'workbench.commandPalette.a11y.shortcut'
+      | 'workbench.commandPalette.a11y.translationMatch'
       | 'workbench.commandPalette.actions.aiTranslateAll'
       | 'workbench.commandPalette.actions.aiTranslateLanguage'
       | 'workbench.commandPalette.actions.approveAll'
@@ -941,6 +945,8 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.commandPalette.actions.rejectLanguage'
       | 'workbench.commandPalette.actions.showShortcuts'
       | 'workbench.commandPalette.description'
+      | 'workbench.commandPalette.errors.executionFailed'
+      | 'workbench.commandPalette.errors.unknownError'
       | 'workbench.commandPalette.groups.approval'
       | 'workbench.commandPalette.groups.navigation'
       | 'workbench.commandPalette.groups.quickActions'
@@ -1515,6 +1521,10 @@ declare module '@lingx/sdk-nextjs' {
     'translations.toasts.translationsUpdated': { count: string | number; status: string | number };
     /** Only {count} backup codes remaining. Consider regenerating them. */
     'twoFactor.codesRemaining': { count: string | number };
+    /** Recently accessed key: {keyName} */
+    'workbench.commandPalette.a11y.recentKey': { keyName: string | number };
+    /** Matched in {language} translation */
+    'workbench.commandPalette.a11y.translationMatch': { language: string | number };
     /** AI Translate ({language}) */
     'workbench.commandPalette.actions.aiTranslateLanguage': { language: string | number };
     /** Approve ({language}) */

@@ -18,10 +18,14 @@ export function RecentActionsGroup({ recentActions, onSelectKey }: RecentActions
   return (
     <CommandGroup heading={t('workbench.commandPalette.groups.recentActions')}>
       {recentActions.map((action) => (
-        <CommandItem key={action.id} onSelect={() => onSelectKey(action.keyId)}>
-          <Key className="text-muted-foreground" />
+        <CommandItem
+          key={action.id}
+          onSelect={() => onSelectKey(action.keyId)}
+          aria-label={t('workbench.commandPalette.a11y.recentKey', { keyName: action.keyName })}
+        >
+          <Key className="text-muted-foreground" aria-hidden="true" />
           <span className="flex-1 truncate">{action.keyName}</span>
-          <Clock className="text-muted-foreground/50 size-3.5" />
+          <Clock className="text-muted-foreground/50 size-3.5" aria-hidden="true" />
         </CommandItem>
       ))}
     </CommandGroup>

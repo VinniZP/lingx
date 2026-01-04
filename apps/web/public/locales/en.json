@@ -1233,6 +1233,16 @@
         "deleteKey": "Delete Key",
         "showShortcuts": "Show Keyboard Shortcuts",
         "evaluateQuality": "Evaluate Quality"
+      },
+      "errors": {
+        "executionFailed": "Command failed",
+        "unknownError": "An unexpected error occurred"
+      },
+      "a11y": {
+        "shortcut": "Keyboard shortcut",
+        "keyNameMatch": "Matched by key name",
+        "translationMatch": "Matched in {language} translation",
+        "recentKey": "Recently accessed key: {keyName}"
       }
     },
     "toasts": {

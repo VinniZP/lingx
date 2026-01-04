@@ -59,63 +59,69 @@ export interface CommandHandlers {
  */
 function getTranslationCommands(ctx: CommandContext, handlers: CommandHandlers): ActionCommand[] {
   const commands: ActionCommand[] = [];
+  const { selectedKeyId, focusedLanguage } = ctx;
 
-  if (!ctx.selectedKeyId) return commands;
+  if (!selectedKeyId) return commands;
 
   // AI Translate focused language
-  if (ctx.hasAI && ctx.focusedLanguage && handlers.onFetchAI) {
+  if (ctx.hasAI && focusedLanguage && handlers.onFetchAI) {
+    const handler = handlers.onFetchAI;
     commands.push({
       id: 'ai-translate-language',
       category: 'translation',
       labelKey: tKey('workbench.commandPalette.actions.aiTranslateLanguage'),
       icon: Sparkles,
       shortcut: '⌘I',
-      action: () => handlers.onFetchAI!(ctx.selectedKeyId!, ctx.focusedLanguage!),
+      action: () => handler(selectedKeyId, focusedLanguage),
     });
   }
 
   // AI Translate all languages
   if (ctx.hasAI && handlers.onFetchAIAll) {
+    const handler = handlers.onFetchAIAll;
     commands.push({
       id: 'ai-translate-all',
       category: 'translation',
       labelKey: tKey('workbench.commandPalette.actions.aiTranslateAll'),
       icon: Sparkles,
-      action: () => handlers.onFetchAIAll!(ctx.selectedKeyId!),
+      action: () => handler(selectedKeyId),
     });
   }
 
   // MT Translate focused language
-  if (ctx.hasMT && ctx.focusedLanguage && handlers.onFetchMT) {
+  if (ctx.hasMT && focusedLanguage && handlers.onFetchMT) {
+    const handler = handlers.onFetchMT;
     commands.push({
       id: 'mt-translate-language',
       category: 'translation',
       labelKey: tKey('workbench.commandPalette.actions.mtTranslateLanguage'),
       icon: Languages,
       shortcut: '⌘M',
-      action: () => handlers.onFetchMT!(ctx.selectedKeyId!, ctx.focusedLanguage!),
+      action: () => handler(selectedKeyId, focusedLanguage),
     });
   }
 
   // MT Translate all languages
   if (ctx.hasMT && handlers.onFetchMTAll) {
+    const handler = handlers.onFetchMTAll;
     commands.push({
       id: 'mt-translate-all',
       category: 'translation',
       labelKey: tKey('workbench.commandPalette.actions.mtTranslateAll'),
       icon: Languages,
-      action: () => handlers.onFetchMTAll!(ctx.selectedKeyId!),
+      action: () => handler(selectedKeyId),
     });
   }
 
   // Copy source to target
-  if (ctx.focusedLanguage && handlers.onCopySource) {
+  if (focusedLanguage && handlers.onCopySource) {
+    const handler = handlers.onCopySource;
     commands.push({
       id: 'copy-source',
       category: 'translation',
       labelKey: tKey('workbench.commandPalette.actions.copySource'),
       icon: Copy,
-      action: () => handlers.onCopySource!(ctx.selectedKeyId!, ctx.focusedLanguage!),
+      action: () => handler(selectedKeyId, focusedLanguage),
     });
   }
 
@@ -127,56 +133,61 @@ function getTranslationCommands(ctx: CommandContext, handlers: CommandHandlers):
  */
 function getApprovalCommands(ctx: CommandContext, handlers: CommandHandlers): ActionCommand[] {
   const commands: ActionCommand[] = [];
+  const { selectedKeyId, focusedLanguage } = ctx;
 
-  if (!ctx.selectedKeyId) return commands;
+  if (!selectedKeyId) return commands;
 
-  const translationId = ctx.focusedLanguage
-    ? handlers.getCurrentTranslationId?.(ctx.focusedLanguage)
+  const translationId = focusedLanguage
+    ? handlers.getCurrentTranslationId?.(focusedLanguage)
     : undefined;
 
   // Approve focused language
   if (translationId && handlers.onApprove) {
+    const handler = handlers.onApprove;
     commands.push({
       id: 'approve-language',
       category: 'approval',
       labelKey: tKey('workbench.commandPalette.actions.approveLanguage'),
       icon: CheckCircle,
       shortcut: '⌘⏎',
-      action: () => handlers.onApprove!(translationId),
+      action: () => handler(translationId),
     });
   }
 
   // Approve all languages
   if (ctx.hasTranslations && handlers.onApproveAll) {
+    const handler = handlers.onApproveAll;
     commands.push({
       id: 'approve-all',
       category: 'approval',
       labelKey: tKey('workbench.commandPalette.actions.approveAll'),
       icon: CheckCircle,
-      action: () => handlers.onApproveAll!(ctx.selectedKeyId!),
+      action: () => handler(selectedKeyId),
     });
   }
 
   // Reject focused language
   if (translationId && handlers.onReject) {
+    const handler = handlers.onReject;
     commands.push({
       id: 'reject-language',
       category: 'approval',
       labelKey: tKey('workbench.commandPalette.actions.rejectLanguage'),
       icon: XCircle,
       shortcut: '⌘⌫',
-      action: () => handlers.onReject!(translationId),
+      action: () => handler(translationId),
     });
   }
 
   // Reject all languages
   if (ctx.hasTranslations && handlers.onRejectAll) {
+    const handler = handlers.onRejectAll;
     commands.push({
       id: 'reject-all',
       category: 'approval',
       labelKey: tKey('workbench.commandPalette.actions.rejectAll'),
       icon: XCircle,
-      action: () => handlers.onRejectAll!(ctx.selectedKeyId!),
+      action: () => handler(selectedKeyId),
     });
   }
 
@@ -255,29 +266,32 @@ function getNavigationCommands(ctx: CommandContext, handlers: CommandHandlers): 
  */
 function getUtilityCommands(ctx: CommandContext, handlers: CommandHandlers): ActionCommand[] {
   const commands: ActionCommand[] = [];
+  const { selectedKeyId } = ctx;
 
   // Copy key name
-  if (ctx.selectedKeyId && handlers.onCopyKeyName) {
-    const keyName = handlers.getKeyName?.(ctx.selectedKeyId);
+  if (selectedKeyId && handlers.onCopyKeyName) {
+    const keyName = handlers.getKeyName?.(selectedKeyId);
     if (keyName) {
+      const handler = handlers.onCopyKeyName;
       commands.push({
         id: 'copy-key-name',
         category: 'utility',
         labelKey: tKey('workbench.commandPalette.actions.copyKeyName'),
         icon: ClipboardCopy,
-        action: () => handlers.onCopyKeyName!(keyName),
+        action: () => handler(keyName),
       });
     }
   }
 
   // Delete key
-  if (ctx.selectedKeyId && handlers.onDeleteKey) {
+  if (selectedKeyId && handlers.onDeleteKey) {
+    const handler = handlers.onDeleteKey;
     commands.push({
       id: 'delete-key',
       category: 'utility',
       labelKey: tKey('workbench.commandPalette.actions.deleteKey'),
       icon: Trash2,
-      action: () => handlers.onDeleteKey!(ctx.selectedKeyId!),
+      action: () => handler(selectedKeyId),
     });
   }
 
@@ -294,13 +308,14 @@ function getUtilityCommands(ctx: CommandContext, handlers: CommandHandlers): Act
   }
 
   // Evaluate quality
-  if (ctx.selectedKeyId && handlers.onEvaluateQuality) {
+  if (selectedKeyId && handlers.onEvaluateQuality) {
+    const handler = handlers.onEvaluateQuality;
     commands.push({
       id: 'evaluate-quality',
       category: 'utility',
       labelKey: tKey('workbench.commandPalette.actions.evaluateQuality'),
       icon: BarChart3,
-      action: () => handlers.onEvaluateQuality!(ctx.selectedKeyId!),
+      action: () => handler(selectedKeyId),
     });
   }
 

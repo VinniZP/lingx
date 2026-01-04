@@ -5,11 +5,12 @@ import type { TranslationKey } from '@/lib/api';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import type { ProjectLanguage } from '@lingx/shared';
 import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 import { QuickActionsGroup } from './command-groups/QuickActionsGroup';
 import { RecentActionsGroup } from './command-groups/RecentActionsGroup';
 import { SearchResultsGroup } from './command-groups/SearchResultsGroup';
 import { getGroupedQuickActions, type CommandHandlers } from './command-registry';
-import { useCommandSearch } from './hooks/use-command-search';
+import { useDebouncedSearch } from './hooks/use-debounced-search';
 import { useRecentActions } from './hooks/use-recent-actions';
 import type { ActionCommand, CommandContext } from './types';
 
@@ -53,8 +54,8 @@ export function WorkbenchCommandPalette({
 
   const { recentActions, addRecentAction } = useRecentActions(projectId);
 
-  // Search results
-  const searchResults = useCommandSearch({
+  // Debounced search results for better performance
+  const searchResults = useDebouncedSearch({
     keys,
     languages,
     query,
@@ -86,17 +87,27 @@ export function WorkbenchCommandPalette({
   // Get grouped quick actions
   const groupedActions = getGroupedQuickActions(commandContext, handlers);
 
-  // Handle command execution
+  // Handle command execution with error handling
   const handleExecuteCommand = useCallback(
     (command: ActionCommand) => {
-      // Execute the command
-      command.action();
+      try {
+        // Execute the command
+        command.action();
 
-      // Close the palette
-      onOpenChange(false);
-      setQuery('');
+        // Close the palette
+        onOpenChange(false);
+        setQuery('');
+      } catch (error) {
+        // Show error toast and keep palette open for retry
+        toast.error(t('workbench.commandPalette.errors.executionFailed'), {
+          description:
+            error instanceof Error
+              ? error.message
+              : t('workbench.commandPalette.errors.unknownError'),
+        });
+      }
     },
-    [onOpenChange]
+    [onOpenChange, t]
   );
 
   // Handle key selection from search or recent
