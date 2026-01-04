@@ -588,9 +588,10 @@ export function useKeyboardNavigation({
             ? (handlers.getSuggestionCount?.(handlers.focusedLanguage) ?? 0)
             : 0;
           if (suggestionCount > 0) {
-            // Only if at end of textarea
+            // Only if at end of textarea with no text selected
             const textarea = target as HTMLTextAreaElement;
-            if (textarea.selectionStart === textarea.value.length) {
+            const hasNoSelection = textarea.selectionStart === textarea.selectionEnd;
+            if (hasNoSelection && textarea.selectionStart === textarea.value.length) {
               e.preventDefault();
               handlers.navigateSuggestion('down');
               return;

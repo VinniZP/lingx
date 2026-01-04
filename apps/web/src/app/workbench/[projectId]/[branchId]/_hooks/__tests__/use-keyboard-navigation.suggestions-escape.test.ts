@@ -159,12 +159,13 @@ describe('useKeyboardNavigation - Suggestion Navigation', () => {
       expect(result.current.focusedLanguage).toBe('de');
       expect(result.current.focusedSuggestionIndex).toBeNull();
 
-      // Simulate ArrowDown from a textarea at end of content
+      // Simulate ArrowDown from a textarea at end of content with no selection
       act(() => {
         const event = createKeyboardEvent('ArrowDown', {
           target: {
             tagName: 'TEXTAREA',
             selectionStart: 0,
+            selectionEnd: 0, // No text selected
             value: '',
           } as unknown as HTMLElement,
         });
@@ -187,12 +188,13 @@ describe('useKeyboardNavigation - Suggestion Navigation', () => {
         result.current.setFocusedLanguage('de');
       });
 
-      // Simulate ArrowDown from a textarea at end
+      // Simulate ArrowDown from a textarea at end with no selection
       act(() => {
         const event = createKeyboardEvent('ArrowDown', {
           target: {
             tagName: 'TEXTAREA',
             selectionStart: 0,
+            selectionEnd: 0,
             value: '',
           } as unknown as HTMLElement,
         });
@@ -200,6 +202,64 @@ describe('useKeyboardNavigation - Suggestion Navigation', () => {
       });
 
       // Should stay in language mode since no suggestions
+      expect(result.current.focusMode).toBe('language');
+      expect(result.current.focusedSuggestionIndex).toBeNull();
+    });
+
+    it('ArrowDown does NOT enter suggestion mode when text is selected', () => {
+      const { result } = renderKeyboardNavigation({
+        getSuggestionCount: vi.fn().mockReturnValue(3),
+      });
+
+      // Set focus to language mode
+      act(() => {
+        result.current.setFocusMode('language');
+        result.current.setFocusedLanguage('de');
+      });
+
+      // Simulate ArrowDown from a textarea with selected text (cursor at end but text selected)
+      act(() => {
+        const event = createKeyboardEvent('ArrowDown', {
+          target: {
+            tagName: 'TEXTAREA',
+            selectionStart: 5, // Selection starts at position 5
+            selectionEnd: 11, // Selection ends at position 11 (text is selected)
+            value: 'Hello World',
+          } as unknown as HTMLElement,
+        });
+        window.dispatchEvent(event);
+      });
+
+      // Should stay in language mode - user might be extending selection
+      expect(result.current.focusMode).toBe('language');
+      expect(result.current.focusedSuggestionIndex).toBeNull();
+    });
+
+    it('ArrowDown does NOT enter suggestion mode when cursor is not at end', () => {
+      const { result } = renderKeyboardNavigation({
+        getSuggestionCount: vi.fn().mockReturnValue(3),
+      });
+
+      // Set focus to language mode
+      act(() => {
+        result.current.setFocusMode('language');
+        result.current.setFocusedLanguage('de');
+      });
+
+      // Simulate ArrowDown from a textarea with cursor in the middle
+      act(() => {
+        const event = createKeyboardEvent('ArrowDown', {
+          target: {
+            tagName: 'TEXTAREA',
+            selectionStart: 5,
+            selectionEnd: 5, // No selection, but not at end
+            value: 'Hello World',
+          } as unknown as HTMLElement,
+        });
+        window.dispatchEvent(event);
+      });
+
+      // Should stay in language mode - cursor not at end
       expect(result.current.focusMode).toBe('language');
       expect(result.current.focusedSuggestionIndex).toBeNull();
     });
