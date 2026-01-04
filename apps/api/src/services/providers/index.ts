@@ -26,27 +26,6 @@ export function createMTProvider(type: MTProviderType): MTProvider {
   }
 }
 
-/**
- * Get display name for provider type
- */
-function getProviderDisplayName(type: MTProviderType): string {
-  switch (type) {
-    case 'DEEPL':
-      return 'DeepL';
-    case 'GOOGLE_TRANSLATE':
-      return 'Google Translate';
-    default:
-      return type;
-  }
-}
-
-/**
- * Get all available provider types
- */
-function getAvailableProviders(): MTProviderType[] {
-  return ['DEEPL', 'GOOGLE_TRANSLATE'];
-}
-
 export * from './mt-provider.interface.js';
 export { DeepLProvider, GoogleTranslateProvider };
 export type { MTProvider };

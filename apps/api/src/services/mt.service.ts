@@ -60,19 +60,6 @@ export interface MTUsageStats {
   };
 }
 
-interface BatchTranslateInput {
-  keyIds: string[];
-  targetLanguage: string;
-  provider?: MTProviderType;
-  overwriteExisting?: boolean;
-}
-
-interface PreTranslateInput {
-  branchId: string;
-  targetLanguages: string[];
-  provider?: MTProviderType;
-}
-
 export interface TranslateWithContextResult extends TranslateResult {
   context?: {
     relatedTranslations: number;

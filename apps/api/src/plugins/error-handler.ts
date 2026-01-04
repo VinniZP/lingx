@@ -84,15 +84,6 @@ export class ForbiddenError extends AppError {
 }
 
 /**
- * Error thrown when a resource conflict occurs (e.g., duplicate entry)
- */
-class ConflictError extends AppError {
-  constructor(message: string) {
-    super(message, 409, 'CONFLICT');
-  }
-}
-
-/**
  * Error thrown when field-level validation fails (e.g., unique constraint violations)
  * Returns detailed field-level errors to the client for form display
  */

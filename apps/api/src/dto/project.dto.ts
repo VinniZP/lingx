@@ -64,15 +64,6 @@ export function toProjectWithStatsDto(
 }
 
 /**
- * Transform array of projects with roles
- */
-function toProjectDtoList(
-  projectsWithRoles: Array<{ project: ProjectWithLanguages; role: MemberRole }>
-): ProjectResponse[] {
-  return projectsWithRoles.map(({ project, role }) => toProjectDto(project, role));
-}
-
-/**
  * Transform array of projects with stats and roles
  */
 export function toProjectWithStatsDtoList(

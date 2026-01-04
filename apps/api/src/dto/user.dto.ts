@@ -18,10 +18,3 @@ export function toUserDto(user: Omit<User, 'password'>): UserResponse {
     createdAt: user.createdAt.toISOString(),
   };
 }
-
-/**
- * Transform nullable user
- */
-function toUserDtoOrNull(user: Omit<User, 'password'> | null): UserResponse | null {
-  return user ? toUserDto(user) : null;
-}

@@ -53,11 +53,6 @@ export const languageEvaluationSchema = z.object({
 });
 
 /**
- * Type inferred from language evaluation schema
- */
-type LanguageEvaluation = z.infer<typeof languageEvaluationSchema>;
-
-/**
  * Create dynamic Zod schema for multi-language response
  *
  * @param languages - List of language codes to include (must be non-empty)
@@ -75,11 +70,6 @@ export function createMultiLanguageSchema(languages: string[]) {
     ) as z.ZodObject<Record<string, typeof languageEvaluationSchema>>,
   });
 }
-
-/**
- * Type for multi-language evaluation result
- */
-type MultiLanguageEvaluationResult = z.infer<ReturnType<typeof createMultiLanguageSchema>>;
 
 // ============================================
 // JSON Extraction

@@ -79,19 +79,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
- * Disconnect Prisma client and close the connection pool.
- * Used for test cleanup.
- */
-async function disconnectPrisma(): Promise<void> {
-  await prisma.$disconnect();
-  if (globalThis.__prismaPool) {
-    await globalThis.__prismaPool.end();
-    globalThis.__prismaPool = undefined;
-  }
-  globalThis.__prisma = undefined;
-}
-
-/**
  * Reset test database by truncating all tables.
  * Only works in test environment.
  */

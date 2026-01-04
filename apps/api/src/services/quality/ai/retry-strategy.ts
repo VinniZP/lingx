@@ -30,18 +30,6 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 };
 
 /**
- * Configuration for conversation-based retries (multi-language)
- */
-const CONVERSATION_RETRY_CONFIG = {
-  /** Maximum turns per conversation before fresh start */
-  maxTurnsPerConversation: 7,
-  /** Maximum fresh starts before giving up */
-  maxFreshStarts: 3,
-  /** Maximum messages to keep in conversation history */
-  maxConversationMessages: 10,
-} as const;
-
-/**
  * Calculate exponential backoff delay for a given attempt.
  *
  * Uses the formula: delay = initialDelay * (multiplier ^ attempt)
