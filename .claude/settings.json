@@ -1,6 +1,19 @@
 {
   "enabledPlugins": {
-    "dev-workflows@claude-code-workflows": true,
-    "dev-workflows-frontend@claude-code-workflows": true
+    "dev-workflows@claude-code-workflows": false,
+    "dev-workflows-frontend@claude-code-workflows": false
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before completing, check if any code was written or modified in this session that contains user-facing UI (React components, pages, forms). If so, briefly scan for potential i18n issues:\n\n1. Any hardcoded strings that should use t() or td()?\n2. Any translation function misuse (variables in t() without tKey)?\n\nIf you find issues, return 'block' with a brief note about what needs i18n review. If the work was non-UI (tests, config, backend-only) or i18n looks correct, return 'approve'.\n\nKeep this check quick and lightweight - only flag obvious issues."
+          }
+        ]
+      }
+    ]
   }
 }

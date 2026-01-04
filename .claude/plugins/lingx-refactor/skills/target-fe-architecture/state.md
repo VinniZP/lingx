@@ -4,13 +4,13 @@ Lingx uses a simple state architecture: React Query for server state, React hook
 
 ## State Types
 
-| Type | Tool | Examples |
-|------|------|----------|
-| **Server State** | React Query | Projects, translations, user data |
-| **Form State** | react-hook-form | Input values, validation |
-| **UI State** | useState | Modals, dropdowns, toggles |
-| **Auth State** | Context | Current user, auth status |
-| **URL State** | Next.js router | Page, filters, pagination |
+| Type             | Tool            | Examples                          |
+| ---------------- | --------------- | --------------------------------- |
+| **Server State** | React Query     | Projects, translations, user data |
+| **Form State**   | react-hook-form | Input values, validation          |
+| **UI State**     | useState        | Modals, dropdowns, toggles        |
+| **Auth State**   | Context         | Current user, auth status         |
+| **URL State**    | Next.js router  | Page, filters, pagination         |
 
 ## Server State (React Query)
 
@@ -271,12 +271,14 @@ function TranslationEditor() {
 ## When NOT to Use Context
 
 Avoid context for:
+
 - Data that React Query handles (server state)
 - Component-specific state (useState)
 - URL-based state (router)
 - Form state (react-hook-form)
 
 Use context only for:
+
 - Authentication state
 - Theme preferences (if needed)
 - Feature flags (if needed)

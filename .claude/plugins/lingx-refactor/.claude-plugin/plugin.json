@@ -1,0 +1,9 @@
+{
+  "name": "lingx-refactor",
+  "version": "0.1.0",
+  "description": "Refactor code to follow Lingx architecture patterns (CQRS-lite for backend, Progressive FSD for frontend) with automatic test coverage",
+  "author": {
+    "name": "Lingx Team"
+  },
+  "keywords": ["refactoring", "architecture", "cqrs", "fsd", "testing"]
+}
