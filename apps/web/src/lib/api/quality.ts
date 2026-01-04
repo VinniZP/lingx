@@ -5,21 +5,16 @@
  */
 
 import type {
-  QualityScore,
-  QualityIssue,
-  BranchQualitySummary,
-  QualityScoringConfig,
   BatchQualityJobResult,
+  BranchQualitySummary,
   ICUValidationResult,
+  QualityIssue,
+  QualityScore,
+  QualityScoringConfig,
 } from '@lingx/shared';
 
 // Re-export shared types for consumers
-export type {
-  QualityScore,
-  QualityIssue,
-  BranchQualitySummary,
-  ICUValidationResult,
-};
+export type { BranchQualitySummary, ICUValidationResult, QualityIssue, QualityScore };
 
 // Backward-compatible alias
 export type BatchQualityResult = BatchQualityJobResult;
@@ -83,9 +78,7 @@ async function fetchQualityApi<T>(endpoint: string, options: RequestInit = {}): 
  * @param translationId - Translation ID
  * @returns Cached quality score or null if not evaluated yet
  */
-export async function getCachedQualityScore(
-  translationId: string
-): Promise<QualityScore | null> {
+export async function getCachedQualityScore(translationId: string): Promise<QualityScore | null> {
   return fetchQualityApi<QualityScore | null>(`/api/translations/${translationId}/quality`, {
     method: 'GET',
   });
@@ -175,4 +168,21 @@ export async function validateICUSyntax(text: string): Promise<ICUValidationResu
     method: 'POST',
     body: JSON.stringify({ text }),
   });
+}
+
+/**
+ * Response for key quality issues endpoint
+ */
+export interface KeyQualityIssuesResponse {
+  issues: Record<string, QualityIssue[]>;
+}
+
+/**
+ * Get quality issues for all translations of a key, grouped by language
+ *
+ * @param keyId - Translation key ID
+ * @returns Issues grouped by language code
+ */
+export async function getKeyQualityIssues(keyId: string): Promise<KeyQualityIssuesResponse> {
+  return fetchQualityApi<KeyQualityIssuesResponse>(`/api/keys/${keyId}/quality/issues`);
 }

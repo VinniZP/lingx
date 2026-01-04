@@ -6,7 +6,7 @@
  */
 
 import type { PrismaClient, ProjectRole } from '@prisma/client';
-import { NotFoundError, ForbiddenError } from '../plugins/error-handler.js';
+import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
 
 export interface ProjectInfo {
   projectId: string;
@@ -55,6 +55,43 @@ export class AccessService {
 
     if (translation.key.branch.space.project.members.length === 0) {
       throw new ForbiddenError('Not authorized to access this translation');
+    }
+  }
+
+  /**
+   * Verify user has access to a translation key via project membership
+   * @throws NotFoundError if key doesn't exist
+   * @throws ForbiddenError if user has no access
+   */
+  async verifyKeyAccess(userId: string, keyId: string): Promise<void> {
+    const key = await this.prisma.translationKey.findUnique({
+      where: { id: keyId },
+      select: {
+        branch: {
+          select: {
+            space: {
+              select: {
+                project: {
+                  select: {
+                    members: {
+                      where: { userId },
+                      select: { userId: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!key) {
+      throw new NotFoundError('Key');
+    }
+
+    if (key.branch.space.project.members.length === 0) {
+      throw new ForbiddenError('Not authorized to access this key');
     }
   }
 

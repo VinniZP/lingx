@@ -1,24 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useTranslation } from '@lingx/sdk-nextjs';
 import { Button } from '@/components/ui/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  ChevronRight,
-  ChevronDown,
-  GitBranch,
-  GitMerge,
-  Plus,
-  FolderOpen,
-} from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type { ProjectTreeBranch, ProjectTreeSpace } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import type { ProjectTreeSpace, ProjectTreeBranch } from '@/lib/api';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import { ChevronDown, ChevronRight, FolderOpen, GitBranch, GitMerge, Plus } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 interface SpaceCardProps {
   space: ProjectTreeSpace;
@@ -30,64 +19,61 @@ interface SpaceCardProps {
 /**
  * SpaceCard - Collapsible card showing a space and its branches
  */
-export function SpaceCard({
-  space,
-  projectId,
-  onCreateBranch,
-  onMergeBranch,
-}: SpaceCardProps) {
+export function SpaceCard({ space, projectId, onCreateBranch, onMergeBranch }: SpaceCardProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="border border-border rounded-xl overflow-hidden bg-card/50 card-hover">
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-accent/30 transition-colors">
+      <div className="border-border bg-card/50 card-hover overflow-hidden rounded-xl border">
+        <CollapsibleTrigger className="hover:bg-accent/30 flex w-full items-center justify-between p-4 transition-colors">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-linear-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 flex items-center justify-center">
+            <div className="flex size-10 items-center justify-center rounded-lg border border-amber-500/20 bg-linear-to-br from-amber-500/10 to-orange-500/5">
               <FolderOpen className="size-5 text-amber-600" strokeWidth={1.5} />
             </div>
             <div className="text-left">
               <div className="font-semibold">{space.name}</div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-muted-foreground text-sm">
                 {t('projectDetail.spacesAndBranches.branchCount', { count: space.branches.length })}
               </div>
             </div>
           </div>
-          <div className={cn(
-            "p-1.5 rounded-md transition-all",
-            isOpen ? "bg-muted/50" : "hover:bg-muted/50"
-          )}>
+          <div
+            className={cn(
+              'rounded-md p-1.5 transition-all',
+              isOpen ? 'bg-muted/50' : 'hover:bg-muted/50'
+            )}
+          >
             {isOpen ? (
-              <ChevronDown className="size-4 text-muted-foreground" />
+              <ChevronDown className="text-muted-foreground size-4" />
             ) : (
-              <ChevronRight className="size-4 text-muted-foreground" />
+              <ChevronRight className="text-muted-foreground size-4" />
             )}
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="border-t border-border px-4 py-3 space-y-1 bg-background/50">
+          <div className="border-border bg-background/50 space-y-1 border-t px-4 py-3">
             {space.branches.map((branch) => (
               <div
                 key={branch.id}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                className="hover:bg-accent/50 group flex items-center justify-between rounded-lg p-3 transition-colors"
               >
                 <Link
-                  href={`/projects/${projectId}/translations/${branch.id}`}
-                  className="flex items-center gap-3 flex-1 min-w-0"
+                  href={`/workbench/${projectId}/${branch.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-3"
                 >
-                  <GitBranch className="size-4 text-muted-foreground shrink-0" />
-                  <span className="font-medium group-hover:text-primary transition-colors truncate">
+                  <GitBranch className="text-muted-foreground size-4 shrink-0" />
+                  <span className="group-hover:text-primary truncate font-medium transition-colors">
                     {branch.name}
                   </span>
                   {branch.isDefault && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-primary/10 text-primary">
+                    <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[9px] font-semibold tracking-wider uppercase">
                       {t('projectDetail.translationCoverage.default')}
                     </span>
                   )}
                 </Link>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm text-muted-foreground font-mono hidden sm:inline">
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-muted-foreground hidden font-mono text-sm sm:inline">
                     {t('projectDetail.spacesAndBranches.keyCount', { count: branch.keyCount })}
                   </span>
                   <Button
@@ -98,8 +84,10 @@ export function SpaceCard({
                       e.stopPropagation();
                       onMergeBranch(branch);
                     }}
-                    className="size-8 rounded-lg text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-colors"
-                    aria-label={t('projectDetail.spacesAndBranches.mergeBranchAriaLabel', { branchName: branch.name })}
+                    className="text-muted-foreground/40 hover:text-primary hover:bg-primary/10 size-8 rounded-lg transition-colors"
+                    aria-label={t('projectDetail.spacesAndBranches.mergeBranchAriaLabel', {
+                      branchName: branch.name,
+                    })}
                   >
                     <GitMerge className="size-4" />
                   </Button>
@@ -109,7 +97,7 @@ export function SpaceCard({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-muted-foreground hover:text-foreground mt-1 gap-2"
+              className="text-muted-foreground hover:text-foreground mt-1 w-full justify-start gap-2"
               onClick={(e) => {
                 e.stopPropagation();
                 onCreateBranch();

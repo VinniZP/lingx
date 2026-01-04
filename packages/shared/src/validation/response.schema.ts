@@ -127,11 +127,14 @@ export const projectStatsDetailSchema = z.object({
   name: z.string(),
   spaces: z.number(),
   totalKeys: z.number(),
-  translationsByLanguage: z.record(z.string(), z.object({
-    translated: z.number(),
-    total: z.number(),
-    percentage: z.number(),
-  })),
+  translationsByLanguage: z.record(
+    z.string(),
+    z.object({
+      translated: z.number(),
+      total: z.number(),
+      percentage: z.number(),
+    })
+  ),
 });
 
 export type ProjectStatsDetail = z.infer<typeof projectStatsDetailSchema>;
@@ -216,11 +219,14 @@ export const spaceStatsResponseSchema = z.object({
   name: z.string(),
   branches: z.number(),
   totalKeys: z.number(),
-  translationsByLanguage: z.record(z.string(), z.object({
-    translated: z.number(),
-    total: z.number(),
-    percentage: z.number(),
-  })),
+  translationsByLanguage: z.record(
+    z.string(),
+    z.object({
+      translated: z.number(),
+      total: z.number(),
+      percentage: z.number(),
+    })
+  ),
 });
 
 export type SpaceStatsResponse = z.infer<typeof spaceStatsResponseSchema>;
@@ -317,13 +323,14 @@ export type BranchDiffResponse = z.infer<typeof branchDiffResponseSchema>;
 /** Merge request body */
 export const mergeRequestSchema = z.object({
   targetBranchId: z.string(),
-  resolutions: z.array(z.object({
-    key: z.string(),
-    resolution: z.union([
-      z.enum(['source', 'target']),
-      z.record(z.string(), z.string()),
-    ]),
-  })).optional(),
+  resolutions: z
+    .array(
+      z.object({
+        key: z.string(),
+        resolution: z.union([z.enum(['source', 'target']), z.record(z.string(), z.string())]),
+      })
+    )
+    .optional(),
 });
 
 export type MergeRequest = z.infer<typeof mergeRequestSchema>;
@@ -381,6 +388,24 @@ export type EnvironmentListResponse = z.infer<typeof environmentListResponseSche
 // Translation Response Schemas
 // ============================================
 
+/** Embedded quality score in translation responses */
+export const embeddedQualityScoreSchema = z.object({
+  score: z.number(),
+  accuracy: z.number().nullable(),
+  fluency: z.number().nullable(),
+  terminology: z.number().nullable(),
+  format: z.number(),
+  evaluationType: z.enum(['heuristic', 'ai', 'hybrid']),
+  /**
+   * Content hash used for cache validation.
+   * Compare with generateContentHash(sourceValue, targetValue) to detect staleness.
+   * If null, score was created before content-hash caching was implemented.
+   */
+  contentHash: z.string().nullable(),
+});
+
+export type EmbeddedQualityScore = z.infer<typeof embeddedQualityScoreSchema>;
+
 /** Translation value */
 export const translationValueSchema = z.object({
   id: z.string(),
@@ -391,6 +416,7 @@ export const translationValueSchema = z.object({
   statusUpdatedBy: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  qualityScore: embeddedQualityScoreSchema.nullable(),
 });
 
 export type TranslationValue = z.infer<typeof translationValueSchema>;
@@ -481,13 +507,17 @@ export const activityMetadataSchema = z.object({
   changedFields: z.array(z.string()).optional(),
   conflictsResolved: z.number().optional(),
   hasMore: z.boolean().optional(),
-  preview: z.array(z.object({
-    keyId: z.string(),
-    keyName: z.string(),
-    language: z.string().optional(),
-    oldValue: z.string().optional(),
-    newValue: z.string().optional(),
-  })).optional(),
+  preview: z
+    .array(
+      z.object({
+        keyId: z.string(),
+        keyName: z.string(),
+        language: z.string().optional(),
+        oldValue: z.string().optional(),
+        newValue: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 export type ActivityMetadata = z.infer<typeof activityMetadataSchema>;

@@ -1,12 +1,11 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
   ChevronDown,
   ChevronRight,
+  ChevronsUpDown,
   FolderOpen,
   GitBranch,
   GitMerge,
@@ -17,18 +16,16 @@ import {
   Plus,
   Settings,
   Shield,
-  ChevronsUpDown,
   Zap,
 } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
-import { projectApi, ProjectTreeBranch, ProjectTreeSpace } from '@/lib/api';
+import { CreateBranchDialog, CreateSpaceDialog, MergeBranchDialog } from '@/components/dialogs';
+import { LanguagePickerCompact } from '@/components/language-picker';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,15 +52,10 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CreateSpaceDialog, CreateBranchDialog, MergeBranchDialog } from '@/components/dialogs';
-import { LanguagePickerCompact } from '@/components/language-picker';
-import { useTranslation } from '@lingx/sdk-nextjs';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { projectApi, ProjectTreeBranch, ProjectTreeSpace } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@lingx/sdk-nextjs';
 
 interface ProjectSidebarProps {
   projectId: string;
@@ -123,20 +115,20 @@ function SpaceTreeItem({
         <CollapsibleTrigger asChild>
           <SidebarMenuButton className="w-full justify-between">
             <div className="flex items-center gap-2">
-              <FolderOpen className="size-4 text-muted-foreground" />
+              <FolderOpen className="text-muted-foreground size-4" />
               <span className="truncate font-medium">{space.name}</span>
             </div>
             <div className="flex items-center gap-1.5">
               {/* Show branch count when collapsed */}
               {showCount && (
-                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">
+                <span className="text-muted-foreground bg-muted rounded-md px-1.5 py-0.5 text-[10px]">
                   {branchCount}
                 </span>
               )}
               {isOpen ? (
-                <ChevronDown className="size-4 text-muted-foreground" />
+                <ChevronDown className="text-muted-foreground size-4" />
               ) : (
-                <ChevronRight className="size-4 text-muted-foreground" />
+                <ChevronRight className="text-muted-foreground size-4" />
               )}
             </div>
           </SidebarMenuButton>
@@ -145,8 +137,8 @@ function SpaceTreeItem({
           {/* Scrollable container for spaces with many branches */}
           <SidebarMenuSub
             className={cn(
-              "ml-2 border-l border-border/50 pl-2",
-              branchCount > 6 && "max-h-64 overflow-y-auto"
+              'border-border/50 ml-2 border-l pl-2',
+              branchCount > 6 && 'max-h-64 overflow-y-auto'
             )}
           >
             {space.branches.map((branch) => (
@@ -162,7 +154,7 @@ function SpaceTreeItem({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start gap-2 h-8 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-8 w-full justify-start gap-2"
                 onClick={() => onCreateBranch(space)}
               >
                 <Plus className="size-3" />
@@ -192,12 +184,8 @@ function BranchItem({
 }) {
   return (
     <SidebarMenuSubItem>
-      <SidebarMenuSubButton
-        asChild
-        isActive={isActive}
-        className="pr-8"
-      >
-        <Link href={`/projects/${projectId}/translations/${branch.id}`}>
+      <SidebarMenuSubButton asChild isActive={isActive} className="pr-8">
+        <Link href={`/workbench/${projectId}/${branch.id}`}>
           <GitBranch className="size-3" />
           <span className="truncate">{branch.name}</span>
         </Link>
@@ -207,8 +195,8 @@ function BranchItem({
       {branch.isDefault && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="absolute right-7 top-1/2 -translate-y-1/2 flex items-center justify-center">
-              <Shield className="size-3.5 text-primary/60" />
+            <div className="absolute top-1/2 right-7 flex -translate-y-1/2 items-center justify-center">
+              <Shield className="text-primary/60 size-3.5" />
             </div>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">
@@ -285,7 +273,7 @@ export function ProjectSidebar({
   return (
     <>
       <Sidebar collapsible="icon">
-        <div className="flex flex-col h-full">
+        <div className="flex h-full flex-col">
           {/* Header */}
           <SidebarHeader className="p-3">
             <SidebarMenu>
@@ -313,16 +301,18 @@ export function ProjectSidebar({
                   className="hover:bg-transparent"
                 >
                   <Link href={`/projects/${projectId}`} onClick={handleNavClick}>
-                    <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-primary-foreground shrink-0">
+                    <div className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-xl">
                       <Globe2 className="size-5" />
                     </div>
                     <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                       {isLoading ? (
                         <Skeleton className="h-4 w-24" />
                       ) : (
-                        <span className="truncate font-semibold text-sm">{tree?.name || 'Project'}</span>
+                        <span className="truncate text-sm font-semibold">
+                          {tree?.name || 'Project'}
+                        </span>
                       )}
-                      <span className="truncate text-[11px] text-muted-foreground">Overview</span>
+                      <span className="text-muted-foreground truncate text-[11px]">Overview</span>
                     </div>
                   </Link>
                 </SidebarMenuButton>
@@ -334,7 +324,7 @@ export function ProjectSidebar({
           <SidebarContent className="px-3">
             {/* Translations Tree - hidden when collapsed */}
             <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <SidebarGroupLabel className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 Translations
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -351,7 +341,7 @@ export function ProjectSidebar({
                   ) : tree?.spaces.length === 0 ? (
                     <SidebarMenuItem>
                       <div className="px-2 py-4 text-center">
-                        <p className="text-xs text-muted-foreground mb-3">No spaces yet</p>
+                        <p className="text-muted-foreground mb-3 text-xs">No spaces yet</p>
                         <Button
                           variant="outline"
                           size="sm"
@@ -392,7 +382,7 @@ export function ProjectSidebar({
 
             {/* Project navigation */}
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <SidebarGroupLabel className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 Project
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -439,12 +429,14 @@ export function ProjectSidebar({
           </SidebarContent>
 
           {/* Footer - Language & User */}
-          <SidebarFooter className="mt-auto border-t border-border p-3 space-y-2">
+          <SidebarFooter className="border-border mt-auto space-y-2 border-t p-3">
             {/* Language Picker */}
             <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
               <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
-                <Globe className="size-4 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">{t('sidebar.language')}</span>
+                <Globe className="text-muted-foreground size-4" />
+                <span className="text-muted-foreground text-xs font-medium">
+                  {t('sidebar.language')}
+                </span>
               </div>
               <LanguagePickerCompact />
             </div>
@@ -454,34 +446,34 @@ export function ProjectSidebar({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton size="lg" data-testid="user-menu">
-                      <Avatar className="size-8 rounded-lg shrink-0">
-                        <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                      <Avatar className="size-8 shrink-0 rounded-lg">
+                        <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs font-medium">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left leading-tight">
-                        <span className="truncate font-medium text-sm">{displayName}</span>
-                        <span className="truncate text-xs text-muted-foreground">{user?.email || 'user@example.com'}</span>
+                        <span className="truncate text-sm font-medium">{displayName}</span>
+                        <span className="text-muted-foreground truncate text-xs">
+                          {user?.email || 'user@example.com'}
+                        </span>
                       </div>
-                      <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
+                      <ChevronsUpDown className="text-muted-foreground ml-auto size-4" />
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    side="top"
-                    className="w-64"
-                    align="start"
-                  >
+                  <DropdownMenuContent side="top" className="w-64" align="start">
                     {/* User header with gradient accent */}
-                    <div className="px-3 py-3 mb-1">
+                    <div className="mb-1 px-3 py-3">
                       <div className="flex items-center gap-3">
-                        <Avatar className="size-10 rounded-xl ring-2 ring-primary/10">
-                          <AvatarFallback className="rounded-xl bg-linear-to-br from-primary/20 to-warm/20 text-primary font-semibold">
+                        <Avatar className="ring-primary/10 size-10 rounded-xl ring-2">
+                          <AvatarFallback className="from-primary/20 to-warm/20 text-primary rounded-xl bg-linear-to-br font-semibold">
                             {userInitials}
                           </AvatarFallback>
                         </Avatar>
                         <div className="grid flex-1 text-left leading-tight">
-                          <span className="truncate font-semibold text-sm">{displayName}</span>
-                          <span className="truncate text-xs text-muted-foreground">{user?.email || 'user@example.com'}</span>
+                          <span className="truncate text-sm font-semibold">{displayName}</span>
+                          <span className="text-muted-foreground truncate text-xs">
+                            {user?.email || 'user@example.com'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -503,8 +495,7 @@ export function ProjectSidebar({
                         <DropdownMenuItem
                           asChild
                           className={cn(
-                            pathname === '/settings' &&
-                              'bg-accent/50 text-accent-foreground'
+                            pathname === '/settings' && 'bg-accent/50 text-accent-foreground'
                           )}
                         >
                           <Link href="/settings" onClick={handleNavClick}>
@@ -560,9 +551,4 @@ export function ProjectSidebar({
   );
 }
 
-export {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-  useSidebar,
-} from '@/components/ui/sidebar';
+export { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';

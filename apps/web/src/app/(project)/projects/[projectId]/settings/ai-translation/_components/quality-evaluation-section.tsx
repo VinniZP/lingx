@@ -1,13 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from '@lingx/sdk-nextjs';
-import { Sparkles, Loader2, Save, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -15,10 +9,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { useAIConfigs, useAISupportedModels, getAIProviderDisplayName, getModelDisplayName } from '@/hooks/use-ai-translation';
-import { getQualityConfig, updateQualityConfig } from '@/lib/api/quality';
+import { Switch } from '@/components/ui/switch';
+import {
+  getAIProviderDisplayName,
+  getModelDisplayName,
+  useAIConfigs,
+  useAISupportedModels,
+} from '@/hooks/use-ai-translation';
 import type { AIProvider } from '@/lib/api';
+import { getQualityConfig, updateQualityConfig } from '@/lib/api/quality';
+import { cn } from '@/lib/utils';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, Loader2, Save, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { ProviderLogoIcon, getProviderColor } from './provider-logos';
 
 interface QualityEvaluationSectionProps {
@@ -47,11 +52,10 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
   // Sync state when config loads - safe pattern for form initialization
   useEffect(() => {
     if (qualityConfig) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync form from server data
       setAiEnabled(qualityConfig.aiEvaluationEnabled);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync form from server data
+
       setSelectedProvider(qualityConfig.aiEvaluationProvider || '');
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync form from server data
+
       setSelectedModel(qualityConfig.aiEvaluationModel || '');
     }
   }, [qualityConfig]);
@@ -79,7 +83,6 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
   // Auto-select first model when provider changes and models load
   useEffect(() => {
     if (models.length > 0 && !models.includes(selectedModel)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: auto-select valid model
       setSelectedModel(models[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,9 +107,9 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
 
   if (isLoading) {
     return (
-      <div className="island p-6 animate-fade-in-up">
-        <div className="flex items-center justify-center h-32">
-          <Loader2 className="size-6 text-muted-foreground animate-spin" />
+      <div className="island animate-fade-in-up p-6">
+        <div className="flex h-32 items-center justify-center">
+          <Loader2 className="text-muted-foreground size-6 animate-spin" />
         </div>
       </div>
     );
@@ -115,19 +118,17 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
   const hasEnabledProviders = enabledProviders.length > 0;
 
   return (
-    <div className="island overflow-hidden animate-fade-in-up">
+    <div className="island animate-fade-in-up overflow-hidden">
       {/* Header */}
-      <div className="p-5 border-b border-border/40">
+      <div className="border-border/40 border-b p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-              <Sparkles className="size-5 text-primary" />
+            <div className="from-primary/20 to-primary/10 flex size-10 items-center justify-center rounded-xl bg-linear-to-br">
+              <Sparkles className="text-primary size-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-base">{t('quality.title')}</h3>
-              <p className="text-[13px] text-muted-foreground mt-0.5">
-                {t('quality.description')}
-              </p>
+              <h3 className="text-base font-semibold">{t('quality.title')}</h3>
+              <p className="text-muted-foreground mt-0.5 text-[13px]">{t('quality.description')}</p>
             </div>
           </div>
           {hasChanges && (
@@ -149,32 +150,28 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
       </div>
 
       {/* Content */}
-      <div className="p-5 space-y-5">
+      <div className="space-y-5 p-5">
         {/* Enable Toggle */}
         <div
           className={cn(
-            'flex items-center justify-between p-4 rounded-xl border transition-all',
-            aiEnabled
-              ? 'bg-primary/5 border-primary/20'
-              : 'bg-muted/30 border-border/50'
+            'flex items-center justify-between rounded-xl border p-4 transition-all',
+            aiEnabled ? 'bg-primary/5 border-primary/20' : 'bg-muted/30 border-border/50'
           )}
         >
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'size-9 rounded-lg flex items-center justify-center transition-colors',
+                'flex size-9 items-center justify-center rounded-lg transition-colors',
                 aiEnabled ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
               )}
             >
               <Sparkles className="size-4.5" />
             </div>
             <div>
-              <Label htmlFor="aiQualityEnabled" className="text-sm font-medium cursor-pointer">
+              <Label htmlFor="aiQualityEnabled" className="cursor-pointer text-sm font-medium">
                 {t('quality.enable')}
               </Label>
-              <p className="text-xs text-muted-foreground">
-                {t('quality.enableDescription')}
-              </p>
+              <p className="text-muted-foreground text-xs">{t('quality.enableDescription')}</p>
             </div>
           </div>
           <Switch
@@ -187,14 +184,14 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
 
         {/* No providers warning */}
         {!hasEnabledProviders && (
-          <div className="p-4 rounded-xl bg-warning/5 border border-warning/20 text-sm text-warning">
+          <div className="bg-warning/5 border-warning/20 text-warning rounded-xl border p-4 text-sm">
             {t('quality.noProvidersWarning')}
           </div>
         )}
 
         {/* Provider & Model Selection */}
         {aiEnabled && hasEnabledProviders && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="animate-fade-in space-y-4">
             {/* Provider Select */}
             <div className="space-y-2.5">
               <Label className="text-sm font-medium">{t('quality.provider')}</Label>
@@ -208,12 +205,17 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
                     return (
                       <SelectItem key={config.provider} value={config.provider}>
                         <div className="flex items-center gap-2.5">
-                          <div className={cn('size-6 rounded-md flex items-center justify-center', colorClasses)}>
+                          <div
+                            className={cn(
+                              'flex size-6 items-center justify-center rounded-md',
+                              colorClasses
+                            )}
+                          >
                             <ProviderLogoIcon provider={config.provider} className="size-3.5" />
                           </div>
                           <span>{getAIProviderDisplayName(config.provider)}</span>
                           {config.isActive && (
-                            <CheckCircle2 className="size-3.5 text-success ml-auto" />
+                            <CheckCircle2 className="text-success ml-auto size-3.5" />
                           )}
                         </div>
                       </SelectItem>
@@ -221,9 +223,7 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
                   })}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                {t('quality.providerDescription')}
-              </p>
+              <p className="text-muted-foreground text-xs">{t('quality.providerDescription')}</p>
             </div>
 
             {/* Model Select */}
@@ -242,21 +242,20 @@ export function QualityEvaluationSection({ projectId }: QualityEvaluationSection
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  {t('quality.modelDescription')}
-                </p>
+                <p className="text-muted-foreground text-xs">{t('quality.modelDescription')}</p>
               </div>
             )}
 
             {/* Current Selection Summary */}
             {selectedProvider && selectedModel && (
-              <div className="p-4 rounded-xl bg-success/5 border border-success/20">
-                <div className="flex items-center gap-2 text-sm text-success">
+              <div className="bg-success/5 border-success/20 rounded-xl border p-4">
+                <div className="text-success flex items-center gap-2 text-sm">
                   <CheckCircle2 className="size-4" />
                   <span className="font-medium">{t('quality.configuredWith')}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {getAIProviderDisplayName(selectedProvider as AIProvider)} · {getModelDisplayName(selectedModel)}
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {getAIProviderDisplayName(selectedProvider as AIProvider)} ·{' '}
+                  {getModelDisplayName(selectedModel)}
                 </p>
               </div>
             )}

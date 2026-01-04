@@ -10,22 +10,19 @@ import { generateText, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import {
   CircuitBreaker,
-  type RetryConfig,
   DEFAULT_RETRY_CONFIG,
   calculateBackoff,
   sleep,
+  type RetryConfig,
 } from '../ai/index.js';
 import {
-  MQM_SYSTEM_PROMPT,
   MQM_MULTI_LANGUAGE_SYSTEM_PROMPT,
+  MQM_SYSTEM_PROMPT,
   buildMQMUserPrompt,
   buildMultiLanguagePrompt,
   type RelatedKeyMultiLang,
 } from '../ai/prompts.js';
-import {
-  validateMQMResponse,
-  createMultiLanguageSchema,
-} from '../ai/response-parser.js';
+import { createMultiLanguageSchema, validateMQMResponse } from '../ai/response-parser.js';
 
 // ============================================
 // Types
@@ -90,6 +87,13 @@ const MAX_TURNS_PER_CONVERSATION = 7;
 const MAX_FRESH_STARTS = 3;
 const MAX_CONVERSATION_MESSAGES = 10;
 
+/**
+ * Timeout for individual AI API requests in milliseconds.
+ * Prevents stuck requests from tying up server resources.
+ * 30s is generous enough for complex multi-language evaluations.
+ */
+const AI_REQUEST_TIMEOUT_MS = 30000;
+
 // ============================================
 // AI Evaluator Class
 // ============================================
@@ -123,10 +127,7 @@ export class AIEvaluator {
    * @param circuitBreaker - Circuit breaker for resilience
    * @param retryConfig - Optional retry configuration
    */
-  constructor(
-    circuitBreaker: CircuitBreaker,
-    retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG
-  ) {
+  constructor(circuitBreaker: CircuitBreaker, retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG) {
     this.circuitBreaker = circuitBreaker;
     this.retryConfig = retryConfig;
   }
@@ -284,6 +285,7 @@ export class AIEvaluator {
       const { text, usage, providerMetadata } = await generateText({
         model,
         messages,
+        abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
       });
 
       // Extract cache metrics from Anthropic response
@@ -408,6 +410,7 @@ export class AIEvaluator {
           const { text, usage, providerMetadata } = await generateText({
             model,
             messages,
+            abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
           });
 
           // Accumulate usage

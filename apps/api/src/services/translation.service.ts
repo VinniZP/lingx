@@ -4,17 +4,17 @@
  * Handles translation key and value CRUD operations.
  * Per Design Doc: AC-WEB-007 through AC-WEB-011
  */
-import { PrismaClient, TranslationKey, Translation, ApprovalStatus } from '@prisma/client';
-import { FieldValidationError, NotFoundError } from '../plugins/error-handler.js';
 import {
   UNIQUE_VIOLATION_CODES,
-  runQualityChecks,
-  runBatchQualityChecks,
   combineKey,
   parseNamespacedKey,
-  type QualityIssue,
+  runBatchQualityChecks,
+  runQualityChecks,
   type BatchQualityResult,
+  type QualityIssue,
 } from '@lingx/shared';
+import { ApprovalStatus, PrismaClient, Translation, TranslationKey } from '@prisma/client';
+import { FieldValidationError, NotFoundError } from '../plugins/error-handler.js';
 
 export interface CreateKeyInput {
   name: string;
@@ -112,6 +112,9 @@ export class TranslationService {
       where: { id },
       include: {
         translations: {
+          include: {
+            qualityScore: true,
+          },
           orderBy: { language: 'asc' },
         },
       },
@@ -195,7 +198,11 @@ export class TranslationService {
     }
 
     // Filter by approval status - keys that have at least one translation with this status
-    if (options.filter === 'pending' || options.filter === 'approved' || options.filter === 'rejected') {
+    if (
+      options.filter === 'pending' ||
+      options.filter === 'approved' ||
+      options.filter === 'rejected'
+    ) {
       const statusMap = {
         pending: 'PENDING',
         approved: 'APPROVED',
@@ -214,6 +221,9 @@ export class TranslationService {
         where,
         include: {
           translations: {
+            include: {
+              qualityScore: true,
+            },
             orderBy: { language: 'asc' },
           },
         },
@@ -257,12 +267,8 @@ export class TranslationService {
 
     // Build namespace filter condition
     const hasNamespaceFilter = options.namespace !== undefined;
-    const namespaceValue: string | null = options.namespace === '__root__' ? null : (options.namespace ?? null);
-
-    // Build query with search and namespace if provided
-    let keyIdsQuery: string;
-    let countQuery: string;
-    let params: (string | number | null)[];
+    const namespaceValue: string | null =
+      options.namespace === '__root__' ? null : (options.namespace ?? null);
 
     // Build WHERE conditions dynamically
     const whereConditions = ['tk."branchId" = $1'];
@@ -278,14 +284,16 @@ export class TranslationService {
     }
 
     if (options.search) {
-      whereConditions.push(`(tk.name ILIKE '%' || $${paramIndex} || '%' OR tk.description ILIKE '%' || $${paramIndex} || '%')`);
+      whereConditions.push(
+        `(tk.name ILIKE '%' || $${paramIndex} || '%' OR tk.description ILIKE '%' || $${paramIndex} || '%')`
+      );
       paramIndex++;
     }
 
     const whereClause = whereConditions.join(' AND ');
     const havingParam = paramIndex;
 
-    keyIdsQuery = `
+    const keyIdsQuery = `
       SELECT tk.id
       FROM "TranslationKey" tk
       LEFT JOIN "Translation" t ON t."keyId" = tk.id
@@ -296,7 +304,7 @@ export class TranslationService {
       LIMIT $${havingParam + 1} OFFSET $${havingParam + 2}
     `;
 
-    countQuery = `
+    const countQuery = `
       SELECT COUNT(*)::int as count FROM (
         SELECT tk.id
         FROM "TranslationKey" tk
@@ -308,7 +316,7 @@ export class TranslationService {
     `;
 
     // Build params array
-    params = [branchId];
+    const params: (string | number | null)[] = [branchId];
     if (hasNamespaceFilter && namespaceValue !== null) {
       params.push(namespaceValue);
     }
@@ -327,17 +335,21 @@ export class TranslationService {
     const total = countResult[0]?.count || 0;
 
     // Fetch full keys with translations
-    const keys = keyIds.length > 0
-      ? await this.prisma.translationKey.findMany({
-          where: { id: { in: keyIds } },
-          include: {
-            translations: {
-              orderBy: { language: 'asc' },
+    const keys =
+      keyIds.length > 0
+        ? await this.prisma.translationKey.findMany({
+            where: { id: { in: keyIds } },
+            include: {
+              translations: {
+                include: {
+                  qualityScore: true,
+                },
+                orderBy: { language: 'asc' },
+              },
             },
-          },
-          orderBy: { name: 'asc' },
-        })
-      : [];
+            orderBy: { name: 'asc' },
+          })
+        : [];
 
     return {
       keys,
@@ -384,6 +396,9 @@ export class TranslationService {
       where,
       include: {
         translations: {
+          include: {
+            qualityScore: true,
+          },
           orderBy: { language: 'asc' },
         },
       },
@@ -505,6 +520,9 @@ export class TranslationService {
         where,
         include: {
           translations: {
+            include: {
+              qualityScore: true,
+            },
             orderBy: { language: 'asc' },
           },
         },
@@ -543,7 +561,8 @@ export class TranslationService {
 
     // Determine final name and namespace
     const newName = input.name ?? existing.name;
-    const newNamespace = input.namespace !== undefined ? (input.namespace ?? null) : existing.namespace;
+    const newNamespace =
+      input.namespace !== undefined ? (input.namespace ?? null) : existing.namespace;
 
     // If name or namespace is changing, check for conflicts
     if (newName !== existing.name || newNamespace !== existing.namespace) {
@@ -644,11 +663,7 @@ export class TranslationService {
    * @returns Created or updated translation
    * @throws NotFoundError if key doesn't exist
    */
-  async setTranslation(
-    keyId: string,
-    language: string,
-    value: string
-  ): Promise<Translation> {
+  async setTranslation(keyId: string, language: string, value: string): Promise<Translation> {
     const key = await this.prisma.translationKey.findUnique({
       where: { id: keyId },
     });
@@ -729,9 +744,7 @@ export class TranslationService {
     }
 
     // Build a map of existing translations for comparison
-    const existingMap = new Map(
-      key.translations.map((t) => [t.language, t.value])
-    );
+    const existingMap = new Map(key.translations.map((t) => [t.language, t.value]));
 
     // Upsert all translations with status reset on change
     for (const [language, value] of Object.entries(translations)) {
@@ -806,7 +819,9 @@ export class TranslationService {
    * @param branchId - Branch ID
    * @returns Array of namespaces with counts
    */
-  async getNamespaces(branchId: string): Promise<Array<{ namespace: string | null; count: number }>> {
+  async getNamespaces(
+    branchId: string
+  ): Promise<Array<{ namespace: string | null; count: number }>> {
     const results = await this.prisma.translationKey.groupBy({
       by: ['namespace'],
       where: { branchId },
@@ -1061,9 +1076,7 @@ export class TranslationService {
    * @param translationIds - Array of translation IDs
    * @returns Project ID if all translations belong to the same project, null otherwise
    */
-  async verifyTranslationsBelongToSameProject(
-    translationIds: string[]
-  ): Promise<string | null> {
+  async verifyTranslationsBelongToSameProject(translationIds: string[]): Promise<string | null> {
     const translations = await this.prisma.translation.findMany({
       where: { id: { in: translationIds } },
       select: {
@@ -1085,9 +1098,7 @@ export class TranslationService {
       return null; // Some translations not found
     }
 
-    const projectIds = new Set(
-      translations.map((t) => t.key.branch.space.projectId)
-    );
+    const projectIds = new Set(translations.map((t) => t.key.branch.space.projectId));
 
     if (projectIds.size !== 1) {
       return null; // Translations belong to different projects
@@ -1128,9 +1139,7 @@ export class TranslationService {
     // Run quality checks if this is not the source language
     let qualityIssues: QualityIssue[] = [];
     if (language !== sourceLanguage && value.trim()) {
-      const sourceTranslation = key.translations.find(
-        (t) => t.language === sourceLanguage
-      );
+      const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
       const sourceText = sourceTranslation?.value || '';
 
       if (sourceText.trim()) {
@@ -1178,16 +1187,12 @@ export class TranslationService {
 
     // Build batch input
     const batchInput = keys.map((key) => {
-      const sourceTranslation = key.translations.find(
-        (t) => t.language === sourceLanguage
-      );
+      const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
       return {
         keyName: key.name,
         keyId: key.id,
         sourceText: sourceTranslation?.value || '',
-        translations: Object.fromEntries(
-          key.translations.map((t) => [t.language, t.value])
-        ),
+        translations: Object.fromEntries(key.translations.map((t) => [t.language, t.value])),
       };
     });
 

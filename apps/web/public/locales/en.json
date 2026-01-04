@@ -1329,6 +1329,7 @@
       "failedToSave": "Failed to save translation",
       "failedToTranslate": "Failed to translate",
       "failedToUpdateTranslations": "Failed to update translations",
+      "icuValidationUnavailable": "ICU validation unavailable - saving without validation",
       "invalidICUSyntax": "Invalid ICU syntax",
       "jobCancelled": "Translation job cancelled",
       "keysDeleted": "{count, plural, one {# key} other {# keys}} deleted",

@@ -1,16 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createBranchSchema, type CreateBranchInput } from '@lingx/shared';
-import { useTranslation } from '@lingx/sdk-nextjs';
-import { branchApi, ApiError, ProjectTreeBranch } from '@/lib/api';
-import { handleApiFieldErrors } from '@/lib/form-errors';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -35,8 +26,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ApiError, branchApi, ProjectTreeBranch } from '@/lib/api';
+import { handleApiFieldErrors } from '@/lib/form-errors';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import { createBranchSchema, type CreateBranchInput } from '@lingx/shared';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Copy, GitBranch, Loader2, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { GitBranch, Loader2, Copy, Star } from 'lucide-react';
 
 interface CreateBranchDialogProps {
   open: boolean;
@@ -105,10 +105,13 @@ export function CreateBranchDialog({
       queryClient.invalidateQueries({ queryKey: ['project-tree', projectId] });
       const sourceName = branches.find((b) => b.id === variables.fromBranchId)?.name || 'source';
       toast.success(t('dialogs.createBranch.created'), {
-        description: t('dialogs.createBranch.createdDescription', { name: variables.name, source: sourceName }),
+        description: t('dialogs.createBranch.createdDescription', {
+          name: variables.name,
+          source: sourceName,
+        }),
       });
       onOpenChange(false);
-      router.push(`/projects/${projectId}/translations/${newBranch.id}`);
+      router.push(`/workbench/${projectId}/${newBranch.id}`);
     },
     onError: (error: ApiError) => {
       if (!handleApiFieldErrors(error, form.setError)) {
@@ -135,13 +138,13 @@ export function CreateBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
+      <DialogContent className="overflow-hidden rounded-2xl p-0 sm:max-w-md">
         {/* Header with gradient background */}
-        <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
+        <div className="from-primary/10 via-primary/5 bg-linear-to-br to-transparent px-6 pt-6 pb-4">
           <DialogHeader className="gap-3">
             <div className="flex items-center gap-3">
-              <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20">
-                <GitBranch className="size-5 text-primary" />
+              <div className="bg-primary/20 border-primary/20 flex size-12 items-center justify-center rounded-xl border">
+                <GitBranch className="text-primary size-5" />
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight">
@@ -174,7 +177,10 @@ export function CreateBranchDialog({
                       />
                     </FormControl>
                     <FormDescription>
-                      {t('dialogs.createBranch.willBeCreatedAs')} <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">{branchName ? generateSlug(branchName) : 'branch-name'}</code>
+                      {t('dialogs.createBranch.willBeCreatedAs')}{' '}
+                      <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
+                        {branchName ? generateSlug(branchName) : 'branch-name'}
+                      </code>
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -198,7 +204,7 @@ export function CreateBranchDialog({
                         {branches.map((branch) => (
                           <SelectItem key={branch.id} value={branch.id}>
                             <div className="flex items-center gap-2">
-                              <GitBranch className="size-4 text-muted-foreground" />
+                              <GitBranch className="text-muted-foreground size-4" />
                               <span>{branch.name}</span>
                               {branch.isDefault && (
                                 <Star className="size-3 fill-amber-400 text-amber-400" />
@@ -211,9 +217,7 @@ export function CreateBranchDialog({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>
-                      {t('dialogs.createBranch.copyNote')}
-                    </FormDescription>
+                    <FormDescription>{t('dialogs.createBranch.copyNote')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -221,16 +225,20 @@ export function CreateBranchDialog({
 
               {/* Info note */}
               {selectedSourceBranch && (
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 border border-border/50">
-                  <div className="size-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Copy className="size-4 text-info" />
+                <div className="bg-muted/30 border-border/50 flex items-start gap-3 rounded-xl border p-3">
+                  <div className="bg-info/10 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg">
+                    <Copy className="text-info size-4" />
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium text-foreground mb-0.5">
-                      {t('dialogs.createBranch.copyingKeys', { count: selectedSourceBranch.keyCount })}
+                  <div className="text-muted-foreground text-xs">
+                    <p className="text-foreground mb-0.5 font-medium">
+                      {t('dialogs.createBranch.copyingKeys', {
+                        count: selectedSourceBranch.keyCount,
+                      })}
                     </p>
                     <p>
-                      {t('dialogs.createBranch.isolationNote', { branchName: selectedSourceBranch.name })}
+                      {t('dialogs.createBranch.isolationNote', {
+                        branchName: selectedSourceBranch.name,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -250,7 +258,7 @@ export function CreateBranchDialog({
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !form.formState.isValid}
-                className="h-11 gap-2 flex-1 sm:flex-none"
+                className="h-11 flex-1 gap-2 sm:flex-none"
               >
                 {createMutation.isPending ? (
                   <>
