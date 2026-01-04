@@ -10,6 +10,7 @@ import { useTranslation } from '@lingx/sdk-nextjs';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { BulkDeleteKeysDialog } from './_components/BulkDeleteKeysDialog';
 import { WorkbenchCommandPalette, type CommandHandlers } from './_components/CommandPalette';
 import { FloatingBatchBar } from './_components/FloatingBatchBar';
 import { KeyEditorPanel } from './_components/KeyEditorPanel';
@@ -48,6 +49,7 @@ export default function WorkbenchPage({ params }: PageProps) {
   const [bulkTranslateDialogOpen, setBulkTranslateDialogOpen] = useState(false);
   const [bulkTranslateProvider, setBulkTranslateProvider] = useState<'MT' | 'AI' | null>(null);
   const [bulkQualityDialogOpen, setBulkQualityDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [showGuideDialog, setShowGuideDialog] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
@@ -464,8 +466,15 @@ export default function WorkbenchPage({ params }: PageProps) {
     [handleBatchApprove, selectedKeys, keys, clearSelection]
   );
 
-  const onBulkDelete = useCallback(async () => {
-    await handleBulkDelete(selectedKeys, clearSelection);
+  const onBulkDelete = useCallback(() => {
+    setBulkDeleteDialogOpen(true);
+  }, []);
+
+  const onConfirmBulkDelete = useCallback(async () => {
+    await handleBulkDelete(selectedKeys, () => {
+      clearSelection();
+      setBulkDeleteDialogOpen(false);
+    });
   }, [handleBulkDelete, selectedKeys, clearSelection]);
 
   const onBulkTranslate = useCallback(
@@ -609,6 +618,14 @@ export default function WorkbenchPage({ params }: PageProps) {
         onOpenChange={setBulkQualityDialogOpen}
         branchId={branchId}
         translationIds={selectedTranslationIds}
+      />
+
+      <BulkDeleteKeysDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        selectedCount={selectedKeys.size}
+        isDeleting={isBulkDeleting}
+        onConfirm={onConfirmBulkDelete}
       />
 
       <WorkbenchGuideDialog

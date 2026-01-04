@@ -182,6 +182,13 @@
       "translationsApproved": "{count} перекладів схвалено",
       "translationsRejected": "{count} перекладів відхилено"
     },
+    "dialogs": {
+      "bulkDeleteKeys": {
+        "title": "Видалити {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}?",
+        "description": "Це назавжди видалить вибрані ключі перекладу та всі їхні переклади. Цю дію не можна скасувати.",
+        "confirm": "Видалити {count, plural, one {ключ} few {ключі} many {ключів} other {ключів}}"
+      }
+    },
     "inlineSuggestion": {
       "from": "з {source}",
       "cached": "кешовано",
