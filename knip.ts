@@ -16,8 +16,8 @@ const config: KnipConfig = {
     },
 
     'apps/api': {
-      entry: ['src/app.ts', 'src/workers/**/*.ts'],
-      project: ['src/**/*.ts', 'prisma/**/*.ts'],
+      entry: ['src/app.ts', 'src/workers/**/*.ts', 'tests/**/*.ts'],
+      project: ['src/**/*.ts', 'prisma/**/*.ts', 'tests/**/*.ts'],
       ignoreDependencies: [
         'pino-pretty', // CLI-only, not imported
         '@vitest/coverage-v8', // Used by vitest config

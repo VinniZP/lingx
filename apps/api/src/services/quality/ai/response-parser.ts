@@ -55,7 +55,7 @@ export const languageEvaluationSchema = z.object({
 /**
  * Type inferred from language evaluation schema
  */
-export type LanguageEvaluation = z.infer<typeof languageEvaluationSchema>;
+type LanguageEvaluation = z.infer<typeof languageEvaluationSchema>;
 
 /**
  * Create dynamic Zod schema for multi-language response
@@ -79,7 +79,7 @@ export function createMultiLanguageSchema(languages: string[]) {
 /**
  * Type for multi-language evaluation result
  */
-export type MultiLanguageEvaluationResult = z.infer<ReturnType<typeof createMultiLanguageSchema>>;
+type MultiLanguageEvaluationResult = z.infer<ReturnType<typeof createMultiLanguageSchema>>;
 
 // ============================================
 // JSON Extraction
@@ -109,9 +109,7 @@ const MAX_RESPONSE_SIZE = 50 * 1024;
  */
 export function extractJsonFromText(text: string): string {
   // Prevent regex DoS on large malformed responses
-  const searchText = text.length > MAX_RESPONSE_SIZE
-    ? text.slice(0, MAX_RESPONSE_SIZE)
-    : text;
+  const searchText = text.length > MAX_RESPONSE_SIZE ? text.slice(0, MAX_RESPONSE_SIZE) : text;
 
   const jsonMatch = searchText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {

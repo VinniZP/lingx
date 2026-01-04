@@ -1,8 +1,8 @@
 /**
  * User DTO - transforms Prisma User model to API response format
  */
-import type { User } from '@prisma/client';
 import type { UserResponse } from '@lingx/shared';
+import type { User } from '@prisma/client';
 
 /**
  * Transform Prisma User to UserResponse
@@ -22,6 +22,6 @@ export function toUserDto(user: Omit<User, 'password'>): UserResponse {
 /**
  * Transform nullable user
  */
-export function toUserDtoOrNull(user: Omit<User, 'password'> | null): UserResponse | null {
+function toUserDtoOrNull(user: Omit<User, 'password'> | null): UserResponse | null {
   return user ? toUserDto(user) : null;
 }

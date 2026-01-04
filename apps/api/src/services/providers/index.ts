@@ -3,9 +3,9 @@
  *
  * Creates and manages MT provider instances.
  */
-import type { MTProvider } from './mt-provider.interface.js';
 import { DeepLProvider } from './deepl.provider.js';
 import { GoogleTranslateProvider } from './google-translate.provider.js';
+import type { MTProvider } from './mt-provider.interface.js';
 
 export type MTProviderType = 'DEEPL' | 'GOOGLE_TRANSLATE';
 
@@ -29,7 +29,7 @@ export function createMTProvider(type: MTProviderType): MTProvider {
 /**
  * Get display name for provider type
  */
-export function getProviderDisplayName(type: MTProviderType): string {
+function getProviderDisplayName(type: MTProviderType): string {
   switch (type) {
     case 'DEEPL':
       return 'DeepL';
@@ -43,10 +43,10 @@ export function getProviderDisplayName(type: MTProviderType): string {
 /**
  * Get all available provider types
  */
-export function getAvailableProviders(): MTProviderType[] {
+function getAvailableProviders(): MTProviderType[] {
   return ['DEEPL', 'GOOGLE_TRANSLATE'];
 }
 
-export type { MTProvider };
-export { DeepLProvider, GoogleTranslateProvider };
 export * from './mt-provider.interface.js';
+export { DeepLProvider, GoogleTranslateProvider };
+export type { MTProvider };

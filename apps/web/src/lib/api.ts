@@ -915,7 +915,7 @@ export interface WebAuthnAuthOptionsResponse {
 }
 
 // Alias for convenience
-export type WebAuthnStatus = WebAuthnStatusResponse;
+type WebAuthnStatus = WebAuthnStatusResponse;
 
 // Re-export for convenience
 export type { WebAuthnCredential };

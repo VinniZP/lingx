@@ -1,20 +1,15 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  machineTranslationApi,
-  type MTProvider,
-} from '@/lib/api';
+import { machineTranslationApi, type MTProvider } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Query keys for MT caching
  */
 export const mtQueryKeys = {
   all: ['machine-translation'] as const,
-  configs: (projectId: string) =>
-    [...mtQueryKeys.all, 'configs', projectId] as const,
-  usage: (projectId: string) =>
-    [...mtQueryKeys.all, 'usage', projectId] as const,
+  configs: (projectId: string) => [...mtQueryKeys.all, 'configs', projectId] as const,
+  usage: (projectId: string) => [...mtQueryKeys.all, 'usage', projectId] as const,
 };
 
 /**
@@ -58,8 +53,7 @@ export function useDeleteMTConfig(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (provider: MTProvider) =>
-      machineTranslationApi.deleteConfig(projectId, provider),
+    mutationFn: (provider: MTProvider) => machineTranslationApi.deleteConfig(projectId, provider),
     onSuccess: () => {
       // Invalidate configs cache
       queryClient.invalidateQueries({
@@ -74,8 +68,7 @@ export function useDeleteMTConfig(projectId: string) {
  */
 export function useTestMTConnection(projectId: string) {
   return useMutation({
-    mutationFn: (provider: MTProvider) =>
-      machineTranslationApi.testConnection(projectId, provider),
+    mutationFn: (provider: MTProvider) => machineTranslationApi.testConnection(projectId, provider),
   });
 }
 
@@ -129,7 +122,7 @@ export function useMTTranslateWithContext(projectId: string) {
 /**
  * Hook to batch translate keys
  */
-export function useMTBatchTranslate(projectId: string) {
+function useMTBatchTranslate(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -151,15 +144,12 @@ export function useMTBatchTranslate(projectId: string) {
 /**
  * Hook to pre-translate missing translations
  */
-export function useMTPreTranslate(projectId: string) {
+function useMTPreTranslate(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      branchId: string;
-      targetLanguages: string[];
-      provider?: MTProvider;
-    }) => machineTranslationApi.preTranslate(projectId, data),
+    mutationFn: (data: { branchId: string; targetLanguages: string[]; provider?: MTProvider }) =>
+      machineTranslationApi.preTranslate(projectId, data),
     onSuccess: () => {
       // Invalidate usage stats
       queryClient.invalidateQueries({

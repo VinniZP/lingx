@@ -4,17 +4,17 @@
  * Orchestrates MT providers, handles API key encryption, caching, and usage tracking.
  * Supports DeepL and Google Translate with per-project configuration.
  */
-import { PrismaClient, MTProvider as MTProviderEnum } from '@prisma/client';
-import { createHash, createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { MTProvider as MTProviderEnum, PrismaClient } from '@prisma/client';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import { BadRequestError, NotFoundError } from '../plugins/error-handler.js';
+import { KeyContextService, type AIContextResult } from './key-context.service.js';
 import {
   createMTProvider,
-  type MTProvider,
-  type MTTranslateOptions,
-  type MTProviderType,
   type MTCostEstimate,
+  type MTProvider,
+  type MTProviderType,
+  type MTTranslateOptions,
 } from './providers/index.js';
-import { KeyContextService, type AIContextResult } from './key-context.service.js';
-import { BadRequestError, NotFoundError } from '../plugins/error-handler.js';
 
 /** Cache TTL in days */
 const CACHE_TTL_DAYS = 30;
@@ -60,14 +60,14 @@ export interface MTUsageStats {
   };
 }
 
-export interface BatchTranslateInput {
+interface BatchTranslateInput {
   keyIds: string[];
   targetLanguage: string;
   provider?: MTProviderType;
   overwriteExisting?: boolean;
 }
 
-export interface PreTranslateInput {
+interface PreTranslateInput {
   branchId: string;
   targetLanguages: string[];
   provider?: MTProviderType;
@@ -235,12 +235,7 @@ export class MTService {
     const mtProvider = await this.getInitializedProvider(projectId, selectedProvider);
 
     // Perform translation
-    const result = await mtProvider.translate(
-      text,
-      sourceLanguage,
-      targetLanguage,
-      options
-    );
+    const result = await mtProvider.translate(text, sourceLanguage, targetLanguage, options);
 
     const characterCount = text.length;
 
@@ -368,9 +363,10 @@ export class MTService {
         provider: selectedProvider,
         cached: true,
         characterCount: cached.characterCount,
-        context: contextMetadata.relatedTranslations > 0 || contextMetadata.glossaryTerms > 0
-          ? contextMetadata
-          : undefined,
+        context:
+          contextMetadata.relatedTranslations > 0 || contextMetadata.glossaryTerms > 0
+            ? contextMetadata
+            : undefined,
       };
     }
 
@@ -378,11 +374,7 @@ export class MTService {
     const mtProvider = await this.getInitializedProvider(projectId, selectedProvider);
 
     // Perform translation with enriched text
-    const result = await mtProvider.translate(
-      enrichedText,
-      sourceLanguage,
-      targetLanguage
-    );
+    const result = await mtProvider.translate(enrichedText, sourceLanguage, targetLanguage);
 
     // Clean up the result if we added context prefix
     let translatedText = result.text;
@@ -415,9 +407,10 @@ export class MTService {
       provider: selectedProvider,
       cached: false,
       characterCount,
-      context: contextMetadata.relatedTranslations > 0 || contextMetadata.glossaryTerms > 0
-        ? contextMetadata
-        : undefined,
+      context:
+        contextMetadata.relatedTranslations > 0 || contextMetadata.glossaryTerms > 0
+          ? contextMetadata
+          : undefined,
     };
   }
 
@@ -569,9 +562,7 @@ export class MTService {
 
       // Get cost estimate
       const mtProvider = createMTProvider(config.provider as MTProviderType);
-      const cost = mtProvider.estimateCost(
-        Number(currentMonthUsage?.characterCount || 0n)
-      );
+      const cost = mtProvider.estimateCost(Number(currentMonthUsage?.characterCount || 0n));
 
       stats.push({
         provider: config.provider as MTProviderType,
@@ -594,10 +585,7 @@ export class MTService {
   /**
    * Get cost estimate for character count
    */
-  getCostEstimate(
-    provider: MTProviderType,
-    characterCount: number
-  ): MTCostEstimate {
+  getCostEstimate(provider: MTProviderType, characterCount: number): MTCostEstimate {
     const mtProvider = createMTProvider(provider);
     return mtProvider.estimateCost(characterCount);
   }
@@ -873,7 +861,7 @@ export class MTService {
     if (!keyHex || keyHex.length !== 64) {
       throw new Error(
         'MT_ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
-        'Generate with: openssl rand -hex 32'
+          'Generate with: openssl rand -hex 32'
       );
     }
     return Buffer.from(keyHex, 'hex');

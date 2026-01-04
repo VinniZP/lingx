@@ -7,8 +7,8 @@
  *
  * For tests, uses TEST_DATABASE_URL to isolate test data.
  */
-import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 
 // Declare global type for development singleton
@@ -61,10 +61,7 @@ function createPrismaClient(): PrismaClient {
 
   return new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV === 'development'
-        ? ['query', 'error', 'warn']
-        : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 }
 
@@ -75,8 +72,7 @@ function createPrismaClient(): PrismaClient {
  * multiple instances during hot module replacement (HMR).
  * In production, creates a single instance per process.
  */
-export const prisma: PrismaClient =
-  globalThis.__prisma ?? createPrismaClient();
+export const prisma: PrismaClient = globalThis.__prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma;
@@ -86,7 +82,7 @@ if (process.env.NODE_ENV !== 'production') {
  * Disconnect Prisma client and close the connection pool.
  * Used for test cleanup.
  */
-export async function disconnectPrisma(): Promise<void> {
+async function disconnectPrisma(): Promise<void> {
   await prisma.$disconnect();
   if (globalThis.__prismaPool) {
     await globalThis.__prismaPool.end();
@@ -119,5 +115,3 @@ export async function resetTestDatabase(): Promise<void> {
     prisma.user.deleteMany(),
   ]);
 }
-
-export default prisma;

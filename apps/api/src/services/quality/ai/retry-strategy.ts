@@ -32,7 +32,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 /**
  * Configuration for conversation-based retries (multi-language)
  */
-export const CONVERSATION_RETRY_CONFIG = {
+const CONVERSATION_RETRY_CONFIG = {
   /** Maximum turns per conversation before fresh start */
   maxTurnsPerConversation: 7,
   /** Maximum fresh starts before giving up */
@@ -58,7 +58,10 @@ export const CONVERSATION_RETRY_CONFIG = {
  * calculateBackoff(2, config) // 400ms
  * calculateBackoff(10, config) // 5000ms (capped)
  */
-export function calculateBackoff(attempt: number, config: RetryConfig = DEFAULT_RETRY_CONFIG): number {
+export function calculateBackoff(
+  attempt: number,
+  config: RetryConfig = DEFAULT_RETRY_CONFIG
+): number {
   const delay = config.initialDelayMs * Math.pow(config.multiplier, attempt);
   return Math.min(delay, config.maxDelayMs);
 }
@@ -87,7 +90,7 @@ export function shouldRetry(attempt: number, config: RetryConfig = DEFAULT_RETRY
  * @returns Promise that resolves after the duration
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -159,12 +162,21 @@ export function isTransientError(error: unknown): boolean {
     }
 
     // Server errors
-    if (message.includes('500') || message.includes('502') || message.includes('503') || message.includes('504')) {
+    if (
+      message.includes('500') ||
+      message.includes('502') ||
+      message.includes('503') ||
+      message.includes('504')
+    ) {
       return true;
     }
 
     // Network errors
-    if (message.includes('timeout') || message.includes('econnreset') || message.includes('enotfound')) {
+    if (
+      message.includes('timeout') ||
+      message.includes('econnreset') ||
+      message.includes('enotfound')
+    ) {
       return true;
     }
   }

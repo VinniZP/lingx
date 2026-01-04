@@ -6,21 +6,17 @@
  */
 'use client';
 
-import { useState } from 'react';
-import { Eye } from 'lucide-react';
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
-import type { Activity } from '@lingx/shared';
-import { ActivityIcon } from './activity-icon';
-import { getActivityDescription, formatRelativeTime, translateKey } from './activity-description';
-import { ActivityPreview } from './activity-preview';
-import { ActivityChangesModal } from './activity-changes-modal';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@lingx/sdk-nextjs';
+import type { Activity } from '@lingx/shared';
+import { Eye } from 'lucide-react';
+import { useState } from 'react';
+import { ActivityChangesModal } from './activity-changes-modal';
+import { formatRelativeTime, getActivityDescription, translateKey } from './activity-description';
+import { ActivityIcon } from './activity-icon';
+import { ActivityPreview } from './activity-preview';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -40,11 +36,7 @@ interface ActivityItemProps {
  * - Hover preview (first 10 changes)
  * - Click "View all" for full audit modal
  */
-export function ActivityItem({
-  activity,
-  showProjectName = false,
-  className,
-}: ActivityItemProps) {
+export function ActivityItem({ activity, showProjectName = false, className }: ActivityItemProps) {
   const { t, td } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -59,17 +51,17 @@ export function ActivityItem({
         <HoverCardTrigger asChild>
           <div
             className={cn(
-              'p-4 flex items-start gap-3 cursor-default transition-colors hover:bg-accent/30',
+              'hover:bg-accent/30 flex cursor-default items-start gap-3 p-4 transition-colors',
               className
             )}
           >
-            <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-              <ActivityIcon type={activity.type} className="size-4 text-muted-foreground" />
+            <div className="bg-muted mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full">
+              <ActivityIcon type={activity.type} className="text-muted-foreground size-4" />
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm">{translateKey(td, getActivityDescription(activity))}</p>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+              <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
                 {showProjectName && activity.projectName && (
                   <>
                     <span>{activity.projectName}</span>
@@ -86,7 +78,7 @@ export function ActivityItem({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-7 shrink-0 text-muted-foreground/40 hover:text-foreground"
+                className="text-muted-foreground/40 hover:text-foreground size-7 shrink-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   setModalOpen(true);
@@ -102,15 +94,15 @@ export function ActivityItem({
         <HoverCardContent
           side="left"
           align="start"
-          className="w-72 p-0 overflow-hidden"
+          className="w-72 overflow-hidden p-0"
           sideOffset={8}
         >
           {/* Header */}
-          <div className="px-3 py-2.5 border-b border-border/50 bg-muted/20">
-            <p className="text-sm font-medium leading-tight">
+          <div className="border-border/50 bg-muted/20 border-b px-3 py-2.5">
+            <p className="text-sm leading-tight font-medium">
               {translateKey(td, getActivityDescription(activity))}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-muted-foreground mt-0.5 text-[11px]">
               {activity.userName} · {translateKey(td, formatRelativeTime(activity.createdAt))}
             </p>
           </div>
@@ -122,11 +114,11 @@ export function ActivityItem({
 
           {/* Footer action */}
           {hasPreview && (
-            <div className="px-3 py-2 border-t border-border/50 bg-muted/10">
+            <div className="border-border/50 bg-muted/10 border-t px-3 py-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-7 w-full text-xs"
                 onClick={() => setModalOpen(true)}
               >
                 {t('activity.viewAllChanges', { count: activity.count })}
@@ -136,11 +128,7 @@ export function ActivityItem({
         </HoverCardContent>
       </HoverCard>
 
-      <ActivityChangesModal
-        activity={activity}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-      />
+      <ActivityChangesModal activity={activity} open={modalOpen} onOpenChange={setModalOpen} />
     </>
   );
 }
@@ -149,20 +137,14 @@ export function ActivityItem({
  * Simplified activity item for compact displays.
  * No hover preview, just basic info.
  */
-export function ActivityItemCompact({
-  activity,
-  className,
-}: {
-  activity: Activity;
-  className?: string;
-}) {
+function ActivityItemCompact({ activity, className }: { activity: Activity; className?: string }) {
   const { td } = useTranslation();
 
   return (
     <div className={cn('flex items-center gap-2 text-sm', className)}>
-      <ActivityIcon type={activity.type} className="size-4 text-muted-foreground shrink-0" />
+      <ActivityIcon type={activity.type} className="text-muted-foreground size-4 shrink-0" />
       <span className="truncate">{translateKey(td, getActivityDescription(activity))}</span>
-      <span className="text-muted-foreground text-xs shrink-0">
+      <span className="text-muted-foreground shrink-0 text-xs">
         {translateKey(td, formatRelativeTime(activity.createdAt))}
       </span>
     </div>

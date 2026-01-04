@@ -1,6 +1,6 @@
-import { FastifyPluginAsync, FastifyError } from 'fastify';
-import fp from 'fastify-plugin';
 import type { FieldError } from '@lingx/shared';
+import { FastifyError, FastifyPluginAsync } from 'fastify';
+import fp from 'fastify-plugin';
 
 /**
  * Standard error response structure for consistent API error handling
@@ -86,7 +86,7 @@ export class ForbiddenError extends AppError {
 /**
  * Error thrown when a resource conflict occurs (e.g., duplicate entry)
  */
-export class ConflictError extends AppError {
+class ConflictError extends AppError {
   constructor(message: string) {
     super(message, 409, 'CONFLICT');
   }
@@ -122,8 +122,11 @@ const errorHandlerPlugin: FastifyPluginAsync = async (fastify) => {
 
     // Handle FieldValidationError (field-level errors)
     // Check both instanceof and duck-typing for fieldErrors property
-    const isFieldValidationError = error instanceof FieldValidationError ||
-      (error instanceof AppError && 'fieldErrors' in error && Array.isArray((error as FieldValidationError).fieldErrors));
+    const isFieldValidationError =
+      error instanceof FieldValidationError ||
+      (error instanceof AppError &&
+        'fieldErrors' in error &&
+        Array.isArray((error as FieldValidationError).fieldErrors));
 
     if (isFieldValidationError) {
       const fieldError = error as FieldValidationError;
@@ -152,15 +155,18 @@ const errorHandlerPlugin: FastifyPluginAsync = async (fastify) => {
       response.message = error.message;
       response.code = error.code;
 
-      fastify.log.warn({
-        err: error,
-        request: {
-          method: request.method,
-          url: request.url,
-          params: request.params,
-          query: request.query,
+      fastify.log.warn(
+        {
+          err: error,
+          request: {
+            method: request.method,
+            url: request.url,
+            params: request.params,
+            query: request.query,
+          },
         },
-      }, 'Application error');
+        'Application error'
+      );
     }
     // Handle Fastify validation errors
     else if (error.validation) {
@@ -169,23 +175,29 @@ const errorHandlerPlugin: FastifyPluginAsync = async (fastify) => {
       response.message = error.message;
       response.code = 'VALIDATION_ERROR';
 
-      fastify.log.info({
-        err: error,
-        validation: error.validation,
-      }, 'Validation error');
+      fastify.log.info(
+        {
+          err: error,
+          validation: error.validation,
+        },
+        'Validation error'
+      );
     }
     // Handle other errors
     else {
       // Log unexpected errors with full context
-      fastify.log.error({
-        err: error,
-        request: {
-          method: request.method,
-          url: request.url,
-          params: request.params,
-          query: request.query,
+      fastify.log.error(
+        {
+          err: error,
+          request: {
+            method: request.method,
+            url: request.url,
+            params: request.params,
+            query: request.query,
+          },
         },
-      }, 'Unexpected error');
+        'Unexpected error'
+      );
 
       // In production, don't expose error details
       if (process.env.NODE_ENV === 'production') {

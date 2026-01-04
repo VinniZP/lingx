@@ -3,19 +3,19 @@
  *
  * Custom hooks for glossary search, CRUD, and management.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   glossaryApi,
+  type CreateGlossaryEntryInput,
   type GlossaryEntry,
+  type GlossaryListParams,
   type GlossaryMatch,
   type GlossarySearchParams,
-  type GlossaryListParams,
   type GlossaryStats,
   type GlossaryTag,
-  type CreateGlossaryEntryInput,
-  type UpdateGlossaryEntryInput,
   type MTProvider,
+  type UpdateGlossaryEntryInput,
 } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Query key factory for consistent key management
 export const glossaryKeys = {
@@ -31,8 +31,7 @@ export const glossaryKeys = {
     [...glossaryKeys.all, 'entry', projectId, entryId] as const,
   tags: (projectId: string) => [...glossaryKeys.all, 'tags', projectId] as const,
   stats: (projectId: string) => [...glossaryKeys.all, 'stats', projectId] as const,
-  syncStatus: (projectId: string) =>
-    [...glossaryKeys.all, 'sync-status', projectId] as const,
+  syncStatus: (projectId: string) => [...glossaryKeys.all, 'sync-status', projectId] as const,
 };
 
 /**
@@ -52,11 +51,7 @@ export function useGlossarySearch(
     queryKey: glossaryKeys.search(projectId, params),
     queryFn: () => glossaryApi.search(projectId, params!),
     // Only search if we have valid params and text is >= 2 chars
-    enabled:
-      options?.enabled !== false &&
-      !!params &&
-      !!projectId &&
-      params.sourceText.length >= 2,
+    enabled: options?.enabled !== false && !!params && !!projectId && params.sourceText.length >= 2,
     staleTime: 30 * 1000, // 30 seconds
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('404')) {
@@ -89,7 +84,7 @@ export function useGlossaryList(projectId: string, params?: GlossaryListParams) 
  * @param projectId - Project ID
  * @param entryId - Entry ID
  */
-export function useGlossaryEntry(projectId: string, entryId: string | null) {
+function useGlossaryEntry(projectId: string, entryId: string | null) {
   return useQuery({
     queryKey: glossaryKeys.entry(projectId, entryId ?? ''),
     queryFn: () => glossaryApi.get(projectId, entryId!),
@@ -106,8 +101,7 @@ export function useCreateGlossaryEntry(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateGlossaryEntryInput) =>
-      glossaryApi.create(projectId, data),
+    mutationFn: (data: CreateGlossaryEntryInput) => glossaryApi.create(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: glossaryKeys.list(projectId) });
       queryClient.invalidateQueries({ queryKey: glossaryKeys.stats(projectId) });
@@ -124,13 +118,8 @@ export function useUpdateGlossaryEntry(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      entryId,
-      data,
-    }: {
-      entryId: string;
-      data: UpdateGlossaryEntryInput;
-    }) => glossaryApi.update(projectId, entryId, data),
+    mutationFn: ({ entryId, data }: { entryId: string; data: UpdateGlossaryEntryInput }) =>
+      glossaryApi.update(projectId, entryId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: glossaryKeys.entry(projectId, variables.entryId),
@@ -162,7 +151,7 @@ export function useDeleteGlossaryEntry(projectId: string) {
  *
  * @param projectId - Project ID
  */
-export function useAddGlossaryTranslation(projectId: string) {
+function useAddGlossaryTranslation(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -187,7 +176,7 @@ export function useAddGlossaryTranslation(projectId: string) {
  *
  * @param projectId - Project ID
  */
-export function useUpdateGlossaryTranslation(projectId: string) {
+function useUpdateGlossaryTranslation(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -214,7 +203,7 @@ export function useUpdateGlossaryTranslation(projectId: string) {
  *
  * @param projectId - Project ID
  */
-export function useDeleteGlossaryTranslation(projectId: string) {
+function useDeleteGlossaryTranslation(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -271,8 +260,7 @@ export function useCreateGlossaryTag(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name: string; color?: string }) =>
-      glossaryApi.createTag(projectId, data),
+    mutationFn: (data: { name: string; color?: string }) => glossaryApi.createTag(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: glossaryKeys.tags(projectId) });
     },
@@ -284,7 +272,7 @@ export function useCreateGlossaryTag(projectId: string) {
  *
  * @param projectId - Project ID
  */
-export function useUpdateGlossaryTag(projectId: string) {
+function useUpdateGlossaryTag(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -389,11 +377,8 @@ export function useGlossarySync(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      provider: MTProvider;
-      sourceLanguage: string;
-      targetLanguage: string;
-    }) => glossaryApi.syncToProvider(projectId, data),
+    mutationFn: (data: { provider: MTProvider; sourceLanguage: string; targetLanguage: string }) =>
+      glossaryApi.syncToProvider(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: glossaryKeys.syncStatus(projectId),
@@ -433,13 +418,7 @@ export function useDeleteGlossarySync(projectId: string) {
       provider: MTProvider;
       sourceLanguage: string;
       targetLanguage: string;
-    }) =>
-      glossaryApi.deleteSyncedGlossary(
-        projectId,
-        provider,
-        sourceLanguage,
-        targetLanguage
-      ),
+    }) => glossaryApi.deleteSyncedGlossary(projectId, provider, sourceLanguage, targetLanguage),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: glossaryKeys.syncStatus(projectId),
@@ -450,12 +429,12 @@ export function useDeleteGlossarySync(projectId: string) {
 
 // Re-export types for convenience
 export type {
+  CreateGlossaryEntryInput,
   GlossaryEntry,
+  GlossaryListParams,
   GlossaryMatch,
   GlossarySearchParams,
-  GlossaryListParams,
   GlossaryStats,
   GlossaryTag,
-  CreateGlossaryEntryInput,
   UpdateGlossaryEntryInput,
 };

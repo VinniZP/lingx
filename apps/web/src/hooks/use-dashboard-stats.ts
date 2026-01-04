@@ -2,9 +2,9 @@
  * Custom hook for fetching dashboard statistics.
  * Uses React Query for caching and automatic refetching.
  */
-import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/api';
 import type { DashboardStats } from '@lingx/shared';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Fetch dashboard statistics for the current user.
@@ -36,7 +36,7 @@ export function useDashboardStats() {
  * Format dashboard stats for display.
  * Useful for computing derived values like percentages.
  */
-export function formatDashboardStats(stats: DashboardStats | undefined) {
+function formatDashboardStats(stats: DashboardStats | undefined) {
   if (!stats) return null;
 
   return {

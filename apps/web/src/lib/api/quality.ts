@@ -78,7 +78,7 @@ async function fetchQualityApi<T>(endpoint: string, options: RequestInit = {}): 
  * @param translationId - Translation ID
  * @returns Cached quality score or null if not evaluated yet
  */
-export async function getCachedQualityScore(translationId: string): Promise<QualityScore | null> {
+async function getCachedQualityScore(translationId: string): Promise<QualityScore | null> {
   return fetchQualityApi<QualityScore | null>(`/api/translations/${translationId}/quality`, {
     method: 'GET',
   });
@@ -91,7 +91,7 @@ export async function getCachedQualityScore(translationId: string): Promise<Qual
  * @param forceAI - Force AI evaluation even if heuristics pass
  * @returns Quality score with dimension breakdown
  */
-export async function evaluateTranslationQuality(
+async function evaluateTranslationQuality(
   translationId: string,
   forceAI?: boolean
 ): Promise<QualityScore> {
@@ -126,7 +126,7 @@ export async function queueBatchQuality(
  * @param branchId - Branch ID
  * @returns Summary with average score, distribution, and breakdown by language
  */
-export async function getBranchQualitySummary(branchId: string): Promise<BranchQualitySummary> {
+async function getBranchQualitySummary(branchId: string): Promise<BranchQualitySummary> {
   return fetchQualityApi<BranchQualitySummary>(`/api/branches/${branchId}/quality/summary`);
 }
 

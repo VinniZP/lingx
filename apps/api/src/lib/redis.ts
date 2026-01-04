@@ -53,5 +53,3 @@ if (process.env.NODE_ENV !== 'production') {
 export async function closeRedis(): Promise<void> {
   await redis.quit();
 }
-
-export default redis;

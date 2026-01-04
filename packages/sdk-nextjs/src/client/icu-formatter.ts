@@ -92,10 +92,7 @@ export class ICUFormatter {
     } catch (error) {
       // On parse error, return original message
       // This prevents breaking the UI on malformed messages
-      console.warn(
-        `[Lingx] ICU parse error for message: "${message.substring(0, 50)}..."`,
-        error
-      );
+      console.warn(`[Lingx] ICU parse error for message: "${message.substring(0, 50)}..."`, error);
       return message;
     }
   }
@@ -150,9 +147,7 @@ export function hasICUSyntax(message: string): boolean {
   // - Number: {name, number, ...}
   // - Date: {name, date, ...}
   // - Time: {name, time, ...}
-  return /\{[^}]+,\s*(plural|select|selectordinal|number|date|time)/i.test(
-    message
-  );
+  return /\{[^}]+,\s*(plural|select|selectordinal|number|date|time)/i.test(message);
 }
 
 /**
@@ -171,20 +166,4 @@ export function getFormatter(locale: string): ICUFormatter {
     globalFormatter = new ICUFormatter(locale);
   }
   return globalFormatter;
-}
-
-/**
- * Format an ICU message using the global formatter
- *
- * @param message - ICU MessageFormat string
- * @param values - Values to interpolate
- * @param locale - BCP 47 language tag
- * @returns Formatted string
- */
-export function formatICU(
-  message: string,
-  values: TranslationValues,
-  locale: string
-): string {
-  return getFormatter(locale).format(message, values);
 }
