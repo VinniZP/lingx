@@ -40,6 +40,14 @@ Score each dimension 0-100:
 
 IMPORTANT: If the target looks like an AI response/explanation rather than a translation (contains questions, clarification requests, or is much longer than expected), score ACCURACY as 0.
 
+When <related_keys> are provided, use them to inform your evaluation:
+- NEARBY keys: Adjacent UI elements in the same code location - match tone/formality
+- KEY_PATTERN keys: Same feature area (e.g., form.*, button.*) - match terminology
+- SAME_COMPONENT keys: Same React component - ensure UI consistency
+- SAME_FILE keys: Same source file - maintain style
+- SEMANTIC keys: Similar text content - check for translation consistency
+- Prioritize high-confidence (>0.8) and approved="true" translations as authoritative
+
 Return ONLY valid JSON in this exact format:
 {"accuracy":N,"fluency":N,"terminology":N,"issues":[{"type":"accuracy|fluency|terminology","severity":"critical|major|minor","message":"..."}]}
 
@@ -79,6 +87,14 @@ Score each dimension 0-100:
    - 0-49: Major term errors
 
 IMPORTANT: If any translation looks like an AI response/explanation rather than a translation (contains questions, clarification requests, or is much longer than expected), score its ACCURACY as 0.
+
+When <related_keys> are provided, use them to inform your evaluation:
+- NEARBY keys: Adjacent UI elements in the same code location - match tone/formality
+- KEY_PATTERN keys: Same feature area (e.g., form.*, button.*) - match terminology
+- SAME_COMPONENT keys: Same React component - ensure UI consistency
+- SAME_FILE keys: Same source file - maintain style
+- SEMANTIC keys: Similar text content - check for translation consistency
+- Prioritize high-confidence (>0.8) and approved="true" translations as authoritative
 
 Return ONLY valid JSON in this EXACT format:
 {
@@ -128,22 +144,39 @@ export function escapeXml(text: string): string {
   let sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
 
   // Remove unpaired surrogates (invalid in XML)
-  sanitized = sanitized.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+  sanitized = sanitized.replace(
+    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,
+    ''
+  );
 
   // Escape XML special characters
-  return sanitized
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-    // Escape CDATA end sequence (]]>) by breaking it up
-    .replace(/\]\]>/g, ']]&gt;');
+  return (
+    sanitized
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;')
+      // Escape CDATA end sequence (]]>) by breaking it up
+      .replace(/\]\]>/g, ']]&gt;')
+  );
 }
 
 // ============================================
 // User Prompt Builders (Dynamic Content)
 // ============================================
+
+/**
+ * Related key with single language translation (for single-language evaluation)
+ */
+export interface RelatedKeySingle {
+  key: string;
+  source: string;
+  target: string;
+  relationshipType?: 'NEARBY' | 'KEY_PATTERN' | 'SAME_COMPONENT' | 'SAME_FILE' | 'SEMANTIC';
+  confidence?: number;
+  isApproved?: boolean;
+}
 
 /**
  * Build MQM user prompt for single-language evaluation.
@@ -152,7 +185,7 @@ export function escapeXml(text: string): string {
  * - Key name
  * - Source text
  * - Target text
- * - Related keys for context
+ * - Related keys for context (with optional relationship metadata)
  *
  * @param keyName - Translation key identifier
  * @param source - Source language text
@@ -168,18 +201,29 @@ export function buildMQMUserPrompt(
   target: string,
   sourceLocale: string,
   targetLocale: string,
-  relatedKeys: Array<{ key: string; source: string; target: string }> = []
+  relatedKeys: RelatedKeySingle[] = []
 ): string {
   let prompt = `Key: ${keyName}
 Source (${sourceLocale}): "${source}"
 Target (${targetLocale}): "${target}"`;
 
-  // Add related keys context if available
+  // Add related keys context if available (XML format for structured context)
   if (relatedKeys.length > 0) {
     prompt += `
 
-Nearby translations for context:
-${relatedKeys.map((r) => `- ${r.key}: "${r.source}" → "${r.target}"`).join('\n')}`;
+<related_keys>
+${relatedKeys
+  .map((r) => {
+    const typeAttr = r.relationshipType ? ` type="${r.relationshipType}"` : '';
+    const confAttr = r.confidence !== undefined ? ` confidence="${r.confidence.toFixed(2)}"` : '';
+    const approvedAttr = r.isApproved ? ' approved="true"' : '';
+    return `  <related_key name="${escapeXml(r.key)}"${typeAttr}${confAttr}${approvedAttr}>
+    <source lang="${sourceLocale}">${escapeXml(r.source)}</source>
+    <target lang="${targetLocale}">${escapeXml(r.target)}</target>
+  </related_key>`;
+  })
+  .join('\n')}
+</related_keys>`;
   }
 
   return prompt;
@@ -192,6 +236,9 @@ export interface RelatedKeyMultiLang {
   keyName: string;
   source: string;
   translations: Record<string, string>;
+  relationshipType?: 'NEARBY' | 'KEY_PATTERN' | 'SAME_COMPONENT' | 'SAME_FILE' | 'SEMANTIC';
+  confidence?: number;
+  isApproved?: boolean;
 }
 
 /**
@@ -239,15 +286,18 @@ ${translations.map((t) => `    <translation lang="${t.language}">${escapeXml(t.v
 
   <related_keys>
 ${relatedKeys
-  .map(
-    (rk) => `    <key name="${escapeXml(rk.keyName)}">
+  .map((rk) => {
+    const typeAttr = rk.relationshipType ? ` type="${rk.relationshipType}"` : '';
+    const confAttr = rk.confidence !== undefined ? ` confidence="${rk.confidence.toFixed(2)}"` : '';
+    const approvedAttr = rk.isApproved ? ' approved="true"' : '';
+    return `    <related_key name="${escapeXml(rk.keyName)}"${typeAttr}${confAttr}${approvedAttr}>
       <source lang="${sourceLocale}">${escapeXml(rk.source)}</source>
 ${langs
   .filter((l) => rk.translations[l])
   .map((l) => `      <translation lang="${l}">${escapeXml(rk.translations[l])}</translation>`)
   .join('\n')}
-    </key>`
-  )
+    </related_key>`;
+  })
   .join('\n')}
   </related_keys>`;
   }

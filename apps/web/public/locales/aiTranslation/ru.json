@@ -1,13 +1,13 @@
 {
   "quality": {
     "title": "Оценка качества",
-    "description": "Настройте AI-оценку качества переводов",
-    "enable": "Включить AI оценку качества",
     "saved": "Настройки качества сохранены",
     "save": "Сохранить",
     "noProvidersWarning": "AI провайдеры не настроены. Включите хотя бы один провайдер выше.",
     "provider": "AI провайдер",
     "saveFailed": "Не удалось сохранить настройки качества",
+    "description": "Настройте AI-оценку качества переводов",
+    "enable": "Включить AI оценку качества",
     "enableDescription": "Использовать AI для анализа точности и стиля перевода",
     "selectProvider": "Выберите провайдера",
     "providerDescription": "Выберите включенный AI провайдер для оценки качества",
@@ -16,6 +16,7 @@
     "modelDescription": "Выберите модель для анализа качества",
     "configuredWith": "Настроено"
   },
+  "pageTitle": "AI Translation",
   "toasts": {
     "configSaved": "",
     "configRemoved": "",
@@ -30,12 +31,11 @@
     "contextSaved": "",
     "contextSaveFailed": ""
   },
-  "pageTitle": "AI Translation",
   "usage": {
     "stats": {
+      "cacheHits": "",
       "totalTokens": "",
       "requests": "",
-      "cacheHits": "",
       "estCost": ""
     },
     "title": "",
@@ -44,13 +44,13 @@
     "tokens": "",
     "requests": ""
   },
-  "pageDescription": "",
   "sections": {
     "providers": "",
     "contextSettings": "",
     "qualityEvaluation": "Оценка качества",
     "usage": ""
   },
+  "pageDescription": "Настройка провайдеров ИИ для контекстных подсказок по переводу",
   "provider": {
     "googleAI": {
       "description": ""
@@ -86,12 +86,12 @@
       "inactive": ""
     },
     "actions": {
-      "cancel": "",
-      "saving": "",
-      "save": "",
-      "remove": "",
-      "test": "",
-      "edit": ""
+      "save": "Сохранить",
+      "cancel": "Отмена",
+      "saving": "Сохранение...",
+      "remove": "Удалить",
+      "test": "Тест",
+      "edit": "Изменить"
     },
     "removeDialog": {
       "title": "Удалить {provider}",
@@ -99,28 +99,28 @@
     }
   },
   "context": {
-    "title": "",
-    "description": "",
-    "maxItems": "",
-    "minSimilarity": "",
+    "title": "Настройка контекста",
+    "description": "Настройте, какой контекст ИИ использует для более точных переводов",
+    "maxItems": "Максимум элементов",
+    "minSimilarity": "Минимальное сходство",
     "customInstructions": {
-      "title": "",
-      "description": "",
-      "placeholder": ""
+      "title": "Дополнительные инструкции",
+      "description": "Добавьте конкретные инструкции для ИИ",
+      "placeholder": "например: «Используйте формальный стиль для переводов на немецкий» или «Делайте переводы лаконичными для мобильного интерфейса»"
     },
-    "saveNote": "",
-    "saveSettings": "",
+    "saveNote": "Изменения будут применяться ко всем будущим переводам ИИ",
+    "saveSettings": "Сохранить настройки",
     "glossary": {
-      "label": "",
-      "description": ""
+      "label": "Термины глоссария",
+      "description": "Используйте глоссарий проекта для единообразной терминологии"
     },
     "tm": {
-      "label": "",
-      "description": ""
+      "label": "Память переводов",
+      "description": "Использовать похожие переводы из вашей Памяти переводов"
     },
     "relatedKeys": {
-      "label": "",
-      "description": ""
+      "label": "Связанные ключи",
+      "description": "Учитывать переводы из связанных ключей"
     }
   }
 }

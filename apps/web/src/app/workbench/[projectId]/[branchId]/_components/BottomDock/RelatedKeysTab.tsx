@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRelatedKeys, type RelatedKey } from '@/hooks/use-related-keys';
 import type { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { Brain, FileText, FolderOpen, Link2Off, Loader2 } from 'lucide-react';
+import { Brain, FileText, FolderOpen, Link2Off, Loader2, MapPin, Regex } from 'lucide-react';
 
 interface RelatedKeysTabProps {
   keyData: TranslationKey;
@@ -14,6 +14,18 @@ interface RelatedKeysTabProps {
 
 // Relationship type config
 const relationshipConfig = {
+  nearby: {
+    label: 'Nearby',
+    icon: MapPin,
+    color: 'text-green-600',
+    bgColor: 'bg-green-600/10',
+  },
+  keyPattern: {
+    label: 'Key Pattern',
+    icon: Regex,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-600/10',
+  },
   sameFile: {
     label: 'Same File',
     icon: FileText,
@@ -138,7 +150,9 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
   const relationships = data?.relationships;
   const hasRelatedKeys =
     relationships &&
-    (relationships.sameFile.length > 0 ||
+    (relationships.nearby.length > 0 ||
+      relationships.keyPattern.length > 0 ||
+      relationships.sameFile.length > 0 ||
       relationships.sameComponent.length > 0 ||
       relationships.semantic.length > 0);
 
@@ -164,6 +178,12 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
 
   return (
     <div className="space-y-4">
+      <RelationshipSection type="nearby" keys={relationships.nearby} onSelectKey={onSelectKey} />
+      <RelationshipSection
+        type="keyPattern"
+        keys={relationships.keyPattern}
+        onSelectKey={onSelectKey}
+      />
       <RelationshipSection
         type="sameComponent"
         keys={relationships.sameComponent}

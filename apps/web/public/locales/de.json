@@ -16,20 +16,12 @@
       "evaluate": "Evaluate Quality"
     }
   },
-  "apiKeys": {
-    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
-    "revokeDialog": {
-      "cancel": "Abbrechen"
-    },
-    "copiedToClipboard": "In die Zwischenablage kopiert",
-    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
-    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
-    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
-    "activeKeys": "Aktive Schlüssel",
-    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
-    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt"
-  },
   "projects": {
+    "card": {
+      "main": "main",
+      "keys": "{count} Schlüssel",
+      "progress": "Fortschritt"
+    },
     "search": {
       "placeholder": "Projekte suchen...",
       "noResults": "Keine Projekte gefunden",
@@ -45,11 +37,56 @@
       "title": "Noch keine Projekte",
       "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen.",
       "cta": "Erstellen Sie Ihr erstes Projekt"
-    },
-    "card": {
-      "keys": "{count} Schlüssel",
-      "main": "main",
-      "progress": "Fortschritt"
+    }
+  },
+  "common": {
+    "save": "Speichern",
+    "delete": "Löschen",
+    "loading": "Laden...",
+    "cancel": "Abbrechen",
+    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
+    "viewAll": "Alle anzeigen"
+  },
+  "settings": {
+    "quality": {
+      "title": "",
+      "description": "",
+      "ai": {
+        "title": "AI Evaluation",
+        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
+        "enabled": "Enable AI evaluation",
+        "enabledDescription": "Use AI to evaluate complex quality issues",
+        "provider": "AI Provider",
+        "providerPlaceholder": "Select provider",
+        "useProjectDefault": "Use project default",
+        "providerDescription": "AI provider for quality evaluation",
+        "model": "AI Model",
+        "modelPlaceholder": "e.g., claude-sonnet-4-5",
+        "modelDescription": "Specific model to use for evaluation"
+      },
+      "saved": "",
+      "saveFailed": "",
+      "loading": "Qualitätseinstellungen werden geladen",
+      "aiProviderLink": {
+        "title": "AI-Anbieter-Einstellungen",
+        "description": "Konfigurieren Sie, welcher AI-Anbieter für die Qualitätsbewertung verwendet werden soll"
+      },
+      "triggers": {
+        "title": "",
+        "description": "When to automatically score translations",
+        "afterAI": "Score after AI translation",
+        "afterAIDescription": "Automatically score translations created by AI",
+        "beforeMerge": "Score before merge",
+        "beforeMergeDescription": "Require quality check before merging branches"
+      },
+      "thresholds": {
+        "title": "Quality Thresholds",
+        "description": "Score thresholds for automated workflows",
+        "autoApprove": "Auto-approve threshold",
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "flag": "Flag threshold",
+        "flagDescription": "Flag translations with score < this value for review"
+      }
     }
   },
   "activity": {
@@ -79,16 +116,14 @@
     "viewAllChanges": "Alle {count} Änderungen anzeigen",
     "description": {
       "translationSingle": "Übersetzung aktualisiert{languages, select, undefined {} other { in {languages}}}",
+      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
+      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
       "aiTranslateWithLanguages": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} zu {languages} übersetzt",
       "aiTranslate": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} übersetzt",
       "default": "Aktivität aufgezeichnet",
-      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
       "keyAddSingle": "Übersetzungsschlüssel hinzugefügt",
       "keyAddPlural": "Hinzugefügt {count} Übersetzungsschlüssel",
       "keyDeleteSingle": "Übersetzungsschlüssel gelöscht",
-      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
-      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht",
-      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
       "keyDeletePlural": "Gelöschte {count} Übersetzungsschlüssel",
       "branchCreateWithSource": "Branch \"{branchName}\" wurde aus \"{sourceBranchName}\" erstellt",
       "branchCreate": "Branch \"{branchName}\" erstellt",
@@ -97,7 +132,9 @@
       "importWithFile": "Importierte {count, plural, one {# Schlüssel} other {# Schlüssel}} aus {fileName}",
       "import": "Importiert {count, plural, one {# Schlüssel} other {# Schlüssel}}",
       "export": "Übersetzungen in {format} exportiert",
-      "projectSettings": "Projekt {fields} aktualisiert"
+      "projectSettings": "Projekt {fields} aktualisiert",
+      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
+      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht"
     },
     "modal": {
       "loadMore": "Mehr laden",
@@ -111,70 +148,55 @@
     "lastWeek": "Letzte 7 Tage",
     "empty": "Aktivitäten erscheinen hier während Sie arbeiten"
   },
-  "common": {
-    "delete": "Löschen",
-    "loading": "Laden...",
-    "cancel": "Abbrechen",
-    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
-    "viewAll": "Alle anzeigen",
-    "save": "Speichern"
-  },
-  "settings": {
-    "quality": {
-      "saved": "",
-      "saveFailed": "",
-      "loading": "Qualitätseinstellungen werden geladen",
-      "aiProviderLink": {
-        "title": "AI-Anbieter-Einstellungen",
-        "description": "Konfigurieren Sie, welcher AI-Anbieter für die Qualitätsbewertung verwendet werden soll"
-      },
-      "thresholds": {
-        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
-        "flag": "Flag threshold",
-        "flagDescription": "Flag translations with score < this value for review",
-        "title": "Quality Thresholds",
-        "description": "Score thresholds for automated workflows",
-        "autoApprove": "Auto-approve threshold"
-      },
-      "title": "",
-      "description": "",
-      "ai": {
-        "title": "AI Evaluation",
-        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
-        "enabled": "Enable AI evaluation",
-        "enabledDescription": "Use AI to evaluate complex quality issues",
-        "provider": "AI Provider",
-        "providerPlaceholder": "Select provider",
-        "useProjectDefault": "Use project default",
-        "providerDescription": "AI provider for quality evaluation",
-        "model": "AI Model",
-        "modelPlaceholder": "e.g., claude-sonnet-4-5",
-        "modelDescription": "Specific model to use for evaluation"
-      },
-      "triggers": {
-        "title": "",
-        "description": "When to automatically score translations",
-        "afterAI": "Score after AI translation",
-        "afterAIDescription": "Automatically score translations created by AI",
-        "beforeMerge": "Score before merge",
-        "beforeMergeDescription": "Require quality check before merging branches"
-      }
-    }
-  },
-  "auth": {
-    "forgotPassword": "Passwort vergessen?"
+  "apiKeys": {
+    "copiedToClipboard": "In die Zwischenablage kopiert",
+    "revokeDialog": {
+      "cancel": "Abbrechen"
+    },
+    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
+    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
+    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
+    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
+    "activeKeys": "Aktive Schlüssel",
+    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
+    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt"
   },
   "dashboard": {
+    "welcome": {
+      "description": "Professionelles Übersetzungsmanagement mit Git-ähnlicher Versionskontrolle für moderne Teams",
+      "title": "Willkommen bei Lingx"
+    },
+    "onboarding": {
+      "step1": {
+        "title": "Projekt erstellen",
+        "description": "Definieren Sie Ihre Quell- und Zielsprachen"
+      },
+      "step2": {
+        "title": "Übersetzungsschlüssel hinzufügen",
+        "description": "Vorhandene importieren oder neue erstellen"
+      },
+      "step3": {
+        "title": "Mit Ihrer App synchronisieren",
+        "description": "CLI oder API zum Abrufen von Übersetzungen verwenden"
+      }
+    },
+    "greeting": {
+      "evening": "Guten Abend",
+      "morning": "Guten Morgen",
+      "afternoon": "Guten Tag"
+    },
+    "overview": "Hier ist Ihre Übersetzungsübersicht",
+    "stats": {
+      "keys": "Schlüssel",
+      "complete": "Fertig",
+      "languages": "Sprachen",
+      "projects": "Projekte"
+    },
+    "progress": "Gesamtfortschritt der Übersetzungen",
     "createProject": {
       "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
       "cta": "Loslegen",
       "title": "Neues Projekt erstellen"
-    },
-    "stats": {
-      "languages": "Sprachen",
-      "projects": "Projekte",
-      "keys": "Schlüssel",
-      "complete": "Fertig"
     },
     "resources": {
       "docs": "Dokumentation",
@@ -203,32 +225,10 @@
     "cli": {
       "title": "CLI verfügbar",
       "description": "Übersetzungen vom Terminal synchronisieren"
-    },
-    "welcome": {
-      "title": "Willkommen bei Lingx",
-      "description": "Professionelles Übersetzungsmanagement mit Git-ähnlicher Versionskontrolle für moderne Teams"
-    },
-    "onboarding": {
-      "step1": {
-        "title": "Projekt erstellen",
-        "description": "Definieren Sie Ihre Quell- und Zielsprachen"
-      },
-      "step2": {
-        "title": "Übersetzungsschlüssel hinzufügen",
-        "description": "Vorhandene importieren oder neue erstellen"
-      },
-      "step3": {
-        "title": "Mit Ihrer App synchronisieren",
-        "description": "CLI oder API zum Abrufen von Übersetzungen verwenden"
-      }
-    },
-    "greeting": {
-      "morning": "Guten Morgen",
-      "afternoon": "Guten Tag",
-      "evening": "Guten Abend"
-    },
-    "overview": "Hier ist Ihre Übersetzungsübersicht",
-    "progress": "Gesamtfortschritt der Übersetzungen"
+    }
+  },
+  "auth": {
+    "forgotPassword": "Passwort vergessen?"
   },
   "translations": {
     "toasts": {

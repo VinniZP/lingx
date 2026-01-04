@@ -4,13 +4,13 @@
  * Tests XML escaping, prompt building, and prompt constants.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  MQM_SYSTEM_PROMPT,
   MQM_MULTI_LANGUAGE_SYSTEM_PROMPT,
-  escapeXml,
+  MQM_SYSTEM_PROMPT,
   buildMQMUserPrompt,
   buildMultiLanguagePrompt,
+  escapeXml,
 } from '../../../src/services/quality/ai/prompts.js';
 
 // ============================================
@@ -214,7 +214,7 @@ describe('buildMQMUserPrompt', () => {
 
   it('should format without related keys', () => {
     const prompt = buildMQMUserPrompt('key', 'Hello', 'Bonjour', 'en', 'fr');
-    expect(prompt).not.toContain('Nearby translations');
+    expect(prompt).not.toContain('<related_keys>');
   });
 
   it('should include related keys when provided', () => {
@@ -224,16 +224,19 @@ describe('buildMQMUserPrompt', () => {
     ];
     const prompt = buildMQMUserPrompt('key', 'Hello', 'Bonjour', 'en', 'fr', relatedKeys);
 
-    expect(prompt).toContain('Nearby translations for context');
+    // Now uses XML format
+    expect(prompt).toContain('<related_keys>');
     expect(prompt).toContain('other.key');
-    expect(prompt).toContain('"Goodbye" → "Au revoir"');
+    expect(prompt).toContain('<source lang="en">Goodbye</source>');
+    expect(prompt).toContain('<target lang="fr">Au revoir</target>');
     expect(prompt).toContain('another.key');
-    expect(prompt).toContain('"Thanks" → "Merci"');
+    expect(prompt).toContain('<source lang="en">Thanks</source>');
+    expect(prompt).toContain('<target lang="fr">Merci</target>');
   });
 
   it('should handle empty related keys array', () => {
     const prompt = buildMQMUserPrompt('key', 'Hello', 'Hallo', 'en', 'de', []);
-    expect(prompt).not.toContain('Nearby translations');
+    expect(prompt).not.toContain('<related_keys>');
   });
 
   it('should handle special characters in text', () => {
@@ -254,7 +257,13 @@ describe('buildMQMUserPrompt', () => {
 
 describe('buildMultiLanguagePrompt', () => {
   it('should create valid XML structure', () => {
-    const prompt = buildMultiLanguagePrompt('greeting', 'Hello', 'en', [{ language: 'de', value: 'Hallo' }], []);
+    const prompt = buildMultiLanguagePrompt(
+      'greeting',
+      'Hello',
+      'en',
+      [{ language: 'de', value: 'Hallo' }],
+      []
+    );
 
     expect(prompt).toContain('<evaluation_request>');
     expect(prompt).toContain('</evaluation_request>');
@@ -262,7 +271,13 @@ describe('buildMultiLanguagePrompt', () => {
   });
 
   it('should include source with locale attribute', () => {
-    const prompt = buildMultiLanguagePrompt('key', 'Hello World', 'en', [{ language: 'de', value: 'Hallo Welt' }], []);
+    const prompt = buildMultiLanguagePrompt(
+      'key',
+      'Hello World',
+      'en',
+      [{ language: 'de', value: 'Hallo Welt' }],
+      []
+    );
 
     expect(prompt).toContain('<source lang="en">Hello World</source>');
   });
@@ -292,13 +307,19 @@ describe('buildMultiLanguagePrompt', () => {
     const prompt = buildMultiLanguagePrompt('greeting', 'Hello', 'en', translations, relatedKeys);
 
     expect(prompt).toContain('<related_keys>');
-    expect(prompt).toContain('<key name="farewell">');
+    expect(prompt).toContain('<related_key name="farewell">');
     expect(prompt).toContain('<source lang="en">Goodbye</source>');
     expect(prompt).toContain('<translation lang="de">Auf Wiedersehen</translation>');
   });
 
   it('should escape XML special characters in key name', () => {
-    const prompt = buildMultiLanguagePrompt('key<with>&chars', 'Hello', 'en', [{ language: 'de', value: 'Hallo' }], []);
+    const prompt = buildMultiLanguagePrompt(
+      'key<with>&chars',
+      'Hello',
+      'en',
+      [{ language: 'de', value: 'Hallo' }],
+      []
+    );
 
     expect(prompt).toContain('&lt;');
     expect(prompt).toContain('&amp;');
@@ -306,15 +327,25 @@ describe('buildMultiLanguagePrompt', () => {
   });
 
   it('should escape XML special characters in source text', () => {
-    const prompt = buildMultiLanguagePrompt('key', 'Hello <World> & Universe', 'en', [
-      { language: 'de', value: 'Hallo' },
-    ], []);
+    const prompt = buildMultiLanguagePrompt(
+      'key',
+      'Hello <World> & Universe',
+      'en',
+      [{ language: 'de', value: 'Hallo' }],
+      []
+    );
 
     expect(prompt).toContain('Hello &lt;World&gt; &amp; Universe');
   });
 
   it('should escape XML special characters in translations', () => {
-    const prompt = buildMultiLanguagePrompt('key', 'Hello', 'en', [{ language: 'de', value: '<Hallo & Welt>' }], []);
+    const prompt = buildMultiLanguagePrompt(
+      'key',
+      'Hello',
+      'en',
+      [{ language: 'de', value: '<Hallo & Welt>' }],
+      []
+    );
 
     expect(prompt).toContain('&lt;Hallo &amp; Welt&gt;');
   });
@@ -336,7 +367,13 @@ describe('buildMultiLanguagePrompt', () => {
   });
 
   it('should handle empty related keys array', () => {
-    const prompt = buildMultiLanguagePrompt('key', 'Hello', 'en', [{ language: 'de', value: 'Hallo' }], []);
+    const prompt = buildMultiLanguagePrompt(
+      'key',
+      'Hello',
+      'en',
+      [{ language: 'de', value: 'Hallo' }],
+      []
+    );
 
     expect(prompt).not.toContain('<related_keys>');
     expect(prompt).not.toContain('</related_keys>');
@@ -417,7 +454,8 @@ describe('integration: prompt building', () => {
     expect(prompt).toContain('Key: nav.about');
     expect(prompt).toContain('Source (en): "About Us"');
     expect(prompt).toContain('Target (de): "Über uns"');
-    expect(prompt).toContain('Nearby translations for context:');
+    // Now uses XML format for related keys
+    expect(prompt).toContain('<related_keys>');
     expect(prompt).toContain('nav.home');
     expect(prompt).toContain('nav.settings');
   });
@@ -435,7 +473,13 @@ describe('integration: prompt building', () => {
         translations: { de: 'Startseite', fr: 'Accueil', es: 'Inicio' },
       },
     ];
-    const prompt = buildMultiLanguagePrompt('menu.settings', 'Settings', 'en', translations, relatedKeys);
+    const prompt = buildMultiLanguagePrompt(
+      'menu.settings',
+      'Settings',
+      'en',
+      translations,
+      relatedKeys
+    );
 
     // Verify XML structure
     expect(prompt).toMatch(/<evaluation_request>[\s\S]*<\/evaluation_request>/);
@@ -447,9 +491,9 @@ describe('integration: prompt building', () => {
     expect(prompt).toContain('<translation lang="fr">Paramètres</translation>');
     expect(prompt).toContain('<translation lang="es">Configuración</translation>');
 
-    // Verify related keys
+    // Verify related keys (now uses <related_key> instead of <key>)
     expect(prompt).toContain('<related_keys>');
-    expect(prompt).toContain('<key name="menu.home">');
+    expect(prompt).toContain('<related_key name="menu.home">');
     expect(prompt).toContain('<translation lang="de">Startseite</translation>');
     expect(prompt).toContain('<translation lang="fr">Accueil</translation>');
     expect(prompt).toContain('<translation lang="es">Inicio</translation>');

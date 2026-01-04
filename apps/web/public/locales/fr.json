@@ -17,6 +17,11 @@
     }
   },
   "projects": {
+    "card": {
+      "main": "main",
+      "keys": "{count} clés",
+      "progress": "Progression"
+    },
     "search": {
       "placeholder": "Rechercher des projets...",
       "noResults": "Aucun projet trouvé",
@@ -32,43 +37,18 @@
       "title": "Pas encore de projets",
       "description": "Créez votre premier projet pour commencer à gérer les traductions avec contrôle de version et collaboration.",
       "cta": "Créez votre premier projet"
-    },
-    "card": {
-      "keys": "{count} clés",
-      "main": "main",
-      "progress": "Progression"
     }
   },
   "common": {
+    "save": "Enregistrer",
     "delete": "Supprimer",
     "loading": "Chargement...",
     "cancel": "Annuler",
     "languages": "{count, plural, one {# langue} other {# langues}}",
-    "viewAll": "Voir tout",
-    "save": "Enregistrer"
-  },
-  "apiKeys": {
-    "revokeDialog": {
-      "cancel": "Annuler"
-    }
+    "viewAll": "Voir tout"
   },
   "settings": {
     "quality": {
-      "saved": "",
-      "saveFailed": "",
-      "loading": "Chargement des paramètres de qualité",
-      "aiProviderLink": {
-        "title": "Paramètres du fournisseur IA",
-        "description": "Configurez quel fournisseur IA utiliser pour l'évaluation de la qualité"
-      },
-      "thresholds": {
-        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
-        "flag": "Flag threshold",
-        "flagDescription": "Flag translations with score < this value for review",
-        "title": "Quality Thresholds",
-        "description": "Score thresholds for automated workflows",
-        "autoApprove": "Auto-approve threshold"
-      },
       "title": "",
       "description": "",
       "ai": {
@@ -84,6 +64,13 @@
         "modelPlaceholder": "e.g., claude-sonnet-4-5",
         "modelDescription": "Specific model to use for evaluation"
       },
+      "saved": "",
+      "saveFailed": "",
+      "loading": "Chargement des paramètres de qualité",
+      "aiProviderLink": {
+        "title": "Paramètres du fournisseur IA",
+        "description": "Configurez quel fournisseur IA utiliser pour l'évaluation de la qualité"
+      },
       "triggers": {
         "title": "",
         "description": "When to automatically score translations",
@@ -91,23 +78,58 @@
         "afterAIDescription": "Automatically score translations created by AI",
         "beforeMerge": "Score before merge",
         "beforeMergeDescription": "Require quality check before merging branches"
+      },
+      "thresholds": {
+        "title": "Quality Thresholds",
+        "description": "Score thresholds for automated workflows",
+        "autoApprove": "Auto-approve threshold",
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "flag": "Flag threshold",
+        "flagDescription": "Flag translations with score < this value for review"
       }
     }
   },
-  "auth": {
-    "forgotPassword": "Mot de passe oublié ?"
+  "apiKeys": {
+    "revokeDialog": {
+      "cancel": "Annuler"
+    }
   },
   "dashboard": {
+    "welcome": {
+      "description": "Gestion professionnelle des traductions avec contrôle de version de type Git pour les équipes modernes",
+      "title": "Bienvenue sur Lingx"
+    },
+    "onboarding": {
+      "step1": {
+        "title": "Créer un projet",
+        "description": "Définissez vos langues source et cible"
+      },
+      "step2": {
+        "title": "Ajouter des clés de traduction",
+        "description": "Importez des existantes ou créez-en de nouvelles"
+      },
+      "step3": {
+        "title": "Synchroniser avec votre app",
+        "description": "Utilisez CLI ou API pour récupérer les traductions"
+      }
+    },
+    "greeting": {
+      "evening": "Bonsoir",
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi"
+    },
+    "overview": "Voici votre aperçu des traductions",
+    "stats": {
+      "keys": "Clés",
+      "complete": "Terminé",
+      "languages": "Langues",
+      "projects": "Projets"
+    },
+    "progress": "Progression globale des traductions",
     "createProject": {
       "description": "Démarrez un projet de localisation avec contrôle de version, branches et collaboration d'équipe",
       "cta": "Commencer",
       "title": "Créer un nouveau projet"
-    },
-    "stats": {
-      "languages": "Langues",
-      "projects": "Projets",
-      "keys": "Clés",
-      "complete": "Terminé"
     },
     "resources": {
       "docs": "Documentation",
@@ -136,32 +158,10 @@
     "cli": {
       "title": "CLI Disponible",
       "description": "Synchronisez les traductions depuis votre terminal"
-    },
-    "welcome": {
-      "title": "Bienvenue sur Lingx",
-      "description": "Gestion professionnelle des traductions avec contrôle de version de type Git pour les équipes modernes"
-    },
-    "onboarding": {
-      "step1": {
-        "title": "Créer un projet",
-        "description": "Définissez vos langues source et cible"
-      },
-      "step2": {
-        "title": "Ajouter des clés de traduction",
-        "description": "Importez des existantes ou créez-en de nouvelles"
-      },
-      "step3": {
-        "title": "Synchroniser avec votre app",
-        "description": "Utilisez CLI ou API pour récupérer les traductions"
-      }
-    },
-    "greeting": {
-      "morning": "Bonjour",
-      "afternoon": "Bon après-midi",
-      "evening": "Bonsoir"
-    },
-    "overview": "Voici votre aperçu des traductions",
-    "progress": "Progression globale des traductions"
+    }
+  },
+  "auth": {
+    "forgotPassword": "Mot de passe oublié ?"
   },
   "translations": {
     "toasts": {

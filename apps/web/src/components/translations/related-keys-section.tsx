@@ -1,29 +1,23 @@
 'use client';
 
-import { useState, memo } from 'react';
-import { useRelatedKeys, type RelatedKey, type RelationshipType } from '@/hooks';
-import { cn } from '@/lib/utils';
-import {
-  ChevronDown,
-  FileCode,
-  Component,
-  Brain,
-  Loader2,
-  ExternalLink,
-} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useRelatedKeys, type RelatedKey, type RelationshipType } from '@/hooks';
+import { cn } from '@/lib/utils';
+import { tKey, useTranslation, type TranslationKey, type TranslationKeys } from '@lingx/sdk-nextjs';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { useTranslation, tKey, type TranslationKey, type TranslationKeys } from '@lingx/sdk-nextjs';
+  Brain,
+  ChevronDown,
+  Component,
+  ExternalLink,
+  FileCode,
+  Loader2,
+  MapPin,
+  Regex,
+} from 'lucide-react';
+import { memo, useState } from 'react';
 
 const relationshipConfig: Record<
   RelationshipType,
@@ -33,6 +27,16 @@ const relationshipConfig: Record<
     colorClass: string;
   }
 > = {
+  NEARBY: {
+    icon: MapPin,
+    labelKey: tKey('translations.relatedKeys.nearby'),
+    colorClass: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30',
+  },
+  KEY_PATTERN: {
+    icon: Regex,
+    labelKey: tKey('translations.relatedKeys.keyPattern'),
+    colorClass: 'text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30',
+  },
   SAME_FILE: {
     icon: FileCode,
     labelKey: tKey('translations.relatedKeys.sameFile'),
@@ -72,9 +76,17 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
     includeTranslations: true,
   });
 
-  // Flatten all related keys for display
+  // Flatten all related keys for display (prioritized order)
   const allRelatedKeys: Array<RelatedKey & { type: RelationshipType }> = data
     ? [
+        ...data.relationships.nearby.map((k) => ({
+          ...k,
+          type: 'NEARBY' as const,
+        })),
+        ...data.relationships.keyPattern.map((k) => ({
+          ...k,
+          type: 'KEY_PATTERN' as const,
+        })),
         ...data.relationships.sameComponent.map((k) => ({
           ...k,
           type: 'SAME_COMPONENT' as const,
@@ -98,8 +110,8 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
   // Loading state
   if (isLoading) {
     return (
-      <div className="px-4 py-2 border-t border-border/40 bg-muted/10">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="border-border/40 bg-muted/10 border-t px-4 py-2">
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
           <Loader2 className="size-3.5 animate-spin" />
           <span>{t('translations.relatedKeys.loading')}</span>
         </div>
@@ -119,44 +131,91 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="border-t-2 border-primary/20 bg-primary/5">
+      <div className="border-primary/20 bg-primary/5 border-t-2">
         <CollapsibleTrigger asChild>
-          <button className="w-full px-4 py-2.5 flex items-center justify-between text-sm hover:bg-primary/10 transition-colors">
-            <div className="flex items-center gap-2.5 text-foreground/80">
-              <div className="size-6 rounded-md bg-primary/10 flex items-center justify-center">
+          <button className="hover:bg-primary/10 flex w-full items-center justify-between px-4 py-2.5 text-sm transition-colors">
+            <div className="text-foreground/80 flex items-center gap-2.5">
+              <div className="bg-primary/10 flex size-6 items-center justify-center rounded-md">
                 <ChevronDown
                   className={cn(
-                    'size-4 text-primary transition-transform duration-200',
+                    'text-primary size-4 transition-transform duration-200',
                     isOpen && 'rotate-180'
                   )}
                 />
               </div>
-              <span className="font-semibold">
-                {t('translations.relatedKeys.title')}
-              </span>
-              <Badge variant="default" className="h-5 px-2 text-xs bg-primary/20 text-primary hover:bg-primary/20">
+              <span className="font-semibold">{t('translations.relatedKeys.title')}</span>
+              <Badge
+                variant="default"
+                className="bg-primary/20 text-primary hover:bg-primary/20 h-5 px-2 text-xs"
+              >
                 {totalCount}
               </Badge>
             </div>
 
             {/* Relationship type indicators */}
             <div className="flex items-center gap-1.5">
+              {data?.relationships.nearby.length ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={cn(
+                        'flex size-6 cursor-default items-center justify-center rounded-md shadow-sm',
+                        relationshipConfig.NEARBY.colorClass
+                      )}
+                    >
+                      <MapPin className="size-3.5" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {data.relationships.nearby.length} {td(relationshipConfig.NEARBY.labelKey)}
+                  </TooltipContent>
+                </Tooltip>
+              ) : null}
+              {data?.relationships.keyPattern.length ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={cn(
+                        'flex size-6 cursor-default items-center justify-center rounded-md shadow-sm',
+                        relationshipConfig.KEY_PATTERN.colorClass
+                      )}
+                    >
+                      <Regex className="size-3.5" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {data.relationships.keyPattern.length}{' '}
+                    {td(relationshipConfig.KEY_PATTERN.labelKey)}
+                  </TooltipContent>
+                </Tooltip>
+              ) : null}
               {data?.relationships.sameComponent.length ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className={cn('size-6 rounded-md flex items-center justify-center cursor-default shadow-sm', relationshipConfig.SAME_COMPONENT.colorClass)}>
+                    <span
+                      className={cn(
+                        'flex size-6 cursor-default items-center justify-center rounded-md shadow-sm',
+                        relationshipConfig.SAME_COMPONENT.colorClass
+                      )}
+                    >
                       <Component className="size-3.5" />
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
-                    {data.relationships.sameComponent.length} {td(relationshipConfig.SAME_COMPONENT.labelKey)}
+                    {data.relationships.sameComponent.length}{' '}
+                    {td(relationshipConfig.SAME_COMPONENT.labelKey)}
                   </TooltipContent>
                 </Tooltip>
               ) : null}
               {data?.relationships.sameFile.length ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className={cn('size-6 rounded-md flex items-center justify-center cursor-default shadow-sm', relationshipConfig.SAME_FILE.colorClass)}>
+                    <span
+                      className={cn(
+                        'flex size-6 cursor-default items-center justify-center rounded-md shadow-sm',
+                        relationshipConfig.SAME_FILE.colorClass
+                      )}
+                    >
                       <FileCode className="size-3.5" />
                     </span>
                   </TooltipTrigger>
@@ -168,7 +227,12 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
               {data?.relationships.semantic.length ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className={cn('size-6 rounded-md flex items-center justify-center cursor-default shadow-sm', relationshipConfig.SEMANTIC.colorClass)}>
+                    <span
+                      className={cn(
+                        'flex size-6 cursor-default items-center justify-center rounded-md shadow-sm',
+                        relationshipConfig.SEMANTIC.colorClass
+                      )}
+                    >
                       <Brain className="size-3.5" />
                     </span>
                   </TooltipTrigger>
@@ -182,7 +246,7 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="px-4 pb-3 space-y-2">
+          <div className="space-y-2 px-4 pb-3">
             {allRelatedKeys.slice(0, 5).map((relatedKey) => {
               const config = relationshipConfig[relatedKey.type];
               const Icon = config.icon;
@@ -190,14 +254,14 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
               return (
                 <div
                   key={relatedKey.id}
-                  className="flex items-start gap-2 p-2 rounded-lg bg-background/50 border border-border/40 hover:border-border transition-colors group"
+                  className="bg-background/50 border-border/40 hover:border-border group flex items-start gap-2 rounded-lg border p-2 transition-colors"
                 >
                   {/* Relationship type icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
-                          'size-6 rounded-md flex items-center justify-center shrink-0 mt-0.5',
+                          'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md',
                           config.colorClass
                         )}
                       >
@@ -207,7 +271,7 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
                     <TooltipContent side="left" className="text-xs">
                       {td(config.labelKey)}
                       {relatedKey.confidence < 1 && (
-                        <span className="ml-1 text-muted-foreground">
+                        <span className="text-muted-foreground ml-1">
                           ({Math.round(relatedKey.confidence * 100)}%)
                         </span>
                       )}
@@ -215,13 +279,11 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
                   </Tooltip>
 
                   {/* Key info */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-foreground truncate">
+                      <span className="text-foreground truncate font-mono text-xs">
                         {relatedKey.namespace && (
-                          <span className="text-muted-foreground">
-                            {relatedKey.namespace}:
-                          </span>
+                          <span className="text-muted-foreground">{relatedKey.namespace}:</span>
                         )}
                         {relatedKey.name}
                       </span>
@@ -229,7 +291,7 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="size-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="size-5 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={() => onNavigateToKey(relatedKey.name)}
                         >
                           <ExternalLink className="size-3" />
@@ -239,14 +301,14 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
 
                     {/* Show first translation preview */}
                     {relatedKey.translations && relatedKey.translations[0] && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      <p className="text-muted-foreground mt-0.5 truncate text-xs">
                         {relatedKey.translations[0].value}
                       </p>
                     )}
 
                     {/* Source info */}
                     {(relatedKey.sourceFile || relatedKey.sourceComponent) && (
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground/70">
+                      <div className="text-muted-foreground/70 mt-1 flex items-center gap-2 text-[10px]">
                         {relatedKey.sourceComponent && (
                           <span className="flex items-center gap-0.5">
                             <Component className="size-2.5" />
@@ -269,7 +331,7 @@ export const RelatedKeysSection = memo(function RelatedKeysSection({
             {/* Show more indicator */}
             {allRelatedKeys.length > 5 && (
               <div className="text-center">
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   {t('translations.relatedKeys.andMore', { count: allRelatedKeys.length - 5 })}
                 </span>
               </div>

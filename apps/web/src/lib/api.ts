@@ -1688,7 +1688,12 @@ export const glossaryApi = {
 // KEY CONTEXT API (Near-key detection)
 // ============================================
 
-export type RelationshipType = 'SAME_FILE' | 'SAME_COMPONENT' | 'SEMANTIC';
+export type RelationshipType =
+  | 'SAME_FILE'
+  | 'SAME_COMPONENT'
+  | 'SEMANTIC'
+  | 'NEARBY'
+  | 'KEY_PATTERN';
 
 export interface RelatedKeyTranslation {
   language: string;
@@ -1717,6 +1722,8 @@ export interface RelatedKeysResponse {
     sameFile: RelatedKey[];
     sameComponent: RelatedKey[];
     semantic: RelatedKey[];
+    nearby: RelatedKey[];
+    keyPattern: RelatedKey[];
   };
 }
 

@@ -82,6 +82,14 @@ export interface RelatedKeySingle {
 /** Max retries for invalid JSON responses (single-language) */
 const MAX_SINGLE_RETRIES = 2;
 
+/**
+ * Prompt logging configuration.
+ * Set LOG_AI_PROMPTS=true to enable, LOG_AI_PROMPTS=full for full prompt text.
+ */
+const LOG_AI_PROMPTS = process.env.LOG_AI_PROMPTS?.toLowerCase();
+const PROMPT_LOGGING_ENABLED = LOG_AI_PROMPTS === 'true' || LOG_AI_PROMPTS === 'full';
+const PROMPT_LOGGING_FULL = LOG_AI_PROMPTS === 'full';
+
 /** Conversation retry settings for multi-language evaluation */
 const MAX_TURNS_PER_CONVERSATION = 7;
 const MAX_FRESH_STARTS = 3;
@@ -93,6 +101,83 @@ const MAX_CONVERSATION_MESSAGES = 10;
  * 30s is generous enough for complex multi-language evaluations.
  */
 const AI_REQUEST_TIMEOUT_MS = 30000;
+
+// ============================================
+// Prompt Logging Utilities
+// ============================================
+
+/**
+ * Log prompt details for single-language evaluation.
+ */
+function logSinglePrompt(
+  keyName: string,
+  sourceLocale: string,
+  targetLocale: string,
+  relatedKeysCount: number,
+  userPrompt: string
+): void {
+  if (!PROMPT_LOGGING_ENABLED) return;
+
+  console.log(
+    `[AIEvaluator:Prompt] Single evaluation: key="${keyName}" ${sourceLocale}→${targetLocale} relatedKeys=${relatedKeysCount}`
+  );
+
+  if (PROMPT_LOGGING_FULL) {
+    console.log('[AIEvaluator:Prompt] System prompt:');
+    console.log('---');
+    console.log(MQM_SYSTEM_PROMPT);
+    console.log('---');
+    console.log('[AIEvaluator:Prompt] User prompt:');
+    console.log('---');
+    console.log(userPrompt);
+    console.log('---');
+  }
+}
+
+/**
+ * Log prompt details for multi-language evaluation.
+ */
+function logMultiLanguagePrompt(
+  keyName: string,
+  sourceLocale: string,
+  languages: string[],
+  relatedKeysCount: number,
+  userPrompt: string
+): void {
+  if (!PROMPT_LOGGING_ENABLED) return;
+
+  console.log(
+    `[AIEvaluator:Prompt] Multi-language evaluation: key="${keyName}" ${sourceLocale}→[${languages.join(',')}] relatedKeys=${relatedKeysCount}`
+  );
+
+  if (PROMPT_LOGGING_FULL) {
+    console.log('[AIEvaluator:Prompt] System prompt:');
+    console.log('---');
+    console.log(MQM_MULTI_LANGUAGE_SYSTEM_PROMPT);
+    console.log('---');
+    console.log('[AIEvaluator:Prompt] User prompt:');
+    console.log('---');
+    console.log(userPrompt);
+    console.log('---');
+  }
+}
+
+/**
+ * Log AI response text.
+ */
+function logResponse(responseText: string, evalType: 'single' | 'multi'): void {
+  if (!PROMPT_LOGGING_ENABLED) return;
+
+  if (PROMPT_LOGGING_FULL) {
+    console.log(`[AIEvaluator:Response] ${evalType} evaluation response:`);
+    console.log('---');
+    console.log(responseText);
+    console.log('---');
+  } else {
+    // Just log response length in summary mode
+    console.log(`[AIEvaluator:Response] ${evalType} evaluation: ${responseText.length} chars`);
+  }
+}
 
 // ============================================
 // AI Evaluator Class
@@ -162,6 +247,9 @@ export class AIEvaluator {
       relatedKeys
     );
 
+    // Log prompt if enabled
+    logSinglePrompt(keyName, sourceLocale, targetLocale, relatedKeys.length, userPrompt);
+
     return this.callWithRetry(config.model, userPrompt, config.isAnthropic);
   }
 
@@ -195,6 +283,9 @@ export class AIEvaluator {
       translations,
       relatedKeys
     );
+
+    // Log prompt if enabled
+    logMultiLanguagePrompt(keyName, sourceLocale, languages, relatedKeys.length, userPrompt);
 
     const schema = createMultiLanguageSchema(languages);
 
@@ -287,6 +378,9 @@ export class AIEvaluator {
         messages,
         abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
       });
+
+      // Log response if enabled
+      logResponse(text, 'single');
 
       // Extract cache metrics from Anthropic response
       const anthropicMeta = providerMetadata?.anthropic as
@@ -412,6 +506,11 @@ export class AIEvaluator {
             messages,
             abortSignal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
           });
+
+          // Log response if enabled (only on first turn to avoid spam)
+          if (turn === 1) {
+            logResponse(text, 'multi');
+          }
 
           // Accumulate usage
           totalUsage.inputTokens += usage?.inputTokens || 0;
