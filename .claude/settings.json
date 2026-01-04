@@ -1,7 +1,8 @@
 {
   "enabledPlugins": {
     "dev-workflows@claude-code-workflows": false,
-    "dev-workflows-frontend@claude-code-workflows": false
+    "dev-workflows-frontend@claude-code-workflows": false,
+    "lingx-refactor": true
   },
   "hooks": {
     "Stop": [
