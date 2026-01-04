@@ -108,7 +108,11 @@ export function WorkbenchGuideDialog({
             </div>
           </div>
           {/* Step indicators */}
-          <div className="flex items-center gap-1.5">
+          <div
+            className="flex items-center gap-1.5"
+            role="tablist"
+            aria-label={t('workbench.guide.stepIndicators')}
+          >
             {GUIDE_STEPS.map((step, index) => {
               const StepIcon = step.icon;
               const isActive = index === currentStep;
@@ -117,6 +121,7 @@ export function WorkbenchGuideDialog({
               return (
                 <button
                   key={step.id}
+                  role="tab"
                   onClick={() => setCurrentStep(index)}
                   className={cn(
                     'flex items-center justify-center rounded-lg p-1.5 transition-all',
@@ -125,6 +130,9 @@ export function WorkbenchGuideDialog({
                       : 'hover:bg-foreground/5'
                   )}
                   aria-label={`Step ${index + 1}: ${step.id}`}
+                  aria-selected={isActive}
+                  aria-current={isActive ? 'step' : undefined}
+                  tabIndex={isActive ? 0 : -1}
                 >
                   <StepIcon
                     className={cn(

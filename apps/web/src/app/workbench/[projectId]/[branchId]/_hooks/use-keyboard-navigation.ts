@@ -2,7 +2,7 @@
 
 import type { TranslationKey } from '@/lib/api';
 import type { ProjectLanguage } from '@lingx/shared';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 type FocusMode = 'keys' | 'source' | 'language' | 'suggestion';
 
@@ -132,6 +132,22 @@ export function useKeyboardNavigation({
   const keyListContainerRef = useRef<HTMLDivElement | null>(null);
   const sourceTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const languageTextareaRefs = useRef<Map<string, HTMLTextAreaElement | null>>(new Map());
+
+  // Ref for stable event handler (avoids re-registering on every state change)
+  const handlersRef = useRef<{
+    focusMode: FocusMode;
+    focusedLanguage: string | null;
+    handleEscape: () => void;
+    handleApprove: () => void;
+    handleReject: () => void;
+    handleFetchMTShortcut: () => void;
+    handleFetchAIShortcut: () => void;
+    handleEnter: () => void;
+    navigateKey: (direction: 'up' | 'down') => void;
+    navigateTab: (direction: 'forward' | 'backward') => void;
+    navigateSuggestion: (direction: 'up' | 'down') => void;
+    getSuggestionCount: ((lang: string) => number) | undefined;
+  } | null>(null);
 
   // Pending navigation state for page transitions
   const pendingNavigation = useRef<'first' | 'last' | null>(null);
@@ -480,11 +496,32 @@ export function useKeyboardNavigation({
     onApplySuggestion,
   ]);
 
-  // Global keyboard event handler
+  // Keep handlers ref in sync (runs synchronously before effects)
+  useLayoutEffect(() => {
+    handlersRef.current = {
+      focusMode,
+      focusedLanguage,
+      handleEscape,
+      handleApprove,
+      handleReject,
+      handleFetchMTShortcut,
+      handleFetchAIShortcut,
+      handleEnter,
+      navigateKey,
+      navigateTab,
+      navigateSuggestion,
+      getSuggestionCount,
+    };
+  });
+
+  // Global keyboard event handler (stable - only re-registers when enabled changes)
   useEffect(() => {
     if (!enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const handlers = handlersRef.current;
+      if (!handlers) return;
+
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
       const isMod = e.metaKey || e.ctrlKey;
@@ -494,65 +531,68 @@ export function useKeyboardNavigation({
       // Escape - progressive collapse
       if (e.key === 'Escape') {
         e.preventDefault();
-        handleEscape();
+        handlers.handleEscape();
         return;
       }
 
       // Ctrl/Cmd + Up/Down - key navigation (works even in inputs)
       if (isMod && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault();
-        navigateKey(e.key === 'ArrowUp' ? 'up' : 'down');
+        handlers.navigateKey(e.key === 'ArrowUp' ? 'up' : 'down');
         return;
       }
 
       // Ctrl/Cmd + Enter - approve (only in language field context)
-      if (isMod && e.key === 'Enter' && focusMode === 'language' && !e.shiftKey) {
+      if (isMod && e.key === 'Enter' && handlers.focusMode === 'language' && !e.shiftKey) {
         e.preventDefault();
-        handleApprove();
+        handlers.handleApprove();
         return;
       }
 
       // Ctrl/Cmd + Backspace - reject (only in language field context)
-      if (isMod && e.key === 'Backspace' && focusMode === 'language' && !e.shiftKey) {
+      if (isMod && e.key === 'Backspace' && handlers.focusMode === 'language' && !e.shiftKey) {
         e.preventDefault();
-        handleReject();
+        handlers.handleReject();
         return;
       }
 
       // Ctrl/Cmd + M - machine translation (only in language field context)
-      if (isMod && e.key === 'm' && focusMode === 'language' && !e.shiftKey) {
+      if (isMod && e.key === 'm' && handlers.focusMode === 'language' && !e.shiftKey) {
         e.preventDefault();
-        handleFetchMTShortcut();
+        handlers.handleFetchMTShortcut();
         return;
       }
 
       // Ctrl/Cmd + I - AI translation (only in language field context)
-      if (isMod && e.key === 'i' && focusMode === 'language' && !e.shiftKey) {
+      if (isMod && e.key === 'i' && handlers.focusMode === 'language' && !e.shiftKey) {
         e.preventDefault();
-        handleFetchAIShortcut();
+        handlers.handleFetchAIShortcut();
         return;
       }
 
       // === Input-specific shortcuts ===
       if (isInput) {
         // Tab navigation (only when in our textareas)
-        if (e.key === 'Tab' && (focusMode === 'source' || focusMode === 'language')) {
+        if (
+          e.key === 'Tab' &&
+          (handlers.focusMode === 'source' || handlers.focusMode === 'language')
+        ) {
           e.preventDefault();
-          navigateTab(e.shiftKey ? 'backward' : 'forward');
+          handlers.navigateTab(e.shiftKey ? 'backward' : 'forward');
           return;
         }
 
         // Arrow down in textarea - enter suggestion mode
-        if (e.key === 'ArrowDown' && focusMode === 'language' && !e.shiftKey && !isMod) {
-          const suggestionCount = focusedLanguage
-            ? (getSuggestionCount?.(focusedLanguage) ?? 0)
+        if (e.key === 'ArrowDown' && handlers.focusMode === 'language' && !e.shiftKey && !isMod) {
+          const suggestionCount = handlers.focusedLanguage
+            ? (handlers.getSuggestionCount?.(handlers.focusedLanguage) ?? 0)
             : 0;
           if (suggestionCount > 0) {
             // Only if at end of textarea
             const textarea = target as HTMLTextAreaElement;
             if (textarea.selectionStart === textarea.value.length) {
               e.preventDefault();
-              navigateSuggestion('down');
+              handlers.navigateSuggestion('down');
               return;
             }
           }
@@ -560,20 +600,20 @@ export function useKeyboardNavigation({
       }
 
       // === Suggestion mode shortcuts ===
-      if (focusMode === 'suggestion') {
+      if (handlers.focusMode === 'suggestion') {
         if (e.key === 'ArrowDown') {
           e.preventDefault();
-          navigateSuggestion('down');
+          handlers.navigateSuggestion('down');
           return;
         }
         if (e.key === 'ArrowUp') {
           e.preventDefault();
-          navigateSuggestion('up');
+          handlers.navigateSuggestion('up');
           return;
         }
         if (e.key === 'Enter') {
           e.preventDefault();
-          handleEnter();
+          handlers.handleEnter();
           return;
         }
       }
@@ -581,9 +621,9 @@ export function useKeyboardNavigation({
       // === Non-input shortcuts ===
       if (!isInput) {
         // Enter to expand first language when key is focused
-        if (e.key === 'Enter' && focusMode === 'keys') {
+        if (e.key === 'Enter' && handlers.focusMode === 'keys') {
           e.preventDefault();
-          handleEnter();
+          handlers.handleEnter();
           return;
         }
       }
@@ -591,21 +631,7 @@ export function useKeyboardNavigation({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    enabled,
-    focusMode,
-    focusedLanguage,
-    handleEscape,
-    handleApprove,
-    handleReject,
-    handleFetchMTShortcut,
-    handleFetchAIShortcut,
-    handleEnter,
-    navigateKey,
-    navigateTab,
-    navigateSuggestion,
-    getSuggestionCount,
-  ]);
+  }, [enabled]);
 
   // No-op setter for focusedKeyIndex (derived state, use onSelectKey instead)
   const setFocusedKeyIndex = useCallback(() => {

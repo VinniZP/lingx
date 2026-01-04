@@ -1188,6 +1188,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.guide.shortcuts.prevKey'
       | 'workbench.guide.shortcuts.reject'
       | 'workbench.guide.skip'
+      | 'workbench.guide.stepIndicators'
       | 'workbench.guide.steps.batch.description'
       | 'workbench.guide.steps.batch.features.actions'
       | 'workbench.guide.steps.batch.features.select'

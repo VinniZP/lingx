@@ -335,7 +335,8 @@
         "rangeSelect": "Select range of keys",
         "commandPalette": "Open command palette",
         "focusSearch": "Focus search input"
-      }
+      },
+      "stepIndicators": ""
     }
   },
   "translations": {
