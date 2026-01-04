@@ -11,7 +11,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, GitBranch, Key, Languages, Plus, Search, Sparkles } from 'lucide-react';
+import {
+  ArrowLeft,
+  GitBranch,
+  HelpCircle,
+  Key,
+  Languages,
+  Plus,
+  Search,
+  Sparkles,
+} from 'lucide-react';
 import Link from 'next/link';
 import { type FilterType, type QualityFilterType } from '../_hooks';
 
@@ -32,6 +41,7 @@ interface WorkbenchToolbarProps {
   namespaces: string[];
   onCreateKey: () => void;
   onEvaluateQuality: () => void;
+  onShowGuide: () => void;
 }
 
 export function WorkbenchToolbar({
@@ -51,6 +61,7 @@ export function WorkbenchToolbar({
   namespaces,
   onCreateKey,
   onEvaluateQuality,
+  onShowGuide,
 }: WorkbenchToolbarProps) {
   return (
     <div className="border-border bg-card flex items-center gap-4 border-b px-4 py-3">
@@ -160,6 +171,11 @@ export function WorkbenchToolbar({
       <Button variant="ghost" size="sm" onClick={onEvaluateQuality} className="gap-2">
         <Sparkles className="size-4" />
         Evaluate
+      </Button>
+
+      <Button variant="ghost" size="sm" onClick={onShowGuide} className="gap-2">
+        <HelpCircle className="size-4" />
+        Help
       </Button>
 
       <Button size="sm" onClick={onCreateKey} className="gap-2">

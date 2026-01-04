@@ -137,6 +137,7 @@ export function ActivityItem({ activity, showProjectName = false, className }: A
  * Simplified activity item for compact displays.
  * No hover preview, just basic info.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ActivityItemCompact({ activity, className }: { activity: Activity; className?: string }) {
   const { td } = useTranslation();
 

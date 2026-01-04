@@ -19,28 +19,28 @@
   "pageTitle": "AI Translation",
   "toasts": {
     "configSaved": "",
+    "configSavedDescription": "{provider} ha sido configurado.",
+    "configSaveFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": "",
     "configRemoved": "",
     "configRemovedDescription": "{provider} ha sido eliminado.",
     "configRemoveFailed": "",
     "connectionSuccess": "",
     "connectionSuccessDescription": "Conectado exitosamente a {provider}.",
-    "connectionFailed": "",
-    "configSavedDescription": "{provider} ha sido configurado.",
-    "configSaveFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": ""
+    "connectionFailed": ""
   },
   "usage": {
     "stats": {
-      "cacheHits": "",
       "totalTokens": "",
       "requests": "",
+      "cacheHits": "",
       "estCost": ""
     },
     "title": "",
-    "description": "",
     "byProvider": "",
+    "description": "",
     "tokens": "",
     "requests": ""
   },
@@ -50,30 +50,29 @@
     "qualityEvaluation": "Evaluación de calidad",
     "usage": ""
   },
-  "pageDescription": "",
   "provider": {
-    "googleAI": {
-      "description": ""
-    },
-    "mistral": {
-      "description": ""
-    },
     "form": {
+      "apiKeyPlaceholder": "Ingrese la clave API de {provider}",
       "apiKeyHint": {
         "openai": "",
         "anthropic": "",
         "googleAI": "",
         "mistral": ""
       },
-      "model": "",
       "modelPlaceholder": "",
       "modelDescription": "",
       "enableProvider": "",
       "enableProviderDescription": "",
+      "model": "",
       "apiKey": "",
       "apiKeyKeepCurrent": "",
-      "apiKeyUpdatePlaceholder": "",
-      "apiKeyPlaceholder": "Ingrese la clave API de {provider}"
+      "apiKeyUpdatePlaceholder": ""
+    },
+    "googleAI": {
+      "description": ""
+    },
+    "mistral": {
+      "description": ""
     },
     "openai": {
       "description": ""
@@ -81,14 +80,10 @@
     "anthropic": {
       "description": ""
     },
-    "status": {
-      "active": "",
-      "inactive": ""
-    },
     "actions": {
-      "save": "",
       "cancel": "",
       "saving": "",
+      "save": "",
       "remove": "",
       "test": "",
       "edit": ""
@@ -96,18 +91,22 @@
     "removeDialog": {
       "title": "Eliminar {provider}",
       "description": "¿Está seguro de que desea eliminar {provider}?"
+    },
+    "status": {
+      "active": "",
+      "inactive": ""
     }
   },
   "context": {
+    "customInstructions": {
+      "placeholder": "",
+      "title": "",
+      "description": ""
+    },
     "title": "",
     "description": "",
     "maxItems": "",
     "minSimilarity": "",
-    "customInstructions": {
-      "title": "",
-      "description": "",
-      "placeholder": ""
-    },
     "saveNote": "",
     "saveSettings": "",
     "glossary": {
@@ -122,5 +121,6 @@
       "label": "",
       "description": ""
     }
-  }
+  },
+  "pageDescription": ""
 }

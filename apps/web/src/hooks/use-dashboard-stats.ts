@@ -36,6 +36,7 @@ export function useDashboardStats() {
  * Format dashboard stats for display.
  * Useful for computing derived values like percentages.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatDashboardStats(stats: DashboardStats | undefined) {
   if (!stats) return null;
 

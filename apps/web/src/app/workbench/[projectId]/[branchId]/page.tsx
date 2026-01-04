@@ -3,7 +3,7 @@
 import { BulkTranslateProgress } from '@/components/bulk-translate-progress';
 import { KeyFormDialog } from '@/components/key-form-dialog';
 import { BulkQualityEvaluationDialog } from '@/components/translations/bulk-quality-evaluation-dialog';
-import { useKeySuggestions, useRecordTMUsage } from '@/hooks';
+import { useKeySuggestions, useLocalStorage, useRecordTMUsage } from '@/hooks';
 import { useBulkTranslateJob } from '@/hooks/use-bulk-translate-job';
 import type { TranslationKey } from '@/lib/api';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
@@ -11,6 +11,7 @@ import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import { FloatingBatchBar } from './_components/FloatingBatchBar';
 import { KeyEditorPanel } from './_components/KeyEditorPanel';
 import { KeyListSidebar } from './_components/KeyListSidebar';
+import { STORAGE_KEY, WorkbenchGuideDialog } from './_components/WorkbenchGuide';
 import { WorkbenchToolbar } from './_components/WorkbenchToolbar';
 import {
   useKeyboardNavigation,
@@ -43,6 +44,10 @@ export default function WorkbenchPage({ params }: PageProps) {
   const [bulkTranslateDialogOpen, setBulkTranslateDialogOpen] = useState(false);
   const [bulkTranslateProvider, setBulkTranslateProvider] = useState<'MT' | 'AI' | null>(null);
   const [bulkQualityDialogOpen, setBulkQualityDialogOpen] = useState(false);
+  const [showGuideDialog, setShowGuideDialog] = useState(false);
+
+  // Guide dialog state (persisted in localStorage)
+  const [hasSeenGuide, setHasSeenGuide] = useLocalStorage(STORAGE_KEY, false);
 
   // Language row expansion state (lifted for keyboard navigation)
   const [expandedLanguages, setExpandedLanguages] = useState<Set<string>>(new Set());
@@ -134,6 +139,18 @@ export default function WorkbenchPage({ params }: PageProps) {
     });
     setExpandedLanguages(toExpand);
   }, [selectedKeyId, keys, targetLanguageObjects]);
+
+  // Auto-show guide dialog on first visit
+  useEffect(() => {
+    if (!hasSeenGuide && !isLoading && keys.length > 0) {
+      const timer = setTimeout(() => setShowGuideDialog(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenGuide, isLoading, keys.length]);
+
+  // Guide dialog handlers
+  const handleGuideComplete = useCallback(() => setHasSeenGuide(true), [setHasSeenGuide]);
+  const handleShowGuide = useCallback(() => setShowGuideDialog(true), []);
 
   // Stable string representation for dependency arrays (Sets lack equality checking)
   const selectedKeysString = useMemo(
@@ -378,6 +395,7 @@ export default function WorkbenchPage({ params }: PageProps) {
         namespaces={namespaces}
         onCreateKey={() => setShowKeyDialog(true)}
         onEvaluateQuality={() => setBulkQualityDialogOpen(true)}
+        onShowGuide={handleShowGuide}
       />
 
       {/* Main Content */}
@@ -486,6 +504,12 @@ export default function WorkbenchPage({ params }: PageProps) {
         onOpenChange={setBulkQualityDialogOpen}
         branchId={branchId}
         translationIds={selectedTranslationIds}
+      />
+
+      <WorkbenchGuideDialog
+        open={showGuideDialog}
+        onOpenChange={setShowGuideDialog}
+        onComplete={handleGuideComplete}
       />
     </div>
   );

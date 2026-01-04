@@ -57,8 +57,9 @@ export {
   type GlossaryTag,
   type UpdateGlossaryEntryInput,
 } from './use-glossary';
+export { useLocalStorage } from './use-local-storage';
 export { useIsMobile } from './use-mobile';
-export { usePlatform } from './use-platform';
+export { usePlatform, type PlatformInfo } from './use-platform';
 export { useProjects } from './use-projects';
 export {
   useRelatedKeys,

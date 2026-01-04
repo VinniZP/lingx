@@ -84,6 +84,7 @@ export function useGlossaryList(projectId: string, params?: GlossaryListParams) 
  * @param projectId - Project ID
  * @param entryId - Entry ID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useGlossaryEntry(projectId: string, entryId: string | null) {
   return useQuery({
     queryKey: glossaryKeys.entry(projectId, entryId ?? ''),
@@ -151,6 +152,7 @@ export function useDeleteGlossaryEntry(projectId: string) {
  *
  * @param projectId - Project ID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useAddGlossaryTranslation(projectId: string) {
   const queryClient = useQueryClient();
 
@@ -176,6 +178,7 @@ function useAddGlossaryTranslation(projectId: string) {
  *
  * @param projectId - Project ID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useUpdateGlossaryTranslation(projectId: string) {
   const queryClient = useQueryClient();
 
@@ -203,6 +206,7 @@ function useUpdateGlossaryTranslation(projectId: string) {
  *
  * @param projectId - Project ID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useDeleteGlossaryTranslation(projectId: string) {
   const queryClient = useQueryClient();
 
@@ -272,6 +276,7 @@ export function useCreateGlossaryTag(projectId: string) {
  *
  * @param projectId - Project ID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useUpdateGlossaryTag(projectId: string) {
   const queryClient = useQueryClient();
 

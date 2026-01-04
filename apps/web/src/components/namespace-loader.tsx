@@ -23,6 +23,7 @@ interface NamespaceLoaderProps<NS extends keyof NamespaceKeys> {
  * </NamespaceLoader>
  * ```
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NamespaceLoader<NS extends keyof NamespaceKeys>({
   namespace,
   children,

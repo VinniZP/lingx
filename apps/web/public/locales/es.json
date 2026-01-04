@@ -4,8 +4,8 @@
       "forceAI": "Force AI evaluation",
       "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
       "jobId": "Job ID: {jobId}",
-      "failed": "Failed to queue quality evaluation",
       "queued": "Quality evaluation queued",
+      "failed": "Failed to queue quality evaluation",
       "title": "Evaluate Translation Quality",
       "descriptionSelected": "Evaluate quality for {count} selected translations",
       "descriptionAll": "Evaluate quality for all translations in this branch",
@@ -27,24 +27,24 @@
       "noResults": "No se encontraron proyectos",
       "noResultsHint": "Intenta ajustar tu búsqueda"
     },
+    "empty": {
+      "cta": "Crea tu primer proyecto",
+      "title": "Aún no hay proyectos",
+      "description": "Crea tu primer proyecto para comenzar a gestionar traducciones con control de versiones y colaboración."
+    },
     "filters": "Filtros",
     "title": "Proyectos",
     "description": "Gestiona tus proyectos de localización",
     "stats": {
       "totalKeys": "Claves Totales"
-    },
-    "empty": {
-      "title": "Aún no hay proyectos",
-      "description": "Crea tu primer proyecto para comenzar a gestionar traducciones con control de versiones y colaboración.",
-      "cta": "Crea tu primer proyecto"
     }
   },
   "common": {
     "save": "Guardar",
     "delete": "Eliminar",
+    "languages": "{count, plural, one {# idioma} other {# idiomas}}",
     "loading": "Cargando...",
     "cancel": "Cancelar",
-    "languages": "{count, plural, one {# idioma} other {# idiomas}}",
     "viewAll": "Ver todo"
   },
   "settings": {
@@ -95,9 +95,10 @@
     }
   },
   "dashboard": {
+    "quickActions": "Acciones Rápidas",
     "welcome": {
-      "description": "Gestión profesional de traducciones con control de versiones tipo Git para equipos modernos",
-      "title": "Bienvenido a Lingx"
+      "title": "Bienvenido a Lingx",
+      "description": "Gestión profesional de traducciones con control de versiones tipo Git para equipos modernos"
     },
     "onboarding": {
       "step1": {
@@ -113,44 +114,19 @@
         "description": "Usa CLI o API para obtener traducciones"
       }
     },
+    "stats": {
+      "keys": "Claves",
+      "complete": "Completo",
+      "projects": "Proyectos",
+      "languages": "Idiomas"
+    },
     "greeting": {
       "evening": "Buenas noches",
       "morning": "Buenos días",
       "afternoon": "Buenas tardes"
     },
     "overview": "Aquí está tu resumen de traducciones",
-    "stats": {
-      "keys": "Claves",
-      "complete": "Completo",
-      "languages": "Idiomas",
-      "projects": "Proyectos"
-    },
     "progress": "Progreso general de traducciones",
-    "createProject": {
-      "description": "Inicia un proyecto de localización con control de versiones, ramificación y colaboración en equipo",
-      "cta": "Comenzar",
-      "title": "Crear nuevo proyecto"
-    },
-    "resources": {
-      "docs": "Documentación",
-      "guide": "Guía de inicio",
-      "bestPractices": "Mejores prácticas de idiomas",
-      "title": "Recursos"
-    },
-    "recentProjects": "Proyectos Recientes",
-    "quickActions": "Acciones Rápidas",
-    "import": {
-      "title": "Importar traducciones",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "Claves API",
-      "description": "Gestionar acceso"
-    },
-    "branches": {
-      "title": "Gestionar ramas",
-      "description": "Control de versiones"
-    },
     "team": {
       "title": "Miembros del equipo",
       "description": "Colaborar"
@@ -158,10 +134,142 @@
     "cli": {
       "title": "CLI Disponible",
       "description": "Sincroniza traducciones desde tu terminal"
+    },
+    "branches": {
+      "description": "Control de versiones",
+      "title": "Gestionar ramas"
+    },
+    "resources": {
+      "title": "Recursos",
+      "docs": "Documentación",
+      "guide": "Guía de inicio",
+      "bestPractices": "Mejores prácticas de idiomas"
+    },
+    "createProject": {
+      "title": "Crear nuevo proyecto",
+      "description": "Inicia un proyecto de localización con control de versiones, ramificación y colaboración en equipo",
+      "cta": "Comenzar"
+    },
+    "recentProjects": "Proyectos Recientes",
+    "import": {
+      "title": "Importar traducciones",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "Claves API",
+      "description": "Gestionar acceso"
     }
   },
   "auth": {
     "forgotPassword": "¿Olvidaste tu contraseña?"
+  },
+  "workbench": {
+    "guide": {
+      "title": "Welcome to the Workbench",
+      "description": "Let's take a quick tour of the translation editor",
+      "steps": {
+        "sidebar": {
+          "title": "Key List Sidebar",
+          "description": "Browse and select translation keys from your project",
+          "features": {
+            "browse": "Browse all translation keys with instant search",
+            "selection": "Click to select a key, or use checkboxes for multi-select",
+            "statusDots": "Colored dots show translation status (missing, pending, approved)",
+            "qualityMeter": "Quality score bars indicate translation confidence"
+          },
+          "proTip": "Use arrow keys for lightning-fast navigation through your translation keys"
+        },
+        "editor": {
+          "title": "Key Editor Panel",
+          "description": "Edit the source text and manage key properties",
+          "features": {
+            "sourceEdit": "Edit the source (default language) text directly",
+            "autoSave": "Changes are auto-saved as you type - no save button needed",
+            "icuSupport": "Full ICU MessageFormat support with syntax highlighting"
+          },
+          "proTip": "ICU syntax like {count, plural, one {# item} other {# items}} is auto-highlighted"
+        },
+        "languages": {
+          "title": "Language Rows",
+          "description": "View and edit translations for each target language",
+          "features": {
+            "expand": "Click a language row to expand and edit the translation",
+            "edit": "Type directly in the textarea to update translations",
+            "status": "Each row shows approval status and quality indicators"
+          },
+          "proTip": "Press Tab to quickly move between language fields when editing"
+        },
+        "shortcuts": {
+          "title": "Quick Actions & Shortcuts",
+          "description": "Speed up your workflow with keyboard shortcuts",
+          "features": {
+            "mtTranslate": "Cmd/Ctrl + M: Machine translate the focused translation",
+            "aiTranslate": "Cmd/Ctrl + I: AI translate with context awareness",
+            "approve": "Cmd/Ctrl + Enter: Approve the current translation",
+            "reject": "Cmd/Ctrl + Backspace: Reject and clear the translation",
+            "navigation": "Arrow keys: Navigate between keys and languages"
+          },
+          "proTip": "Master these shortcuts and you'll translate 10x faster than using the mouse"
+        },
+        "dock": {
+          "title": "Bottom Dock",
+          "description": "Access helpful resources while translating",
+          "features": {
+            "tm": "TM Matches: See similar translations from your Translation Memory",
+            "glossary": "Glossary: View approved terminology for consistency",
+            "ai": "AI Suggestions: Get context-aware translation suggestions",
+            "related": "Related Keys: Find keys with similar content",
+            "tmDescription": "Reuse approved translations from your project history",
+            "glossaryDescription": "Ensure terminology consistency across translations",
+            "aiDescription": "Context-aware suggestions based on surrounding text",
+            "relatedDescription": "Find similar keys to maintain consistency"
+          },
+          "proTip": "Click a suggestion to instantly apply it to your translation"
+        },
+        "batch": {
+          "title": "Batch Operations",
+          "description": "Perform actions on multiple keys at once",
+          "features": {
+            "select": "Use checkboxes to select multiple keys",
+            "actions": "A floating bar appears with batch actions",
+            "translate": "Translate, approve, or delete multiple items at once"
+          },
+          "proTip": "Perfect for translating an entire feature or section at once"
+        },
+        "filters": {
+          "title": "Filters & Search",
+          "description": "Quickly find the keys you need to work on",
+          "features": {
+            "status": "Filter by status: Missing, Complete, Pending, Approved",
+            "quality": "Filter by quality score to find items needing review",
+            "namespace": "Filter by namespace to focus on specific areas"
+          },
+          "proTip": "Filter by 'Missing' to focus on untranslated keys"
+        }
+      },
+      "skip": "Skip tour",
+      "previous": "Previous",
+      "finish": "Get started",
+      "next": "Next",
+      "shortcuts": {
+        "navigateKeys": "Navigate between keys",
+        "prevKey": "Previous key (skip over)",
+        "nextKey": "Next key (skip over)",
+        "nextField": "Next field",
+        "prevField": "Previous field",
+        "collapseRow": "Collapse expanded row",
+        "expandRow": "Expand selected row",
+        "machineTranslate": "Machine translate",
+        "aiTranslate": "AI translate with context",
+        "approve": "Approve translation",
+        "reject": "Reject translation",
+        "collapse": "Collapse / close panel",
+        "selectAll": "Select all visible keys",
+        "rangeSelect": "Select range of keys",
+        "commandPalette": "Open command palette",
+        "focusSearch": "Focus search input"
+      }
+    }
   },
   "translations": {
     "toasts": {

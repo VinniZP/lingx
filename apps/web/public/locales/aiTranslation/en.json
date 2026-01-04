@@ -18,28 +18,28 @@
   },
   "toasts": {
     "configSaved": "Configuration saved",
+    "configSavedDescription": "{provider} has been configured.",
+    "configSaveFailed": "Failed to save configuration",
+    "connectionTestFailed": "Connection test failed",
+    "contextSaved": "Context settings saved",
+    "contextSaveFailed": "Failed to save context settings",
     "configRemoved": "Configuration removed",
     "configRemovedDescription": "{provider} has been removed.",
     "configRemoveFailed": "Failed to remove configuration",
     "connectionSuccess": "Connection successful",
     "connectionSuccessDescription": "Successfully connected to {provider}.",
-    "connectionFailed": "Connection failed",
-    "configSavedDescription": "{provider} has been configured.",
-    "configSaveFailed": "Failed to save configuration",
-    "connectionTestFailed": "Connection test failed",
-    "contextSaved": "Context settings saved",
-    "contextSaveFailed": "Failed to save context settings"
+    "connectionFailed": "Connection failed"
   },
   "usage": {
     "stats": {
-      "cacheHits": "Cache Hits",
       "totalTokens": "Total Tokens",
       "requests": "Requests",
+      "cacheHits": "Cache Hits",
       "estCost": "Est. Cost"
     },
     "title": "Usage Statistics",
-    "description": "AI translation usage this month",
     "byProvider": "By Provider",
+    "description": "AI translation usage this month",
     "tokens": "tokens",
     "requests": "requests"
   },
@@ -49,30 +49,29 @@
     "qualityEvaluation": "Quality Evaluation",
     "usage": "Usage"
   },
-  "pageDescription": "Configure AI providers for context-aware translation suggestions",
   "provider": {
-    "googleAI": {
-      "description": "Gemini 3 models for fast, cost-effective translations"
-    },
-    "mistral": {
-      "description": "Mistral models for efficient European language support"
-    },
     "form": {
+      "apiKeyPlaceholder": "Enter {provider} API key",
       "apiKeyHint": {
         "openai": "Get your API key from platform.openai.com",
         "anthropic": "Get your API key from console.anthropic.com",
         "googleAI": "Get your API key from aistudio.google.com",
         "mistral": "Get your API key from console.mistral.ai"
       },
-      "model": "Model",
       "modelPlaceholder": "Select a model",
       "modelDescription": "Choose the model to use for AI translations",
       "enableProvider": "Enable Provider",
       "enableProviderDescription": "Allow this provider for AI translations",
+      "model": "Model",
       "apiKey": "API Key",
       "apiKeyKeepCurrent": "Leave empty to keep current",
-      "apiKeyUpdatePlaceholder": "Enter new key to update",
-      "apiKeyPlaceholder": "Enter {provider} API key"
+      "apiKeyUpdatePlaceholder": "Enter new key to update"
+    },
+    "googleAI": {
+      "description": "Gemini 3 models for fast, cost-effective translations"
+    },
+    "mistral": {
+      "description": "Mistral models for efficient European language support"
     },
     "openai": {
       "description": "GPT-5 and GPT-4.1 models for high-quality translations"
@@ -80,14 +79,10 @@
     "anthropic": {
       "description": "Claude 4.5 models for nuanced, context-aware translations"
     },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
     "actions": {
-      "save": "Save",
       "cancel": "Cancel",
       "saving": "Saving...",
+      "save": "Save",
       "remove": "Remove",
       "test": "Test",
       "edit": "Edit"
@@ -95,18 +90,22 @@
     "removeDialog": {
       "title": "Remove {provider}?",
       "description": "This will remove the API key and disable AI translations using {provider}. You can add it back later."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
     }
   },
   "context": {
+    "customInstructions": {
+      "placeholder": "e.g., 'Use formal language for German translations' or 'Keep translations concise for mobile UI'",
+      "title": "Custom Instructions",
+      "description": "Add specific guidance for the AI"
+    },
     "title": "Context Configuration",
     "description": "Customize what context AI uses for smarter translations",
     "maxItems": "Maximum items",
     "minSimilarity": "Minimum similarity",
-    "customInstructions": {
-      "title": "Custom Instructions",
-      "description": "Add specific guidance for the AI",
-      "placeholder": "e.g., 'Use formal language for German translations' or 'Keep translations concise for mobile UI'"
-    },
     "saveNote": "Changes apply to all future AI translations",
     "saveSettings": "Save Settings",
     "glossary": {
@@ -121,5 +120,6 @@
       "label": "Related Keys",
       "description": "Consider translations from related keys"
     }
-  }
+  },
+  "pageDescription": "Configure AI providers for context-aware translation suggestions"
 }

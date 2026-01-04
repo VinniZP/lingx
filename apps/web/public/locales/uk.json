@@ -4,8 +4,8 @@
       "forceAI": "Примусова AI оцінка",
       "forceAIDescription": "Пропустити евристику та використовувати AI для всіх перекладів (вища вартість)",
       "jobId": "ID завдання: {jobId}",
-      "failed": "Не вдалося поставити оцінку якості в чергу",
       "queued": "Оцінку якості поставлено в чергу",
+      "failed": "Не вдалося поставити оцінку якості в чергу",
       "title": "Оцінити якість перекладу",
       "descriptionSelected": "Оцінити якість для {count} вибраних перекладів",
       "descriptionAll": "Оцінити якість всіх перекладів в цій гілці",
@@ -27,9 +27,11 @@
       "noResults": "Проєктів не знайдено",
       "noResultsHint": "Спробуйте змінити пошуковий запит"
     },
-    "filters": "Фільтри",
-    "title": "Проєкти",
-    "description": "Керування проєктами локалізації",
+    "empty": {
+      "cta": "Створити перший проєкт",
+      "title": "Проєктів поки немає",
+      "description": "Створіть перший проєкт для початку керування перекладами з контролем версій та спільною роботою."
+    },
     "failedToLoad": "Не вдалося завантажити проєкти. Спробуйте ще раз.",
     "newProject": {
       "details": {
@@ -48,60 +50,263 @@
         "placeholder": "Короткий опис проєкту..."
       },
       "languages": {
+        "defaultPlaceholder": "Виберіть мову за замовчуванням",
+        "defaultDescription": "Вихідна мова перекладів",
         "title": "Мови",
         "description": "Виберіть мови для проєкту",
-        "defaultLabel": "Мова за замовчуванням",
-        "defaultPlaceholder": "Виберіть мову за замовчуванням",
-        "defaultDescription": "Вихідна мова перекладів"
+        "defaultLabel": "Мова за замовчуванням"
       },
+      "name": {
+        "placeholder": "Мій додаток",
+        "label": "Назва проєкту"
+      },
+      "success": "Проєкт створено",
+      "successDescription": "{name} успішно створено.",
+      "failed": "Не вдалося створити проєкт",
+      "backLabel": "Повернутися до проєктів",
+      "subtitle": "Створити новий проєкт локалізації",
       "actions": {
         "cancel": "Скасувати",
         "creating": "Створення...",
         "create": "Створити проєкт"
-      },
-      "subtitle": "Створити новий проєкт локалізації",
-      "success": "Проєкт створено",
-      "successDescription": "{name} успішно створено.",
-      "name": {
-        "label": "Назва проєкту",
-        "placeholder": "Мій додаток"
-      },
-      "failed": "Не вдалося створити проєкт",
-      "backLabel": "Повернутися до проєктів"
+      }
     },
+    "filters": "Фільтри",
+    "title": "Проєкти",
+    "description": "Керування проєктами локалізації",
     "stats": {
       "totalKeys": "Всього ключів"
-    },
-    "empty": {
-      "title": "Проєктів поки немає",
-      "description": "Створіть перший проєкт для початку керування перекладами з контролем версій та спільною роботою.",
-      "cta": "Створити перший проєкт"
     }
   },
   "common": {
     "save": "Зберегти",
     "delete": "Видалити",
+    "languages": "{count, plural, one {# мова} few {# мови} many {# мов} other {# мов}}",
     "loading": "Завантаження...",
     "pleaseWait": "Будь ласка, зачекайте...",
-    "saving": "Збереження...",
-    "saveChanges": "Зберегти зміни",
-    "deleting": "Видалення...",
     "verified": "Підтверджено",
     "remove": "Видалити",
     "continue": "Продовжити",
-    "cancel": "Скасувати",
-    "close": "Закрити",
-    "keys": "{count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}",
+    "saving": "Збереження...",
     "create": "Створити",
-    "learnMore": "Дізнатися більше",
-    "back": "Назад",
+    "deleting": "Видалення...",
     "optional": "(необов'язково)",
     "active": "Активний",
-    "languages": "{count, plural, one {# мова} few {# мови} many {# мов} other {# мов}}",
+    "branch": "Гілка",
+    "cancel": "Скасувати",
+    "close": "Закрити",
+    "learnMore": "Дізнатися більше",
+    "back": "Назад",
+    "keys": "{count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}",
     "viewAll": "Показати все",
-    "switching": "Перемикання...",
+    "saveChanges": "Зберегти зміни",
     "goBack": "Повернутися",
-    "branch": "Гілка"
+    "switching": "Перемикання..."
+  },
+  "translations": {
+    "relatedKeys": {
+      "sameFile": "Той самий файл",
+      "sameComponent": "Той самий компонент",
+      "semantic": "Семантично схожі",
+      "loading": "Завантаження пов'язаних ключів...",
+      "title": "Пов'язані ключі",
+      "andMore": "+{count} ще пов'язаних ключів"
+    },
+    "qualityIssues": {
+      "info": "Інформація",
+      "placeholderMissing": "Відсутній плейсхолдер",
+      "placeholderExtra": "Зайвий плейсхолдер",
+      "whitespaceLeading": "Початковий пробіл",
+      "whitespaceTrailing": "Кінцевий пробіл",
+      "whitespaceDouble": "Подвійні пробіли",
+      "whitespaceTab": "Символ табуляції",
+      "punctuationMismatch": "Невідповідність пунктуації",
+      "title": "Проблеми якості ({count})",
+      "error": "Помилка",
+      "warning": "Попередження"
+    },
+    "editor": {
+      "selectKeyPrompt": "Виберіть ключ зі списку для редагування перекладів",
+      "saving": "Збереження...",
+      "saveChanges": "Зберегти зміни",
+      "unsavedChanges": "Незбережені зміни",
+      "default": "за замовчуванням",
+      "enterTranslationPlaceholder": "Введіть переклад на {language}..."
+    },
+    "memoryPanel": {
+      "similarMatches": "Схожі збіги",
+      "machineTranslation": "Машинний переклад",
+      "enterMinChars": "Введіть мінімум 3 символи вихідною мовою",
+      "toSeeSuggestions": "щоб побачити пропозиції перекладів",
+      "searching": "Пошук...",
+      "noMatches": "Збігів не знайдено",
+      "approveToBuildMemory": "Схвалюйте переклади для створення пам'яті",
+      "exactMatches": "Точні збіги",
+      "translating": "Переклад...",
+      "getTranslation": "Отримати переклад",
+      "cached": "кешовано",
+      "applied": "Застосовано",
+      "apply": "Застосувати",
+      "usedCount": "Використано {count}x",
+      "title": "Пам'ять перекладів"
+    },
+    "commandPalette": {
+      "translateCurrentField": "Перекласти поточне поле",
+      "translateAllLanguages": "Перекласти всі мови",
+      "aiTranslateCurrentField": "AI перекласти поточне поле",
+      "aiTranslateAllLanguages": "AI перекласти всі мови",
+      "copyFromSource": "Копіювати з джерела",
+      "approveTranslation": "Схвалити переклад",
+      "rejectTranslation": "Відхилити переклад",
+      "searchPlaceholder": "Пошук ключів або введіть команду...",
+      "quickActions": "Швидкі дії",
+      "approveAllTranslations": "Схвалити всі переклади",
+      "rejectAllTranslations": "Відхилити всі переклади",
+      "jumpToKey": "Перейти до ключа"
+    },
+    "toasts": {
+      "noTranslationsToUpdate": "Немає перекладів для оновлення",
+      "failedToApproveTranslations": "Не вдалося схвалити переклади",
+      "failedToSave": "Не вдалося зберегти переклад",
+      "failedToApprove": "Не вдалося оновити статус схвалення",
+      "failedToUpdateTranslations": "Не вдалося оновити переклади",
+      "failedToRejectTranslations": "Не вдалося відхилити переклади",
+      "keysDeleted": "{count, plural, one {# ключ} other {# ключів}} видалено",
+      "failedToDeleteKeys": "Не вдалося видалити ключі",
+      "translationsGenerated": "{count, plural, one {# переклад} other {# перекладів}} створено",
+      "noEmptyTranslations": "Немає порожніх перекладів для заповнення",
+      "failedToTranslate": "Не вдалося перекласти",
+      "jobCancelled": "Завдання перекладу скасовано",
+      "invalidICUSyntax": "Неправильний ICU синтакс",
+      "translationsUpdated": "{count} перекладів {status}",
+      "translationsApproved": "{count} перекладів схвалено",
+      "translationsRejected": "{count} перекладів відхилено"
+    },
+    "inlineSuggestion": {
+      "from": "з {source}",
+      "cached": "кешовано",
+      "applied": "Застосовано",
+      "apply": "Застосувати",
+      "dismiss": "Відхилити",
+      "showLess": "Показати менше",
+      "moreSuggestions": "{count, plural, one {# ще пропозиція} few {# ще пропозиції} many {# ще пропозицій} other {# ще пропозицій}}"
+    },
+    "keyCard": {
+      "saving": "Збереження",
+      "saved": "Збережено",
+      "translating": "Переклад...",
+      "qualityIssuesFound": "Знайдено проблеми якості",
+      "qualityWarnings": "Попередження якості",
+      "nextField": "наступне поле",
+      "pending": "В очікуванні",
+      "approved": "Схвалено",
+      "rejected": "Відхилено",
+      "noSourceText": "Немає вихідного тексту",
+      "source": "Джерело",
+      "copyFromSource": "Копіювати з джерела",
+      "machineTranslate": "Машинний переклад",
+      "aiTranslate": "Штучний переклад",
+      "approve": "Схвалити",
+      "reject": "Відхилити",
+      "applySuggestion": "застосувати пропозицію",
+      "collapse": "згорнути",
+      "enterTextPlaceholder": "Введіть текст на {language}...",
+      "translate": "Перекласти"
+    },
+    "glossaryPanel": {
+      "matchingTerminology": "відповідну термінологію",
+      "searchingGlossary": "Пошук в глосарії...",
+      "noTermsFound": "Термінів не знайдено",
+      "addTermsHint": "Додайте терміни в Налаштування → Глосарій",
+      "exactMatches": "Точні збіги",
+      "termFoundInText": "Термін знайдено в тексті",
+      "title": "Глосарій",
+      "enterSourceText": "Введіть вихідний текст щоб побачити",
+      "caseSensitive": "Врахування регістру",
+      "exact": "точно",
+      "found": "знайдено",
+      "applied": "Застосовано",
+      "applyTerm": "Застосувати термін"
+    },
+    "stats": {
+      "lastUpdated": "Останнє оновлення:",
+      "totalKeys": "Всього ключів",
+      "languages": "Мови",
+      "complete": "Завершено",
+      "keys": "ключів",
+      "translationCoverage": "Охоплення перекладів",
+      "percentComplete": "{percent}% завершено"
+    },
+    "row": {
+      "approved": "Схвалено",
+      "rejected": "Відхилено",
+      "enterTranslationPlaceholder": "Введіть переклад на {language}...",
+      "missingTranslation": "Переклад відсутній",
+      "pending": "В очікуванні",
+      "approve": "Схвалити",
+      "reject": "Відхилити",
+      "saving": "Збереження",
+      "saved": "Збережено"
+    },
+    "branchHeader": {
+      "changes": "{count, plural, one {# зміна} few {# зміни} many {# змін} other {# змін}}",
+      "translatorsOnline": "{count, plural, one {# перекладач} few {# перекладачі} many {# перекладачів} other {# перекладачів}} онлайн",
+      "complete": "{percent}% завершено"
+    },
+    "filters": {
+      "allNamespaces": "Усі простори імен",
+      "all": "Всі ключі",
+      "complete": "Завершені",
+      "approved": "Схвалені",
+      "noNamespace": "Без простору імен",
+      "missing": "Відсутні",
+      "pending": "На перевірці",
+      "rejected": "Відхилені",
+      "warnings": "Має попередження"
+    },
+    "keyboard": {
+      "navigate": "↑↓ Навігація за клавішами",
+      "switchFields": "Tab Перемикання полів",
+      "applySuggestion": "↵ Застосувати пропозицію",
+      "machineTranslate": "M Машинний переклад",
+      "collapse": "Esc Згорнути"
+    },
+    "noResults": "Немає ключів, що відповідають пошуку або фільтру.",
+    "merge": "Об'єднати",
+    "title": "Переклади",
+    "batch": {
+      "aiTranslate": "Переклад штучним інтелектом",
+      "approveAll": "Схвалити всі",
+      "rejectAll": "Відхилити всі",
+      "delete": "Видалити",
+      "deleteTitle": "Видалити ключі",
+      "machineTranslate": "Машинний переклад",
+      "deleteDescription": "Ви впевнені, що хочете видалити {count, plural, one {# ключ перекладу} other {# ключі перекладу}}? Цю дію неможливо буде скасувати.",
+      "confirmDelete": "Видалити ключі",
+      "keysSelected": "{count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}} вибрано",
+      "translateEmpty": "Немає перекладів"
+    },
+    "loading": "Завантаження перекладів...",
+    "empty": {
+      "title": "Ключів перекладу поки немає",
+      "description": "Створіть перший ключ перекладу для початку локалізації.",
+      "createFirst": "Створити перший ключ"
+    },
+    "newKey": "Новий ключ",
+    "searchPlaceholder": "Пошук ключів...",
+    "bulkTranslate": {
+      "complete": "Переклад завершено!",
+      "title": "Масовий переклад",
+      "usingAI": "Використання перекладу на основі ШІ",
+      "usingMT": "Використання машинного перекладу",
+      "translating": "Переклад",
+      "completedMessage": "{count, plural, one {# переклад} few {# переклади} other {# перекладів}} успішно оброблено",
+      "translated": "Перекладено",
+      "skipped": "Пропущено",
+      "failedLabel": "Не вдалося",
+      "errors": "Помилки",
+      "failed": "Переклад не вдався"
+    }
   },
   "settings": {
     "quality": {
@@ -154,9 +359,9 @@
       "cliGuideDesc": "Налаштування інструменту командного рядка"
     },
     "tips": {
+      "activeSessions": "Активні сесії",
       "apiKeyRotation": "Ротація API ключів",
       "apiKeyRotationDesc": "Періодично змінюйте API ключі для кращої безпеки",
-      "activeSessions": "Активні сесії",
       "activeSessionsDesc": "Регулярно перевіряйте та відкликайте невикористані сесії",
       "title": "Поради з безпеки",
       "strongPassword": "Надійний пароль",
@@ -181,89 +386,221 @@
       "description": "Оновлення імені, email та налаштувань профілю"
     }
   },
-  "landing": {
-    "cta": {
-      "title": "Готові оптимізувати ваш",
-      "titleHighlight": "робочий процес локалізації?",
-      "description": "Приєднуйтесь до команд, які довіряють Lingx керування перекладами.",
-      "getStartedFree": "Почати безкоштовно",
-      "readTheDocs": "Читати документацію"
+  "dialogs": {
+    "createSpace": {
+      "slugDescription": "URL-сумісний ідентифікатор простору",
+      "descriptionLabel": "Опис",
+      "nameLabel": "Ім'я простору",
+      "namePlaceholder": "напр., Web App, Mobile, Marketing",
+      "slugLabel": "Slug",
+      "descriptionPlaceholder": "Які переклади містить цей простір?",
+      "success": "Простір створено",
+      "successDescription": "Простір \"{name}\" створено з гілкою main.",
+      "failed": "Не вдалося створити простір",
+      "title": "Новий простір",
+      "description": "Організуйте переклади за функціями або платформами",
+      "slugPlaceholder": "web-app",
+      "autoCreatedBranch": "Автоматично створена гілка",
+      "autoCreatedBranchNote": "Гілка \"main\" буде створена автоматично як ваша гілка за замовчуванням.",
+      "creating": "Створення...",
+      "createButton": "Створити простір"
     },
-    "footer": {
-      "description": "Платформа керування перекладами з відкритим вихідним кодом для сучасних команд розробки.",
-      "project": "Проєкт",
-      "github": "GitHub",
-      "issues": "Проблеми",
-      "discussions": "Обговорення",
-      "resources": "Ресурси",
-      "documentation": "Документація",
-      "readme": "README",
-      "contributing": "Участь",
-      "legal": "Правова інформація",
-      "mitLicense": "Ліцензія MIT",
-      "copyright": "© {year} Lingx. Відкритий вихідний код під ліцензією MIT."
+    "deleteConfirm": {
+      "deleteProject": "Видалити проєкт?",
+      "removeIntegration": "Видалити {name}?",
+      "removeIntegrationDescription": "Це видалить API ключ та вимкне {name} для цього проєкту. Ви можете додати його знову пізніше.",
+      "deleteEnvironment": "Видалити середовище?"
     },
-    "features": {
-      "branching": {
-        "title": "Git-подібне гілкування",
-        "description": "Створюйте гілки для перекладів, перевіряйте зміни та об'єднуйте з впевненістю."
-      },
-      "anyLanguage": {
-        "title": "Будь-яка мова",
-        "description": "RTL, множина і складні мовні правила підтримуються з коробки."
-      },
-      "collaboration": {
-        "title": "Командна робота",
-        "description": "Запрошуйте перекладачів, призначайте ролі та відстежуйте прогрес в реальному часі."
-      },
-      "fast": {
-        "title": "Блискавична швидкість",
-        "description": "Оптимізовано для продуктивності з миттєвим пошуком та оновленнями в реальному часі."
-      },
-      "secure": {
-        "title": "Самостійний хостинг і безпека",
-        "description": "Ваші дані залишаються на вашій інфраструктурі. Повний контроль, завжди."
-      },
-      "developerFirst": {
-        "title": "Для розробників",
-        "description": "CLI інструменти, SDK та API, розроблені для сучасних робочих процесів."
-      },
-      "title": "Все що вам потрібно",
-      "subtitle": "Повна платформа локалізації для сучасних робочих процесів розробки."
+    "createBranch": {
+      "namePlaceholder": "напр., feature-checkout, v2-redesign",
+      "willBeCreatedAs": "Буде створено як:",
+      "copyFrom": "Копіювати з",
+      "selectSource": "Виберіть вихідну гілку",
+      "copyNote": "Всі переклади будуть скопійовані з цієї гілки",
+      "copyingKeys": "Копіювання {count} ключів перекладу",
+      "isolationNote": "Зміни в цій гілці не вплинуть на \"{branchName}\" до злиття.",
+      "created": "Гілку створено",
+      "createdDescription": "Гілку \"{name}\" створено з {source}.",
+      "createFailed": "Не вдалося створити гілку",
+      "title": "Нова гілка",
+      "description": "Створити гілку в \"{spaceName}\"",
+      "nameLabel": "Ім'я гілки"
     },
-    "headline": "Локалізація, яка",
-    "benefits": {
-      "selfHosted": "Самостійний хостинг",
-      "selfHostedDesc": "Ваші дані, ваші сервери",
-      "openSource": "Відкритий код",
-      "openSourceDesc": "MIT ліцензія, назавжди безкоштовно",
-      "gitLike": "Git-подібний робочий процес",
-      "gitLikeDesc": "Гілкування, перевірка, злиття",
-      "devFirst": "Для розробників",
-      "devFirstDesc": "CLI, SDK та API"
+    "mergeBranch": {
+      "failedToLoadDiff": "Не вдалося завантажити відмінності",
+      "merging": "Злиття...",
+      "reviewConflicts": "Перегляд конфліктів",
+      "ready": "Готово",
+      "deleted": "Видалено",
+      "conflicts": "Конфлікти",
+      "conflict": "Конфлікт",
+      "steps": {
+        "select": "Вибір",
+        "preview": "Перегляд",
+        "resolve": "Вирішення"
+      },
+      "success": "Гілки злито",
+      "successDescription": "Успішно злито {count} змін в {branch}.",
+      "conflictsDetected": "Виявлено конфлікти",
+      "conflictsDescription": "{count, plural, one {# конфлікт потребує} few {# конфлікти потребують} many {# конфліктів потребують} other {# конфліктів потребують}} вирішення перед злиттям.",
+      "failed": "Не вдалося злити гілки",
+      "title": "Злиття гілки",
+      "description": "Злити зміни з \"{branch}\" в іншу гілку",
+      "sourceBranch": "Вихідна гілка",
+      "translationKeys": "{count, plural, one {# ключ перекладу} few {# ключі перекладу} many {# ключів перекладу} other {# ключів перекладу}}",
+      "targetBranch": "Цільова гілка",
+      "selectTargetBranch": "Виберіть цільову гілку",
+      "howItWorks": "Як працює злиття",
+      "howItWorksNote": "Всі ключі та значення перекладів з вихідної гілки будуть застосовані до цільової. Конфлікти будуть показані для ручного вирішення.",
+      "previewChanges": "Перегляд змін",
+      "comparingBranches": "Порівняння гілок...",
+      "pleaseTryAgain": "Спробуйте ще раз",
+      "branchesInSync": "Гілки синхронізовані",
+      "noChanges": "Немає змін для злиття між цими гілками",
+      "added": "Додано",
+      "modified": "Змінено",
+      "mergeChanges": "Злити зміни",
+      "conflictsCount": "{count, plural, one {# конфлікт виявлено} few {# конфлікти виявлено} many {# конфліктів виявлено} other {# конфліктів виявлено}}",
+      "chooseVersion": "Виберіть версію для кожного конфліктуючого ключа перекладу",
+      "resolved": "вирішено",
+      "completeMerge": "Завершити злиття"
+    }
+  },
+  "activity": {
+    "noRecent": "Немає нещодавньої активності",
+    "preview": {
+      "metadata": {
+        "source": "Джерело",
+        "target": "Ціль",
+        "conflictsResolved": "Конфліктів вирішено",
+        "branch": "Гілка",
+        "from": "З",
+        "file": "Файл",
+        "keys": "Ключі",
+        "languages": "Мови",
+        "format": "Формат",
+        "changed": "Змінено",
+        "environment": "Середовище",
+        "to": "До"
+      },
+      "noDetails": "Немає доступних деталей",
+      "empty": "порожньо",
+      "loading": "Завантаження...",
+      "andMore": "+{count} ще",
+      "viewAllHint": "Натисніть, щоб побачити {count} змін"
     },
-    "brand": "Lingx",
-    "signIn": "Увійти",
-    "getStarted": "Почати",
-    "openSourceBadge": "Відкритий код і самостійний хостинг",
-    "headlineHighlight": "тече природно",
-    "subheadline": "Керуйте перекладами з git-подібним гілкуванням. Працюйте з командою, перевіряйте зміни та випускайте локалізовані продукти з впевненістю.",
-    "startForFree": "Почати безкоштовно",
-    "viewOnGitHub": "Дивитися на GitHub",
-    "openSourceSection": {
-      "title": "Створено відкрито",
-      "description": "Lingx - це проєкт з відкритим вихідним кодом для навчання та експериментів.",
-      "starOnGitHub": "Поставити зірку на GitHub",
-      "reportIssue": "Повідомити про проблему"
+    "viewAll": "Показати всі зміни",
+    "viewAllChanges": "Показати всі {count} змін",
+    "description": {
+      "translationSingle": "Оновлено переклад{languages, select, undefined {} other { на {languages}}}",
+      "environmentSwitchBranch": "Перемкнуто \"{environmentName}\" на \"{newBranchName}\"",
+      "keyAddSingle": "Додано ключ перекладу",
+      "translationPlural": "Оновлено {count} перекладів{languages, select, undefined {} other { на {languages}}}",
+      "keyAddPlural": "Додано {count} ключів перекладу",
+      "keyDeleteSingle": "Видалено ключ перекладу",
+      "keyDeletePlural": "Видалено {count} ключів перекладу",
+      "branchCreateWithSource": "Створено гілку \"{branchName}\" з \"{sourceBranchName}\"",
+      "branchCreate": "Створено гілку \"{branchName}\"",
+      "branchDelete": "Видалено гілку \"{branchName}\"",
+      "merge": "Злито \"{sourceBranchName}\" в \"{targetBranchName}\"",
+      "importWithFile": "Імпортовано {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}} з {fileName}",
+      "import": "Імпортовано {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}",
+      "export": "Експортовано переклади в {format}",
+      "projectSettings": "Оновлено налаштування проєкту {fields}",
+      "environmentCreate": "Створено середовище \"{environmentName}\"",
+      "environmentDelete": "Видалено середовище \"{environmentName}\"",
+      "aiTranslateWithLanguages": "AI переклав {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}} на {languages}",
+      "aiTranslate": "AI переклав {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}",
+      "default": "Активність записана"
+    },
+    "modal": {
+      "loadMore": "Завантажити ще",
+      "noChanges": "Детальні зміни не записані",
+      "noChangesHint": "Ця активність не має детального відстеження змін.",
+      "auditTrail": "Журнал аудиту",
+      "empty": "Порожньо"
+    },
+    "title": "Нещодавня активність",
+    "lastDay": "Останні 24 години",
+    "lastWeek": "Останні 7 днів",
+    "empty": "Активність з'явиться тут в процесі роботи"
+  },
+  "apiKeys": {
+    "copyWarning": "Скопіюйте зараз - він більше не буде показаний.",
+    "createFailed": "Не вдалося створити API ключ",
+    "revokedSuccess": "API ключ відкликано",
+    "revokedDescription": "Ключ більше не можна використовувати для автентифікації.",
+    "revokeFailed": "Не вдалося відкликати API ключ",
+    "generateFirst": "Згенеруйте перший ключ",
+    "revokedKeys": "Відкликані ключі",
+    "copiedToClipboard": "Скопійовано в буфер обміну",
+    "revokeDialog": {
+      "cancel": "Скасувати",
+      "title": "Відкликати API ключ?",
+      "revoking": "Відкликання...",
+      "confirm": "Відкликати ключ"
+    },
+    "securityTips": {
+      "title": "Найкращі практики безпеки",
+      "keepSecret": "Зберігайте ключі в секреті",
+      "keepSecretDesc": "Ніколи не додавайте API ключі до системи контролю версій",
+      "rotateRegularly": "Регулярна ротація",
+      "rotateRegularlyDesc": "Змінюйте ключі кожні 90 днів для кращої безпеки",
+      "monitorUsage": "Моніторинг використання",
+      "monitorUsageDesc": "Перевіряйте 'Останнє використання' для виявлення несанкціонованого доступу"
+    },
+    "newKeyCreated": "Новий API ключ створено",
+    "lastUsed": "Останнє використання:",
+    "never": "Ніколи",
+    "revoked": "Відкликано",
+    "storeSecurely": "Зберігайте ключ безпечно. Ви не зможете побачити його знову.",
+    "copyFailed": "Не вдалося скопіювати",
+    "copyKeyNow": "Скопіюйте ключ зараз - він більше не буде показаний",
+    "suggestions": {
+      "cli": "CLI",
+      "development": "Розробка",
+      "production": "Продакшн"
+    },
+    "title": "Згенерувати новий API ключ",
+    "description": "Створіть ключ для CLI або SDK автентифікації",
+    "quickStart": "Швидкий старт",
+    "nameLabel": "Ім'я ключа",
+    "namePlaceholder": "напр., Production API, CI/CD Pipeline",
+    "nameHint": "Описове ім'я для ідентифікації призначення ключа",
+    "oneTimeDisplay": "Одноразовий показ",
+    "oneTimeDisplayHint": "Ключ буде показаний лише один раз після створення. Зберігайте його безпечно.",
+    "generating": "Створення...",
+    "generate": "Згенерувати ключ",
+    "createdSuccess": "API ключ успішно створено",
+    "loading": "Завантаження...",
+    "stats": {
+      "active": "Активних",
+      "total": "Всього"
+    },
+    "generateNew": "Згенерувати новий ключ",
+    "pageTitle": "API ключі",
+    "pageDescription": "Генерація та керування API ключами для CLI та SDK автентифікації",
+    "activeKeys": "Активні ключі",
+    "key": "ключ",
+    "keys": "ключів",
+    "noActiveKeys": "Немає активних API ключів",
+    "docs": {
+      "title": "Документація",
+      "cliSetup": "Посібник з налаштування CLI",
+      "cliSetupDesc": "Налаштування інструменту командного рядка",
+      "sdkIntegration": "Інтеграція SDK",
+      "sdkIntegrationDesc": "Інтеграція з вашим додатком",
+      "apiReference": "Довідник REST API",
+      "apiReferenceDesc": "Повна документація API"
     }
   },
   "twoFactorSetup": {
     "backupCodesFile": {
+      "oneTimeUse": "Кожен код можна використати лише один раз.",
+      "keepSafe": "Зберігайте ці коди в безпечному місці!",
       "title": "Резервні коди Lingx",
       "generated": "Згенеровано",
-      "description": "Ці коди можна використати для входу при втраті доступу до додатку-автентифікатора.",
-      "oneTimeUse": "Кожен код можна використати лише один раз.",
-      "keepSafe": "Зберігайте ці коди в безпечному місці!"
+      "description": "Ці коди можна використати для входу при втраті доступу до додатку-автентифікатора."
     },
     "enabled": "Двофакторну автентифікацію увімкнено!",
     "title": {
@@ -278,7 +615,6 @@
       "verify": "Введіть 6-значний код з додатку",
       "backup": "Збережіть коди для відновлення облікового запису"
     },
-    "completeSetup": "Завершити налаштування",
     "steps": {
       "downloadApp": {
         "title": "Завантажте додаток-автентифікатор",
@@ -302,282 +638,19 @@
     },
     "downloadBackupCodes": "Завантажити резервні коди",
     "cantScan": "Не можете сканувати? Введіть код вручну:",
-    "iveScannedIt": "Я відсканував",
-    "backupCodesDownloaded": "Резервні коди завантажено",
-    "acknowledgement": "Я зберіг резервні коди в безпечному місці. Я розумію, що більше не зможу їх побачити.",
     "failedToStart": "Не вдалося почати налаштування. Спробуйте ще раз.",
-    "secretCopied": "Секрет скопійовано в буфер обміну"
-  },
-  "activity": {
-    "preview": {
-      "metadata": {
-        "source": "Джерело",
-        "target": "Ціль",
-        "conflictsResolved": "Конфліктів вирішено",
-        "branch": "Гілка",
-        "from": "З",
-        "file": "Файл",
-        "keys": "Ключі",
-        "languages": "Мови",
-        "format": "Формат",
-        "changed": "Змінено",
-        "environment": "Середовище",
-        "to": "До"
-      },
-      "noDetails": "Немає доступних деталей",
-      "loading": "Завантаження...",
-      "andMore": "+{count} ще",
-      "empty": "порожньо",
-      "viewAllHint": "Натисніть, щоб побачити {count} змін"
-    },
-    "noRecent": "Немає нещодавньої активності",
-    "viewAll": "Показати всі зміни",
-    "viewAllChanges": "Показати всі {count} змін",
-    "description": {
-      "translationSingle": "Оновлено переклад{languages, select, undefined {} other { на {languages}}}",
-      "environmentSwitchBranch": "Перемкнуто \"{environmentName}\" на \"{newBranchName}\"",
-      "translationPlural": "Оновлено {count} перекладів{languages, select, undefined {} other { на {languages}}}",
-      "aiTranslateWithLanguages": "AI переклав {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}} на {languages}",
-      "aiTranslate": "AI переклав {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}",
-      "default": "Активність записана",
-      "keyAddSingle": "Додано ключ перекладу",
-      "keyAddPlural": "Додано {count} ключів перекладу",
-      "keyDeleteSingle": "Видалено ключ перекладу",
-      "keyDeletePlural": "Видалено {count} ключів перекладу",
-      "branchCreateWithSource": "Створено гілку \"{branchName}\" з \"{sourceBranchName}\"",
-      "branchCreate": "Створено гілку \"{branchName}\"",
-      "branchDelete": "Видалено гілку \"{branchName}\"",
-      "merge": "Злито \"{sourceBranchName}\" в \"{targetBranchName}\"",
-      "importWithFile": "Імпортовано {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}} з {fileName}",
-      "import": "Імпортовано {count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}}",
-      "export": "Експортовано переклади в {format}",
-      "projectSettings": "Оновлено налаштування проєкту {fields}",
-      "environmentCreate": "Створено середовище \"{environmentName}\"",
-      "environmentDelete": "Видалено середовище \"{environmentName}\""
-    },
-    "modal": {
-      "loadMore": "Завантажити ще",
-      "empty": "Порожньо",
-      "noChanges": "Детальні зміни не записані",
-      "noChangesHint": "Ця активність не має детального відстеження змін.",
-      "auditTrail": "Журнал аудиту"
-    },
-    "title": "Нещодавня активність",
-    "lastDay": "Останні 24 години",
-    "lastWeek": "Останні 7 днів",
-    "empty": "Активність з'явиться тут в процесі роботи"
-  },
-  "translations": {
-    "memoryPanel": {
-      "approveToBuildMemory": "Схвалюйте переклади для створення пам'яті",
-      "exactMatches": "Точні збіги",
-      "similarMatches": "Схожі збіги",
-      "machineTranslation": "Машинний переклад",
-      "enterMinChars": "Введіть мінімум 3 символи вихідною мовою",
-      "toSeeSuggestions": "щоб побачити пропозиції перекладів",
-      "searching": "Пошук...",
-      "noMatches": "Збігів не знайдено",
-      "translating": "Переклад...",
-      "getTranslation": "Отримати переклад",
-      "cached": "кешовано",
-      "applied": "Застосовано",
-      "apply": "Застосувати",
-      "usedCount": "Використано {count}x",
-      "title": "Пам'ять перекладів"
-    },
-    "editor": {
-      "selectKeyPrompt": "Виберіть ключ зі списку для редагування перекладів",
-      "saving": "Збереження...",
-      "saveChanges": "Зберегти зміни",
-      "unsavedChanges": "Незбережені зміни",
-      "default": "за замовчуванням",
-      "enterTranslationPlaceholder": "Введіть переклад на {language}..."
-    },
-    "bulkTranslate": {
-      "complete": "Переклад завершено!",
-      "title": "Масовий переклад",
-      "usingAI": "Використання перекладу на основі ШІ",
-      "usingMT": "Використання машинного перекладу",
-      "errors": "Помилки",
-      "failed": "Переклад не вдався",
-      "translating": "Переклад",
-      "completedMessage": "{count, plural, one {# переклад} few {# переклади} other {# перекладів}} успішно оброблено",
-      "translated": "Перекладено",
-      "skipped": "Пропущено",
-      "failedLabel": "Не вдалося"
-    },
-    "toasts": {
-      "failedToTranslate": "Не вдалося перекласти",
-      "translationsGenerated": "{count, plural, one {# переклад} other {# перекладів}} створено",
-      "noEmptyTranslations": "Немає порожніх перекладів для заповнення",
-      "jobCancelled": "Завдання перекладу скасовано",
-      "failedToSave": "Не вдалося зберегти переклад",
-      "failedToApprove": "Не вдалося оновити статус схвалення",
-      "failedToUpdateTranslations": "Не вдалося оновити переклади",
-      "noTranslationsToUpdate": "Немає перекладів для оновлення",
-      "failedToApproveTranslations": "Не вдалося схвалити переклади",
-      "failedToRejectTranslations": "Не вдалося відхилити переклади",
-      "keysDeleted": "{count, plural, one {# ключ} other {# ключів}} видалено",
-      "failedToDeleteKeys": "Не вдалося видалити ключі",
-      "invalidICUSyntax": "Неправильний ICU синтакс",
-      "translationsUpdated": "{count} перекладів {status}",
-      "translationsApproved": "{count} перекладів схвалено",
-      "translationsRejected": "{count} перекладів відхилено"
-    },
-    "commandPalette": {
-      "translateCurrentField": "Перекласти поточне поле",
-      "translateAllLanguages": "Перекласти всі мови",
-      "aiTranslateCurrentField": "AI перекласти поточне поле",
-      "aiTranslateAllLanguages": "AI перекласти всі мови",
-      "searchPlaceholder": "Пошук ключів або введіть команду...",
-      "quickActions": "Швидкі дії",
-      "copyFromSource": "Копіювати з джерела",
-      "approveTranslation": "Схвалити переклад",
-      "rejectTranslation": "Відхилити переклад",
-      "approveAllTranslations": "Схвалити всі переклади",
-      "rejectAllTranslations": "Відхилити всі переклади",
-      "jumpToKey": "Перейти до ключа"
-    },
-    "inlineSuggestion": {
-      "from": "з {source}",
-      "cached": "кешовано",
-      "applied": "Застосовано",
-      "apply": "Застосувати",
-      "dismiss": "Відхилити",
-      "showLess": "Показати менше",
-      "moreSuggestions": "{count, plural, one {# ще пропозиція} few {# ще пропозиції} many {# ще пропозицій} other {# ще пропозицій}}"
-    },
-    "keyCard": {
-      "saving": "Збереження",
-      "saved": "Збережено",
-      "translating": "Переклад...",
-      "qualityIssuesFound": "Знайдено проблеми якості",
-      "qualityWarnings": "Попередження якості",
-      "nextField": "наступне поле",
-      "applySuggestion": "застосувати пропозицію",
-      "collapse": "згорнути",
-      "pending": "В очікуванні",
-      "approved": "Схвалено",
-      "rejected": "Відхилено",
-      "noSourceText": "Немає вихідного тексту",
-      "source": "Джерело",
-      "copyFromSource": "Копіювати з джерела",
-      "machineTranslate": "Машинний переклад",
-      "aiTranslate": "Штучний переклад",
-      "approve": "Схвалити",
-      "reject": "Відхилити",
-      "enterTextPlaceholder": "Введіть текст на {language}...",
-      "translate": "Перекласти"
-    },
-    "glossaryPanel": {
-      "matchingTerminology": "відповідну термінологію",
-      "searchingGlossary": "Пошук в глосарії...",
-      "noTermsFound": "Термінів не знайдено",
-      "addTermsHint": "Додайте терміни в Налаштування → Глосарій",
-      "exactMatches": "Точні збіги",
-      "termFoundInText": "Термін знайдено в тексті",
-      "title": "Глосарій",
-      "enterSourceText": "Введіть вихідний текст щоб побачити",
-      "caseSensitive": "Врахування регістру",
-      "exact": "точно",
-      "found": "знайдено",
-      "applied": "Застосовано",
-      "applyTerm": "Застосувати термін"
-    },
-    "stats": {
-      "lastUpdated": "Останнє оновлення:",
-      "totalKeys": "Всього ключів",
-      "languages": "Мови",
-      "complete": "Завершено",
-      "keys": "ключів",
-      "translationCoverage": "Охоплення перекладів",
-      "percentComplete": "{percent}% завершено"
-    },
-    "relatedKeys": {
-      "sameFile": "Той самий файл",
-      "sameComponent": "Той самий компонент",
-      "semantic": "Семантично схожі",
-      "loading": "Завантаження пов'язаних ключів...",
-      "title": "Пов'язані ключі",
-      "andMore": "+{count} ще пов'язаних ключів"
-    },
-    "qualityIssues": {
-      "info": "Інформація",
-      "placeholderMissing": "Відсутній плейсхолдер",
-      "placeholderExtra": "Зайвий плейсхолдер",
-      "whitespaceLeading": "Початковий пробіл",
-      "whitespaceTrailing": "Кінцевий пробіл",
-      "whitespaceDouble": "Подвійні пробіли",
-      "whitespaceTab": "Символ табуляції",
-      "punctuationMismatch": "Невідповідність пунктуації",
-      "title": "Проблеми якості ({count})",
-      "error": "Помилка",
-      "warning": "Попередження"
-    },
-    "row": {
-      "pending": "В очікуванні",
-      "approved": "Схвалено",
-      "rejected": "Відхилено",
-      "enterTranslationPlaceholder": "Введіть переклад на {language}...",
-      "missingTranslation": "Переклад відсутній",
-      "approve": "Схвалити",
-      "reject": "Відхилити",
-      "saving": "Збереження",
-      "saved": "Збережено"
-    },
-    "filters": {
-      "allNamespaces": "Усі простори імен",
-      "all": "Всі ключі",
-      "complete": "Завершені",
-      "approved": "Схвалені",
-      "noNamespace": "Без простору імен",
-      "missing": "Відсутні",
-      "pending": "На перевірці",
-      "rejected": "Відхилені",
-      "warnings": "Має попередження"
-    },
-    "branchHeader": {
-      "changes": "{count, plural, one {# зміна} few {# зміни} many {# змін} other {# змін}}",
-      "translatorsOnline": "{count, plural, one {# перекладач} few {# перекладачі} many {# перекладачів} other {# перекладачів}} онлайн",
-      "complete": "{percent}% завершено"
-    },
-    "keyboard": {
-      "navigate": "↑↓ Навігація за клавішами",
-      "switchFields": "Tab Перемикання полів",
-      "applySuggestion": "↵ Застосувати пропозицію",
-      "machineTranslate": "M Машинний переклад",
-      "collapse": "Esc Згорнути"
-    },
-    "noResults": "Немає ключів, що відповідають пошуку або фільтру.",
-    "merge": "Об'єднати",
-    "title": "Переклади",
-    "batch": {
-      "aiTranslate": "Переклад штучним інтелектом",
-      "approveAll": "Схвалити всі",
-      "rejectAll": "Відхилити всі",
-      "delete": "Видалити",
-      "deleteTitle": "Видалити ключі",
-      "machineTranslate": "Машинний переклад",
-      "deleteDescription": "Ви впевнені, що хочете видалити {count, plural, one {# ключ перекладу} other {# ключі перекладу}}? Цю дію неможливо буде скасувати.",
-      "confirmDelete": "Видалити ключі",
-      "keysSelected": "{count, plural, one {# ключ} few {# ключі} many {# ключів} other {# ключів}} вибрано",
-      "translateEmpty": "Немає перекладів"
-    },
-    "loading": "Завантаження перекладів...",
-    "empty": {
-      "title": "Ключів перекладу поки немає",
-      "description": "Створіть перший ключ перекладу для початку локалізації.",
-      "createFirst": "Створити перший ключ"
-    },
-    "newKey": "Новий ключ",
-    "searchPlaceholder": "Пошук ключів..."
+    "secretCopied": "Секрет скопійовано в буфер обміну",
+    "backupCodesDownloaded": "Резервні коди завантажено",
+    "iveScannedIt": "Я відсканував",
+    "acknowledgement": "Я зберіг резервні коди в безпечному місці. Я розумію, що більше не зможу їх побачити.",
+    "completeSetup": "Завершити налаштування"
   },
   "environments": {
     "switchBranchDialog": {
       "selectBranch": "Виберіть гілку",
       "quickUpdate": "Швидке оновлення",
-      "updateNote": "Відповіді SDK відобразять нову гілку протягом 5 секунд.",
-      "description": "Виберіть гілку для \"{name}\""
+      "description": "Виберіть гілку для \"{name}\"",
+      "updateNote": "Відповіді SDK відобразять нову гілку протягом 5 секунд."
     },
     "form": {
       "name": "Ім'я середовища",
@@ -585,26 +658,30 @@
       "sourceBranch": "Вихідна гілка"
     },
     "loading": "Завантаження середовищ...",
-    "loadError": "Не вдалося завантажити середовища. Спробуйте ще раз.",
-    "subtitle": "Керування середовищами розгортання",
     "deleteDialog": {
       "description": "Це безповоротно видалить середовище \"{name}\". SDK, що використовують це середовище, перестануть отримувати переклади."
     },
+    "docsLink": {
+      "title": "Документація SDK",
+      "description": "Дізнайтеся більше про інтеграцію"
+    },
     "toasts": {
       "branchSwitched": "Гілку перемкнуто",
+      "branchSwitchedDescription": "Відповіді SDK оновляться протягом 5 секунд.",
       "branchSwitchFailed": "Не вдалося перемкнути гілку",
       "environmentDeleted": "Середовище видалено",
-      "branchSwitchedDescription": "Відповіді SDK оновляться протягом 5 секунд.",
       "environmentDeletedDescription": "Середовище було видалено.",
       "environmentDeleteFailed": "Не вдалося видалити середовище"
     },
+    "loadError": "Не вдалося завантажити середовища. Спробуйте ще раз.",
+    "title": "Середовища",
+    "subtitle": "Керування середовищами розгортання",
+    "newEnvironment": "Нове середовище",
     "empty": {
       "title": "Середовищ поки немає",
       "description": "Середовища зв'язують SDK з конкретними гілками. Створіть середовища \"production\", \"staging\" або \"development\" для керування розгортанням перекладів.",
       "createFirst": "Створити перше середовище"
     },
-    "title": "Середовища",
-    "newEnvironment": "Нове середовище",
     "switchBranch": "Перемкнути гілку",
     "sdkIntegration": {
       "title": "Інтеграція SDK",
@@ -615,163 +692,21 @@
       "separate": "Використовуйте окремі середовища для розробки, staging та production",
       "branches": "Перемикайте гілки для тестування змін перед публікацією",
       "updateTime": "Відповіді SDK оновлюються протягом 5 секунд після перемикання гілки"
-    },
-    "docsLink": {
-      "title": "Документація SDK",
-      "description": "Дізнайтеся більше про інтеграцію"
     }
-  },
-  "apiKeys": {
-    "copiedToClipboard": "Скопійовано в буфер обміну",
-    "revokeDialog": {
-      "cancel": "Скасувати",
-      "title": "Відкликати API ключ?",
-      "revoking": "Відкликання...",
-      "confirm": "Відкликати ключ"
-    },
-    "newKeyCreated": "Новий API ключ створено",
-    "lastUsed": "Останнє використання:",
-    "never": "Ніколи",
-    "storeSecurely": "Зберігайте ключ безпечно. Ви не зможете побачити його знову.",
-    "revoked": "Відкликано",
-    "description": "Створіть ключ для CLI або SDK автентифікації",
-    "quickStart": "Швидкий старт",
-    "nameLabel": "Ім'я ключа",
-    "namePlaceholder": "напр., Production API, CI/CD Pipeline",
-    "suggestions": {
-      "cli": "CLI",
-      "development": "Розробка",
-      "production": "Продакшн"
-    },
-    "title": "Згенерувати новий API ключ",
-    "nameHint": "Описове ім'я для ідентифікації призначення ключа",
-    "oneTimeDisplay": "Одноразовий показ",
-    "oneTimeDisplayHint": "Ключ буде показаний лише один раз після створення. Зберігайте його безпечно.",
-    "generating": "Створення...",
-    "generate": "Згенерувати ключ",
-    "loading": "Завантаження...",
-    "stats": {
-      "active": "Активних",
-      "total": "Всього"
-    },
-    "createdSuccess": "API ключ успішно створено",
-    "copyWarning": "Скопіюйте зараз - він більше не буде показаний.",
-    "createFailed": "Не вдалося створити API ключ",
-    "revokedSuccess": "API ключ відкликано",
-    "revokedDescription": "Ключ більше не можна використовувати для автентифікації.",
-    "revokeFailed": "Не вдалося відкликати API ключ",
-    "generateNew": "Згенерувати новий ключ",
-    "pageTitle": "API ключі",
-    "pageDescription": "Генерація та керування API ключами для CLI та SDK автентифікації",
-    "activeKeys": "Активні ключі",
-    "key": "ключ",
-    "noActiveKeys": "Немає активних API ключів",
-    "generateFirst": "Згенеруйте перший ключ",
-    "revokedKeys": "Відкликані ключі",
-    "securityTips": {
-      "title": "Найкращі практики безпеки",
-      "keepSecret": "Зберігайте ключі в секреті",
-      "keepSecretDesc": "Ніколи не додавайте API ключі до системи контролю версій",
-      "rotateRegularly": "Регулярна ротація",
-      "rotateRegularlyDesc": "Змінюйте ключі кожні 90 днів для кращої безпеки",
-      "monitorUsage": "Моніторинг використання",
-      "monitorUsageDesc": "Перевіряйте 'Останнє використання' для виявлення несанкціонованого доступу"
-    },
-    "keys": "ключів",
-    "docs": {
-      "cliSetupDesc": "Налаштування інструменту командного рядка",
-      "sdkIntegration": "Інтеграція SDK",
-      "sdkIntegrationDesc": "Інтеграція з вашим додатком",
-      "title": "Документація",
-      "apiReference": "Довідник REST API",
-      "apiReferenceDesc": "Повна документація API",
-      "cliSetup": "Посібник з налаштування CLI"
-    },
-    "copyFailed": "Не вдалося скопіювати",
-    "copyKeyNow": "Скопіюйте ключ зараз - він більше не буде показаний"
-  },
-  "time": {
-    "justNow": "Щойно",
-    "minutesAgo": "{count} хв тому",
-    "hoursAgo": "{count, plural, one {# годину тому} few {# години тому} many {# годин тому} other {# годин тому}}",
-    "daysAgo": "{count} днів тому",
-    "today": "Сьогодні",
-    "yesterday": "Вчора",
-    "date": "{date}"
-  },
-  "keyForm": {
-    "prefix": {
-      "settings": "Мітки налаштувань",
-      "common": "Загальні рядки",
-      "page": "Специфічні для сторінки",
-      "error": "Повідомлення про помилки"
-    },
-    "createSuccess": "Ключ створено",
-    "createSuccessDescription": "\"{name}\" було створено.",
-    "createFailed": "Не вдалося створити ключ",
-    "updateSuccess": "Ключ оновлено",
-    "updateSuccessDescription": "Зміни збережено.",
-    "updateFailed": "Не вдалося оновити ключ",
-    "editTitle": "Редагувати ключ перекладу",
-    "createTitle": "Новий ключ перекладу",
-    "editDescription": "Оновіть ідентифікатор ключа та контекст",
-    "createDescription": "Створіть унікальний ідентифікатор для рядка, що перекладається",
-    "namespacePrefix": "Префікс простору імен",
-    "keyName": {
-      "label": "Ім'я ключа",
-      "placeholder": "напр., common.welcome.title",
-      "description": "Використовуйте крапкову нотацію для просторів імен (напр., page.home.hero_title)"
-    },
-    "context": {
-      "label": "Контекст для перекладачів",
-      "optional": "необов'язково",
-      "placeholder": "Опишіть де з'являється цей текст та важливий контекст для точного перекладу...",
-      "description": "Допоможіть перекладачам зрозуміти контекст та тон"
-    },
-    "proTip": {
-      "title": "Порада профі",
-      "description": "Після створення ключа ви одразу можете додати переклади в редакторі нижче."
-    },
-    "cancel": "Скасувати",
-    "saving": "Збереження...",
-    "creating": "Створення...",
-    "saveChanges": "Зберегти зміни",
-    "createKey": "Створити ключ"
-  },
-  "nav": {
-    "language": "Мова",
-    "toggleNavigation": "Перемкнути навігацію",
-    "toggleTheme": "Перемкнути тему",
-    "toggleSidebar": "Перемкнути бічну панель",
-    "search": "Пошук..."
   },
   "auth": {
     "welcomeToast": "З поверненням!",
+    "unexpectedError": "Сталася непередбачена помилка. Спробуйте ще раз.",
     "accountCreated": "Обліковий запис створено!",
     "accountCreatedDescription": "Ласкаво просимо до Lingx. Ваш обліковий запис готовий.",
-    "unexpectedError": "Сталася непередбачена помилка. Спробуйте ще раз.",
     "termsOfService": "Умовами використання",
     "and": "та",
     "privacyPolicy": "Політикою конфіденційності",
-    "passkeySignInSuccess": "Вхід з passkey виконано",
-    "passkeyAuthFailed": "Автентифікація не вдалася",
-    "passkeySignInFailed": "Вхід з passkey не вдався",
-    "welcomeDescription": "Ви успішно увійшли в систему.",
     "signInFailed": "Вхід не вдався",
     "creatingAccount": "Створення облікового запису...",
     "registrationFailed": "Реєстрація не вдалася",
-    "createAccount": "Створіть обліковий запис",
-    "startManaging": "Почніть керувати перекладами за лічені хвилини",
-    "password": "Пароль",
-    "createPassword": "Створіть надійний пароль",
-    "fullName": "Повне ім'я",
-    "fullNamePlaceholder": "Іван Іванов",
-    "emailAddress": "Email адреса",
-    "emailPlaceholder": "you@example.com",
-    "createAnAccount": "Створити обліковий запис",
-    "alreadyHaveAccount": "Вже маєте обліковий запис?",
-    "signInInstead": "Увійти",
-    "welcomeBack": "З поверненням",
+    "enterCredentials": "Введіть дані для доступу до проєктів",
+    "authenticating": "Автентифікація...",
     "signInWithPasskey": "Увійти з passkey",
     "orContinueWithEmail": "або продовжити з email",
     "forgotPassword": "Забули пароль?",
@@ -779,9 +714,92 @@
     "signingIn": "Вхід...",
     "signIn": "Увійти",
     "newToLingx": "Новий в Lingx?",
-    "enterCredentials": "Введіть дані для доступу до проєктів",
-    "authenticating": "Автентифікація...",
-    "termsAgreement": "Продовжуючи, ви погоджуєтесь з нашими"
+    "createAnAccount": "Створити обліковий запис",
+    "termsAgreement": "Продовжуючи, ви погоджуєтесь з нашими",
+    "passkeySignInSuccess": "Вхід з passkey виконано",
+    "passkeyAuthFailed": "Автентифікація не вдалася",
+    "passkeySignInFailed": "Вхід з passkey не вдався",
+    "welcomeDescription": "Ви успішно увійшли в систему.",
+    "welcomeBack": "З поверненням",
+    "emailAddress": "Email адреса",
+    "emailPlaceholder": "you@example.com",
+    "password": "Пароль",
+    "createAccount": "Створіть обліковий запис",
+    "startManaging": "Почніть керувати перекладами за лічені хвилини",
+    "fullName": "Повне ім'я",
+    "fullNamePlaceholder": "Іван Іванов",
+    "createPassword": "Створіть надійний пароль",
+    "alreadyHaveAccount": "Вже маєте обліковий запис?",
+    "signInInstead": "Увійти"
+  },
+  "dashboard": {
+    "quickActions": "Швидкі дії",
+    "welcome": {
+      "title": "Ласкаво просимо до Lingx",
+      "description": "Професійне керування перекладами з git-подібним контролем версій для сучасних команд"
+    },
+    "cli": {
+      "command": "npx lingx pull",
+      "title": "CLI доступний",
+      "description": "Синхронізуйте переклади з терміналу"
+    },
+    "onboarding": {
+      "cta": "Створити перший проєкт",
+      "step1": {
+        "title": "Створіть проєкт",
+        "description": "Визначте вихідну та цільові мови"
+      },
+      "step2": {
+        "title": "Додайте ключі перекладу",
+        "description": "Імпортуйте існуючі або створіть нові"
+      },
+      "step3": {
+        "title": "Синхронізуйте з додатком",
+        "description": "Використовуйте CLI або API для отримання перекладів"
+      }
+    },
+    "stats": {
+      "keys": "Ключі",
+      "complete": "Завершено",
+      "pending": "В очікуванні",
+      "projects": "Проєкти",
+      "languages": "Мови"
+    },
+    "greeting": {
+      "evening": "Доброго вечора",
+      "morning": "Доброго ранку",
+      "afternoon": "Доброго дня"
+    },
+    "overview": "Огляд ваших перекладів",
+    "progress": "Загальний прогрес перекладу",
+    "team": {
+      "title": "Учасники команди",
+      "description": "Спільна робота"
+    },
+    "branches": {
+      "description": "Контроль версій",
+      "title": "Керування гілками"
+    },
+    "resources": {
+      "title": "Ресурси",
+      "docs": "Документація",
+      "guide": "Посібник з початку роботи",
+      "bestPractices": "Найкращі практики локалізації"
+    },
+    "createProject": {
+      "title": "Створити новий проєкт",
+      "description": "Почніть проєкт локалізації з контролем версій, гілкуванням та командною роботою",
+      "cta": "Почати"
+    },
+    "recentProjects": "Нещодавні проєкти",
+    "import": {
+      "title": "Імпорт перекладів",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "apiKeys": {
+      "title": "API ключі",
+      "description": "Керування доступом"
+    }
   },
   "branch": {
     "conflictResolver": {
@@ -799,9 +817,9 @@
       "keepTarget": "Залишити цільовий",
       "customEdit": "Своє редагування",
       "customDescriptionDesktop": "Створіть своє рішення редагуванням значень для кожної мови. Почніть з вихідних значень або введіть свої.",
-      "targetCurrent": "Ціль (Поточне)",
       "clearResolution": "Очистити рішення",
       "customDescription": "Створіть своє рішення редагуванням значень для кожної мови.",
+      "targetCurrent": "Ціль (Поточне)",
       "startWithSource": "Почати з вихідних значень",
       "startWithTarget": "Почати з цільових значень",
       "enterTranslation": "Введіть переклад на {lang}...",
@@ -811,15 +829,15 @@
       "noConflicts": "Немає конфліктів"
     },
     "mergeDialog": {
-      "stats": {
-        "conflicts": "Конфлікти",
-        "added": "Додано",
-        "modified": "Змінено",
-        "deleted": "Видалено"
-      },
       "merge": "Злити",
       "into": "в",
       "description": "Перегляньте зміни та вирішіть конфлікти перед злиттям.",
+      "stats": {
+        "added": "Додано",
+        "modified": "Змінено",
+        "deleted": "Видалено",
+        "conflicts": "Конфлікти"
+      },
       "conflictsDetected": "Виявлено конфлікти",
       "conflictsDescription": "{count, plural, one {# ключ перекладу було змінено} few {# ключі перекладу було змінено} many {# ключів перекладу було змінено} other {# ключів перекладу було змінено}} в обох гілках. Вирішіть всі конфлікти перед злиттям.",
       "mergeFailed": "Злиття не вдалося",
@@ -861,76 +879,16 @@
     "loading": "Завантаження",
     "loadingMessage": "Будь ласка, зачекайте..."
   },
-  "dashboard": {
-    "cli": {
-      "command": "npx lingx pull",
-      "title": "CLI доступний",
-      "description": "Синхронізуйте переклади з терміналу"
-    },
-    "onboarding": {
-      "cta": "Створити перший проєкт",
-      "step1": {
-        "title": "Створіть проєкт",
-        "description": "Визначте вихідну та цільові мови"
-      },
-      "step2": {
-        "title": "Додайте ключі перекладу",
-        "description": "Імпортуйте існуючі або створіть нові"
-      },
-      "step3": {
-        "title": "Синхронізуйте з додатком",
-        "description": "Використовуйте CLI або API для отримання перекладів"
-      }
-    },
-    "welcome": {
-      "description": "Професійне керування перекладами з git-подібним контролем версій для сучасних команд",
-      "title": "Ласкаво просимо до Lingx"
-    },
-    "greeting": {
-      "evening": "Доброго вечора",
-      "morning": "Доброго ранку",
-      "afternoon": "Доброго дня"
-    },
-    "overview": "Огляд ваших перекладів",
-    "stats": {
-      "keys": "Ключі",
-      "complete": "Завершено",
-      "pending": "В очікуванні",
-      "languages": "Мови",
-      "projects": "Проєкти"
-    },
-    "progress": "Загальний прогрес перекладу",
-    "createProject": {
-      "description": "Почніть проєкт локалізації з контролем версій, гілкуванням та командною роботою",
-      "cta": "Почати",
-      "title": "Створити новий проєкт"
-    },
-    "resources": {
-      "docs": "Документація",
-      "guide": "Посібник з початку роботи",
-      "bestPractices": "Найкращі практики локалізації",
-      "title": "Ресурси"
-    },
-    "recentProjects": "Нещодавні проєкти",
-    "quickActions": "Швидкі дії",
-    "import": {
-      "title": "Імпорт перекладів",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "API ключі",
-      "description": "Керування доступом"
-    },
-    "branches": {
-      "title": "Керування гілками",
-      "description": "Контроль версій"
-    },
-    "team": {
-      "title": "Учасники команди",
-      "description": "Спільна робота"
-    }
-  },
   "projectSettings": {
+    "languages": {
+      "title": "Мови",
+      "subtitle": "Виберіть мови для перекладу",
+      "selectedCount": "{count} вибрано",
+      "source": "Джерело",
+      "sourceLanguage": "Вихідна мова",
+      "selectSourceLanguage": "Виберіть вихідну мову",
+      "sourceLanguageDescription": "Основна мова вашого контенту"
+    },
     "layout": {
       "needHelpDescription": "Дивіться документацію для посібників з налаштування проєкту.",
       "nav": {
@@ -940,14 +898,14 @@
         "team": "Команда",
         "teamDescription": "Учасники та ролі",
         "security": "Безпека",
-        "securityDescription": "Контроль доступу",
         "glossary": "Глосарій",
         "glossaryDescription": "Керування термінологією",
+        "securityDescription": "Контроль доступу",
         "generalDescription": "Деталі проєкту та мови"
       },
       "needHelp": "Потрібна допомога?",
-      "loadingSettings": "Завантаження налаштувань",
       "title": "Налаштування",
+      "loadingSettings": "Завантаження налаштувань",
       "subtitle": "Налаштувати {projectName}",
       "configure": "Налаштувати",
       "comingSoon": "Скоро"
@@ -967,21 +925,11 @@
     "dangerZone": {
       "subtitle": "Незворотні та деструктивні дії",
       "title": "Небезпечна зона",
-      "deleteButton": "Видалити проєкт",
       "deleteTitle": "Видалити цей проєкт",
       "deleteDescription": "Безповоротно видалить проєкт та всі дані включаючи простори, гілки, ключі перекладів та історію. Цю дію не можна скасувати.",
+      "deleteButton": "Видалити проєкт",
       "deleteDialogDescription": "Це безповоротно видалить \"{projectName}\" та всі простори, гілки та переклади. Цю дію не можна скасувати."
     },
-    "languages": {
-      "selectSourceLanguage": "Виберіть вихідну мову",
-      "sourceLanguageDescription": "Основна мова вашого контенту",
-      "title": "Мови",
-      "subtitle": "Виберіть мови для перекладу",
-      "selectedCount": "{count} вибрано",
-      "source": "Джерело",
-      "sourceLanguage": "Вихідна мова"
-    },
-    "allChangesSaved": "Всі зміни збережено",
     "toasts": {
       "projectUpdated": "Проєкт оновлено",
       "projectUpdatedDescription": "Ваші зміни збережено.",
@@ -989,7 +937,8 @@
       "projectDeleted": "Проєкт видалено",
       "projectDeletedDescription": "Проєкт було видалено.",
       "projectDeleteFailed": "Не вдалося видалити проєкт"
-    }
+    },
+    "allChangesSaved": "Всі зміни збережено"
   },
   "projectDetail": {
     "translationCoverage": {
@@ -1024,269 +973,9 @@
     "editOnBranch": "Редагувати переклади в гілці {branchName}",
     "openEditor": "Відкрити редактор"
   },
-  "dialogs": {
-    "deleteConfirm": {
-      "removeIntegration": "Видалити {name}?",
-      "removeIntegrationDescription": "Це видалить API ключ та вимкне {name} для цього проєкту. Ви можете додати його знову пізніше.",
-      "deleteProject": "Видалити проєкт?",
-      "deleteEnvironment": "Видалити середовище?"
-    },
-    "mergeBranch": {
-      "description": "Злити зміни з \"{branch}\" в іншу гілку",
-      "sourceBranch": "Вихідна гілка",
-      "translationKeys": "{count, plural, one {# ключ перекладу} few {# ключі перекладу} many {# ключів перекладу} other {# ключів перекладу}}",
-      "targetBranch": "Цільова гілка",
-      "selectTargetBranch": "Виберіть цільову гілку",
-      "howItWorks": "Як працює злиття",
-      "conflictsDescription": "{count, plural, one {# конфлікт потребує} few {# конфлікти потребують} many {# конфліктів потребують} other {# конфліктів потребують}} вирішення перед злиттям.",
-      "failed": "Не вдалося злити гілки",
-      "title": "Злиття гілки",
-      "howItWorksNote": "Всі ключі та значення перекладів з вихідної гілки будуть застосовані до цільової. Конфлікти будуть показані для ручного вирішення.",
-      "previewChanges": "Перегляд змін",
-      "comparingBranches": "Порівняння гілок...",
-      "failedToLoadDiff": "Не вдалося завантажити відмінності",
-      "steps": {
-        "select": "Вибір",
-        "preview": "Перегляд",
-        "resolve": "Вирішення"
-      },
-      "success": "Гілки злито",
-      "successDescription": "Успішно злито {count} змін в {branch}.",
-      "conflictsDetected": "Виявлено конфлікти",
-      "pleaseTryAgain": "Спробуйте ще раз",
-      "merging": "Злиття...",
-      "reviewConflicts": "Перегляд конфліктів",
-      "ready": "Готово",
-      "completeMerge": "Завершити злиття",
-      "mergeChanges": "Злити зміни",
-      "conflictsCount": "{count, plural, one {# конфлікт виявлено} few {# конфлікти виявлено} many {# конфліктів виявлено} other {# конфліктів виявлено}}",
-      "chooseVersion": "Виберіть версію для кожного конфліктуючого ключа перекладу",
-      "resolved": "вирішено",
-      "branchesInSync": "Гілки синхронізовані",
-      "noChanges": "Немає змін для злиття між цими гілками",
-      "added": "Додано",
-      "modified": "Змінено",
-      "deleted": "Видалено",
-      "conflicts": "Конфлікти",
-      "conflict": "Конфлікт"
-    },
-    "createBranch": {
-      "namePlaceholder": "напр., feature-checkout, v2-redesign",
-      "willBeCreatedAs": "Буде створено як:",
-      "copyFrom": "Копіювати з",
-      "selectSource": "Виберіть вихідну гілку",
-      "copyNote": "Всі переклади будуть скопійовані з цієї гілки",
-      "copyingKeys": "Копіювання {count} ключів перекладу",
-      "isolationNote": "Зміни в цій гілці не вплинуть на \"{branchName}\" до злиття.",
-      "created": "Гілку створено",
-      "description": "Створити гілку в \"{spaceName}\"",
-      "nameLabel": "Ім'я гілки",
-      "createdDescription": "Гілку \"{name}\" створено з {source}.",
-      "createFailed": "Не вдалося створити гілку",
-      "title": "Нова гілка"
-    },
-    "createSpace": {
-      "success": "Простір створено",
-      "failed": "Не вдалося створити простір",
-      "title": "Новий простір",
-      "description": "Організуйте переклади за функціями або платформами",
-      "nameLabel": "Ім'я простору",
-      "namePlaceholder": "напр., Web App, Mobile, Marketing",
-      "slugLabel": "Slug",
-      "slugPlaceholder": "web-app",
-      "slugDescription": "URL-сумісний ідентифікатор простору",
-      "descriptionLabel": "Опис",
-      "descriptionPlaceholder": "Які переклади містить цей простір?",
-      "autoCreatedBranch": "Автоматично створена гілка",
-      "autoCreatedBranchNote": "Гілка \"main\" буде створена автоматично як ваша гілка за замовчуванням.",
-      "creating": "Створення...",
-      "createButton": "Створити простір",
-      "successDescription": "Простір \"{name}\" створено з гілкою main."
-    }
-  },
-  "integrations": {
-    "toasts": {
-      "configSaved": "Конфігурацію збережено",
-      "configSavedDescription": "{provider} налаштовано.",
-      "configSaveFailed": "Не вдалося зберегти конфігурацію",
-      "configRemoved": "Конфігурацію видалено",
-      "connectionSuccessful": "З'єднання успішне",
-      "connectionSuccessfulDescription": "{provider} працює коректно.",
-      "configRemoveFailed": "Не вдалося видалити конфігурацію",
-      "connectionFailed": "З'єднання не вдалося",
-      "connectionFailedDescription": "Не вдалося підключитися до провайдера.",
-      "configRemovedDescription": "{provider} вимкнено.",
-      "testFailed": "Тест не вдався",
-      "testFailedDescription": "Не вдалося протестувати з'єднання."
-    },
-    "providers": {
-      "subtitle": "Підключіть сервіси для автоматичних перекладів",
-      "title": "Провайдери перекладів"
-    },
-    "usage": {
-      "subtitle": "Статистика перекладів та приблизні витрати",
-      "active": "Активно",
-      "title": "Використання цього місяця",
-      "cacheHits": "Звернення до кешу",
-      "estCost": "Приблизна вартість",
-      "noData": "Немає даних",
-      "characters": "Символів",
-      "requests": "Запитів"
-    },
-    "update": "Оновити",
-    "connectAccount": "Підключіть обліковий запис {provider} для увімкнення автоматичних перекладів",
-    "configure": "Налаштувати {provider}",
-    "connected": "Підключено",
-    "apiKey": "API ключ",
-    "enterApiKey": "Введіть API ключ",
-    "apiKeyDescription": "Ваш {provider} API ключ.",
-    "getOneHere": "Отримати тут",
-    "enableProvider": "Увімкнути провайдера",
-    "enableProviderDescription": "Зробити цей провайдер доступним для перекладів",
-    "saveConfiguration": "Зберегти конфігурацію",
-    "test": "Тест",
-    "howItWorks": {
-      "title": "Як це працює",
-      "subtitle": "Розуміння машинного перекладу",
-      "caching": {
-        "title": "Інтелектуальне кешування",
-        "description": "Результати перекладів кешуються на 30 днів для зниження витрат та покращення продуктивності."
-      },
-      "priority": {
-        "title": "Пріоритет провайдерів",
-        "description": "При налаштуванні кількох провайдерів перший активний використовується за замовчуванням."
-      }
-    }
-  },
-  "sidebar": {
-    "signOut": "Вийти",
-    "brand": "Lingx",
-    "userFallback": "user@example.com",
-    "apiKeys": "API ключі",
-    "language": "Мова",
-    "projects": "Проєкти",
-    "settings": "Налаштування",
-    "tagline": "Переклади",
-    "dashboard": "Панель керування"
-  },
-  "profile": {
-    "memberSince": "Учасник з",
-    "accountStatus": "Статус облікового запису",
-    "personalInfo": "Особиста інформація",
-    "personalInfoDescription": "Оновіть ім'я та email адресу",
-    "noName": "Ім'я не вказано",
-    "toasts": {
-      "profileUpdated": "Профіль оновлено",
-      "copiedToClipboard": "Скопійовано в буфер обміну",
-      "invalidImageFile": "Будь ласка, завантажте файл зображення",
-      "avatarUpdated": "Аватар оновлено",
-      "avatarRemoveFailed": "Не вдалося видалити аватар",
-      "avatarRemoved": "Аватар видалено",
-      "preferencesSaved": "Налаштування збережено",
-      "preferencesSaveFailed": "Не вдалося зберегти налаштування",
-      "verificationEmailSent": "Лист для підтвердження надіслано!",
-      "fileTooLarge": "Розмір файлу повинен бути менше 5МБ",
-      "emailChangeCancelled": "Зміну email скасовано"
-    },
-    "preferences": {
-      "inAppNotificationsDesc": "Показувати сповіщення в додатку",
-      "activityDigest": "Дайджест активності",
-      "summaryFrequency": "Частота зведення",
-      "dark": "Темна",
-      "language": "Мова",
-      "spanish": "Español",
-      "french": "Французька",
-      "german": "Німецька",
-      "emailNotificationsDesc": "Отримувати оновлення по email",
-      "inAppNotifications": "Сповіщення в додатку",
-      "daily": "Щоденно",
-      "weekly": "Щотижня",
-      "russian": "Російська",
-      "never": "Ніколи",
-      "notifications": "Сповіщення",
-      "emailNotifications": "Email сповіщення",
-      "workflow": "Робочий процес",
-      "description": "Налаштуйте ваш досвід",
-      "appearance": "Зовнішній вигляд",
-      "theme": "Тема",
-      "colorScheme": "Кольорова схема",
-      "system": "Системна",
-      "light": "Світла",
-      "ukrainian": "Українська",
-      "japanese": "日本語",
-      "defaultProject": "Проєкт за замовчуванням",
-      "openOnLogin": "Відкривати при вході",
-      "interfaceLanguage": "Мова інтерфейсу",
-      "english": "English",
-      "title": "Налаштування"
-    },
-    "emailChangePending": "Очікується зміна Email",
-    "verificationSentTo": "Підтвердження надіслано на",
-    "cancelEmailChange": "Скасувати зміну",
-    "changeEmailDialog": {
-      "description": "Посилання для підтвердження буде надіслано на новий email",
-      "title": "Змінити Email адресу",
-      "currentEmail": "Поточний:",
-      "newEmailPlaceholder": "Введіть новий email",
-      "passwordPlaceholder": "Введіть пароль для підтвердження",
-      "submit": "Надіслати підтвердження",
-      "passwordHint": "Потрібно для перевірки безпеки"
-    },
-    "uploadNew": "Завантажити нове",
-    "removeAvatar": "Видалити",
-    "accountDetails": {
-      "title": "Деталі облікового запису",
-      "userId": "ID користувача",
-      "role": "Роль",
-      "created": "Створено"
-    },
-    "loading": "Завантаження профілю...",
-    "loadingMessage": "Зачекайте трохи",
-    "title": "Деталі профілю",
-    "avatarDescription": "Завантажте фото для персоналізації облікового запису",
-    "description": "Керування особистою інформацією та налаштуваннями",
-    "avatar": "Фото профілю",
-    "avatarActions": {
-      "uploadPhoto": "Завантажити фото",
-      "removePhoto": "Видалити фото"
-    },
-    "uploadAvatar": "Завантажити фото",
-    "avatarRequirements": "JPG, PNG або GIF. Максимум 5МБ. Рекомендується 256x256px.",
-    "quickTips": {
-      "title": "Швидкі поради",
-      "keyboardShortcuts": "Гарячі клавіші",
-      "keyboardShortcutsDesc": "Натисніть Cmd+K для швидких дій",
-      "apiKeys": "API ключі",
-      "apiKeysDesc": "Генеруйте ключі в Налаштування → API ключі",
-      "security": "Безпека",
-      "securityDesc": "Регулярно перевіряйте активні сесії"
-    },
-    "displayName": "Відображуване ім'я",
-    "displayNamePlaceholder": "Введіть ваше ім'я",
-    "emailChangeHint": "Зміна email вимагає підтвердження",
-    "displayNameHint": "Так ви будете відображатися в додатку",
-    "emailAddress": "Email адреса",
-    "changeEmail": "Змінити Email",
-    "discard": "Скасувати",
-    "saveChanges": "Зберегти зміни"
-  },
-  "authLayout": {
-    "branchBased": "На основі гілок",
-    "branchBasedDesc": "робочий процес",
-    "teamCollab": "Командна",
-    "teamCollabDesc": "співпраця",
-    "selfHosted": "Самостійний хостинг",
-    "openSource": "Відкритий код",
-    "privacyFirst": "Приватність насамперед",
-    "headlineHighlight": "течуть безшовно",
-    "brand": "Lingx",
-    "headline": "Переклади, які",
-    "subheadline": "Git-подібне гілкування для робочого процесу локалізації.",
-    "multiLanguage": "Багатомовність",
-    "multiLanguageDesc": "підтримка"
-  },
   "security": {
     "activeSessions": {
+      "revokeConfirm": "Це вийде з пристрою. Потрібен буде повторний вхід.",
       "sessionRevoked": "Сесію відкликано",
       "sessionRevokeFailed": "Не вдалося відкликати сесію",
       "sessionsRevokeFailed": "Не вдалося відкликати сесії",
@@ -1294,22 +983,21 @@
       "tryAgainLater": "Спробуйте пізніше",
       "sessionsAppearHere": "Сесії з'являться тут",
       "noActiveSessions": "Немає активних сесій",
-      "title": "Активні сесії",
       "otherSessions": "{count, plural, one {# інша сесія} few {# інші сесії} many {# інших сесій} other {# інших сесій}}",
       "revokeAll": "Відкликати всі",
       "noOtherSessions": "Немає інших активних сесій",
       "unknownDevice": "Невідомий пристрій",
       "current": "Поточна",
       "activeNow": "Активна зараз",
-      "revokeSession": "Відкликати сесію",
-      "revokeConfirm": "Це вийде з пристрою. Потрібен буде повторний вхід.",
       "revokeAllSessions": "Відкликати всі сесії",
-      "revokeAllConfirm": "Це вийде з усіх {count} інших пристроїв."
+      "revokeAllConfirm": "Це вийде з усіх {count} інших пристроїв.",
+      "title": "Активні сесії",
+      "revokeSession": "Відкликати сесію"
     },
     "changePassword": {
-      "newPassword": "Новий пароль",
       "currentPassword": "Поточний пароль",
       "currentPasswordPlaceholder": "Введіть поточний пароль",
+      "newPassword": "Новий пароль",
       "submit": "Оновити пароль",
       "title": "Змінити пароль",
       "description": "Регулярно оновлюйте пароль облікового запису",
@@ -1319,8 +1007,8 @@
       "newPasswordPlaceholder": "Створіть надійний пароль"
     },
     "twoFactor": {
-      "considerRegenerating": "Рекомендується згенерувати нові",
       "backupCodes": "Резервні коди",
+      "considerRegenerating": "Рекомендується згенерувати нові",
       "title": "Двофакторна автентифікація",
       "inactiveDescription": "Додайте додатковий рівень захисту облікового запису",
       "active": "Активно",
@@ -1334,7 +1022,6 @@
       "disableFailed": "Не вдалося вимкнути 2FA",
       "regenerateFailed": "Не вдалося згенерувати резервні коди",
       "remaining": "залишилось",
-      "disable": "Вимкнути 2FA",
       "trustedDevices": "Довірені пристрої",
       "devices": "пристроїв",
       "features": {
@@ -1345,6 +1032,7 @@
       "inactive": "Неактивно",
       "activeDescription": "Ваш обліковий запис захищено додатком-автентифікатором",
       "regenerateCodes": "Згенерувати резервні коди",
+      "disable": "Вимкнути 2FA",
       "enable": "Увімкнути двофакторну автентифікацію",
       "regenerateDialog": {
         "title": "Згенерувати резервні коди",
@@ -1365,7 +1053,6 @@
     },
     "loading": "Завантаження налаштувань безпеки",
     "title": "Налаштування безпеки",
-    "description": "Захистіть обліковий запис багаторівневою безпекою. Керуйте методами автентифікації, відстежуйте сесії.",
     "passkeys": {
       "toasts": {
         "passkeyAddFailed": "Не вдалося додати passkey",
@@ -1413,11 +1100,11 @@
         "phishingResistant": "Стійкі до фішингу і безпечніші за паролі",
         "synced": "Синхронізуються між пристроями через iCloud, Google або Microsoft"
       },
-      "description": "Входьте без паролів використовуючи біометрію або ключі безпеки",
       "addPasskey": "Додати Passkey",
-      "goPasswordless": "Без пароля"
+      "goPasswordless": "Без пароля",
+      "description": "Входьте без паролів використовуючи біометрію або ключі безпеки"
     },
-    "securityChecklist": "Чек-ліст безпеки",
+    "description": "Захистіть обліковий запис багаторівневою безпекою. Керуйте методами автентифікації, відстежуйте сесії.",
     "securityScore": "Оцінка безпеки",
     "checklistItems": {
       "passkeys": "Passkeys зареєстровано",
@@ -1429,29 +1116,450 @@
       "strong": "Надійно",
       "moderate": "Помірно",
       "needsImprovement": "Потребує покращення"
+    },
+    "securityChecklist": "Чек-ліст безпеки"
+  },
+  "integrations": {
+    "toasts": {
+      "configSaved": "Конфігурацію збережено",
+      "configSavedDescription": "{provider} налаштовано.",
+      "configSaveFailed": "Не вдалося зберегти конфігурацію",
+      "configRemoved": "Конфігурацію видалено",
+      "configRemoveFailed": "Не вдалося видалити конфігурацію",
+      "connectionFailed": "З'єднання не вдалося",
+      "configRemovedDescription": "{provider} вимкнено.",
+      "connectionSuccessful": "З'єднання успішне",
+      "connectionSuccessfulDescription": "{provider} працює коректно.",
+      "connectionFailedDescription": "Не вдалося підключитися до провайдера.",
+      "testFailed": "Тест не вдався",
+      "testFailedDescription": "Не вдалося протестувати з'єднання."
+    },
+    "providers": {
+      "subtitle": "Підключіть сервіси для автоматичних перекладів",
+      "title": "Провайдери перекладів"
+    },
+    "usage": {
+      "subtitle": "Статистика перекладів та приблизні витрати",
+      "active": "Активно",
+      "title": "Використання цього місяця",
+      "cacheHits": "Звернення до кешу",
+      "estCost": "Приблизна вартість",
+      "noData": "Немає даних",
+      "characters": "Символів",
+      "requests": "Запитів"
+    },
+    "update": "Оновити",
+    "connectAccount": "Підключіть обліковий запис {provider} для увімкнення автоматичних перекладів",
+    "configure": "Налаштувати {provider}",
+    "test": "Тест",
+    "howItWorks": {
+      "title": "Як це працює",
+      "subtitle": "Розуміння машинного перекладу",
+      "caching": {
+        "title": "Інтелектуальне кешування",
+        "description": "Результати перекладів кешуються на 30 днів для зниження витрат та покращення продуктивності."
+      },
+      "priority": {
+        "title": "Пріоритет провайдерів",
+        "description": "При налаштуванні кількох провайдерів перший активний використовується за замовчуванням."
+      }
+    },
+    "connected": "Підключено",
+    "apiKey": "API ключ",
+    "enterApiKey": "Введіть API ключ",
+    "apiKeyDescription": "Ваш {provider} API ключ.",
+    "getOneHere": "Отримати тут",
+    "enableProvider": "Увімкнути провайдера",
+    "enableProviderDescription": "Зробити цей провайдер доступним для перекладів",
+    "saveConfiguration": "Зберегти конфігурацію"
+  },
+  "sidebar": {
+    "signOut": "Вийти",
+    "brand": "Lingx",
+    "userFallback": "user@example.com",
+    "apiKeys": "API ключі",
+    "projects": "Проєкти",
+    "language": "Мова",
+    "dashboard": "Панель керування",
+    "settings": "Налаштування",
+    "tagline": "Переклади"
+  },
+  "profile": {
+    "memberSince": "Учасник з",
+    "accountStatus": "Статус облікового запису",
+    "personalInfo": "Особиста інформація",
+    "noName": "Ім'я не вказано",
+    "personalInfoDescription": "Оновіть ім'я та email адресу",
+    "toasts": {
+      "profileUpdated": "Профіль оновлено",
+      "copiedToClipboard": "Скопійовано в буфер обміну",
+      "invalidImageFile": "Будь ласка, завантажте файл зображення",
+      "avatarUpdated": "Аватар оновлено",
+      "avatarRemoveFailed": "Не вдалося видалити аватар",
+      "avatarRemoved": "Аватар видалено",
+      "preferencesSaved": "Налаштування збережено",
+      "preferencesSaveFailed": "Не вдалося зберегти налаштування",
+      "emailChangeCancelled": "Зміну email скасовано",
+      "fileTooLarge": "Розмір файлу повинен бути менше 5МБ",
+      "verificationEmailSent": "Лист для підтвердження надіслано!"
+    },
+    "preferences": {
+      "inAppNotificationsDesc": "Показувати сповіщення в додатку",
+      "activityDigest": "Дайджест активності",
+      "summaryFrequency": "Частота зведення",
+      "dark": "Темна",
+      "language": "Мова",
+      "spanish": "Español",
+      "french": "Французька",
+      "emailNotificationsDesc": "Отримувати оновлення по email",
+      "inAppNotifications": "Сповіщення в додатку",
+      "daily": "Щоденно",
+      "weekly": "Щотижня",
+      "emailNotifications": "Email сповіщення",
+      "russian": "Російська",
+      "never": "Ніколи",
+      "notifications": "Сповіщення",
+      "description": "Налаштуйте ваш досвід",
+      "interfaceLanguage": "Мова інтерфейсу",
+      "english": "English",
+      "title": "Налаштування",
+      "appearance": "Зовнішній вигляд",
+      "theme": "Тема",
+      "colorScheme": "Кольорова схема",
+      "system": "Системна",
+      "light": "Світла",
+      "german": "Німецька",
+      "ukrainian": "Українська",
+      "japanese": "日本語",
+      "workflow": "Робочий процес",
+      "defaultProject": "Проєкт за замовчуванням",
+      "openOnLogin": "Відкривати при вході"
+    },
+    "emailChangePending": "Очікується зміна Email",
+    "verificationSentTo": "Підтвердження надіслано на",
+    "cancelEmailChange": "Скасувати зміну",
+    "changeEmailDialog": {
+      "title": "Змінити Email адресу",
+      "description": "Посилання для підтвердження буде надіслано на новий email",
+      "submit": "Надіслати підтвердження",
+      "newEmailPlaceholder": "Введіть новий email",
+      "passwordPlaceholder": "Введіть пароль для підтвердження",
+      "passwordHint": "Потрібно для перевірки безпеки",
+      "currentEmail": "Поточний:"
+    },
+    "uploadNew": "Завантажити нове",
+    "removeAvatar": "Видалити",
+    "accountDetails": {
+      "title": "Деталі облікового запису",
+      "userId": "ID користувача",
+      "role": "Роль",
+      "created": "Створено"
+    },
+    "loading": "Завантаження профілю...",
+    "loadingMessage": "Зачекайте трохи",
+    "title": "Деталі профілю",
+    "description": "Керування особистою інформацією та налаштуваннями",
+    "avatar": "Фото профілю",
+    "avatarActions": {
+      "uploadPhoto": "Завантажити фото",
+      "removePhoto": "Видалити фото"
+    },
+    "quickTips": {
+      "title": "Швидкі поради",
+      "keyboardShortcuts": "Гарячі клавіші",
+      "keyboardShortcutsDesc": "Натисніть Cmd+K для швидких дій",
+      "apiKeys": "API ключі",
+      "apiKeysDesc": "Генеруйте ключі в Налаштування → API ключі",
+      "security": "Безпека",
+      "securityDesc": "Регулярно перевіряйте активні сесії"
+    },
+    "uploadAvatar": "Завантажити фото",
+    "avatarRequirements": "JPG, PNG або GIF. Максимум 5МБ. Рекомендується 256x256px.",
+    "displayName": "Відображуване ім'я",
+    "displayNamePlaceholder": "Введіть ваше ім'я",
+    "emailChangeHint": "Зміна email вимагає підтвердження",
+    "displayNameHint": "Так ви будете відображатися в додатку",
+    "emailAddress": "Email адреса",
+    "changeEmail": "Змінити Email",
+    "avatarDescription": "Завантажте фото для персоналізації облікового запису",
+    "discard": "Скасувати",
+    "saveChanges": "Зберегти зміни"
+  },
+  "nav": {
+    "toggleNavigation": "Перемкнути навігацію",
+    "toggleTheme": "Перемкнути тему",
+    "toggleSidebar": "Перемкнути бічну панель",
+    "language": "Мова",
+    "search": "Пошук..."
+  },
+  "landing": {
+    "openSourceSection": {
+      "starOnGitHub": "Поставити зірку на GitHub",
+      "reportIssue": "Повідомити про проблему",
+      "title": "Створено відкрито",
+      "description": "Lingx - це проєкт з відкритим вихідним кодом для навчання та експериментів."
+    },
+    "footer": {
+      "github": "GitHub",
+      "issues": "Проблеми",
+      "discussions": "Обговорення",
+      "resources": "Ресурси",
+      "documentation": "Документація",
+      "project": "Проєкт",
+      "description": "Платформа керування перекладами з відкритим вихідним кодом для сучасних команд розробки.",
+      "readme": "README",
+      "contributing": "Участь",
+      "legal": "Правова інформація",
+      "mitLicense": "Ліцензія MIT",
+      "copyright": "© {year} Lingx. Відкритий вихідний код під ліцензією MIT."
+    },
+    "features": {
+      "branching": {
+        "title": "Git-подібне гілкування",
+        "description": "Створюйте гілки для перекладів, перевіряйте зміни та об'єднуйте з впевненістю."
+      },
+      "collaboration": {
+        "title": "Командна робота",
+        "description": "Запрошуйте перекладачів, призначайте ролі та відстежуйте прогрес в реальному часі."
+      },
+      "fast": {
+        "title": "Блискавична швидкість",
+        "description": "Оптимізовано для продуктивності з миттєвим пошуком та оновленнями в реальному часі."
+      },
+      "secure": {
+        "title": "Самостійний хостинг і безпека",
+        "description": "Ваші дані залишаються на вашій інфраструктурі. Повний контроль, завжди."
+      },
+      "anyLanguage": {
+        "title": "Будь-яка мова",
+        "description": "RTL, множина і складні мовні правила підтримуються з коробки."
+      },
+      "developerFirst": {
+        "title": "Для розробників",
+        "description": "CLI інструменти, SDK та API, розроблені для сучасних робочих процесів."
+      },
+      "title": "Все що вам потрібно",
+      "subtitle": "Повна платформа локалізації для сучасних робочих процесів розробки."
+    },
+    "benefits": {
+      "selfHosted": "Самостійний хостинг",
+      "selfHostedDesc": "Ваші дані, ваші сервери",
+      "openSource": "Відкритий код",
+      "openSourceDesc": "MIT ліцензія, назавжди безкоштовно",
+      "gitLike": "Git-подібний робочий процес",
+      "gitLikeDesc": "Гілкування, перевірка, злиття",
+      "devFirst": "Для розробників",
+      "devFirstDesc": "CLI, SDK та API"
+    },
+    "brand": "Lingx",
+    "signIn": "Увійти",
+    "getStarted": "Почати",
+    "openSourceBadge": "Відкритий код і самостійний хостинг",
+    "headline": "Локалізація, яка",
+    "headlineHighlight": "тече природно",
+    "subheadline": "Керуйте перекладами з git-подібним гілкуванням. Працюйте з командою, перевіряйте зміни та випускайте локалізовані продукти з впевненістю.",
+    "startForFree": "Почати безкоштовно",
+    "viewOnGitHub": "Дивитися на GitHub",
+    "cta": {
+      "title": "Готові оптимізувати ваш",
+      "titleHighlight": "робочий процес локалізації?",
+      "description": "Приєднуйтесь до команд, які довіряють Lingx керування перекладами.",
+      "getStartedFree": "Почати безкоштовно",
+      "readTheDocs": "Читати документацію"
     }
+  },
+  "authLayout": {
+    "branchBased": "На основі гілок",
+    "branchBasedDesc": "робочий процес",
+    "teamCollab": "Командна",
+    "teamCollabDesc": "співпраця",
+    "selfHosted": "Самостійний хостинг",
+    "openSource": "Відкритий код",
+    "privacyFirst": "Приватність насамперед",
+    "brand": "Lingx",
+    "headline": "Переклади, які",
+    "headlineHighlight": "течуть безшовно",
+    "subheadline": "Git-подібне гілкування для робочого процесу локалізації.",
+    "multiLanguage": "Багатомовність",
+    "multiLanguageDesc": "підтримка"
   },
   "twoFactor": {
     "backupCode": "Резервний код",
     "backupCodePlaceholder": "XXXXXXXX",
-    "verificationCode": "Код перевірки",
-    "rememberDevice": "Запам'ятати цей пристрій",
     "rememberDeviceDescription": "Пропустити 2FA на 30 днів на цьому пристрої",
-    "verifying": "Перевірка...",
-    "verifyAndSignIn": "Перевірити і увійти",
-    "haveYourApp": "Маєте додаток?",
     "lostAccess": "Втратили доступ?",
     "useAuthenticatorApp": "Використати додаток-автентифікатор",
-    "useBackupCode": "Використати резервний код",
-    "havingTrouble": "Проблеми?",
-    "getHelp": "Отримати допомогу",
+    "enterAllDigits": "Будь ласка, введіть всі 6 цифр",
+    "verificationFailed": "Перевірка не вдалася. Спробуйте ще раз.",
     "codesRemaining": "Залишилось лише {count} резервних кодів. Рекомендується згенерувати нові.",
     "backToLogin": "Повернутися до входу",
     "backupCodeTitle": "Резервний код",
     "title": "Двофакторна автентифікація",
     "enterBackupCode": "Введіть один з резервних кодів для входу",
     "enterCode": "Введіть 6-значний код з додатку-автентифікатора",
-    "enterAllDigits": "Будь ласка, введіть всі 6 цифр",
-    "verificationFailed": "Перевірка не вдалася. Спробуйте ще раз."
+    "verificationCode": "Код перевірки",
+    "rememberDevice": "Запам'ятати цей пристрій",
+    "verifying": "Перевірка...",
+    "verifyAndSignIn": "Перевірити і увійти",
+    "haveYourApp": "Маєте додаток?",
+    "useBackupCode": "Використати резервний код",
+    "havingTrouble": "Проблеми?",
+    "getHelp": "Отримати допомогу"
+  },
+  "time": {
+    "date": "{date}",
+    "justNow": "Щойно",
+    "minutesAgo": "{count} хв тому",
+    "hoursAgo": "{count, plural, one {# годину тому} few {# години тому} many {# годин тому} other {# годин тому}}",
+    "daysAgo": "{count} днів тому",
+    "today": "Сьогодні",
+    "yesterday": "Вчора"
+  },
+  "workbench": {
+    "guide": {
+      "title": "Welcome to the Workbench",
+      "description": "Let's take a quick tour of the translation editor",
+      "steps": {
+        "sidebar": {
+          "title": "Key List Sidebar",
+          "description": "Browse and select translation keys from your project",
+          "features": {
+            "browse": "Browse all translation keys with instant search",
+            "selection": "Click to select a key, or use checkboxes for multi-select",
+            "statusDots": "Colored dots show translation status (missing, pending, approved)",
+            "qualityMeter": "Quality score bars indicate translation confidence"
+          },
+          "proTip": "Use arrow keys for lightning-fast navigation through your translation keys"
+        },
+        "editor": {
+          "title": "Key Editor Panel",
+          "description": "Edit the source text and manage key properties",
+          "features": {
+            "sourceEdit": "Edit the source (default language) text directly",
+            "autoSave": "Changes are auto-saved as you type - no save button needed",
+            "icuSupport": "Full ICU MessageFormat support with syntax highlighting"
+          },
+          "proTip": "ICU syntax like {count, plural, one {# item} other {# items}} is auto-highlighted"
+        },
+        "languages": {
+          "title": "Language Rows",
+          "description": "View and edit translations for each target language",
+          "features": {
+            "expand": "Click a language row to expand and edit the translation",
+            "edit": "Type directly in the textarea to update translations",
+            "status": "Each row shows approval status and quality indicators"
+          },
+          "proTip": "Press Tab to quickly move between language fields when editing"
+        },
+        "shortcuts": {
+          "title": "Quick Actions & Shortcuts",
+          "description": "Speed up your workflow with keyboard shortcuts",
+          "features": {
+            "mtTranslate": "Cmd/Ctrl + M: Machine translate the focused translation",
+            "aiTranslate": "Cmd/Ctrl + I: AI translate with context awareness",
+            "approve": "Cmd/Ctrl + Enter: Approve the current translation",
+            "reject": "Cmd/Ctrl + Backspace: Reject and clear the translation",
+            "navigation": "Arrow keys: Navigate between keys and languages"
+          },
+          "proTip": "Master these shortcuts and you'll translate 10x faster than using the mouse"
+        },
+        "dock": {
+          "title": "Bottom Dock",
+          "description": "Access helpful resources while translating",
+          "features": {
+            "tm": "TM Matches: See similar translations from your Translation Memory",
+            "glossary": "Glossary: View approved terminology for consistency",
+            "ai": "AI Suggestions: Get context-aware translation suggestions",
+            "related": "Related Keys: Find keys with similar content",
+            "tmDescription": "Reuse approved translations from your project history",
+            "glossaryDescription": "Ensure terminology consistency across translations",
+            "aiDescription": "Context-aware suggestions based on surrounding text",
+            "relatedDescription": "Find similar keys to maintain consistency"
+          },
+          "proTip": "Click a suggestion to instantly apply it to your translation"
+        },
+        "batch": {
+          "title": "Batch Operations",
+          "description": "Perform actions on multiple keys at once",
+          "features": {
+            "select": "Use checkboxes to select multiple keys",
+            "actions": "A floating bar appears with batch actions",
+            "translate": "Translate, approve, or delete multiple items at once"
+          },
+          "proTip": "Perfect for translating an entire feature or section at once"
+        },
+        "filters": {
+          "title": "Filters & Search",
+          "description": "Quickly find the keys you need to work on",
+          "features": {
+            "status": "Filter by status: Missing, Complete, Pending, Approved",
+            "quality": "Filter by quality score to find items needing review",
+            "namespace": "Filter by namespace to focus on specific areas"
+          },
+          "proTip": "Filter by 'Missing' to focus on untranslated keys"
+        }
+      },
+      "skip": "Skip tour",
+      "previous": "Previous",
+      "finish": "Get started",
+      "next": "Next",
+      "shortcuts": {
+        "navigateKeys": "Navigate between keys",
+        "prevKey": "Previous key (skip over)",
+        "nextKey": "Next key (skip over)",
+        "nextField": "Next field",
+        "prevField": "Previous field",
+        "collapseRow": "Collapse expanded row",
+        "expandRow": "Expand selected row",
+        "machineTranslate": "Machine translate",
+        "aiTranslate": "AI translate with context",
+        "approve": "Approve translation",
+        "reject": "Reject translation",
+        "collapse": "Collapse / close panel",
+        "selectAll": "Select all visible keys",
+        "rangeSelect": "Select range of keys",
+        "commandPalette": "Open command palette",
+        "focusSearch": "Focus search input"
+      }
+    }
+  },
+  "keyForm": {
+    "prefix": {
+      "common": "Загальні рядки",
+      "page": "Специфічні для сторінки",
+      "error": "Повідомлення про помилки",
+      "settings": "Мітки налаштувань"
+    },
+    "createSuccess": "Ключ створено",
+    "createSuccessDescription": "\"{name}\" було створено.",
+    "createFailed": "Не вдалося створити ключ",
+    "updateSuccess": "Ключ оновлено",
+    "updateSuccessDescription": "Зміни збережено.",
+    "updateFailed": "Не вдалося оновити ключ",
+    "editTitle": "Редагувати ключ перекладу",
+    "createTitle": "Новий ключ перекладу",
+    "editDescription": "Оновіть ідентифікатор ключа та контекст",
+    "createDescription": "Створіть унікальний ідентифікатор для рядка, що перекладається",
+    "namespacePrefix": "Префікс простору імен",
+    "keyName": {
+      "label": "Ім'я ключа",
+      "placeholder": "напр., common.welcome.title",
+      "description": "Використовуйте крапкову нотацію для просторів імен (напр., page.home.hero_title)"
+    },
+    "context": {
+      "label": "Контекст для перекладачів",
+      "optional": "необов'язково",
+      "placeholder": "Опишіть де з'являється цей текст та важливий контекст для точного перекладу...",
+      "description": "Допоможіть перекладачам зрозуміти контекст та тон"
+    },
+    "proTip": {
+      "title": "Порада профі",
+      "description": "Після створення ключа ви одразу можете додати переклади в редакторі нижче."
+    },
+    "cancel": "Скасувати",
+    "saving": "Збереження...",
+    "creating": "Створення...",
+    "saveChanges": "Зберегти зміни",
+    "createKey": "Створити ключ"
   }
 }
