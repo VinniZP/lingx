@@ -214,7 +214,21 @@ export class KeyContextService {
 
   /**
    * Build file/component/nearby relationships from source metadata.
-   * Now uses sourceLine for distance-based confidence calculations.
+   * Uses sourceLine for distance-based confidence calculations.
+   *
+   * ## Performance Characteristics
+   *
+   * **Time Complexity**: O(n²) within each file/component group
+   * - For a file with k keys: O(k²) comparisons
+   * - Total: Sum of O(k²) across all files
+   *
+   * **Typical Performance**:
+   * - Well-structured projects have < 50 keys per file → O(50²) = 2,500 comparisons/file
+   * - Even with 100 files × 2,500 = 250K comparisons → < 1 second
+   *
+   * **Warning Signs**:
+   * - Single file with > 500 keys → 125K comparisons for that file alone
+   * - Consider splitting large files or using namespace-based grouping
    */
   async buildSourceRelationships(branchId: string): Promise<{
     fileRelationships: number;
@@ -289,11 +303,12 @@ export class KeyContextService {
             confidence: computeSameFileConfidence(distance),
           });
 
-          // NEARBY relationship (only if within threshold and same component or no component)
+          // NEARBY relationship (only if within threshold and different components)
           if (distance >= 0 && distance <= NEARBY_MAX_DISTANCE) {
-            // Only create NEARBY if they're not already related by component
-            // (NEARBY is for adjacent keys that don't share explicit component)
-            if (key1.component !== key2.component || !key1.component) {
+            // Only create NEARBY if components are explicitly different
+            // When both are null, keys already have SAME_FILE relationship
+            // When both share same component, they have SAME_COMPONENT relationship
+            if (key1.component !== key2.component) {
               const nearbyConfidence = computeNearbyConfidence(distance);
               if (nearbyConfidence > 0) {
                 relationships.push({
@@ -353,6 +368,22 @@ export class KeyContextService {
   /**
    * Compute KEY_PATTERN relationships based on key name similarity.
    * Uses LCP ratio + Jaccard similarity on key segments.
+   *
+   * ## Performance Characteristics
+   *
+   * **Time Complexity**: O(n²) where n = number of structured keys (keys containing '.')
+   *
+   * **Recommended Limits**:
+   * - Optimal: < 1,000 keys (~500K comparisons, < 1 second)
+   * - Acceptable: 1,000-5,000 keys (~12.5M comparisons, < 10 seconds)
+   * - Warning: 5,000-10,000 keys (~50M comparisons, 30-60 seconds)
+   * - Not recommended: > 10,000 keys (consider job queue processing)
+   *
+   * **Mitigation Strategies** (for future optimization):
+   * 1. **Prefix grouping**: Only compare keys sharing first segment (e.g., "user.*")
+   * 2. **LSH (Locality Sensitive Hashing)**: Approximate nearest neighbors
+   * 3. **Job queue**: Process asynchronously via BullMQ for large projects
+   * 4. **Incremental updates**: Only recompute affected keys on changes
    */
   async computeKeyPatternRelationships(branchId: string): Promise<{ relationships: number }> {
     // Get all keys in the branch
@@ -570,6 +601,11 @@ export class KeyContextService {
         return 'nearby';
       case 'KEY_PATTERN':
         return 'keyPattern';
+      default: {
+        // Exhaustive check: TypeScript will error if a new type is added
+        const _exhaustive: never = type;
+        throw new Error(`Unknown relationship type: ${_exhaustive}`);
+      }
     }
   }
 

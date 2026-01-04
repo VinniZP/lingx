@@ -1709,6 +1709,7 @@ export interface RelatedKey {
   confidence: number;
   sourceFile?: string | null;
   sourceComponent?: string | null;
+  sourceLine?: number | null;
   translations?: RelatedKeyTranslation[];
 }
 

@@ -384,6 +384,8 @@
       "sameFile": "Same file",
       "sameComponent": "Same component",
       "semantic": "Semantically similar",
+      "nearby": "Nearby",
+      "keyPattern": "Key pattern",
       "loading": "Loading related keys...",
       "title": "Related Keys",
       "andMore": "+{count} more related keys"
