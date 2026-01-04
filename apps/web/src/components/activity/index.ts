@@ -5,16 +5,16 @@
  */
 
 // Components
-export { ActivityItem, ActivityItemCompact } from './activity-item';
-export { ActivityPreview } from './activity-preview';
 export { ActivityChangesModal } from './activity-changes-modal';
+export { ActivityItem } from './activity-item';
+export { ActivityPreview } from './activity-preview';
 
 // Utilities
-export { getActivityIcon } from './activity-icon';
 export {
-  getActivityDescription,
-  formatRelativeTime,
   formatLanguageList,
+  formatRelativeTime,
+  getActivityDescription,
   translateKey,
   type TranslationKeyObj,
 } from './activity-description';
+export { getActivityIcon } from './activity-icon';
