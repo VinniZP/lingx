@@ -14,7 +14,7 @@ interface FiltersStepProps {
  * Search prominent, filters orbiting around focus center
  */
 export function FiltersStep({ step }: FiltersStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
 
   const filters = [
     {
@@ -48,9 +48,9 @@ export function FiltersStep({ step }: FiltersStepProps) {
       {/* Title */}
       <div className="mb-6 text-center">
         <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-          {t(step.titleKey)}
+          {td(step.titleKey)}
         </h3>
-        <p className="text-muted-foreground mt-2 text-[15px]">{t(step.descriptionKey)}</p>
+        <p className="text-muted-foreground mt-2 text-[15px]">{td(step.descriptionKey)}</p>
       </div>
 
       {/* Main visualization */}
@@ -124,7 +124,7 @@ export function FiltersStep({ step }: FiltersStepProps) {
           return (
             <div key={i} className="flex items-center gap-2 text-sm">
               <Icon className="size-4 text-cyan-600 dark:text-cyan-400" />
-              <span className="text-foreground/80">{t(feature.titleKey)}</span>
+              <span className="text-foreground/80">{td(feature.titleKey)}</span>
             </div>
           );
         })}
@@ -135,7 +135,7 @@ export function FiltersStep({ step }: FiltersStepProps) {
         <div className="mt-6 flex justify-center">
           <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 py-3 text-center">
             <span className="text-cyan-600 dark:text-cyan-400">💡 </span>
-            <span className="text-foreground/80 text-sm">{t(step.proTipKey)}</span>
+            <span className="text-foreground/80 text-sm">{td(step.proTipKey)}</span>
           </div>
         </div>
       )}

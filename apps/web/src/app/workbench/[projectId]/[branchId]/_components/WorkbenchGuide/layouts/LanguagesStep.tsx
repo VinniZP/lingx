@@ -14,7 +14,7 @@ interface LanguagesStepProps {
  * Language rows staggered with accordion-fold visual
  */
 export function LanguagesStep({ step }: LanguagesStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
 
   const languages = [
     {
@@ -51,9 +51,9 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
       {/* Title - offset to the right */}
       <div className="mb-8 ml-auto max-w-sm text-right">
         <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-          {t(step.titleKey)}
+          {td(step.titleKey)}
         </h3>
-        <p className="text-muted-foreground mt-2 text-[15px]">{t(step.descriptionKey)}</p>
+        <p className="text-muted-foreground mt-2 text-[15px]">{td(step.descriptionKey)}</p>
       </div>
 
       {/* Cascading language cards */}
@@ -182,7 +182,7 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
       {/* Pro tip */}
       {step.proTipKey && (
         <div className="text-muted-foreground/70 mt-6 text-center text-sm italic">
-          <span className="text-blue-600 dark:text-blue-400">💡</span> {t(step.proTipKey)}
+          <span className="text-blue-600 dark:text-blue-400">💡</span> {td(step.proTipKey)}
         </div>
       )}
     </div>

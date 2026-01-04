@@ -14,7 +14,7 @@ interface ShortcutsStepProps {
  * Keyboard in center, shortcuts radiating outward
  */
 export function ShortcutsStep({ step }: ShortcutsStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
   const { isMac } = usePlatform();
   const mod = isMac ? '⌘' : 'Ctrl';
 
@@ -56,9 +56,9 @@ export function ShortcutsStep({ step }: ShortcutsStepProps) {
       {/* Title - centered */}
       <div className="mb-8 text-center">
         <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-          {t(step.titleKey)}
+          {td(step.titleKey)}
         </h3>
-        <p className="text-muted-foreground mt-2 text-[15px]">{t(step.descriptionKey)}</p>
+        <p className="text-muted-foreground mt-2 text-[15px]">{td(step.descriptionKey)}</p>
       </div>
 
       {/* Constellation layout */}
@@ -156,7 +156,7 @@ export function ShortcutsStep({ step }: ShortcutsStepProps) {
       {/* Pro tip */}
       {step.proTipKey && (
         <div className="text-muted-foreground/70 mt-4 text-center text-sm italic">
-          <span className="text-amber-600 dark:text-amber-400">💡</span> {t(step.proTipKey)}
+          <span className="text-amber-600 dark:text-amber-400">💡</span> {td(step.proTipKey)}
         </div>
       )}
     </div>

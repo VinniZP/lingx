@@ -13,16 +13,16 @@ interface EditorStepProps {
  * Large editor mockup in center, ICU ribbon at bottom
  */
 export function EditorStep({ step }: EditorStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
 
   return (
     <div className="flex flex-col items-center">
       {/* Title - centered above */}
       <div className="mb-6 text-center">
         <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-          {t(step.titleKey)}
+          {td(step.titleKey)}
         </h3>
-        <p className="text-muted-foreground mt-2 text-[15px]">{t(step.descriptionKey)}</p>
+        <p className="text-muted-foreground mt-2 text-[15px]">{td(step.descriptionKey)}</p>
       </div>
 
       {/* Editor mockup - typewriter style */}
@@ -130,7 +130,7 @@ export function EditorStep({ step }: EditorStepProps) {
       {step.proTipKey && (
         <div className="text-muted-foreground/70 mt-6 flex items-center gap-2 text-sm italic">
           <span className="text-emerald-500">💡</span>
-          {t(step.proTipKey)}
+          {td(step.proTipKey)}
         </div>
       )}
     </div>

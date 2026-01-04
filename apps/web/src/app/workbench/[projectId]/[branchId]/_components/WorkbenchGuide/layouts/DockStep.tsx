@@ -14,7 +14,7 @@ interface DockStepProps {
  * Dock tabs as fanned cards emerging from bottom
  */
 export function DockStep({ step }: DockStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
 
   const dockTabs = [
     {
@@ -52,9 +52,9 @@ export function DockStep({ step }: DockStepProps) {
       {/* Title */}
       <div className="mb-4 text-center">
         <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-          {t(step.titleKey)}
+          {td(step.titleKey)}
         </h3>
-        <p className="text-muted-foreground mt-2 text-[15px]">{t(step.descriptionKey)}</p>
+        <p className="text-muted-foreground mt-2 text-[15px]">{td(step.descriptionKey)}</p>
       </div>
 
       {/* Instruction text */}
@@ -124,10 +124,10 @@ export function DockStep({ step }: DockStepProps) {
             <div key={i} className="flex items-start gap-2">
               <Icon className="mt-0.5 size-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <div>
-                <span className="text-foreground/80">{t(feature.titleKey)}</span>
+                <span className="text-foreground/80">{td(feature.titleKey)}</span>
                 {feature.descriptionKey && (
                   <p className="text-muted-foreground/60 mt-0.5 text-xs">
-                    {t(feature.descriptionKey)}
+                    {td(feature.descriptionKey)}
                   </p>
                 )}
               </div>
@@ -139,7 +139,7 @@ export function DockStep({ step }: DockStepProps) {
       {/* Pro tip */}
       {step.proTipKey && (
         <div className="text-muted-foreground/70 mt-6 text-center text-sm italic">
-          <span className="text-rose-600 dark:text-rose-400">💡</span> {t(step.proTipKey)}
+          <span className="text-rose-600 dark:text-rose-400">💡</span> {td(step.proTipKey)}
         </div>
       )}
     </div>

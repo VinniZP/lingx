@@ -15,7 +15,7 @@ interface SidebarStepProps {
  * Large stylized sidebar mockup on left, floating features on right
  */
 export function SidebarStep({ step }: SidebarStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
   const { isMac } = usePlatform();
   const mod = isMac ? '⌘' : 'Ctrl';
 
@@ -118,10 +118,10 @@ export function SidebarStep({ step }: SidebarStepProps) {
         {/* Title area */}
         <div>
           <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-            {t(step.titleKey)}
+            {td(step.titleKey)}
           </h3>
           <p className="text-muted-foreground mt-2 text-[15px] leading-relaxed">
-            {t(step.descriptionKey)}
+            {td(step.descriptionKey)}
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export function SidebarStep({ step }: SidebarStepProps) {
                 )}
               >
                 <Icon className="size-3.5 text-violet-600 dark:text-violet-400" />
-                <span className="text-foreground/80 text-sm">{t(feature.titleKey)}</span>
+                <span className="text-foreground/80 text-sm">{td(feature.titleKey)}</span>
               </div>
             );
           })}
@@ -170,7 +170,7 @@ export function SidebarStep({ step }: SidebarStepProps) {
         {step.proTipKey && (
           <div className="text-muted-foreground/80 flex items-start gap-2 text-sm">
             <Sparkles className="mt-0.5 size-4 shrink-0 text-violet-600 dark:text-violet-400" />
-            <span className="italic">{t(step.proTipKey)}</span>
+            <span className="italic">{td(step.proTipKey)}</span>
           </div>
         )}
       </div>

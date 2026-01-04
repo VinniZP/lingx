@@ -14,7 +14,7 @@ interface BatchStepProps {
  * Checkbox grid with lines flowing to action bar
  */
 export function BatchStep({ step }: BatchStepProps) {
-  const { t } = useTranslation();
+  const { t, td } = useTranslation();
 
   const keys = [
     { name: 'common.save', selected: true },
@@ -32,9 +32,9 @@ export function BatchStep({ step }: BatchStepProps) {
       {/* Title */}
       <div className="mb-6 text-center">
         <h3 className="text-foreground text-2xl font-semibold tracking-tight">
-          {t(step.titleKey)}
+          {td(step.titleKey)}
         </h3>
-        <p className="text-muted-foreground mt-2 text-[15px]">{t(step.descriptionKey)}</p>
+        <p className="text-muted-foreground mt-2 text-[15px]">{td(step.descriptionKey)}</p>
       </div>
 
       {/* Main visualization */}
@@ -135,7 +135,7 @@ export function BatchStep({ step }: BatchStepProps) {
           return (
             <div key={i} className="flex items-center gap-2 text-sm">
               <Icon className="size-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-foreground/80">{t(feature.titleKey)}</span>
+              <span className="text-foreground/80">{td(feature.titleKey)}</span>
             </div>
           );
         })}
@@ -144,7 +144,7 @@ export function BatchStep({ step }: BatchStepProps) {
       {/* Pro tip */}
       {step.proTipKey && (
         <div className="text-muted-foreground/70 mt-6 text-center text-sm italic">
-          <span className="text-indigo-600 dark:text-indigo-400">💡</span> {t(step.proTipKey)}
+          <span className="text-indigo-600 dark:text-indigo-400">💡</span> {td(step.proTipKey)}
         </div>
       )}
     </div>
