@@ -18,8 +18,8 @@ export const KEYS_PER_PAGE = 50;
  */
 export const BATCH_SIZE = 100;
 
-// Auto-save debounce delay in milliseconds
-export const AUTO_SAVE_DEBOUNCE_MS = 1500;
+// Auto-save debounce delay in milliseconds (800ms feels responsive without excessive API calls)
+export const AUTO_SAVE_DEBOUNCE_MS = 800;
 
 // Focus delay for textarea after expansion (allows DOM to update)
 export const FOCUS_DELAY_MS = 50;
