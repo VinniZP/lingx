@@ -16,7 +16,7 @@ const config: KnipConfig = {
     },
 
     'apps/api': {
-      entry: ['src/index.ts', 'src/app.ts', 'prisma/seed.ts', 'src/workers/**/*.ts'],
+      entry: ['src/app.ts', 'src/workers/**/*.ts'],
       project: ['src/**/*.ts', 'prisma/**/*.ts'],
       ignoreDependencies: [
         'pino-pretty', // CLI-only, not imported
@@ -25,9 +25,8 @@ const config: KnipConfig = {
     },
 
     'apps/web': {
-      entry: ['src/app/**/*.{ts,tsx}', 'playwright.config.ts', 'vitest.config.ts'],
+      entry: ['src/app/**/*.{ts,tsx}'],
       project: ['src/**/*.{ts,tsx}'],
-      ignore: ['src/lingx.d.ts'], // Generated types
       ignoreDependencies: [
         // PostCSS/Tailwind - used via config, not imported
         'tailwindcss',
@@ -46,14 +45,12 @@ const config: KnipConfig = {
     },
 
     'packages/shared': {
-      entry: ['src/index.ts'],
       project: ['src/**/*.ts'],
     },
 
     'packages/cli': {
-      entry: ['src/index.ts', 'src/mcp/**/*.ts'],
+      entry: ['src/mcp/**/*.ts'],
       project: ['src/**/*.ts'],
-      ignore: ['src/lingx.d.ts'], // Generated types
       ignoreDependencies: [
         '@vitest/coverage-v8',
         '@types/babel__core', // Type definitions
@@ -62,13 +59,11 @@ const config: KnipConfig = {
     },
 
     'packages/sdk-nextjs': {
-      entry: ['src/index.ts', 'src/server/index.ts'],
       project: ['src/**/*.{ts,tsx}'],
       ignoreDependencies: ['@vitest/coverage-v8'],
     },
 
     'packages/config': {
-      entry: ['eslint/index.js', 'tsconfig/*.json'],
       project: ['**/*.{js,json}'],
     },
 
@@ -82,7 +77,9 @@ const config: KnipConfig = {
     '**/dist/**',
     '**/.next/**',
     '**/coverage/**',
-    'src/lingx.d.ts', // Root generated types (if exists)
+    '**/lingx.d.ts', // Generated types
+    '**/lingx.config.ts', // Lingx CLI config
+    '**/components/ui/**', // shadcn components - may be used later
   ],
 
   ignoreExportsUsedInFile: true,
