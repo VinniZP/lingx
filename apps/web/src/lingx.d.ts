@@ -922,6 +922,35 @@ declare module '@lingx/sdk-nextjs' {
       | 'verifyEmail.successMessage'
       | 'verifyEmail.verified'
       | 'verifyEmail.verifying'
+      | 'workbench.commandPalette.actions.aiTranslateAll'
+      | 'workbench.commandPalette.actions.aiTranslateLanguage'
+      | 'workbench.commandPalette.actions.approveAll'
+      | 'workbench.commandPalette.actions.approveLanguage'
+      | 'workbench.commandPalette.actions.collapseAll'
+      | 'workbench.commandPalette.actions.copyKeyName'
+      | 'workbench.commandPalette.actions.copySource'
+      | 'workbench.commandPalette.actions.deleteKey'
+      | 'workbench.commandPalette.actions.evaluateQuality'
+      | 'workbench.commandPalette.actions.expandAll'
+      | 'workbench.commandPalette.actions.focusSource'
+      | 'workbench.commandPalette.actions.mtTranslateAll'
+      | 'workbench.commandPalette.actions.mtTranslateLanguage'
+      | 'workbench.commandPalette.actions.nextKey'
+      | 'workbench.commandPalette.actions.prevKey'
+      | 'workbench.commandPalette.actions.rejectAll'
+      | 'workbench.commandPalette.actions.rejectLanguage'
+      | 'workbench.commandPalette.actions.showShortcuts'
+      | 'workbench.commandPalette.description'
+      | 'workbench.commandPalette.groups.approval'
+      | 'workbench.commandPalette.groups.navigation'
+      | 'workbench.commandPalette.groups.quickActions'
+      | 'workbench.commandPalette.groups.recentActions'
+      | 'workbench.commandPalette.groups.searchResults'
+      | 'workbench.commandPalette.groups.translation'
+      | 'workbench.commandPalette.groups.utility'
+      | 'workbench.commandPalette.noResults'
+      | 'workbench.commandPalette.placeholder'
+      | 'workbench.commandPalette.title'
       | 'workbench.guide.demo.ai'
       | 'workbench.guide.demo.aiPreview'
       | 'workbench.guide.demo.aiTranslate'
@@ -1045,6 +1074,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.guide.steps.sidebar.title'
       | 'workbench.guide.title'
       | 'workbench.suggestion.clickToApply'
+      | 'workbench.toasts.copiedToClipboard'
       | 'workbench.toolbar.addKey'
       | 'workbench.toolbar.back'
       | 'workbench.toolbar.evaluate'
@@ -1485,6 +1515,14 @@ declare module '@lingx/sdk-nextjs' {
     'translations.toasts.translationsUpdated': { count: string | number; status: string | number };
     /** Only {count} backup codes remaining. Consider regenerating them. */
     'twoFactor.codesRemaining': { count: string | number };
+    /** AI Translate ({language}) */
+    'workbench.commandPalette.actions.aiTranslateLanguage': { language: string | number };
+    /** Approve ({language}) */
+    'workbench.commandPalette.actions.approveLanguage': { language: string | number };
+    /** Machine Translate ({language}) */
+    'workbench.commandPalette.actions.mtTranslateLanguage': { language: string | number };
+    /** Reject ({language}) */
+    'workbench.commandPalette.actions.rejectLanguage': { language: string | number };
     /** {count} ideas */
     'workbench.guide.demo.aiPreview': { count: string | number };
     /** {current} \/ {total} chars */

@@ -1200,6 +1200,44 @@
     "verifying": "Verifying Email"
   },
   "workbench": {
+    "commandPalette": {
+      "title": "Command Palette",
+      "description": "Search keys or run commands",
+      "placeholder": "Search keys or type a command...",
+      "noResults": "No results found",
+      "groups": {
+        "quickActions": "Quick Actions",
+        "recentActions": "Recent",
+        "searchResults": "Keys",
+        "translation": "Translation",
+        "approval": "Approval",
+        "navigation": "Navigation",
+        "utility": "Utilities"
+      },
+      "actions": {
+        "aiTranslateLanguage": "AI Translate ({language})",
+        "aiTranslateAll": "AI Translate All Languages",
+        "mtTranslateLanguage": "Machine Translate ({language})",
+        "mtTranslateAll": "Machine Translate All Languages",
+        "copySource": "Copy Source to Target",
+        "approveLanguage": "Approve ({language})",
+        "approveAll": "Approve All Languages",
+        "rejectLanguage": "Reject ({language})",
+        "rejectAll": "Reject All Languages",
+        "nextKey": "Go to Next Key",
+        "prevKey": "Go to Previous Key",
+        "expandAll": "Expand All Languages",
+        "collapseAll": "Collapse All Languages",
+        "focusSource": "Focus Source Field",
+        "copyKeyName": "Copy Key Name",
+        "deleteKey": "Delete Key",
+        "showShortcuts": "Show Keyboard Shortcuts",
+        "evaluateQuality": "Evaluate Quality"
+      }
+    },
+    "toasts": {
+      "copiedToClipboard": "Copied to clipboard"
+    },
     "guide": {
       "demo": {
         "ai": "AI",
