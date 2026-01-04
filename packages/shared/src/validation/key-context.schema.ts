@@ -7,6 +7,8 @@ export const relationshipTypeSchema = z.enum([
   'SAME_FILE',
   'SAME_COMPONENT',
   'SEMANTIC',
+  'NEARBY',
+  'KEY_PATTERN',
 ]);
 
 export type RelationshipType = z.infer<typeof relationshipTypeSchema>;
@@ -83,6 +85,8 @@ export const relatedKeysResponseSchema = z.object({
     sameFile: z.array(relatedKeySchema),
     sameComponent: z.array(relatedKeySchema),
     semantic: z.array(relatedKeySchema),
+    nearby: z.array(relatedKeySchema),
+    keyPattern: z.array(relatedKeySchema),
   }),
 });
 
@@ -92,7 +96,7 @@ export type RelatedKeysResponse = z.infer<typeof relatedKeysResponseSchema>;
  * Related Keys Query Parameters
  */
 export const relatedKeysQuerySchema = z.object({
-  types: z.string().optional(), // comma-separated: "SAME_FILE,SAME_COMPONENT,SEMANTIC"
+  types: z.string().optional(), // comma-separated: "SAME_FILE,SAME_COMPONENT,SEMANTIC,NEARBY,KEY_PATTERN"
   limit: z.coerce.number().min(1).max(50).default(10),
   includeTranslations: z.coerce.boolean().default(true),
 });

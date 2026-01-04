@@ -259,6 +259,8 @@ enum RelationshipType {
   SAME_FILE // Keys extracted from same source file
   SAME_COMPONENT // Keys from same React component/function scope
   SEMANTIC // Text similarity in source translations
+  NEARBY // Keys within 30 lines of each other (line proximity)
+  KEY_PATTERN // Keys with similar naming patterns (e.g., form.email.*)
 }
 
 model TranslationKey {

@@ -1,10 +1,13 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { useRelatedKeys, type RelatedKey } from '@/hooks/use-related-keys';
-import type { TranslationKey } from '@/lib/api';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useRelatedKeys } from '@/hooks/use-related-keys';
+import type { RelationshipType, TranslationKey } from '@/lib/api';
+import { flattenAndSortRelationships, type ScoredRelatedKey } from '@/lib/related-keys-scoring';
 import { cn } from '@/lib/utils';
-import { Brain, FileText, FolderOpen, Link2Off, Loader2 } from 'lucide-react';
+import { Brain, FileText, FolderOpen, Link2Off, Loader2, MapPin, Regex } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface RelatedKeysTabProps {
   keyData: TranslationKey;
@@ -13,39 +16,57 @@ interface RelatedKeysTabProps {
 }
 
 // Relationship type config
-const relationshipConfig = {
-  sameFile: {
+const relationshipConfig: Record<
+  RelationshipType,
+  {
+    label: string;
+    icon: typeof MapPin;
+    color: string;
+    bgColor: string;
+  }
+> = {
+  NEARBY: {
+    label: 'Nearby',
+    icon: MapPin,
+    color: 'text-green-600',
+    bgColor: 'bg-green-600/10',
+  },
+  KEY_PATTERN: {
+    label: 'Key Pattern',
+    icon: Regex,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-600/10',
+  },
+  SAME_FILE: {
     label: 'Same File',
     icon: FileText,
     color: 'text-info',
     bgColor: 'bg-info/10',
   },
-  sameComponent: {
+  SAME_COMPONENT: {
     label: 'Same Component',
     icon: FolderOpen,
     color: 'text-warning',
     bgColor: 'bg-warning/10',
   },
-  semantic: {
+  SEMANTIC: {
     label: 'Semantic Match',
     icon: Brain,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
   },
-} as const;
+};
 
 function RelatedKeyItem({
   relatedKey,
-  type,
   onSelect,
 }: {
-  relatedKey: RelatedKey;
-  type: keyof typeof relationshipConfig;
+  relatedKey: ScoredRelatedKey;
   onSelect?: (keyId: string) => void;
 }) {
-  const config = relationshipConfig[type];
+  const config = relationshipConfig[relatedKey.type];
   const Icon = config.icon;
-  const confidencePercent = Math.round(relatedKey.confidence * 100);
+  const scorePercent = Math.round(relatedKey.score * 100);
 
   return (
     <button
@@ -57,14 +78,35 @@ function RelatedKeyItem({
       onClick={() => onSelect?.(relatedKey.id)}
     >
       <div className="flex items-start gap-2">
-        <div className={cn('rounded-md p-1.5', config.bgColor)}>
-          <Icon className={cn('size-3.5', config.color)} />
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={cn('cursor-help rounded-md p-1.5', config.bgColor)}>
+              <Icon className={cn('size-3.5', config.color)} />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="text-xs">
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium">{config.label}</span>
+              <span className="text-muted-foreground">Relevance: {scorePercent}%</span>
+              {relatedKey.sourceLine != null && (
+                <span className="text-muted-foreground">Line {relatedKey.sourceLine}</span>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
         <div className="min-w-0 flex-1">
           <div className="mb-0.5 flex items-center gap-2">
             <span className="truncate font-mono text-sm font-medium">{relatedKey.name}</span>
-            <Badge variant="outline" className="shrink-0 text-[10px]">
-              {confidencePercent}%
+            <Badge
+              variant="outline"
+              className={cn(
+                'shrink-0 text-[10px]',
+                scorePercent >= 80 && 'border-green-500/50 text-green-600',
+                scorePercent >= 60 && scorePercent < 80 && 'border-amber-500/50 text-amber-600',
+                scorePercent < 60 && 'border-muted-foreground/30'
+              )}
+            >
+              {scorePercent}%
             </Badge>
           </div>
           {relatedKey.namespace && (
@@ -73,6 +115,15 @@ function RelatedKeyItem({
           {(relatedKey.sourceFile || relatedKey.sourceComponent) && (
             <p className="text-muted-foreground/70 mt-0.5 truncate text-[11px]">
               {relatedKey.sourceComponent || relatedKey.sourceFile}
+              {relatedKey.sourceLine != null && (
+                <span className="ml-1">:{relatedKey.sourceLine}</span>
+              )}
+            </p>
+          )}
+          {/* Show first translation preview if available */}
+          {relatedKey.translations && relatedKey.translations[0] && (
+            <p className="text-muted-foreground mt-1 truncate text-xs italic">
+              &quot;{relatedKey.translations[0].value}&quot;
             </p>
           )}
         </div>
@@ -81,40 +132,18 @@ function RelatedKeyItem({
   );
 }
 
-function RelationshipSection({
-  type,
-  keys,
-  onSelectKey,
-}: {
-  type: keyof typeof relationshipConfig;
-  keys: RelatedKey[];
-  onSelectKey?: (keyId: string) => void;
-}) {
-  const config = relationshipConfig[type];
-  const Icon = config.icon;
-
-  if (keys.length === 0) return null;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon className={cn('size-4', config.color)} />
-        <span className="text-xs font-medium">{config.label}</span>
-        <Badge variant="secondary" className="text-[10px]">
-          {keys.length}
-        </Badge>
-      </div>
-      <div className="space-y-1.5">
-        {keys.map((key) => (
-          <RelatedKeyItem key={key.id} relatedKey={key} type={type} onSelect={onSelectKey} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTabProps) {
-  const { data, isLoading, error } = useRelatedKeys(branchId, keyData.id);
+  const { data, isLoading, error } = useRelatedKeys(branchId, keyData.id, {
+    limit: 30, // Fetch more keys
+    includeTranslations: true,
+  });
+
+  // Flatten and sort by AI relevance score
+  const relationships = data?.relationships;
+  const sortedKeys = useMemo(() => {
+    if (!relationships) return [];
+    return flattenAndSortRelationships(relationships);
+  }, [relationships]);
 
   // Loading state
   if (isLoading) {
@@ -135,15 +164,8 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
     );
   }
 
-  const relationships = data?.relationships;
-  const hasRelatedKeys =
-    relationships &&
-    (relationships.sameFile.length > 0 ||
-      relationships.sameComponent.length > 0 ||
-      relationships.semantic.length > 0);
-
   // Empty state
-  if (!hasRelatedKeys) {
+  if (sortedKeys.length === 0) {
     return (
       <div className="space-y-3 py-6 text-center">
         <div className="flex justify-center">
@@ -162,23 +184,61 @@ export function RelatedKeysTab({ keyData, branchId, onSelectKey }: RelatedKeysTa
     );
   }
 
+  // Count by type for summary
+  const typeCounts = sortedKeys.reduce(
+    (acc, key) => {
+      acc[key.type] = (acc[key.type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<RelationshipType, number>
+  );
+
   return (
-    <div className="space-y-4">
-      <RelationshipSection
-        type="sameComponent"
-        keys={relationships.sameComponent}
-        onSelectKey={onSelectKey}
-      />
-      <RelationshipSection
-        type="sameFile"
-        keys={relationships.sameFile}
-        onSelectKey={onSelectKey}
-      />
-      <RelationshipSection
-        type="semantic"
-        keys={relationships.semantic}
-        onSelectKey={onSelectKey}
-      />
+    <div className="space-y-3">
+      {/* Summary badges */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-muted-foreground text-xs">{sortedKeys.length} related keys</span>
+        <span className="text-muted-foreground/50">•</span>
+        {Object.entries(typeCounts).map(([type, count]) => {
+          const config = relationshipConfig[type as RelationshipType];
+          const Icon = config.icon;
+          return (
+            <Tooltip key={type}>
+              <TooltipTrigger asChild>
+                <div
+                  className={cn(
+                    'flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]',
+                    config.bgColor,
+                    config.color
+                  )}
+                >
+                  <Icon className="size-3" />
+                  <span>{count}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                {count} {config.label}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+
+      {/* Sorted list of all related keys */}
+      <div className="space-y-1.5">
+        {sortedKeys.slice(0, 15).map((key) => (
+          <RelatedKeyItem key={key.id} relatedKey={key} onSelect={onSelectKey} />
+        ))}
+      </div>
+
+      {/* Show more indicator */}
+      {sortedKeys.length > 15 && (
+        <div className="text-center">
+          <span className="text-muted-foreground text-xs">
+            +{sortedKeys.length - 15} more related keys
+          </span>
+        </div>
+      )}
     </div>
   );
 }

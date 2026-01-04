@@ -1,13 +1,13 @@
 {
   "quality": {
     "title": "Qualitätsbewertung",
-    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
-    "enable": "AI-Qualitätsbewertung aktivieren",
     "saved": "Qualitätseinstellungen gespeichert",
     "save": "Speichern",
     "noProvidersWarning": "Keine AI-Anbieter konfiguriert. Aktivieren Sie mindestens einen Anbieter oben.",
     "provider": "AI-Anbieter",
     "saveFailed": "Qualitätseinstellungen konnten nicht gespeichert werden",
+    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
+    "enable": "AI-Qualitätsbewertung aktivieren",
     "enableDescription": "AI zur Analyse von Übersetzungsgenauigkeit und -stil verwenden",
     "selectProvider": "Anbieter auswählen",
     "providerDescription": "Wählen Sie den aktivierten AI-Anbieter für die Qualitätsbewertung",
@@ -16,6 +16,7 @@
     "modelDescription": "Wählen Sie das Modell für die Qualitätsanalyse",
     "configuredWith": "Konfiguriert"
   },
+  "pageTitle": "AI Translation",
   "toasts": {
     "configSaved": "",
     "configRemoved": "",
@@ -30,12 +31,11 @@
     "contextSaved": "",
     "contextSaveFailed": ""
   },
-  "pageTitle": "AI Translation",
   "usage": {
     "stats": {
+      "cacheHits": "",
       "totalTokens": "",
       "requests": "",
-      "cacheHits": "",
       "estCost": ""
     },
     "title": "",
@@ -44,13 +44,13 @@
     "tokens": "",
     "requests": ""
   },
-  "pageDescription": "",
   "sections": {
     "providers": "",
     "contextSettings": "",
     "qualityEvaluation": "Qualitätsbewertung",
     "usage": ""
   },
+  "pageDescription": "",
   "provider": {
     "googleAI": {
       "description": ""
@@ -86,9 +86,9 @@
       "inactive": ""
     },
     "actions": {
+      "save": "",
       "cancel": "",
       "saving": "",
-      "save": "",
       "remove": "",
       "test": "",
       "edit": ""

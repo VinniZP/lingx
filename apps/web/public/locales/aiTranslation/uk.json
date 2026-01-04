@@ -1,13 +1,13 @@
 {
   "quality": {
     "title": "Оцінка якості",
-    "description": "Налаштуйте AI-оцінку якості перекладів",
-    "enable": "Увімкнути AI оцінку якості",
     "saved": "Налаштування якості збережено",
     "save": "Зберегти",
     "noProvidersWarning": "AI провайдери не налаштовані. Увімкніть хоча б один провайдер вище.",
     "provider": "AI провайдер",
     "saveFailed": "Не вдалося зберегти налаштування якості",
+    "description": "Налаштуйте AI-оцінку якості перекладів",
+    "enable": "Увімкнути AI оцінку якості",
     "enableDescription": "Використовувати AI для аналізу точності та стилю перекладу",
     "selectProvider": "Оберіть провайдера",
     "providerDescription": "Оберіть увімкнений AI провайдер для оцінки якості",
@@ -16,6 +16,7 @@
     "modelDescription": "Оберіть модель для аналізу якості",
     "configuredWith": "Налаштовано"
   },
+  "pageTitle": "AI Translation",
   "toasts": {
     "configSaved": "",
     "configRemoved": "",
@@ -30,12 +31,11 @@
     "contextSaved": "",
     "contextSaveFailed": ""
   },
-  "pageTitle": "AI Translation",
   "usage": {
     "stats": {
+      "cacheHits": "",
       "totalTokens": "",
       "requests": "",
-      "cacheHits": "",
       "estCost": ""
     },
     "title": "",
@@ -44,13 +44,13 @@
     "tokens": "",
     "requests": ""
   },
-  "pageDescription": "",
   "sections": {
     "providers": "",
     "contextSettings": "",
     "qualityEvaluation": "Оцінка якості",
     "usage": ""
   },
+  "pageDescription": "Налаштуйте провайдерів ШІ для контекстних підказок перекладу",
   "provider": {
     "googleAI": {
       "description": ""
@@ -86,12 +86,12 @@
       "inactive": ""
     },
     "actions": {
-      "cancel": "",
-      "saving": "",
-      "save": "",
-      "remove": "",
-      "test": "",
-      "edit": ""
+      "save": "Зберегти",
+      "cancel": "Скасувати",
+      "saving": "Збереження...",
+      "remove": "Видалити",
+      "test": "Тест",
+      "edit": "Редагувати"
     },
     "removeDialog": {
       "title": "Видалити {provider}",
@@ -99,28 +99,28 @@
     }
   },
   "context": {
-    "title": "",
-    "description": "",
-    "maxItems": "",
-    "minSimilarity": "",
+    "title": "Налаштування контексту",
+    "description": "Налаштуйте, який контекст ШІ використовує для розумніших перекладів",
+    "maxItems": "Максимальна кількість елементів",
+    "minSimilarity": "Мінімальна схожість",
     "customInstructions": {
-      "title": "",
-      "description": "",
-      "placeholder": ""
+      "title": "Користувацькі інструкції",
+      "description": "Додайте конкретні інструкції для ШІ",
+      "placeholder": "наприклад, «Використовуйте формальний стиль для перекладів німецькою» або «Робіть переклади лаконічними для мобільного інтерфейсу»"
     },
-    "saveNote": "",
-    "saveSettings": "",
+    "saveNote": "Зміни застосовуються до всіх майбутніх перекладів ШІ",
+    "saveSettings": "Зберегти налаштування",
     "glossary": {
-      "label": "",
-      "description": ""
+      "label": "Терміни глосарію",
+      "description": "Використовуйте глосарій вашого проєкту для узгодженої термінології"
     },
     "tm": {
-      "label": "",
-      "description": ""
+      "label": "Пам'ять перекладів",
+      "description": "Використовувати подібні переклади з вашої ТМ як контекст"
     },
     "relatedKeys": {
-      "label": "",
-      "description": ""
+      "label": "Пов’язані ключі",
+      "description": "Враховуйте переклади з пов’язаних ключів"
     }
   }
 }

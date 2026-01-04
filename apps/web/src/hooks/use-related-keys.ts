@@ -3,15 +3,15 @@
  *
  * Custom hooks for near-key context detection and related keys display.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   keyContextApi,
-  type RelatedKey,
-  type RelatedKeysResponse,
   type AIContextResponse,
   type KeyContextStats,
+  type RelatedKey,
+  type RelatedKeysResponse,
   type RelationshipType,
 } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Get related keys for a translation key.
@@ -50,6 +50,7 @@ export function useRelatedKeys(
 
 /**
  * Get all related keys as a flat array (convenience helper).
+ * Ordered by priority: NEARBY > KEY_PATTERN > SAME_COMPONENT > SAME_FILE > SEMANTIC
  */
 export function useAllRelatedKeys(
   branchId: string,
@@ -63,6 +64,8 @@ export function useAllRelatedKeys(
 
   const allRelatedKeys: RelatedKey[] = query.data
     ? [
+        ...query.data.relationships.nearby,
+        ...query.data.relationships.keyPattern,
         ...query.data.relationships.sameComponent,
         ...query.data.relationships.sameFile,
         ...query.data.relationships.semantic,
@@ -94,13 +97,8 @@ export function useAIContext(
 ) {
   return useQuery({
     queryKey: ['ai-context', branchId, keyId, targetLanguage],
-    queryFn: () =>
-      keyContextApi.getAIContext(branchId, keyId!, targetLanguage!),
-    enabled:
-      options?.enabled !== false &&
-      !!branchId &&
-      !!keyId &&
-      !!targetLanguage,
+    queryFn: () => keyContextApi.getAIContext(branchId, keyId!, targetLanguage!),
+    enabled: options?.enabled !== false && !!branchId && !!keyId && !!targetLanguage,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -143,9 +141,9 @@ export function useAnalyzeRelationships(branchId: string) {
 
 // Re-export types for convenience
 export type {
-  RelatedKey,
-  RelatedKeysResponse,
   AIContextResponse,
   KeyContextStats,
+  RelatedKey,
+  RelatedKeysResponse,
   RelationshipType,
 };
