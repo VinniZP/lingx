@@ -141,3 +141,34 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  knip:
+    name: Dead Code Check
+    runs-on: ubuntu-latest
+    continue-on-error: true # Non-blocking for gradual adoption
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @lingx/api db:generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run Knip
+        run: pnpm knip
