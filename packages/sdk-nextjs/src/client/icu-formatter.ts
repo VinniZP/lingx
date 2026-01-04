@@ -149,21 +149,3 @@ export function hasICUSyntax(message: string): boolean {
   // - Time: {name, time, ...}
   return /\{[^}]+,\s*(plural|select|selectordinal|number|date|time)/i.test(message);
 }
-
-/**
- * Singleton formatter instance for use across the SDK
- */
-let globalFormatter: ICUFormatter | null = null;
-
-/**
- * Get or create the global ICU formatter
- *
- * @param locale - BCP 47 language tag
- * @returns ICUFormatter instance
- */
-export function getFormatter(locale: string): ICUFormatter {
-  if (!globalFormatter || globalFormatter.getLanguage() !== locale) {
-    globalFormatter = new ICUFormatter(locale);
-  }
-  return globalFormatter;
-}

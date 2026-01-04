@@ -38,6 +38,9 @@ const config: KnipConfig = {
     'apps/web': {
       entry: ['src/app/**/*.{ts,tsx}'],
       project: ['src/**/*.{ts,tsx}'],
+      ignore: [
+        'src/hooks/use-keyboard-navigation.ts', // Reference for future keyboard nav
+      ],
       ignoreDependencies: [
         // PostCSS/Tailwind - used via config, not imported
         'tailwindcss',
