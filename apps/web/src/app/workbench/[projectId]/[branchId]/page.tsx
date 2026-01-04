@@ -85,13 +85,20 @@ export default function WorkbenchPage({ params }: PageProps) {
   const { selectedKeys, handleSelectionChange, handleSelectAll, clearSelection, isAllSelected } =
     useKeySelection({ keys });
 
+  // Stable string representation for dependency arrays (Sets lack equality checking)
+  const selectedKeysString = useMemo(
+    () => Array.from(selectedKeys).sort().join(','),
+    [selectedKeys]
+  );
+
   // Compute translation IDs from selected keys for quality evaluation
   const selectedTranslationIds = useMemo(() => {
     if (selectedKeys.size === 0) return undefined;
     return keys
       .filter((key) => selectedKeys.has(key.id))
       .flatMap((key) => key.translations.map((t) => t.id));
-  }, [selectedKeys, keys]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable string instead of Set
+  }, [selectedKeysString, keys]);
 
   // Bulk translate job
   const bulkTranslateJob = useBulkTranslateJob({

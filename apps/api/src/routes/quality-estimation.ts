@@ -2,7 +2,9 @@
  * Quality Estimation Routes
  *
  * Thin route handlers that delegate to services.
+ * Rate limited to prevent AI API cost abuse.
  */
+import rateLimit from '@fastify/rate-limit';
 import {
   batchQualityBodySchema,
   batchQualityJobResponseSchema,
@@ -33,6 +35,27 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   const qualityService = createQualityEstimationService(fastify.prisma);
   const batchService = createBatchEvaluationService(fastify.prisma, mtBatchQueue);
   const accessService = createAccessService(fastify.prisma);
+
+  // Rate limit AI evaluation endpoints to prevent cost abuse
+  // Single evaluations: 30/min per user (allows rapid key navigation)
+  // Batch evaluations: 5/min per user (expensive AI calls)
+  const isProduction = process.env.NODE_ENV === 'production';
+  await fastify.register(rateLimit, {
+    max: isProduction ? 30 : 1000,
+    timeWindow: '1 minute',
+    keyGenerator: (request) => {
+      // Rate limit by user ID, falling back to IP for unauthenticated requests
+      return request.user?.userId || request.ip;
+    },
+    hook: 'preHandler',
+    // Only apply to AI-triggering endpoints (evaluate single, batch)
+    allowList: (request) => {
+      // Skip rate limiting for read-only endpoints
+      if (request.method === 'GET') return true;
+      if (request.url.includes('/validate-icu')) return true;
+      return false;
+    },
+  });
 
   /**
    * POST /api/translations/:translationId/quality - Evaluate single translation
