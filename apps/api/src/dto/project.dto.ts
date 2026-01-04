@@ -2,21 +2,26 @@
  * Project DTOs - transforms Prisma Project model to API response format
  */
 import type {
+  MemberRole,
+  ProjectLanguage,
+  ProjectResponse,
+  ProjectTreeResponse,
+  ProjectWithStats,
+} from '@lingx/shared';
+import type {
   ProjectWithLanguages,
   ProjectWithLanguagesAndStats,
 } from '../services/project.service.js';
-import type {
-  ProjectResponse,
-  ProjectLanguage,
-  ProjectWithStats,
-  ProjectTreeResponse,
-  MemberRole,
-} from '@lingx/shared';
 
 /**
  * Transform language to ProjectLanguage
  */
-function toLanguageDto(lang: { id: string; code: string; name: string; isDefault: boolean }): ProjectLanguage {
+function toLanguageDto(lang: {
+  id: string;
+  code: string;
+  name: string;
+  isDefault: boolean;
+}): ProjectLanguage {
   return {
     id: lang.id,
     code: lang.code,
@@ -56,15 +61,6 @@ export function toProjectWithStatsDto(
     ...toProjectDto(project, myRole),
     stats: project.stats,
   };
-}
-
-/**
- * Transform array of projects with roles
- */
-export function toProjectDtoList(
-  projectsWithRoles: Array<{ project: ProjectWithLanguages; role: MemberRole }>
-): ProjectResponse[] {
-  return projectsWithRoles.map(({ project, role }) => toProjectDto(project, role));
 }
 
 /**

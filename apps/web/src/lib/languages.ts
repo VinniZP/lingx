@@ -19,7 +19,7 @@ export const AVAILABLE_LANGUAGES = [
   { code: 'uk', name: 'Ukrainian', flag: '🇺🇦' },
 ] as const;
 
-export type LanguageCode = (typeof AVAILABLE_LANGUAGES)[number]['code'];
+type LanguageCode = (typeof AVAILABLE_LANGUAGES)[number]['code'];
 
 export function getLanguageByCode(code: string) {
   return AVAILABLE_LANGUAGES.find((lang) => lang.code === code);

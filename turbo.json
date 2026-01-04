@@ -20,6 +20,10 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "knip": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }

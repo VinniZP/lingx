@@ -1,8 +1,8 @@
 'use client';
 
-import { type ReactNode } from 'react';
-import { useTranslation, type NamespaceKeys } from '@lingx/sdk-nextjs';
 import { cn } from '@/lib/utils';
+import { useTranslation, type NamespaceKeys } from '@lingx/sdk-nextjs';
+import { type ReactNode } from 'react';
 
 interface NamespaceLoaderProps<NS extends keyof NamespaceKeys> {
   namespace: NS;
@@ -23,7 +23,7 @@ interface NamespaceLoaderProps<NS extends keyof NamespaceKeys> {
  * </NamespaceLoader>
  * ```
  */
-export function NamespaceLoader<NS extends keyof NamespaceKeys>({
+function NamespaceLoader<NS extends keyof NamespaceKeys>({
   namespace,
   children,
   className,
@@ -32,7 +32,7 @@ export function NamespaceLoader<NS extends keyof NamespaceKeys>({
 
   if (!ready) {
     return (
-      <div className={cn('flex items-center justify-center min-h-[400px]', className)}>
+      <div className={cn('flex min-h-[400px] items-center justify-center', className)}>
         <LoadingPulse />
       </div>
     );
@@ -48,15 +48,15 @@ function LoadingPulse() {
   return (
     <div className="flex items-center gap-2">
       <div
-        className="size-2.5 rounded-full bg-primary animate-loading-dot"
+        className="bg-primary animate-loading-dot size-2.5 rounded-full"
         style={{ animationDelay: '0ms' }}
       />
       <div
-        className="size-2.5 rounded-full bg-primary animate-loading-dot"
+        className="bg-primary animate-loading-dot size-2.5 rounded-full"
         style={{ animationDelay: '160ms' }}
       />
       <div
-        className="size-2.5 rounded-full bg-primary animate-loading-dot"
+        className="bg-primary animate-loading-dot size-2.5 rounded-full"
         style={{ animationDelay: '320ms' }}
       />
     </div>

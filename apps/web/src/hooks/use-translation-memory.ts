@@ -3,8 +3,8 @@
  *
  * Custom hooks for translation memory search and usage tracking.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { translationMemoryApi, type TMMatch, type TMSearchParams } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Search translation memory for similar translations.
@@ -24,11 +24,7 @@ export function useTranslationMemorySearch(
     queryKey: ['tm-search', projectId, params],
     queryFn: () => translationMemoryApi.search(projectId, params!),
     // Only search if we have valid params and text is >= 3 chars
-    enabled:
-      options?.enabled !== false &&
-      !!params &&
-      !!projectId &&
-      params.sourceText.length >= 3,
+    enabled: options?.enabled !== false && !!params && !!projectId && params.sourceText.length >= 3,
     // Cache results briefly to avoid re-fetching on rapid typing
     staleTime: 30 * 1000, // 30 seconds
     // Don't retry on 404 (no matches found)
@@ -52,8 +48,7 @@ export function useRecordTMUsage(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (entryId: string) =>
-      translationMemoryApi.recordUsage(projectId, entryId),
+    mutationFn: (entryId: string) => translationMemoryApi.recordUsage(projectId, entryId),
     // Optimistically update the cache to show incremented usage
     onSuccess: () => {
       // Invalidate TM search results to reflect updated usage counts
@@ -68,7 +63,7 @@ export function useRecordTMUsage(projectId: string) {
  * @param projectId - Project ID
  * @returns React Query result with TM stats
  */
-export function useTMStats(projectId: string) {
+function useTMStats(projectId: string) {
   return useQuery({
     queryKey: ['tm-stats', projectId],
     queryFn: () => translationMemoryApi.getStats(projectId),
@@ -83,7 +78,7 @@ export function useTMStats(projectId: string) {
  * @param projectId - Project ID
  * @returns Mutation to trigger reindex
  */
-export function useTMReindex(projectId: string) {
+function useTMReindex(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({

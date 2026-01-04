@@ -1,5 +1,5 @@
-import type { UseFormSetError, FieldPath, FieldValues } from 'react-hook-form';
 import type { FieldError } from '@lingx/shared';
+import type { FieldPath, FieldValues, UseFormSetError } from 'react-hook-form';
 import { ApiError } from './api';
 
 /**
@@ -57,10 +57,8 @@ export function handleApiFieldErrors<T extends FieldValues>(
 /**
  * Check if an error has field-level errors that can be displayed inline.
  */
-export function hasFieldErrors(error: unknown): error is ApiError & { fieldErrors: FieldError[] } {
+function hasFieldErrors(error: unknown): error is ApiError & { fieldErrors: FieldError[] } {
   return (
-    error instanceof ApiError &&
-    Array.isArray(error.fieldErrors) &&
-    error.fieldErrors.length > 0
+    error instanceof ApiError && Array.isArray(error.fieldErrors) && error.fieldErrors.length > 0
   );
 }

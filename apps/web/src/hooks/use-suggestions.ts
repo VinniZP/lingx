@@ -22,7 +22,7 @@ export type { UnifiedSuggestion } from '@/types';
 /**
  * Suggestions state for a single key across all target languages.
  */
-export interface KeySuggestionsState {
+interface KeySuggestionsState {
   suggestions: Map<string, UnifiedSuggestion[]>; // lang -> suggestions
   isLoading: Map<string, boolean>; // lang -> is loading
   mtFetched: Set<string>; // languages that have had MT fetched
@@ -43,7 +43,7 @@ interface UseSuggestionsOptions {
  * - MT suggestions are fetched on-demand via fetchMT()
  * - Results are unified into a single suggestions map by language
  */
-export function useSuggestions({
+function useSuggestions({
   projectId,
   sourceLanguage,
   targetLanguages,

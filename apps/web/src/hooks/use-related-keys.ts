@@ -52,7 +52,7 @@ export function useRelatedKeys(
  * Get all related keys as a flat array (convenience helper).
  * Ordered by priority: NEARBY > KEY_PATTERN > SAME_COMPONENT > SAME_FILE > SEMANTIC
  */
-export function useAllRelatedKeys(
+function useAllRelatedKeys(
   branchId: string,
   keyId: string | null,
   options?: {
@@ -89,7 +89,7 @@ export function useAllRelatedKeys(
  * @param options - Query options
  * @returns React Query result with AI context
  */
-export function useAIContext(
+function useAIContext(
   branchId: string,
   keyId: string | null,
   targetLanguage: string | null,
@@ -110,7 +110,7 @@ export function useAIContext(
  * @param branchId - Branch ID
  * @returns React Query result with context stats
  */
-export function useKeyContextStats(branchId: string) {
+function useKeyContextStats(branchId: string) {
   return useQuery({
     queryKey: ['key-context-stats', branchId],
     queryFn: () => keyContextApi.getStats(branchId),
@@ -125,7 +125,7 @@ export function useKeyContextStats(branchId: string) {
  * @param branchId - Branch ID
  * @returns Mutation to trigger analysis
  */
-export function useAnalyzeRelationships(branchId: string) {
+function useAnalyzeRelationships(branchId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
