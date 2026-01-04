@@ -395,7 +395,8 @@ export default function WorkbenchPage({ params }: PageProps) {
         const key = keys.find((k) => k.id === keyId);
         if (!key) return;
         key.translations.forEach((t) => {
-          if (t.value) handleApprove(t.id, 'APPROVED');
+          // Only approve non-empty translations
+          if (t.value?.trim()) handleApprove(t.id, 'APPROVED');
         });
       },
       onReject: (translationId: string) => handleApprove(translationId, 'REJECTED'),
@@ -403,7 +404,8 @@ export default function WorkbenchPage({ params }: PageProps) {
         const key = keys.find((k) => k.id === keyId);
         if (!key) return;
         key.translations.forEach((t) => {
-          if (t.value) handleApprove(t.id, 'REJECTED');
+          // Only reject non-empty translations
+          if (t.value?.trim()) handleApprove(t.id, 'REJECTED');
         });
       },
 
