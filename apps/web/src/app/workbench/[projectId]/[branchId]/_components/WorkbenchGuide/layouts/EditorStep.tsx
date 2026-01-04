@@ -36,18 +36,24 @@ export function EditorStep({ step }: EditorStepProps) {
           <div className="border-border/30 flex items-center gap-3 border-b px-4 py-3">
             <span className="text-lg">🇬🇧</span>
             <div>
-              <span className="text-foreground font-medium">English</span>
-              <span className="text-muted-foreground ml-2 text-sm">· Source</span>
+              <span className="text-foreground font-medium">
+                {t('workbench.guide.demo.languages.english')}
+              </span>
+              <span className="text-muted-foreground ml-2 text-sm">
+                · {t('workbench.guide.demo.source')}
+              </span>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-muted-foreground/60 text-xs">12 chars</span>
+              <span className="text-muted-foreground/60 text-xs">
+                {t('workbench.guide.demo.chars', { count: 12 })}
+              </span>
             </div>
           </div>
 
           {/* Text area with blinking cursor */}
           <div className="relative px-4 py-6">
             <div className="text-foreground text-lg leading-relaxed">
-              Hello, World
+              {t('workbench.guide.demo.sampleKeys.helloWorld').replace('!', '')}
               <span className="animate-blink ml-0.5 inline-block h-5 w-0.5 bg-emerald-500" />
             </div>
           </div>
@@ -55,7 +61,9 @@ export function EditorStep({ step }: EditorStepProps) {
           {/* Auto-save indicator */}
           <div className="absolute top-3 right-4 flex items-center gap-1.5">
             <div className="size-2 animate-pulse rounded-full bg-emerald-500" />
-            <span className="text-xs font-medium text-emerald-500/80">Auto-saved</span>
+            <span className="text-xs font-medium text-emerald-500/80">
+              {t('workbench.guide.demo.autoSaved')}
+            </span>
           </div>
         </div>
 
@@ -63,7 +71,7 @@ export function EditorStep({ step }: EditorStepProps) {
         <div className="animate-fade-in-up stagger-1 absolute -top-2 -right-4">
           <div className="bg-card/90 border-border/40 flex items-center gap-1.5 rounded-full border px-3 py-1.5 shadow-lg">
             <Check className="size-3.5 text-emerald-500" />
-            <span className="text-xs">Auto-save</span>
+            <span className="text-xs">{t('workbench.guide.demo.autoSave')}</span>
           </div>
         </div>
       </div>
@@ -78,7 +86,9 @@ export function EditorStep({ step }: EditorStepProps) {
           <div className="relative px-6 py-4">
             <div className="mb-2 flex items-center gap-2">
               <Sparkles className="size-4 text-emerald-500" />
-              <span className="text-foreground/80 text-sm font-medium">ICU MessageFormat</span>
+              <span className="text-foreground/80 text-sm font-medium">
+                {t('workbench.guide.demo.icuMessageFormat')}
+              </span>
             </div>
             <code className="font-kbd text-sm">
               <span className="text-muted-foreground">{'{'}</span>
@@ -102,13 +112,17 @@ export function EditorStep({ step }: EditorStepProps) {
       <div className="mt-6 flex items-center gap-6">
         <div className="flex items-center gap-2">
           <kbd className="font-kbd bg-card rounded border px-2 py-0.5 text-sm">Tab</kbd>
-          <span className="text-muted-foreground text-sm">Next field</span>
+          <span className="text-muted-foreground text-sm">
+            {t('workbench.guide.demo.nextField')}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <kbd className="font-kbd bg-card rounded border px-2 py-0.5 text-sm">Shift</kbd>
           <span className="text-muted-foreground text-sm">+</span>
           <kbd className="font-kbd bg-card rounded border px-2 py-0.5 text-sm">Tab</kbd>
-          <span className="text-muted-foreground text-sm">Previous</span>
+          <span className="text-muted-foreground text-sm">
+            {t('workbench.guide.demo.previous')}
+          </span>
         </div>
       </div>
 

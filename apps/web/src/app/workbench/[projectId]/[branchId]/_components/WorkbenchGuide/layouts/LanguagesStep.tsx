@@ -19,17 +19,27 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
   const languages = [
     {
       flag: '🇺🇦',
-      name: 'Ukrainian',
-      status: 'Pending',
+      name: t('workbench.guide.demo.languages.ukrainian'),
+      status: t('workbench.guide.demo.status.pending'),
+      statusKey: 'Pending',
       value: 'Всього',
       quality: 3,
       expanded: true,
     },
-    { flag: '🇷🇺', name: 'Russian', status: 'Pending', value: 'Всего', quality: 4, expanded: true },
+    {
+      flag: '🇷🇺',
+      name: t('workbench.guide.demo.languages.russian'),
+      status: t('workbench.guide.demo.status.pending'),
+      statusKey: 'Pending',
+      value: 'Всего',
+      quality: 4,
+      expanded: true,
+    },
     {
       flag: '🇩🇪',
-      name: 'German',
-      status: 'Approved',
+      name: t('workbench.guide.demo.languages.german'),
+      status: t('workbench.guide.demo.status.approved'),
+      statusKey: 'Approved',
       value: 'Gesamt',
       quality: 5,
       expanded: false,
@@ -88,7 +98,7 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
                 <span
                   className={cn(
                     'rounded-full px-2 py-0.5 text-xs font-medium',
-                    lang.status === 'Approved'
+                    lang.statusKey === 'Approved'
                       ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                       : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
                   )}
@@ -104,7 +114,7 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
                       className={cn(
                         'size-1.5 rounded-full',
                         dot <= lang.quality
-                          ? lang.status === 'Approved'
+                          ? lang.statusKey === 'Approved'
                             ? 'bg-emerald-500'
                             : 'bg-amber-500'
                           : 'bg-muted'
@@ -133,7 +143,10 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
                     <span className="text-foreground/80">{lang.value}</span>
                   </div>
                   <div className="text-muted-foreground/60 mt-1 text-xs">
-                    {lang.value.length} / {lang.value.length} chars
+                    {t('workbench.guide.demo.charCount', {
+                      current: lang.value.length,
+                      total: lang.value.length,
+                    })}
                   </div>
                 </div>
               )}
@@ -145,18 +158,24 @@ export function LanguagesStep({ step }: LanguagesStepProps) {
       {/* Bottom instruction */}
       <div className="mt-8 flex items-center justify-center gap-6">
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-blue-600 dark:text-blue-400">Click row</span>
-          <span className="text-muted-foreground">to expand</span>
+          <span className="text-blue-600 dark:text-blue-400">
+            {t('workbench.guide.demo.clickRow')}
+          </span>
+          <span className="text-muted-foreground">{t('workbench.guide.demo.toExpand')}</span>
         </div>
         <div className="bg-border/40 h-4 w-px" />
         <div className="flex items-center gap-2">
           <kbd className="font-kbd bg-card rounded border px-2 py-0.5 text-sm">Tab</kbd>
-          <span className="text-muted-foreground text-sm">to cycle languages</span>
+          <span className="text-muted-foreground text-sm">
+            {t('workbench.guide.demo.toCycleLanguages')}
+          </span>
         </div>
         <div className="bg-border/40 h-4 w-px" />
         <div className="flex items-center gap-2">
           <kbd className="font-kbd bg-card rounded border px-2 py-0.5 text-sm">Esc</kbd>
-          <span className="text-muted-foreground text-sm">to collapse</span>
+          <span className="text-muted-foreground text-sm">
+            {t('workbench.guide.demo.toCollapse')}
+          </span>
         </div>
       </div>
 

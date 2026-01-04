@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { QualityIssue } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import type { UnifiedSuggestion } from '@/types';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { Brain, Database, Loader2, Sparkles, Wand2, Zap } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { QualityIssuesInline } from '../shared';
@@ -61,6 +62,7 @@ export function LanguageRowContent({
   focusMode,
   onFocus,
 }: LanguageRowContentProps) {
+  const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [localValue, setLocalValue] = useState(value);
   const [showEditor, setShowEditor] = useState(!isEmpty);
@@ -281,7 +283,7 @@ export function LanguageRowContent({
                     isThisSuggestionFocused && 'ring-primary ring-2 ring-offset-2'
                   )}
                   onClick={() => onApplySuggestion(suggestion.text, suggestion.id)}
-                  title={`Click to apply: ${suggestion.text}`}
+                  title={`${t('workbench.suggestion.clickToApply')}: ${suggestion.text}`}
                 >
                   {/* Header row with type badge */}
                   <div className="mb-2 flex items-center gap-2">
@@ -313,7 +315,9 @@ export function LanguageRowContent({
 
                   {/* Click hint */}
                   <div className="absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
-                    <span className="text-muted-foreground text-xs">Click to apply</span>
+                    <span className="text-muted-foreground text-xs">
+                      {t('workbench.suggestion.clickToApply')}
+                    </span>
                   </div>
                 </button>
               );

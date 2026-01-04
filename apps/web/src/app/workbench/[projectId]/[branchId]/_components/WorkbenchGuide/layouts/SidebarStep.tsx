@@ -30,16 +30,24 @@ export function SidebarStep({ step }: SidebarStepProps) {
         <div className="border-border/30 bg-card/50 relative overflow-hidden rounded-2xl border backdrop-blur-sm">
           {/* Header */}
           <div className="border-border/30 flex items-center justify-between border-b px-4 py-3">
-            <span className="text-muted-foreground text-sm font-medium">Keys</span>
-            <span className="text-muted-foreground/60 text-xs">50</span>
+            <span className="text-muted-foreground text-sm font-medium">
+              {t('workbench.guide.demo.keys')}
+            </span>
+            <span className="text-muted-foreground/60 text-xs">
+              {t('workbench.guide.demo.keyCount', { count: 50 })}
+            </span>
           </div>
 
           {/* Key list items */}
           <div className="space-y-1 p-2">
             {/* Regular item */}
             <div className="bg-muted/30 rounded-lg px-3 py-2.5">
-              <div className="text-foreground/70 text-sm">common.greeting</div>
-              <div className="text-muted-foreground/50 mt-0.5 text-xs">Hello, World!</div>
+              <div className="text-foreground/70 text-sm">
+                {t('workbench.guide.demo.sampleKeys.commonGreeting')}
+              </div>
+              <div className="text-muted-foreground/50 mt-0.5 text-xs">
+                {t('workbench.guide.demo.sampleKeys.helloWorld')}
+              </div>
               <div className="mt-1.5 flex gap-1">
                 <span className="size-1.5 rounded-full bg-emerald-500" />
                 <span className="size-1.5 rounded-full bg-emerald-500" />
@@ -53,9 +61,11 @@ export function SidebarStep({ step }: SidebarStepProps) {
             <div className="relative">
               <div className="absolute -inset-1 animate-pulse rounded-xl bg-violet-500/30 blur-md" />
               <div className="relative rounded-lg border-2 border-violet-500 bg-violet-500/10 px-3 py-2.5">
-                <div className="font-medium text-violet-700 dark:text-violet-300">auth.signIn</div>
+                <div className="font-medium text-violet-700 dark:text-violet-300">
+                  {t('workbench.guide.demo.sampleKeys.authSignIn')}
+                </div>
                 <div className="mt-0.5 text-xs text-violet-600/70 dark:text-violet-400/70">
-                  Sign in to continue
+                  {t('workbench.guide.demo.sampleKeys.signInToContinue')}
                 </div>
                 <div className="mt-1.5 flex gap-1">
                   <span className="size-1.5 rounded-full bg-amber-500" />
@@ -69,8 +79,12 @@ export function SidebarStep({ step }: SidebarStepProps) {
 
             {/* More items fading out */}
             <div className="bg-muted/20 rounded-lg px-3 py-2.5 opacity-60">
-              <div className="text-foreground/50 text-sm">auth.signOut</div>
-              <div className="text-muted-foreground/30 mt-0.5 text-xs">Log out</div>
+              <div className="text-foreground/50 text-sm">
+                {t('workbench.guide.demo.sampleKeys.authSignOut')}
+              </div>
+              <div className="text-muted-foreground/30 mt-0.5 text-xs">
+                {t('workbench.guide.demo.sampleKeys.logOut')}
+              </div>
               <div className="mt-1.5 flex gap-1">
                 <span className="size-1.5 rounded-full bg-emerald-500/50" />
                 <span className="size-1.5 rounded-full bg-emerald-500/50" />
@@ -81,14 +95,20 @@ export function SidebarStep({ step }: SidebarStepProps) {
             </div>
 
             <div className="bg-muted/10 rounded-lg px-3 py-2.5 opacity-30">
-              <div className="text-foreground/30 text-sm">error.notFound</div>
-              <div className="text-muted-foreground/20 mt-0.5 text-xs">Page not found</div>
+              <div className="text-foreground/30 text-sm">
+                {t('workbench.guide.demo.sampleKeys.errorNotFound')}
+              </div>
+              <div className="text-muted-foreground/20 mt-0.5 text-xs">
+                {t('workbench.guide.demo.sampleKeys.pageNotFound')}
+              </div>
             </div>
           </div>
 
           {/* Pagination footer */}
           <div className="border-border/30 flex items-center justify-center gap-2 border-t px-4 py-2">
-            <span className="text-muted-foreground/50 text-xs">3 / 29</span>
+            <span className="text-muted-foreground/50 text-xs">
+              {t('workbench.guide.demo.pagination', { current: 3, total: 29 })}
+            </span>
           </div>
         </div>
       </div>
@@ -140,7 +160,9 @@ export function SidebarStep({ step }: SidebarStepProps) {
                 ↑↓
               </kbd>
             </div>
-            <span className="text-foreground/70 text-sm">Navigate between keys</span>
+            <span className="text-foreground/70 text-sm">
+              {t('workbench.guide.demo.navigateBetweenKeys')}
+            </span>
           </div>
         </div>
 

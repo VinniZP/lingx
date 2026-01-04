@@ -21,31 +21,31 @@ export function ShortcutsStep({ step }: ShortcutsStepProps) {
   const shortcuts = [
     {
       keys: [mod, 'M'],
-      label: 'Machine Translate',
+      label: t('workbench.guide.demo.machineTranslate'),
       position: 'top-left',
       color: 'text-blue-600 dark:text-blue-400',
     },
     {
       keys: [mod, 'I'],
-      label: 'AI Translate',
+      label: t('workbench.guide.demo.aiTranslate'),
       position: 'top-right',
       color: 'text-purple-600 dark:text-purple-400',
     },
     {
       keys: [mod, '⏎'],
-      label: 'Approve',
+      label: t('workbench.guide.demo.approve'),
       position: 'right',
       color: 'text-emerald-600 dark:text-emerald-400',
     },
     {
       keys: [mod, '⌫'],
-      label: 'Reject',
+      label: t('workbench.guide.demo.reject'),
       position: 'bottom-right',
       color: 'text-rose-600 dark:text-rose-400',
     },
     {
       keys: ['Esc'],
-      label: 'Collapse',
+      label: t('workbench.guide.demo.collapse'),
       position: 'bottom',
       color: 'text-amber-600 dark:text-amber-400',
     },
@@ -142,10 +142,13 @@ export function ShortcutsStep({ step }: ShortcutsStepProps) {
       {/* Platform indicator */}
       <div className="mt-6 flex justify-center">
         <div className="bg-card/60 border-border/30 inline-flex items-center gap-2 rounded-full border px-4 py-2">
-          <span className="text-muted-foreground text-sm">Platform:</span>
+          <span className="text-muted-foreground text-sm">
+            {t('workbench.guide.demo.platform')}:
+          </span>
           <span className="text-foreground font-medium">{isMac ? 'macOS' : 'Windows/Linux'}</span>
           <span className="text-muted-foreground/60 text-xs">
-            ({isMac ? '⌘ = Command' : 'Ctrl = Control'})
+            ({isMac ? t('workbench.guide.demo.macModifier') : t('workbench.guide.demo.winModifier')}
+            )
           </span>
         </div>
       </div>

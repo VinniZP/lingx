@@ -132,22 +132,3 @@ export function ActivityItem({ activity, showProjectName = false, className }: A
     </>
   );
 }
-
-/**
- * Simplified activity item for compact displays.
- * No hover preview, just basic info.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function ActivityItemCompact({ activity, className }: { activity: Activity; className?: string }) {
-  const { td } = useTranslation();
-
-  return (
-    <div className={cn('flex items-center gap-2 text-sm', className)}>
-      <ActivityIcon type={activity.type} className="text-muted-foreground size-4 shrink-0" />
-      <span className="truncate">{translateKey(td, getActivityDescription(activity))}</span>
-      <span className="text-muted-foreground shrink-0 text-xs">
-        {translateKey(td, formatRelativeTime(activity.createdAt))}
-      </span>
-    </div>
-  );
-}

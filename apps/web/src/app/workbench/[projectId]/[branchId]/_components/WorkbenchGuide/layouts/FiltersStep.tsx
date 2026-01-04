@@ -17,10 +17,30 @@ export function FiltersStep({ step }: FiltersStepProps) {
   const { t } = useTranslation();
 
   const filters = [
-    { icon: Filter, label: 'Status', value: 'Missing', position: 'top-left' },
-    { icon: Sparkles, label: 'Quality', value: 'Low', position: 'top-right' },
-    { icon: FolderTree, label: 'Namespace', value: 'All', position: 'bottom-left' },
-    { icon: Globe, label: 'Language', value: 'All', position: 'bottom-right' },
+    {
+      icon: Filter,
+      label: t('workbench.guide.demo.filters.status'),
+      value: t('workbench.guide.demo.filters.missing'),
+      position: 'top-left',
+    },
+    {
+      icon: Sparkles,
+      label: t('workbench.guide.demo.filters.quality'),
+      value: t('workbench.guide.demo.filters.low'),
+      position: 'top-right',
+    },
+    {
+      icon: FolderTree,
+      label: t('workbench.guide.demo.filters.namespace'),
+      value: t('workbench.guide.demo.filters.all'),
+      position: 'bottom-left',
+    },
+    {
+      icon: Globe,
+      label: t('workbench.guide.demo.filters.language'),
+      value: t('workbench.guide.demo.filters.all'),
+      position: 'bottom-right',
+    },
   ];
 
   return (
@@ -44,7 +64,7 @@ export function FiltersStep({ step }: FiltersStepProps) {
             <Search className="text-muted-foreground size-5" />
             <input
               type="text"
-              placeholder="Search keys..."
+              placeholder={t('workbench.guide.demo.searchKeys')}
               className="placeholder:text-muted-foreground/50 text-foreground flex-1 bg-transparent text-lg outline-none"
               readOnly
             />

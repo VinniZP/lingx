@@ -19,29 +19,29 @@ export function DockStep({ step }: DockStepProps) {
   const dockTabs = [
     {
       icon: Layers,
-      label: 'TM',
-      preview: '95%',
+      label: t('workbench.guide.demo.tm'),
+      preview: t('workbench.guide.demo.tmPreview'),
       color: 'from-pink-500/20 to-rose-500/10',
       iconColor: 'text-pink-600 dark:text-pink-400',
     },
     {
       icon: BookOpen,
-      label: 'Glossary',
-      preview: '3 terms',
+      label: t('workbench.guide.demo.glossary'),
+      preview: t('workbench.guide.demo.glossaryPreview', { count: 3 }),
       color: 'from-purple-500/20 to-violet-500/10',
       iconColor: 'text-purple-600 dark:text-purple-400',
     },
     {
       icon: Sparkles,
-      label: 'AI',
-      preview: '2 ideas',
+      label: t('workbench.guide.demo.ai'),
+      preview: t('workbench.guide.demo.aiPreview', { count: 2 }),
       color: 'from-blue-500/20 to-cyan-500/10',
       iconColor: 'text-blue-600 dark:text-blue-400',
     },
     {
       icon: Link2,
-      label: 'Related',
-      preview: '5 keys',
+      label: t('workbench.guide.demo.related'),
+      preview: t('workbench.guide.demo.relatedPreview', { count: 5 }),
       color: 'from-emerald-500/20 to-teal-500/10',
       iconColor: 'text-emerald-600 dark:text-emerald-400',
     },
@@ -60,7 +60,7 @@ export function DockStep({ step }: DockStepProps) {
       {/* Instruction text */}
       <div className="text-muted-foreground/70 mb-8 flex items-center gap-2 text-sm">
         <span className="text-rose-600 dark:text-rose-400">↑</span>
-        <span>Pull up to discover helpful suggestions</span>
+        <span>{t('workbench.guide.demo.pullUp')}</span>
       </div>
 
       {/* Fanned cards */}
@@ -110,7 +110,9 @@ export function DockStep({ step }: DockStepProps) {
       <div className="mt-4 flex flex-col items-center">
         <div className="border-border/40 bg-card/60 flex items-center gap-2 rounded-full border px-6 py-2 shadow-lg backdrop-blur-sm">
           <GripHorizontal className="text-muted-foreground size-4" />
-          <span className="text-muted-foreground text-sm">Dock Panel</span>
+          <span className="text-muted-foreground text-sm">
+            {t('workbench.guide.demo.dockPanel')}
+          </span>
         </div>
       </div>
 

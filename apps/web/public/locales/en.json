@@ -1489,7 +1489,108 @@
         "approve": "Approve translation",
         "reject": "Reject translation",
         "collapse": "Collapse / close panel"
+      },
+      "demo": {
+        "selected": "selected",
+        "approve": "Approve",
+        "aiTranslate": "AI Translate",
+        "delete": "Delete",
+        "dockPanel": "Dock Panel",
+        "pullUp": "Pull up to discover helpful suggestions",
+        "clickToApply": "Click to apply",
+        "tm": "TM",
+        "glossary": "Glossary",
+        "ai": "AI",
+        "related": "Related",
+        "tmPreview": "95%",
+        "glossaryPreview": "{count} terms",
+        "aiPreview": "{count} ideas",
+        "relatedPreview": "{count} keys",
+        "keys": "Keys",
+        "keyCount": "{count}",
+        "navigateBetweenKeys": "Navigate between keys",
+        "machineTranslate": "Machine Translate",
+        "reject": "Reject",
+        "collapse": "Collapse",
+        "platform": "Platform",
+        "macModifier": "⌘ = Command",
+        "winModifier": "Ctrl = Control",
+        "clickRow": "Click row",
+        "toExpand": "to expand",
+        "toCycleLanguages": "to cycle languages",
+        "toCollapse": "to collapse",
+        "source": "Source",
+        "chars": "{count} chars",
+        "charCount": "{current} / {total} chars",
+        "autoSaved": "Auto-saved",
+        "autoSave": "Auto-save",
+        "icuMessageFormat": "ICU MessageFormat",
+        "nextField": "Next field",
+        "previous": "Previous",
+        "searchKeys": "Search keys...",
+        "pagination": "{current} / {total}",
+        "sampleKeys": {
+          "commonGreeting": "common.greeting",
+          "helloWorld": "Hello, World!",
+          "authSignIn": "auth.signIn",
+          "signInToContinue": "Sign in to continue",
+          "authSignOut": "auth.signOut",
+          "logOut": "Log out",
+          "errorNotFound": "error.notFound",
+          "pageNotFound": "Page not found"
+        },
+        "languages": {
+          "english": "English",
+          "ukrainian": "Ukrainian",
+          "russian": "Russian",
+          "german": "German"
+        },
+        "status": {
+          "pending": "Pending",
+          "approved": "Approved"
+        },
+        "filters": {
+          "status": "Status",
+          "missing": "Missing",
+          "quality": "Quality",
+          "low": "Low",
+          "namespace": "Namespace",
+          "language": "Language",
+          "all": "All"
+        }
       }
+    },
+    "suggestion": {
+      "clickToApply": "Click to apply"
+    },
+    "toolbar": {
+      "back": "Back",
+      "searchPlaceholder": "Search keys...",
+      "statusFilter": {
+        "placeholder": "Status",
+        "all": "All",
+        "missing": "Missing",
+        "complete": "Complete",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "warnings": "Warnings"
+      },
+      "qualityFilter": {
+        "placeholder": "Quality",
+        "all": "All Quality",
+        "excellent": "Excellent (90+)",
+        "good": "Good (70-89)",
+        "needsReview": "Needs Review",
+        "unscored": "Unscored"
+      },
+      "namespaceFilter": {
+        "placeholder": "Namespace",
+        "all": "All namespaces"
+      },
+      "evaluate": "Evaluate",
+      "help": "Help",
+      "addKey": "Add Key"
     }
   },
   "keyForm": {

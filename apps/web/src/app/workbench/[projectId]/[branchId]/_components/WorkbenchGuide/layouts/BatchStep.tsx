@@ -101,7 +101,9 @@ export function BatchStep({ step }: BatchStepProps) {
               <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
                 {selectedCount}
               </span>
-              <span className="text-muted-foreground text-xs">selected</span>
+              <span className="text-muted-foreground text-xs">
+                {t('workbench.guide.demo.selected')}
+              </span>
             </div>
 
             {/* Divider */}
@@ -111,15 +113,15 @@ export function BatchStep({ step }: BatchStepProps) {
             <div className="flex items-center gap-1.5">
               <button className="flex items-center gap-1 rounded-lg bg-emerald-500/20 px-2 py-1 text-xs text-emerald-600 transition-colors hover:bg-emerald-500/30 dark:text-emerald-400">
                 <Check className="size-3.5" />
-                Approve
+                {t('workbench.guide.demo.approve')}
               </button>
               <button className="flex items-center gap-1 rounded-lg bg-blue-500/20 px-2 py-1 text-xs text-blue-600 transition-colors hover:bg-blue-500/30 dark:text-blue-400">
                 <Sparkles className="size-3.5" />
-                AI Translate
+                {t('workbench.guide.demo.aiTranslate')}
               </button>
               <button className="flex items-center gap-1 rounded-lg bg-rose-500/20 px-2 py-1 text-xs text-rose-600 transition-colors hover:bg-rose-500/30 dark:text-rose-400">
                 <Trash2 className="size-3.5" />
-                Delete
+                {t('workbench.guide.demo.delete')}
               </button>
             </div>
           </div>

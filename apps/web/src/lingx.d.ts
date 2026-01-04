@@ -1115,6 +1115,65 @@ declare module '@lingx/sdk-nextjs' {
       | 'verifyEmail.successMessage'
       | 'verifyEmail.verified'
       | 'verifyEmail.verifying'
+      | 'workbench.guide.demo.ai'
+      | 'workbench.guide.demo.aiPreview'
+      | 'workbench.guide.demo.aiTranslate'
+      | 'workbench.guide.demo.approve'
+      | 'workbench.guide.demo.autoSave'
+      | 'workbench.guide.demo.autoSaved'
+      | 'workbench.guide.demo.charCount'
+      | 'workbench.guide.demo.chars'
+      | 'workbench.guide.demo.clickRow'
+      | 'workbench.guide.demo.clickToApply'
+      | 'workbench.guide.demo.collapse'
+      | 'workbench.guide.demo.delete'
+      | 'workbench.guide.demo.dockPanel'
+      | 'workbench.guide.demo.filters.all'
+      | 'workbench.guide.demo.filters.language'
+      | 'workbench.guide.demo.filters.low'
+      | 'workbench.guide.demo.filters.missing'
+      | 'workbench.guide.demo.filters.namespace'
+      | 'workbench.guide.demo.filters.quality'
+      | 'workbench.guide.demo.filters.status'
+      | 'workbench.guide.demo.glossary'
+      | 'workbench.guide.demo.glossaryPreview'
+      | 'workbench.guide.demo.icuMessageFormat'
+      | 'workbench.guide.demo.keyCount'
+      | 'workbench.guide.demo.keys'
+      | 'workbench.guide.demo.languages.english'
+      | 'workbench.guide.demo.languages.german'
+      | 'workbench.guide.demo.languages.russian'
+      | 'workbench.guide.demo.languages.ukrainian'
+      | 'workbench.guide.demo.machineTranslate'
+      | 'workbench.guide.demo.macModifier'
+      | 'workbench.guide.demo.navigateBetweenKeys'
+      | 'workbench.guide.demo.nextField'
+      | 'workbench.guide.demo.pagination'
+      | 'workbench.guide.demo.platform'
+      | 'workbench.guide.demo.previous'
+      | 'workbench.guide.demo.pullUp'
+      | 'workbench.guide.demo.reject'
+      | 'workbench.guide.demo.related'
+      | 'workbench.guide.demo.relatedPreview'
+      | 'workbench.guide.demo.sampleKeys.authSignIn'
+      | 'workbench.guide.demo.sampleKeys.authSignOut'
+      | 'workbench.guide.demo.sampleKeys.commonGreeting'
+      | 'workbench.guide.demo.sampleKeys.errorNotFound'
+      | 'workbench.guide.demo.sampleKeys.helloWorld'
+      | 'workbench.guide.demo.sampleKeys.logOut'
+      | 'workbench.guide.demo.sampleKeys.pageNotFound'
+      | 'workbench.guide.demo.sampleKeys.signInToContinue'
+      | 'workbench.guide.demo.searchKeys'
+      | 'workbench.guide.demo.selected'
+      | 'workbench.guide.demo.source'
+      | 'workbench.guide.demo.status.approved'
+      | 'workbench.guide.demo.status.pending'
+      | 'workbench.guide.demo.tm'
+      | 'workbench.guide.demo.tmPreview'
+      | 'workbench.guide.demo.toCollapse'
+      | 'workbench.guide.demo.toCycleLanguages'
+      | 'workbench.guide.demo.toExpand'
+      | 'workbench.guide.demo.winModifier'
       | 'workbench.guide.description'
       | 'workbench.guide.finish'
       | 'workbench.guide.next'
@@ -1122,19 +1181,12 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.guide.shortcuts.aiTranslate'
       | 'workbench.guide.shortcuts.approve'
       | 'workbench.guide.shortcuts.collapse'
-      | 'workbench.guide.shortcuts.collapseRow'
-      | 'workbench.guide.shortcuts.commandPalette'
-      | 'workbench.guide.shortcuts.expandRow'
-      | 'workbench.guide.shortcuts.focusSearch'
       | 'workbench.guide.shortcuts.machineTranslate'
-      | 'workbench.guide.shortcuts.navigateKeys'
       | 'workbench.guide.shortcuts.nextField'
       | 'workbench.guide.shortcuts.nextKey'
       | 'workbench.guide.shortcuts.prevField'
       | 'workbench.guide.shortcuts.prevKey'
-      | 'workbench.guide.shortcuts.rangeSelect'
       | 'workbench.guide.shortcuts.reject'
-      | 'workbench.guide.shortcuts.selectAll'
       | 'workbench.guide.skip'
       | 'workbench.guide.steps.batch.description'
       | 'workbench.guide.steps.batch.features.actions'
@@ -1186,7 +1238,29 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.guide.steps.sidebar.features.statusDots'
       | 'workbench.guide.steps.sidebar.proTip'
       | 'workbench.guide.steps.sidebar.title'
-      | 'workbench.guide.title';
+      | 'workbench.guide.title'
+      | 'workbench.suggestion.clickToApply'
+      | 'workbench.toolbar.addKey'
+      | 'workbench.toolbar.back'
+      | 'workbench.toolbar.evaluate'
+      | 'workbench.toolbar.help'
+      | 'workbench.toolbar.namespaceFilter.all'
+      | 'workbench.toolbar.namespaceFilter.placeholder'
+      | 'workbench.toolbar.qualityFilter.all'
+      | 'workbench.toolbar.qualityFilter.excellent'
+      | 'workbench.toolbar.qualityFilter.good'
+      | 'workbench.toolbar.qualityFilter.needsReview'
+      | 'workbench.toolbar.qualityFilter.placeholder'
+      | 'workbench.toolbar.qualityFilter.unscored'
+      | 'workbench.toolbar.searchPlaceholder'
+      | 'workbench.toolbar.statusFilter.all'
+      | 'workbench.toolbar.statusFilter.approved'
+      | 'workbench.toolbar.statusFilter.complete'
+      | 'workbench.toolbar.statusFilter.missing'
+      | 'workbench.toolbar.statusFilter.pending'
+      | 'workbench.toolbar.statusFilter.placeholder'
+      | 'workbench.toolbar.statusFilter.rejected'
+      | 'workbench.toolbar.statusFilter.warnings';
   }
 
   /**
@@ -1646,6 +1720,20 @@ declare module '@lingx/sdk-nextjs' {
     'translations.toasts.translationsUpdated': { count: string | number; status: string | number };
     /** Only {count} backup codes remaining. Consider regenerating them. */
     'twoFactor.codesRemaining': { count: string | number };
+    /** {count} ideas */
+    'workbench.guide.demo.aiPreview': { count: string | number };
+    /** {current} \/ {total} chars */
+    'workbench.guide.demo.charCount': { current: string | number; total: string | number };
+    /** {count} chars */
+    'workbench.guide.demo.chars': { count: string | number };
+    /** {count} terms */
+    'workbench.guide.demo.glossaryPreview': { count: string | number };
+    /** {count} */
+    'workbench.guide.demo.keyCount': { count: string | number };
+    /** {current} \/ {total} */
+    'workbench.guide.demo.pagination': { current: string | number; total: string | number };
+    /** {count} keys */
+    'workbench.guide.demo.relatedPreview': { count: string | number };
     /** ICU syntax like {count, plural, one {# item} other {# items}} is auto-highlighted */
     'workbench.guide.steps.editor.proTip': { count: number };
   }

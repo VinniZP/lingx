@@ -79,21 +79,6 @@ export function useGlossaryList(projectId: string, params?: GlossaryListParams) 
 }
 
 /**
- * Get a single glossary entry by ID.
- *
- * @param projectId - Project ID
- * @param entryId - Entry ID
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useGlossaryEntry(projectId: string, entryId: string | null) {
-  return useQuery({
-    queryKey: glossaryKeys.entry(projectId, entryId ?? ''),
-    queryFn: () => glossaryApi.get(projectId, entryId!),
-    enabled: !!projectId && !!entryId,
-  });
-}
-
-/**
  * Create a new glossary entry.
  *
  * @param projectId - Project ID
@@ -148,81 +133,6 @@ export function useDeleteGlossaryEntry(projectId: string) {
 }
 
 /**
- * Add a translation to an entry.
- *
- * @param projectId - Project ID
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useAddGlossaryTranslation(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      entryId,
-      data,
-    }: {
-      entryId: string;
-      data: { targetLanguage: string; targetTerm: string; notes?: string };
-    }) => glossaryApi.addTranslation(projectId, entryId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: glossaryKeys.entry(projectId, variables.entryId),
-      });
-      queryClient.invalidateQueries({ queryKey: glossaryKeys.list(projectId) });
-    },
-  });
-}
-
-/**
- * Update a translation for an entry.
- *
- * @param projectId - Project ID
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useUpdateGlossaryTranslation(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      entryId,
-      lang,
-      data,
-    }: {
-      entryId: string;
-      lang: string;
-      data: { targetTerm: string; notes?: string | null };
-    }) => glossaryApi.updateTranslation(projectId, entryId, lang, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: glossaryKeys.entry(projectId, variables.entryId),
-      });
-      queryClient.invalidateQueries({ queryKey: glossaryKeys.list(projectId) });
-    },
-  });
-}
-
-/**
- * Delete a translation from an entry.
- *
- * @param projectId - Project ID
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useDeleteGlossaryTranslation(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ entryId, lang }: { entryId: string; lang: string }) =>
-      glossaryApi.deleteTranslation(projectId, entryId, lang),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: glossaryKeys.entry(projectId, variables.entryId),
-      });
-      queryClient.invalidateQueries({ queryKey: glossaryKeys.list(projectId) });
-    },
-  });
-}
-
-/**
  * Record usage when a glossary term is applied.
  *
  * @param projectId - Project ID
@@ -265,29 +175,6 @@ export function useCreateGlossaryTag(projectId: string) {
 
   return useMutation({
     mutationFn: (data: { name: string; color?: string }) => glossaryApi.createTag(projectId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: glossaryKeys.tags(projectId) });
-    },
-  });
-}
-
-/**
- * Update a glossary tag.
- *
- * @param projectId - Project ID
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useUpdateGlossaryTag(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      tagId,
-      data,
-    }: {
-      tagId: string;
-      data: { name?: string; color?: string | null };
-    }) => glossaryApi.updateTag(projectId, tagId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: glossaryKeys.tags(projectId) });
     },
