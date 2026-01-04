@@ -169,61 +169,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'authLayout.subheadline'
       | 'authLayout.teamCollab'
       | 'authLayout.teamCollabDesc'
-      | 'branch.conflictResolver.applyCustomValues'
-      | 'branch.conflictResolver.clearResolution'
-      | 'branch.conflictResolver.compare'
-      | 'branch.conflictResolver.conflictOf'
-      | 'branch.conflictResolver.conflictsToResolve'
-      | 'branch.conflictResolver.custom'
-      | 'branch.conflictResolver.customDescription'
-      | 'branch.conflictResolver.customDescriptionDesktop'
-      | 'branch.conflictResolver.customEdit'
-      | 'branch.conflictResolver.customResolutionApplied'
-      | 'branch.conflictResolver.enterTranslation'
-      | 'branch.conflictResolver.keepTarget'
-      | 'branch.conflictResolver.nextConflict'
-      | 'branch.conflictResolver.noConflicts'
-      | 'branch.conflictResolver.noConflictsDescription'
-      | 'branch.conflictResolver.previousConflict'
-      | 'branch.conflictResolver.reset'
-      | 'branch.conflictResolver.resolved'
-      | 'branch.conflictResolver.selected'
-      | 'branch.conflictResolver.sourceIncoming'
-      | 'branch.conflictResolver.startWithSource'
-      | 'branch.conflictResolver.startWithTarget'
-      | 'branch.conflictResolver.targetCurrent'
-      | 'branch.conflictResolver.useSource'
-      | 'branch.diffView.added'
-      | 'branch.diffView.branchesIdentical'
-      | 'branch.diffView.clickToResolve'
-      | 'branch.diffView.conflicts'
-      | 'branch.diffView.deleted'
-      | 'branch.diffView.modified'
-      | 'branch.diffView.noDifferences'
-      | 'branch.diffView.selectConflict'
-      | 'branch.diffView.sourceIncoming'
-      | 'branch.diffView.sourceNew'
-      | 'branch.diffView.tapToResolve'
-      | 'branch.diffView.targetCurrent'
-      | 'branch.mergeDialog.backToPreview'
-      | 'branch.mergeDialog.changesSummary'
-      | 'branch.mergeDialog.conflictsDescription'
-      | 'branch.mergeDialog.conflictsDetected'
-      | 'branch.mergeDialog.description'
-      | 'branch.mergeDialog.into'
-      | 'branch.mergeDialog.merge'
-      | 'branch.mergeDialog.mergeBranch'
-      | 'branch.mergeDialog.mergeFailed'
-      | 'branch.mergeDialog.merging'
-      | 'branch.mergeDialog.noChanges'
-      | 'branch.mergeDialog.readyToMerge'
-      | 'branch.mergeDialog.readyToMergeDescription'
-      | 'branch.mergeDialog.resolveConflicts'
-      | 'branch.mergeDialog.resolvedCount'
-      | 'branch.mergeDialog.stats.added'
-      | 'branch.mergeDialog.stats.conflicts'
-      | 'branch.mergeDialog.stats.deleted'
-      | 'branch.mergeDialog.stats.modified'
       | 'common.active'
       | 'common.back'
       | 'common.branch'
@@ -884,19 +829,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'time.minutesAgo'
       | 'time.today'
       | 'time.yesterday'
-      | 'translations.batch.aiTranslate'
-      | 'translations.batch.approveAll'
-      | 'translations.batch.confirmDelete'
-      | 'translations.batch.delete'
-      | 'translations.batch.deleteDescription'
-      | 'translations.batch.deleteTitle'
-      | 'translations.batch.keysSelected'
-      | 'translations.batch.machineTranslate'
-      | 'translations.batch.rejectAll'
-      | 'translations.batch.translateEmpty'
-      | 'translations.branchHeader.changes'
-      | 'translations.branchHeader.complete'
-      | 'translations.branchHeader.translatorsOnline'
       | 'translations.bulkTranslate.complete'
       | 'translations.bulkTranslate.completedMessage'
       | 'translations.bulkTranslate.errors'
@@ -908,131 +840,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'translations.bulkTranslate.translating'
       | 'translations.bulkTranslate.usingAI'
       | 'translations.bulkTranslate.usingMT'
-      | 'translations.commandPalette.aiTranslateAllLanguages'
-      | 'translations.commandPalette.aiTranslateCurrentField'
-      | 'translations.commandPalette.approveAllTranslations'
-      | 'translations.commandPalette.approveTranslation'
-      | 'translations.commandPalette.copyFromSource'
-      | 'translations.commandPalette.jumpToKey'
-      | 'translations.commandPalette.quickActions'
-      | 'translations.commandPalette.rejectAllTranslations'
-      | 'translations.commandPalette.rejectTranslation'
-      | 'translations.commandPalette.searchPlaceholder'
-      | 'translations.commandPalette.translateAllLanguages'
-      | 'translations.commandPalette.translateCurrentField'
-      | 'translations.empty.createFirst'
-      | 'translations.empty.description'
-      | 'translations.empty.title'
-      | 'translations.filters.all'
-      | 'translations.filters.allNamespaces'
-      | 'translations.filters.approved'
-      | 'translations.filters.complete'
-      | 'translations.filters.missing'
-      | 'translations.filters.noNamespace'
-      | 'translations.filters.pending'
-      | 'translations.filters.rejected'
-      | 'translations.filters.warnings'
-      | 'translations.glossaryPanel.addTermsHint'
-      | 'translations.glossaryPanel.applied'
-      | 'translations.glossaryPanel.applyTerm'
-      | 'translations.glossaryPanel.caseSensitive'
-      | 'translations.glossaryPanel.enterSourceText'
-      | 'translations.glossaryPanel.exact'
-      | 'translations.glossaryPanel.exactMatches'
-      | 'translations.glossaryPanel.found'
-      | 'translations.glossaryPanel.matchingTerminology'
-      | 'translations.glossaryPanel.noTermsFound'
-      | 'translations.glossaryPanel.searchingGlossary'
-      | 'translations.glossaryPanel.termFoundInText'
-      | 'translations.glossaryPanel.title'
-      | 'translations.inlineSuggestion.applied'
-      | 'translations.inlineSuggestion.apply'
-      | 'translations.inlineSuggestion.cached'
-      | 'translations.inlineSuggestion.dismiss'
-      | 'translations.inlineSuggestion.from'
-      | 'translations.inlineSuggestion.moreSuggestions'
-      | 'translations.inlineSuggestion.showLess'
-      | 'translations.keyboard.applySuggestion'
-      | 'translations.keyboard.collapse'
-      | 'translations.keyboard.machineTranslate'
-      | 'translations.keyboard.navigate'
-      | 'translations.keyboard.switchFields'
-      | 'translations.keyCard.aiTranslate'
-      | 'translations.keyCard.applySuggestion'
-      | 'translations.keyCard.approve'
-      | 'translations.keyCard.approved'
-      | 'translations.keyCard.collapse'
-      | 'translations.keyCard.copyFromSource'
-      | 'translations.keyCard.enterTextPlaceholder'
-      | 'translations.keyCard.machineTranslate'
-      | 'translations.keyCard.nextField'
-      | 'translations.keyCard.noSourceText'
-      | 'translations.keyCard.pending'
-      | 'translations.keyCard.qualityIssuesFound'
-      | 'translations.keyCard.qualityWarnings'
-      | 'translations.keyCard.reject'
-      | 'translations.keyCard.rejected'
-      | 'translations.keyCard.saved'
-      | 'translations.keyCard.saving'
-      | 'translations.keyCard.source'
-      | 'translations.keyCard.translate'
-      | 'translations.keyCard.translating'
-      | 'translations.loading'
-      | 'translations.memoryPanel.applied'
-      | 'translations.memoryPanel.apply'
-      | 'translations.memoryPanel.approveToBuildMemory'
-      | 'translations.memoryPanel.cached'
-      | 'translations.memoryPanel.enterMinChars'
-      | 'translations.memoryPanel.exactMatches'
-      | 'translations.memoryPanel.getTranslation'
-      | 'translations.memoryPanel.machineTranslation'
-      | 'translations.memoryPanel.noMatches'
-      | 'translations.memoryPanel.searching'
-      | 'translations.memoryPanel.similarMatches'
-      | 'translations.memoryPanel.title'
-      | 'translations.memoryPanel.toSeeSuggestions'
-      | 'translations.memoryPanel.translating'
-      | 'translations.memoryPanel.usedCount'
-      | 'translations.merge'
-      | 'translations.newKey'
-      | 'translations.noResults'
-      | 'translations.qualityIssues.error'
-      | 'translations.qualityIssues.info'
-      | 'translations.qualityIssues.placeholderExtra'
-      | 'translations.qualityIssues.placeholderMissing'
-      | 'translations.qualityIssues.punctuationMismatch'
-      | 'translations.qualityIssues.title'
-      | 'translations.qualityIssues.warning'
-      | 'translations.qualityIssues.whitespaceDouble'
-      | 'translations.qualityIssues.whitespaceLeading'
-      | 'translations.qualityIssues.whitespaceTab'
-      | 'translations.qualityIssues.whitespaceTrailing'
-      | 'translations.relatedKeys.andMore'
-      | 'translations.relatedKeys.keyPattern'
-      | 'translations.relatedKeys.loading'
-      | 'translations.relatedKeys.nearby'
-      | 'translations.relatedKeys.sameComponent'
-      | 'translations.relatedKeys.sameFile'
-      | 'translations.relatedKeys.semantic'
-      | 'translations.relatedKeys.title'
-      | 'translations.row.approve'
-      | 'translations.row.approved'
-      | 'translations.row.enterTranslationPlaceholder'
-      | 'translations.row.missingTranslation'
-      | 'translations.row.pending'
-      | 'translations.row.reject'
-      | 'translations.row.rejected'
-      | 'translations.row.saved'
-      | 'translations.row.saving'
-      | 'translations.searchPlaceholder'
-      | 'translations.stats.complete'
-      | 'translations.stats.keys'
-      | 'translations.stats.languages'
-      | 'translations.stats.lastUpdated'
-      | 'translations.stats.percentComplete'
-      | 'translations.stats.totalKeys'
-      | 'translations.stats.translationCoverage'
-      | 'translations.title'
       | 'translations.toasts.failedToApprove'
       | 'translations.toasts.failedToApproveTranslations'
       | 'translations.toasts.failedToDeleteKeys'
@@ -1124,7 +931,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.guide.demo.charCount'
       | 'workbench.guide.demo.chars'
       | 'workbench.guide.demo.clickRow'
-      | 'workbench.guide.demo.clickToApply'
       | 'workbench.guide.demo.collapse'
       | 'workbench.guide.demo.delete'
       | 'workbench.guide.demo.dockPanel'
@@ -1228,8 +1034,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.guide.steps.shortcuts.features.aiTranslate'
       | 'workbench.guide.steps.shortcuts.features.approve'
       | 'workbench.guide.steps.shortcuts.features.mtTranslate'
-      | 'workbench.guide.steps.shortcuts.features.navigation'
-      | 'workbench.guide.steps.shortcuts.features.reject'
       | 'workbench.guide.steps.shortcuts.proTip'
       | 'workbench.guide.steps.shortcuts.title'
       | 'workbench.guide.steps.sidebar.description'
@@ -1547,20 +1351,6 @@ declare module '@lingx/sdk-nextjs' {
     'activity.preview.viewAllHint': { count: string | number };
     /** View all {count} changes */
     'activity.viewAllChanges': { count: string | number };
-    /** Conflict {current} of {total} */
-    'branch.conflictResolver.conflictOf': { current: string | number; total: string | number };
-    /** Enter {lang} translation... */
-    'branch.conflictResolver.enterTranslation': { lang: string | number };
-    /** Select conflict for key {key} */
-    'branch.diffView.selectConflict': { key: string | number };
-    /** {count, plural, one {# translation key has} other {# translation keys have}} been modified in both b... */
-    'branch.mergeDialog.conflictsDescription': { count: number };
-    /** {count, plural, one {This merge will apply # change} other {This merge will apply # changes}} to the... */
-    'branch.mergeDialog.readyToMergeDescription': { count: number };
-    /** Resolve Conflicts ({count}) */
-    'branch.mergeDialog.resolveConflicts': { count: string | number };
-    /** {resolved}\/{total} resolved */
-    'branch.mergeDialog.resolvedCount': { resolved: string | number; total: string | number };
     /** {count, plural, one {# key} other {# keys}} */
     'common.keys': { count: number };
     /** {count, plural, one {# language} other {# languages}} */
@@ -1681,34 +1471,8 @@ declare module '@lingx/sdk-nextjs' {
     'toasts.connectionSuccessDescription': { provider: string | number };
     /** Glossary synced to {provider} */
     'toasts.syncSuccess': { provider: string | number };
-    /** Are you sure you want to delete {count, plural, one {# translation key} other {# translation keys}}?... */
-    'translations.batch.deleteDescription': { count: number };
-    /** {count, plural, one {# key} other {# keys}} selected */
-    'translations.batch.keysSelected': { count: number };
-    /** {count, plural, one {# change} other {# changes}} */
-    'translations.branchHeader.changes': { count: number };
-    /** {percent}% complete */
-    'translations.branchHeader.complete': { percent: string | number };
-    /** {count, plural, one {# translator} other {# translators}} online */
-    'translations.branchHeader.translatorsOnline': { count: number };
     /** {count, plural, one {# translation} other {# translations}} processed successfully */
     'translations.bulkTranslate.completedMessage': { count: number };
-    /** from {source} */
-    'translations.inlineSuggestion.from': { source: string | number };
-    /** {count, plural, one {# more suggestion} other {# more suggestions}} */
-    'translations.inlineSuggestion.moreSuggestions': { count: number };
-    /** Enter {language} text... */
-    'translations.keyCard.enterTextPlaceholder': { language: string | number };
-    /** Used {count}x */
-    'translations.memoryPanel.usedCount': { count: string | number };
-    /** Quality Issues ({count}) */
-    'translations.qualityIssues.title': { count: string | number };
-    /** +{count} more related keys */
-    'translations.relatedKeys.andMore': { count: string | number };
-    /** Enter {language} translation... */
-    'translations.row.enterTranslationPlaceholder': { language: string | number };
-    /** {percent}% complete */
-    'translations.stats.percentComplete': { percent: string | number };
     /** {count, plural, one {# key} other {# keys}} deleted */
     'translations.toasts.keysDeleted': { count: number };
     /** {count} translations approved */
