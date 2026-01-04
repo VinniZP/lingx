@@ -6,8 +6,11 @@ import { BulkQualityEvaluationDialog } from '@/components/translations/bulk-qual
 import { useKeySuggestions, useLocalStorage, useRecordTMUsage } from '@/hooks';
 import { useBulkTranslateJob } from '@/hooks/use-bulk-translate-job';
 import type { TranslationKey } from '@/lib/api';
+import { useTranslation } from '@lingx/sdk-nextjs';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { WorkbenchCommandPalette, type CommandHandlers } from './_components/CommandPalette';
 import { FloatingBatchBar } from './_components/FloatingBatchBar';
 import { KeyEditorPanel } from './_components/KeyEditorPanel';
 import { KeyListSidebar } from './_components/KeyListSidebar';
@@ -29,6 +32,7 @@ interface PageProps {
 
 export default function WorkbenchPage({ params }: PageProps) {
   const { projectId, branchId } = use(params);
+  const { t } = useTranslation();
 
   // URL-synced state
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
@@ -45,6 +49,7 @@ export default function WorkbenchPage({ params }: PageProps) {
   const [bulkTranslateProvider, setBulkTranslateProvider] = useState<'MT' | 'AI' | null>(null);
   const [bulkQualityDialogOpen, setBulkQualityDialogOpen] = useState(false);
   const [showGuideDialog, setShowGuideDialog] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   // Guide dialog state (persisted in localStorage)
   const [hasSeenGuide, setHasSeenGuide] = useLocalStorage(STORAGE_KEY, false);
@@ -297,9 +302,15 @@ export default function WorkbenchPage({ params }: PageProps) {
     [selectedKeyId, keys, defaultLanguage, getTranslationValue, fetchAI]
   );
 
+  // Command palette toggle
+  const handleToggleCommandPalette = useCallback(() => {
+    setCommandPaletteOpen((prev) => !prev);
+  }, []);
+
   // Keyboard navigation hook
   const {
     focusMode,
+    focusedLanguage,
     keyListContainerRef,
     sourceTextareaRef,
     isKeyFocused,
@@ -308,6 +319,9 @@ export default function WorkbenchPage({ params }: PageProps) {
     registerLanguageTextarea,
     handleSourceFocus,
     handleLanguageFocus,
+    focusSource,
+    focusKeyById,
+    navigateKey,
   } = useKeyboardNavigation({
     keys,
     selectedKeyId,
@@ -328,6 +342,8 @@ export default function WorkbenchPage({ params }: PageProps) {
     onFetchAI: handleFetchAIForKeyboard,
     hasMT,
     hasAI,
+    onOpenCommandPalette: handleToggleCommandPalette,
+    commandPaletteOpen,
   });
 
   const handleFetchMT = useCallback(
@@ -351,6 +367,95 @@ export default function WorkbenchPage({ params }: PageProps) {
     },
     [keys, defaultLanguage, getTranslationValue, fetchAI]
   );
+
+  // Command palette handlers
+  const commandPaletteHandlers = useMemo<CommandHandlers>(() => {
+    return {
+      // Translation actions
+      onFetchAI: (keyId: string, lang: string) => handleFetchAI(keyId, lang),
+      onFetchAIAll: (keyId: string) => {
+        targetLanguages.forEach((lang) => handleFetchAI(keyId, lang));
+      },
+      onFetchMT: (keyId: string, lang: string) => handleFetchMT(keyId, lang),
+      onFetchMTAll: (keyId: string) => {
+        targetLanguages.forEach((lang) => handleFetchMT(keyId, lang));
+      },
+      onCopySource: (keyId: string, lang: string) => {
+        const key = keys.find((k) => k.id === keyId);
+        if (!key || !defaultLanguage) return;
+        const sourceValue = getTranslationValue(key, defaultLanguage.code);
+        if (sourceValue) {
+          handleTranslationChange(keyId, lang, sourceValue);
+        }
+      },
+
+      // Approval actions
+      onApprove: (translationId: string) => handleApprove(translationId, 'APPROVED'),
+      onApproveAll: (keyId: string) => {
+        const key = keys.find((k) => k.id === keyId);
+        if (!key) return;
+        key.translations.forEach((t) => {
+          // Only approve non-empty translations
+          if (t.value?.trim()) handleApprove(t.id, 'APPROVED');
+        });
+      },
+      onReject: (translationId: string) => handleApprove(translationId, 'REJECTED'),
+      onRejectAll: (keyId: string) => {
+        const key = keys.find((k) => k.id === keyId);
+        if (!key) return;
+        key.translations.forEach((t) => {
+          // Only reject non-empty translations
+          if (t.value?.trim()) handleApprove(t.id, 'REJECTED');
+        });
+      },
+
+      // Navigation actions
+      onSelectKey: focusKeyById,
+      onNextKey: () => navigateKey('down'),
+      onPrevKey: () => navigateKey('up'),
+      onExpandAll: () => {
+        targetLanguages.forEach((lang) => handleExpandLanguage(lang, true));
+      },
+      onCollapseAll: handleCollapseAllLanguages,
+      onFocusSource: focusSource,
+
+      // Utility actions
+      onCopyKeyName: (keyName: string) => {
+        navigator.clipboard.writeText(keyName);
+        toast.success(t('workbench.toasts.copiedToClipboard'));
+      },
+      onDeleteKey: (keyId: string) => {
+        handleBulkDelete(new Set([keyId]), () => {
+          if (selectedKeyId === keyId) setSelectedKeyId(null);
+        });
+      },
+      onShowShortcuts: handleShowGuide,
+      onEvaluateQuality: () => setBulkQualityDialogOpen(true),
+
+      // Context getters
+      getCurrentTranslationId,
+      getKeyName: (keyId: string) => keys.find((k) => k.id === keyId)?.name,
+    };
+  }, [
+    t,
+    targetLanguages,
+    keys,
+    defaultLanguage,
+    getTranslationValue,
+    handleTranslationChange,
+    handleApprove,
+    handleFetchAI,
+    handleFetchMT,
+    handleExpandLanguage,
+    handleCollapseAllLanguages,
+    handleBulkDelete,
+    navigateKey,
+    focusKeyById,
+    focusSource,
+    handleShowGuide,
+    getCurrentTranslationId,
+    selectedKeyId,
+  ]);
 
   const onBatchApprove = useCallback(
     async (status: 'APPROVED' | 'REJECTED') => {
@@ -510,6 +615,21 @@ export default function WorkbenchPage({ params }: PageProps) {
         open={showGuideDialog}
         onOpenChange={setShowGuideDialog}
         onComplete={handleGuideComplete}
+      />
+
+      {/* Command Palette */}
+      <WorkbenchCommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        keys={keys}
+        languages={languages}
+        projectId={projectId}
+        selectedKeyId={selectedKeyId}
+        focusedLanguage={focusedLanguage}
+        expandedLanguages={expandedLanguages}
+        hasMT={hasMT}
+        hasAI={hasAI}
+        handlers={commandPaletteHandlers}
       />
     </div>
   );

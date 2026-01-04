@@ -40,6 +40,10 @@ interface UseKeyboardNavigationOptions {
   hasMT?: boolean;
   hasAI?: boolean;
 
+  // Command palette
+  onOpenCommandPalette?: () => void;
+  commandPaletteOpen?: boolean;
+
   enabled?: boolean;
 }
 
@@ -67,9 +71,11 @@ interface UseKeyboardNavigationReturn {
 
   // Imperative methods
   focusKey: (index: number) => void;
+  focusKeyById: (keyId: string) => void;
   focusLanguage: (lang: string) => void;
   focusSuggestion: (index: number) => void;
   focusSource: () => void;
+  navigateKey: (direction: 'up' | 'down') => void;
 
   // State checks
   isKeyFocused: (index: number) => boolean;
@@ -114,6 +120,8 @@ export function useKeyboardNavigation({
   onFetchAI,
   hasMT = false,
   hasAI = false,
+  onOpenCommandPalette,
+  commandPaletteOpen = false,
   enabled = true,
 }: UseKeyboardNavigationOptions): UseKeyboardNavigationReturn {
   // Focus state
@@ -228,6 +236,17 @@ export function useKeyboardNavigation({
       }
     },
     [keys, onSelectKey, defaultLanguage]
+  );
+
+  // Focus a key by ID with scroll (for command palette)
+  const focusKeyById = useCallback(
+    (keyId: string) => {
+      const index = keys.findIndex((k) => k.id === keyId);
+      if (index !== -1) {
+        focusKey(index);
+      }
+    },
+    [keys, focusKey]
   );
 
   // Focus source field
@@ -514,7 +533,7 @@ export function useKeyboardNavigation({
     };
   });
 
-  // Global keyboard event handler (stable - only re-registers when enabled changes)
+  // Global keyboard event handler (stable - only re-registers when enabled or commandPaletteOpen changes)
   useEffect(() => {
     if (!enabled) return;
 
@@ -525,6 +544,16 @@ export function useKeyboardNavigation({
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
       const isMod = e.metaKey || e.ctrlKey;
+
+      // Cmd/Ctrl + K - open command palette (works even when palette is open to close it)
+      if (isMod && e.key === 'k') {
+        e.preventDefault();
+        onOpenCommandPalette?.();
+        return;
+      }
+
+      // Skip all other handling if command palette is open
+      if (commandPaletteOpen) return;
 
       // === Global shortcuts (work everywhere) ===
 
@@ -632,7 +661,7 @@ export function useKeyboardNavigation({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [enabled]);
+  }, [enabled, commandPaletteOpen, onOpenCommandPalette]);
 
   // No-op setter for focusedKeyIndex (derived state, use onSelectKey instead)
   const setFocusedKeyIndex = useCallback(() => {
@@ -663,9 +692,11 @@ export function useKeyboardNavigation({
 
     // Imperative methods
     focusKey,
+    focusKeyById,
     focusLanguage,
     focusSuggestion,
     focusSource,
+    navigateKey,
 
     // State checks
     isKeyFocused,
