@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertTriangle, Brain, Check, Sparkles } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertTriangle, Brain, Check, Loader2, Sparkles } from 'lucide-react';
 
 interface UnifiedSuggestion {
   id: string;
@@ -14,6 +15,7 @@ interface AISuggestionsTabProps {
   keyId: string;
   targetLanguages: string[];
   getSuggestions: (keyId: string) => Map<string, UnifiedSuggestion[]>;
+  fetchingLanguages?: Set<string>;
 }
 
 // Language code to flag emoji mapping
@@ -47,6 +49,7 @@ export function AISuggestionsTab({
   keyId,
   targetLanguages,
   getSuggestions,
+  fetchingLanguages,
 }: AISuggestionsTabProps) {
   // Collect AI suggestions
   const suggestionsMap = getSuggestions(keyId);
@@ -54,6 +57,31 @@ export function AISuggestionsTab({
     const suggestions = suggestionsMap.get(lang) || [];
     return suggestions.filter((s) => s.type === 'ai').map((s) => ({ ...s, lang }));
   });
+
+  const isLoading = fetchingLanguages && fetchingLanguages.size > 0;
+
+  // Show loading state if fetching
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {Array.from(fetchingLanguages)
+          .slice(0, 4)
+          .map((lang) => (
+            <div key={lang} className="bg-primary/8 border-primary/20 rounded-lg border p-3">
+              <div className="mb-1.5 flex items-center gap-2">
+                <div className="bg-primary/15 text-primary flex items-center gap-1 rounded-full px-1.5 py-0.5">
+                  <span className="text-sm">{getFlagEmoji(lang)}</span>
+                  <span className="text-[10px] font-semibold uppercase">{lang}</span>
+                </div>
+                <Loader2 className="text-muted-foreground size-3 animate-spin" />
+                <span className="text-muted-foreground text-[11px]">Generating...</span>
+              </div>
+              <Skeleton className="h-6 w-full" />
+            </div>
+          ))}
+      </div>
+    );
+  }
 
   if (aiSuggestions.length === 0) {
     return (

@@ -6,6 +6,7 @@ import { useTranslation } from '@lingx/sdk-nextjs';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { AUTO_SAVE_DEBOUNCE_MS, BATCH_SIZE, SAVED_INDICATOR_DURATION_MS } from '../_constants';
 
 interface UseTranslationMutationsOptions {
   branchId: string;
@@ -64,7 +65,7 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
           next.delete(variables.keyId);
           return next;
         });
-      }, 2000);
+      }, SAVED_INDICATOR_DURATION_MS);
     },
     onError: (error: ApiError, variables) => {
       toast.error(t('translations.toasts.failedToSave'), { description: error.message });
@@ -132,6 +133,11 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
         const valueToSave = pendingSavesRef.current.get(saveKey);
         if (valueToSave === undefined) return;
 
+        // Check if already saving this translation (prevent race condition)
+        if (savingKeys.get(keyId)?.has(lang)) {
+          return;
+        }
+
         // Validate ICU syntax if value contains braces
         if (valueToSave.includes('{')) {
           try {
@@ -154,8 +160,9 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
               });
             }
           } catch (err) {
-            // If validation fails, allow save (graceful degradation)
+            // If validation API fails, show warning and proceed (graceful degradation)
             console.warn('[ICU Validation] Failed to validate:', err);
+            toast.warning(t('translations.toasts.icuValidationUnavailable'));
           }
         }
 
@@ -186,11 +193,11 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
         }
 
         saveTimeoutRefs.current.delete(saveKey);
-      }, 1500);
+      }, AUTO_SAVE_DEBOUNCE_MS);
 
       saveTimeoutRefs.current.set(saveKey, timeout);
     },
-    [updateTranslationMutation, t]
+    [updateTranslationMutation, t, savingKeys]
   );
 
   // Handle approval
@@ -230,7 +237,6 @@ export function useTranslationMutations({ branchId }: UseTranslationMutationsOpt
 
       setIsBatchApproving(true);
       try {
-        const BATCH_SIZE = 100;
         const chunks: string[][] = [];
         for (let i = 0; i < translationIds.length; i += BATCH_SIZE) {
           chunks.push(translationIds.slice(i, i + BATCH_SIZE));

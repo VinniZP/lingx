@@ -85,6 +85,16 @@ export function LanguageRowHeader({
         isExpanded ? 'bg-muted/50' : 'hover:bg-muted/30'
       )}
       onClick={onToggle}
+      role="button"
+      tabIndex={0}
+      aria-expanded={isExpanded}
+      aria-label={`${language.name} translation${hasValue ? `: ${status}` : ' - empty'}. Click to ${isExpanded ? 'collapse' : 'expand'}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
     >
       {/* Expand indicator */}
       <ChevronRight
@@ -155,6 +165,7 @@ export function LanguageRowHeader({
                 className="size-7"
                 onClick={onFetchMT}
                 disabled={isFetchingMT}
+                aria-label={`Machine translate ${language.name}`}
               >
                 {isFetchingMT ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -176,6 +187,7 @@ export function LanguageRowHeader({
                 className="size-7"
                 onClick={onFetchAI}
                 disabled={isFetchingAI}
+                aria-label={`AI translate ${language.name}`}
               >
                 {isFetchingAI ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -198,6 +210,7 @@ export function LanguageRowHeader({
                   className="text-success hover:text-success size-7"
                   onClick={onApprove}
                   disabled={isApproving || status === 'APPROVED'}
+                  aria-label={`Approve ${language.name} translation`}
                 >
                   {isApproving ? (
                     <Loader2 className="size-3.5 animate-spin" />
@@ -217,6 +230,7 @@ export function LanguageRowHeader({
                   className="text-destructive hover:text-destructive size-7"
                   onClick={onReject}
                   disabled={isApproving || status === 'REJECTED'}
+                  aria-label={`Reject ${language.name} translation`}
                 >
                   <X className="size-3.5" />
                 </Button>

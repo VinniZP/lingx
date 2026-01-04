@@ -166,6 +166,8 @@ export function KeyEditorPanel({
         sourceText={sourceValue}
         targetLanguages={targetLanguages}
         getSuggestions={getSuggestions}
+        getFetchingMTSet={getFetchingMTSet}
+        getFetchingAISet={getFetchingAISet}
         onApplyGlossaryMatch={(targetLang, text) =>
           onTranslationChange(keyData.id, targetLang, text)
         }

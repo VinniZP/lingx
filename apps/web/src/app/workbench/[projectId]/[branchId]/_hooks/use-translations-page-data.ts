@@ -4,6 +4,7 @@ import { branchApi, projectApi, translationApi, type TranslationKey } from '@/li
 import type { ProjectLanguage } from '@lingx/shared';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { KEYS_PER_PAGE } from '../_constants';
 
 export type FilterType =
   | 'all'
@@ -61,7 +62,7 @@ export function useTranslationsPageData({
       translationApi.listKeys(branchId, {
         search,
         page,
-        limit: 50,
+        limit: KEYS_PER_PAGE,
         filter,
         qualityFilter,
         namespace: namespace || undefined,
@@ -81,7 +82,7 @@ export function useTranslationsPageData({
   );
   const keys: TranslationKey[] = useMemo(() => keysData?.keys || [], [keysData?.keys]);
   const total = keysData?.total ?? 0;
-  const totalPages = Math.ceil(total / 50);
+  const totalPages = Math.ceil(total / KEYS_PER_PAGE);
 
   const defaultLanguage = useMemo(() => languages.find((l) => l.isDefault), [languages]);
 

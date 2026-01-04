@@ -1,6 +1,8 @@
 'use client';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface UnifiedSuggestion {
   id: string;
@@ -14,9 +16,15 @@ interface TMMatchesTabProps {
   keyId: string;
   targetLanguages: string[];
   getSuggestions: (keyId: string) => Map<string, UnifiedSuggestion[]>;
+  fetchingLanguages?: Set<string>;
 }
 
-export function TMMatchesTab({ keyId, targetLanguages, getSuggestions }: TMMatchesTabProps) {
+export function TMMatchesTab({
+  keyId,
+  targetLanguages,
+  getSuggestions,
+  fetchingLanguages,
+}: TMMatchesTabProps) {
   // Collect all TM matches by language
   const suggestionsMap = getSuggestions(keyId);
   const matchesByLang = targetLanguages
@@ -27,7 +35,31 @@ export function TMMatchesTab({ keyId, targetLanguages, getSuggestions }: TMMatch
     })
     .filter((item) => item.matches.length > 0);
 
+  const isLoading = fetchingLanguages && fetchingLanguages.size > 0;
+
   if (matchesByLang.length === 0) {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from(fetchingLanguages)
+            .slice(0, 4)
+            .map((lang) => (
+              <div key={lang} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="text-muted-foreground size-3 animate-spin" />
+                  <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+                    {lang}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                </div>
+              </div>
+            ))}
+        </div>
+      );
+    }
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
         No translation memory matches found

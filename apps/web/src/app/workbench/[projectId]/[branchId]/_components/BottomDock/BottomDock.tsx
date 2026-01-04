@@ -4,14 +4,15 @@ import type { TranslationKey } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { BookOpen, GripHorizontal, Link2, Sparkles, Type } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  BOTTOM_DOCK_DEFAULT_HEIGHT,
+  BOTTOM_DOCK_MAX_HEIGHT,
+  BOTTOM_DOCK_MIN_HEIGHT,
+} from '../../_constants';
 import { AISuggestionsTab } from './AISuggestionsTab';
 import { GlossaryTab } from './GlossaryTab';
 import { RelatedKeysTab } from './RelatedKeysTab';
 import { TMMatchesTab } from './TMMatchesTab';
-
-const MIN_HEIGHT = 120;
-const MAX_HEIGHT = 500;
-const DEFAULT_HEIGHT = 180;
 
 interface UnifiedSuggestion {
   id: string;
@@ -45,6 +46,8 @@ interface BottomDockProps {
   sourceText: string;
   targetLanguages: string[];
   getSuggestions: (keyId: string) => Map<string, UnifiedSuggestion[]>;
+  getFetchingMTSet?: (keyId: string) => Set<string>;
+  getFetchingAISet?: (keyId: string) => Set<string>;
   onApplyGlossaryMatch?: (targetLang: string, text: string, matchId: string) => void;
 }
 
@@ -56,10 +59,12 @@ export function BottomDock({
   sourceText,
   targetLanguages,
   getSuggestions,
+  getFetchingMTSet,
+  getFetchingAISet,
   onApplyGlossaryMatch,
 }: BottomDockProps) {
   const [activeTab, setActiveTab] = useState<TabId>('tm');
-  const [height, setHeight] = useState(DEFAULT_HEIGHT);
+  const [height, setHeight] = useState(BOTTOM_DOCK_DEFAULT_HEIGHT);
   const [isResizing, setIsResizing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
@@ -70,7 +75,10 @@ export function BottomDock({
     (e: MouseEvent) => {
       if (!isResizing) return;
       const deltaY = startY.current - e.clientY;
-      const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight.current + deltaY));
+      const newHeight = Math.min(
+        BOTTOM_DOCK_MAX_HEIGHT,
+        Math.max(BOTTOM_DOCK_MIN_HEIGHT, startHeight.current + deltaY)
+      );
       setHeight(newHeight);
     },
     [isResizing]
@@ -176,6 +184,7 @@ export function BottomDock({
             keyId={keyData.id}
             targetLanguages={targetLanguages}
             getSuggestions={getSuggestions}
+            fetchingLanguages={getFetchingMTSet?.(keyData.id)}
           />
         )}
         {activeTab === 'glossary' && sourceLanguage && (
@@ -192,6 +201,7 @@ export function BottomDock({
             keyId={keyData.id}
             targetLanguages={targetLanguages}
             getSuggestions={getSuggestions}
+            fetchingLanguages={getFetchingAISet?.(keyData.id)}
           />
         )}
         {activeTab === 'related' && <RelatedKeysTab keyData={keyData} branchId={branchId} />}
