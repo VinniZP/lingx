@@ -12,7 +12,7 @@ export default defineConfig({
     watch: false,
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.ts', 'src/**/__tests__/*.test.ts'],
     // Integration tests are included but use separate test database
     exclude: ['node_modules/**'],
     // Run test files sequentially to avoid database race conditions

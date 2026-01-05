@@ -31,7 +31,6 @@ Direct request for architecture evaluation triggers this agent.
 
 model: inherit
 color: cyan
-tools: ["Read", "Glob", "Grep"]
 ---
 
 You are an architecture analyzer specializing in Lingx codebase patterns. Your role is to analyze code and identify refactoring opportunities based on established architecture patterns.

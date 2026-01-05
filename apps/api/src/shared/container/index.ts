@@ -7,6 +7,7 @@
 
 import type { PrismaClient } from '@prisma/client';
 import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer } from 'awilix';
+import { ActivityService } from '../../services/activity.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
 /**
@@ -16,6 +17,9 @@ import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 export interface Cradle {
   // Infrastructure
   prisma: PrismaClient;
+
+  // Services
+  activityService: ActivityService;
 
   // CQRS Buses
   commandBus: CommandBus;
@@ -40,6 +44,11 @@ export function createAppContainer(prisma: PrismaClient): AwilixContainer<Cradle
   // Register infrastructure
   container.register({
     prisma: asValue(prisma),
+  });
+
+  // Register services
+  container.register({
+    activityService: asClass(ActivityService).singleton(),
   });
 
   // Register the container itself so buses can resolve it
