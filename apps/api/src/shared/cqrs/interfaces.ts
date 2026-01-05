@@ -159,11 +159,3 @@ export interface IEventBus {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = unknown> = new (...args: any[]) => T;
-
-/**
- * Handler registration metadata.
- */
-export interface HandlerMetadata {
-  messageType: Constructor;
-  handlerName: string;
-}

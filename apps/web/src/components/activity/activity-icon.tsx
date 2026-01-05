@@ -4,23 +4,23 @@
  * Maps activity types to lucide-react icons.
  * Used across dashboard and project activity feeds.
  */
+import type { ActivityType } from '@lingx/shared';
 import {
-  FileText,
-  GitBranch,
-  Plus,
-  Trash2,
-  GitMerge,
-  Upload,
-  Download,
-  Settings,
-  Layers,
-  Sparkles,
   Activity,
   CheckCircle,
+  Download,
+  FileText,
+  GitBranch,
+  GitMerge,
+  Layers,
+  Plus,
+  Settings,
+  Sparkles,
+  Trash2,
+  Upload,
   XCircle,
   type LucideIcon,
 } from 'lucide-react';
-import type { ActivityType } from '@lingx/shared';
 
 const activityIcons: Record<ActivityType, LucideIcon> = {
   translation: FileText,
@@ -33,6 +33,7 @@ const activityIcons: Record<ActivityType, LucideIcon> = {
   export: Download,
   project_settings: Settings,
   environment_create: Layers,
+  environment_update: Layers,
   environment_delete: Layers,
   environment_switch_branch: Layers,
   ai_translate: Sparkles,
@@ -54,7 +55,13 @@ export function getActivityIcon(type: ActivityType | string): LucideIcon {
  * ActivityIcon - renders the activity icon directly without creating component during render
  * Use this instead of getActivityIcon() to avoid React Compiler warnings
  */
-export function ActivityIcon({ type, className }: { type: ActivityType | string; className?: string }) {
+export function ActivityIcon({
+  type,
+  className,
+}: {
+  type: ActivityType | string;
+  className?: string;
+}) {
   const Icon = activityIcons[type as ActivityType] || Activity;
   return <Icon className={className} />;
 }

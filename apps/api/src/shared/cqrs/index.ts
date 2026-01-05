@@ -1,7 +1,6 @@
 // Core interfaces
 export type {
   Constructor,
-  HandlerMetadata,
   ICommand,
   ICommandBus,
   ICommandHandler,

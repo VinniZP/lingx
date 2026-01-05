@@ -120,11 +120,12 @@ export function defineEventHandler<TEvent extends IEvent, THandler extends IEven
  *   defineCommandHandler(UpdateUserCommand, UpdateUserHandler, 'updateUserHandler'),
  * ];
  *
- * registerAll(commandBus, registrations);
+ * registerCommandHandlers(commandBus, registrations);
  * ```
  */
 export function registerCommandHandlers(
-  commandBus: { register: (cls: Constructor, name: string) => void },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  commandBus: { register: (cls: any, name: string) => void },
   registrations: HandlerRegistration<ICommand<unknown>>[]
 ): void {
   for (const { messageClass, handlerName } of registrations) {
@@ -133,7 +134,8 @@ export function registerCommandHandlers(
 }
 
 export function registerQueryHandlers(
-  queryBus: { register: (cls: Constructor, name: string) => void },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  queryBus: { register: (cls: any, name: string) => void },
   registrations: HandlerRegistration<IQuery<unknown>>[]
 ): void {
   for (const { messageClass, handlerName } of registrations) {
@@ -142,7 +144,8 @@ export function registerQueryHandlers(
 }
 
 export function registerEventHandlers(
-  eventBus: { register: (cls: Constructor, name: string) => void },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventBus: { register: (cls: any, name: string) => void },
   registrations: HandlerRegistration<IEvent>[]
 ): void {
   for (const { messageClass, handlerName } of registrations) {

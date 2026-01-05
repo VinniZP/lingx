@@ -9,6 +9,14 @@
 import type { AwilixContainer } from 'awilix';
 import { asClass } from 'awilix';
 import type { Cradle } from '../../shared/container/index.js';
+import {
+  defineCommandHandler,
+  defineEventHandler,
+  defineQueryHandler,
+  registerCommandHandlers,
+  registerEventHandlers,
+  registerQueryHandlers,
+} from '../../shared/cqrs/index.js';
 
 // Repository
 import { EnvironmentRepository } from './environment.repository.js';
@@ -67,6 +75,55 @@ export { EnvironmentUpdatedEvent } from './events/environment-updated.event.js';
 // Re-export types from repository
 export type { EnvironmentWithBranch } from './environment.repository.js';
 
+// Type-safe handler registrations
+// These verify at compile time that handlers match their commands/queries/events
+const queryRegistrations = [
+  defineQueryHandler(GetEnvironmentQuery, GetEnvironmentHandler, 'getEnvironmentHandler'),
+  defineQueryHandler(ListEnvironmentsQuery, ListEnvironmentsHandler, 'listEnvironmentsHandler'),
+];
+
+const commandRegistrations = [
+  defineCommandHandler(
+    CreateEnvironmentCommand,
+    CreateEnvironmentHandler,
+    'createEnvironmentHandler'
+  ),
+  defineCommandHandler(
+    UpdateEnvironmentCommand,
+    UpdateEnvironmentHandler,
+    'updateEnvironmentHandler'
+  ),
+  defineCommandHandler(SwitchBranchCommand, SwitchBranchHandler, 'switchBranchHandler'),
+  defineCommandHandler(
+    DeleteEnvironmentCommand,
+    DeleteEnvironmentHandler,
+    'deleteEnvironmentHandler'
+  ),
+];
+
+const eventRegistrations = [
+  defineEventHandler(
+    EnvironmentCreatedEvent,
+    EnvironmentCreatedActivityHandler,
+    'environmentCreatedActivityHandler'
+  ),
+  defineEventHandler(
+    EnvironmentUpdatedEvent,
+    EnvironmentUpdatedActivityHandler,
+    'environmentUpdatedActivityHandler'
+  ),
+  defineEventHandler(
+    BranchSwitchedEvent,
+    BranchSwitchedActivityHandler,
+    'branchSwitchedActivityHandler'
+  ),
+  defineEventHandler(
+    EnvironmentDeletedEvent,
+    EnvironmentDeletedActivityHandler,
+    'environmentDeletedActivityHandler'
+  ),
+];
+
 /**
  * Register environment module handlers with the container.
  */
@@ -90,18 +147,6 @@ export function registerEnvironmentModule(container: AwilixContainer<Cradle>): v
     deleteEnvironmentHandler: asClass(DeleteEnvironmentHandler).singleton(),
   });
 
-  // Register handlers with query bus
-  const queryBus = container.resolve('queryBus');
-  queryBus.register(GetEnvironmentQuery, 'getEnvironmentHandler');
-  queryBus.register(ListEnvironmentsQuery, 'listEnvironmentsHandler');
-
-  // Register handlers with command bus
-  const commandBus = container.resolve('commandBus');
-  commandBus.register(CreateEnvironmentCommand, 'createEnvironmentHandler');
-  commandBus.register(UpdateEnvironmentCommand, 'updateEnvironmentHandler');
-  commandBus.register(SwitchBranchCommand, 'switchBranchHandler');
-  commandBus.register(DeleteEnvironmentCommand, 'deleteEnvironmentHandler');
-
   // Register event handlers for activity logging
   container.register({
     environmentCreatedActivityHandler: asClass(EnvironmentCreatedActivityHandler).singleton(),
@@ -110,10 +155,13 @@ export function registerEnvironmentModule(container: AwilixContainer<Cradle>): v
     environmentDeletedActivityHandler: asClass(EnvironmentDeletedActivityHandler).singleton(),
   });
 
-  // Register event handlers with event bus
+  // Register with buses using type-safe registrations
+  const queryBus = container.resolve('queryBus');
+  registerQueryHandlers(queryBus, queryRegistrations);
+
+  const commandBus = container.resolve('commandBus');
+  registerCommandHandlers(commandBus, commandRegistrations);
+
   const eventBus = container.resolve('eventBus');
-  eventBus.register(EnvironmentCreatedEvent, 'environmentCreatedActivityHandler');
-  eventBus.register(EnvironmentUpdatedEvent, 'environmentUpdatedActivityHandler');
-  eventBus.register(BranchSwitchedEvent, 'branchSwitchedActivityHandler');
-  eventBus.register(EnvironmentDeletedEvent, 'environmentDeletedActivityHandler');
+  registerEventHandlers(eventBus, eventRegistrations);
 }
