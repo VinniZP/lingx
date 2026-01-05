@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "plugins": [
+    {
+      "name": "lingx-refactor",
+      "source": "./plugins/lingx-refactor",
+      "description": "Refactor code to follow Lingx architecture patterns (CQRS-lite for backend, Progressive FSD for frontend)",
+      "version": "0.1.0"
+    }
+  ]
+}

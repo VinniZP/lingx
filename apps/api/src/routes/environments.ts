@@ -3,30 +3,56 @@
  *
  * Handles environment CRUD operations with branch pointer management.
  * Per Design Doc: AC-WEB-017, AC-WEB-018, AC-WEB-019
+ *
+ * Uses CQRS-lite pattern with CommandBus and QueryBus.
+ * Authorization is handled by command/query handlers, keeping routes thin.
  */
+import {
+  createEnvironmentSchema,
+  environmentListResponseSchema,
+  environmentResponseSchema,
+  switchBranchSchema,
+  updateEnvironmentSchema,
+} from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  createEnvironmentSchema,
-  updateEnvironmentSchema,
-  switchBranchSchema,
-  environmentListResponseSchema,
-  environmentResponseSchema,
-} from '@lingx/shared';
-import { EnvironmentService } from '../services/environment.service.js';
-import { ProjectService } from '../services/project.service.js';
-import { ActivityService } from '../services/activity.service.js';
-import { BranchService } from '../services/branch.service.js';
 import { toEnvironmentDto, toEnvironmentDtoList } from '../dto/index.js';
-import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
+import { NotFoundError } from '../plugins/error-handler.js';
+
+// CQRS Commands and Queries
+// Result types are now inferred from commands/queries - no explicit type needed
+import {
+  CreateEnvironmentCommand,
+  DeleteEnvironmentCommand,
+  GetEnvironmentQuery,
+  ListEnvironmentsQuery,
+  SwitchBranchCommand,
+  UpdateEnvironmentCommand,
+} from '../modules/environment/index.js';
 
 const environmentRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const environmentService = new EnvironmentService(fastify.prisma);
-  const projectService = new ProjectService(fastify.prisma);
-  const activityService = new ActivityService(fastify.prisma);
-  const branchService = new BranchService(fastify.prisma);
+
+  /**
+   * Resolve project ID from slug or ID parameter.
+   * Routes accept both for flexibility.
+   */
+  async function resolveProjectId(idOrSlug: string): Promise<string> {
+    // Try to find by slug first
+    const project = await fastify.prisma.project.findFirst({
+      where: {
+        OR: [{ slug: idOrSlug }, { id: idOrSlug }],
+      },
+      select: { id: true },
+    });
+
+    if (!project) {
+      throw new NotFoundError('Project');
+    }
+
+    return project.id;
+  }
 
   /**
    * GET /api/projects/:projectId/environments - List environments
@@ -47,24 +73,14 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
-      const { projectId } = request.params;
+    async (request) => {
+      const projectId = await resolveProjectId(request.params.projectId);
 
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(projectId);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      const isMember = await projectService.checkMembership(
-        project.id,
-        request.user.userId
+      // Result type is inferred from ListEnvironmentsQuery
+      const environments = await fastify.queryBus.execute(
+        new ListEnvironmentsQuery(projectId, request.user.userId)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
 
-      const environments = await environmentService.findByProjectId(project.id);
       return { environments: toEnvironmentDtoList(environments) };
     }
   );
@@ -90,53 +106,15 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { projectId } = request.params;
+      const projectId = await resolveProjectId(request.params.projectId);
       const { name, slug, branchId } = request.body;
 
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(projectId);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check manager role
-      const role = await projectService.getMemberRole(
-        project.id,
-        request.user.userId
+      // Result type is inferred from CreateEnvironmentCommand
+      const environment = await fastify.commandBus.execute(
+        new CreateEnvironmentCommand(name, slug, projectId, branchId, request.user.userId)
       );
-      if (!role || role === 'DEVELOPER') {
-        throw new ForbiddenError('Requires manager or owner role');
-      }
 
-      const environment = await environmentService.create({
-        name,
-        slug,
-        projectId: project.id,
-        branchId,
-      });
-
-      // Log activity (async, non-blocking)
-      activityService.log({
-        type: 'environment_create',
-        projectId: project.id,
-        branchId,
-        userId: request.user.userId,
-        metadata: {
-          environmentName: name,
-          environmentId: environment.id,
-        },
-        changes: [
-          {
-            entityType: 'environment',
-            entityId: environment.id,
-            newValue: name,
-          },
-        ],
-      });
-
-      // Fetch with branch for response
-      const envWithBranch = await environmentService.findById(environment.id);
-      return reply.status(201).send(toEnvironmentDto(envWithBranch!));
+      return reply.status(201).send(toEnvironmentDto(environment));
     }
   );
 
@@ -159,21 +137,11 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
-      const { id } = request.params;
-
-      const environment = await environmentService.findById(id);
-      if (!environment) {
-        throw new NotFoundError('Environment');
-      }
-
-      const isMember = await projectService.checkMembership(
-        environment.projectId,
-        request.user.userId
+    async (request) => {
+      // Result type is inferred from GetEnvironmentQuery
+      const environment = await fastify.queryBus.execute(
+        new GetEnvironmentQuery(request.params.id, request.user.userId)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
 
       return toEnvironmentDto(environment);
     }
@@ -199,27 +167,16 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { id } = request.params;
-      const input = request.body;
+      const { name } = request.body;
 
-      const environment = await environmentService.findById(id);
-      if (!environment) {
-        throw new NotFoundError('Environment');
-      }
-
-      // Check manager role
-      const role = await projectService.getMemberRole(
-        environment.projectId,
-        request.user.userId
+      // Result type is inferred from UpdateEnvironmentCommand
+      const environment = await fastify.commandBus.execute(
+        new UpdateEnvironmentCommand(id, request.user.userId, name)
       );
-      if (!role || role === 'DEVELOPER') {
-        throw new ForbiddenError('Requires manager or owner role');
-      }
 
-      const updated = await environmentService.update(id, input);
-      const updatedWithBranch = await environmentService.findById(updated.id);
-      return toEnvironmentDto(updatedWithBranch!);
+      return toEnvironmentDto(environment);
     }
   );
 
@@ -243,57 +200,16 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { id } = request.params;
       const { branchId } = request.body;
 
-      const environment = await environmentService.findById(id);
-      if (!environment) {
-        throw new NotFoundError('Environment');
-      }
-
-      // Check manager role
-      const role = await projectService.getMemberRole(
-        environment.projectId,
-        request.user.userId
+      // Result type is inferred from SwitchBranchCommand
+      const environment = await fastify.commandBus.execute(
+        new SwitchBranchCommand(id, branchId, request.user.userId)
       );
-      if (!role || role === 'DEVELOPER') {
-        throw new ForbiddenError('Requires manager or owner role');
-      }
 
-      // Get old and new branch names for activity logging
-      const oldBranchId = environment.branchId;
-      const [oldBranch, newBranch] = await Promise.all([
-        oldBranchId ? branchService.findById(oldBranchId) : null,
-        branchService.findById(branchId),
-      ]);
-
-      const result = await environmentService.switchBranch(id, branchId);
-
-      // Log activity (async, non-blocking)
-      activityService.log({
-        type: 'environment_switch_branch',
-        projectId: environment.projectId,
-        branchId,
-        userId: request.user.userId,
-        metadata: {
-          environmentName: environment.name,
-          environmentId: id,
-          oldBranchName: oldBranch?.name,
-          newBranchName: newBranch?.name,
-        },
-        changes: [
-          {
-            entityType: 'environment',
-            entityId: id,
-            oldValue: oldBranch?.name,
-            newValue: newBranch?.name,
-          },
-        ],
-      });
-
-      const resultWithBranch = await environmentService.findById(result.id);
-      return toEnvironmentDto(resultWithBranch!);
+      return toEnvironmentDto(environment);
     }
   );
 
@@ -314,41 +230,9 @@ const environmentRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { id } = request.params;
-
-      const environment = await environmentService.findById(id);
-      if (!environment) {
-        throw new NotFoundError('Environment');
-      }
-
-      // Check manager role
-      const role = await projectService.getMemberRole(
-        environment.projectId,
-        request.user.userId
+      await fastify.commandBus.execute(
+        new DeleteEnvironmentCommand(request.params.id, request.user.userId)
       );
-      if (!role || role === 'DEVELOPER') {
-        throw new ForbiddenError('Requires manager or owner role');
-      }
-
-      await environmentService.delete(id);
-
-      // Log activity (async, non-blocking)
-      activityService.log({
-        type: 'environment_delete',
-        projectId: environment.projectId,
-        userId: request.user.userId,
-        metadata: {
-          environmentName: environment.name,
-          environmentId: id,
-        },
-        changes: [
-          {
-            entityType: 'environment',
-            entityId: id,
-            oldValue: environment.name,
-          },
-        ],
-      });
 
       return reply.status(204).send();
     }

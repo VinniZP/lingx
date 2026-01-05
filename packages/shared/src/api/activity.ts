@@ -9,9 +9,9 @@
 export type {
   Activity,
   ActivityChange,
-  ActivityMetadata,
   ActivityChangesResponse,
   ActivityListResponse,
+  ActivityMetadata,
 } from '../validation/response.schema.js';
 
 /**
@@ -31,6 +31,7 @@ export type ActivityType =
   | 'export'
   | 'project_settings'
   | 'environment_create'
+  | 'environment_update'
   | 'environment_delete'
   | 'environment_switch_branch'
   | 'ai_translate'
@@ -40,11 +41,7 @@ export type ActivityType =
 /**
  * Activity types that can be grouped when consecutive
  */
-export const GROUPABLE_ACTIVITY_TYPES: ActivityType[] = [
-  'translation',
-  'key_add',
-  'key_delete',
-];
+export const GROUPABLE_ACTIVITY_TYPES: ActivityType[] = ['translation', 'key_add', 'key_delete'];
 
 /**
  * Preview item for hover display (first 10 changes)

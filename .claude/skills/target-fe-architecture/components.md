@@ -1,21 +1,27 @@
 # Component Patterns
 
-Guidelines for splitting and organizing React components in Lingx.
+Guidelines for organizing React components in Lingx using the Progressive FSD Hybrid approach.
 
-## When to Split
+## FSD vs \_components Decision
 
-| Condition | Action |
-|-----------|--------|
-| Component > 200 lines | Split into sub-components |
-| Complex logic mixed with JSX | Extract to hook |
-| Same component used 2+ places | Move to shared location |
-| Inline function component | Extract to file if > 30 lines |
+```
+New component needed?
+│
+├─ Page-specific only → app/[route]/_components/
+│
+├─ Used 3+ places?
+│   ├─ Business display → entities/ (see entities.md)
+│   ├─ User action → features/ (see features.md)
+│   └─ Complex state → widgets/ (see widgets.md)
+│
+└─ Generic UI primitive → shared/ui/
+```
 
 ## Co-location Strategy
 
-### Page-specific Components
+### Page-specific Components (\_components/)
 
-Use `_components/` folder (Next.js private folder convention):
+Use `_components/` for components only used by one route:
 
 ```
 app/(dashboard)/dashboard/
@@ -27,56 +33,64 @@ app/(dashboard)/dashboard/
 │   └── activity-feed.tsx
 ```
 
-### Shared Components
+**Keep here when:**
 
-Place in `components/` when used across multiple pages:
+- Used by this page only
+- Unlikely to be reused
+- Tightly coupled to page data
 
-```
-components/
-├── ui/                       # shadcn/ui base components
-├── layout/                   # Layout components (sidebar, header)
-├── dialogs/                  # Shared dialogs
-├── translations/             # Translation-related components
-└── branch/                   # Branch-related components
-```
+**Migrate when:**
+
+- Used in 3+ routes → entities/ or features/
+- Has mutations → features/
+- Over 300 lines with complex state → widgets/
+
+### FSD Layers
+
+| Layer        | Purpose          | Example                            |
+| ------------ | ---------------- | ---------------------------------- |
+| `entities/`  | Business objects | ProjectCard, KeyRow, UserAvatar    |
+| `features/`  | User actions     | AITranslateButton, DeleteKeyButton |
+| `widgets/`   | Complex UI       | TranslationEditor, ImportWizard    |
+| `shared/ui/` | UI primitives    | Button, Card, Input                |
+
+See respective documentation files for detailed patterns.
 
 ## Component Types
 
-### Page Component (Orchestrator)
+### Page Component (Server Component)
 
-```typescript
+Thin orchestration layer that composes FSD components:
+
+```tsx
 // app/(dashboard)/dashboard/page.tsx
-'use client';
-
-import { useDashboardStats } from '@/hooks';
-import { useProjects } from '@/hooks';
+import { Suspense } from 'react';
+import { getDashboardStats, getProjects } from '@/shared/api';
+import { ProjectCard } from '@/entities/project';
 import { DashboardHero } from './_components/dashboard-hero';
-import { RecentProjects } from './_components/recent-projects';
-import { QuickActions } from './_components/quick-actions';
 import { ActivityFeed } from './_components/activity-feed';
-import { Resources } from './_components/resources';
 
-export default function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: projects, isLoading: projectsLoading } = useProjects();
-
-  if (statsLoading || projectsLoading) {
-    return <DashboardSkeleton />;
-  }
+export default async function DashboardPage() {
+  const [stats, projects] = await Promise.all([getDashboardStats(), getProjects()]);
 
   return (
     <div className="space-y-8">
       <DashboardHero stats={stats} />
 
       <div className="grid gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-7 space-y-6">
-          <RecentProjects projects={projects?.slice(0, 3)} />
-          <QuickActions />
+        <div className="space-y-6 lg:col-span-7">
+          <section className="island">
+            <h2 className="text-muted-foreground mb-4 text-sm font-medium">Recent Projects</h2>
+            {projects.slice(0, 3).map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </section>
         </div>
 
-        <div className="lg:col-span-5 space-y-6">
-          <ActivityFeed />
-          <Resources />
+        <div className="lg:col-span-5">
+          <Suspense fallback={<ActivitySkeleton />}>
+            <ActivityFeed />
+          </Suspense>
         </div>
       </div>
     </div>
@@ -85,15 +99,18 @@ export default function DashboardPage() {
 ```
 
 **Characteristics:**
-- ~50 lines target
-- Fetches data via hooks
-- Composes child components
-- Passes data down via props
-- Handles loading states
+
+- Server Component (async function)
+- Fetches data on server
+- Composes entities, features, widgets
+- Passes data via props
+- Uses \_components/ for page-specific UI
 
 ### Presentational Component
 
-```typescript
+Pure display with no side effects (keep in \_components/ or migrate to entities/):
+
+```tsx
 // app/(dashboard)/dashboard/_components/dashboard-hero.tsx
 import type { DashboardStats } from '@lingx/shared';
 import { Folder, Key, Languages, CheckCircle } from 'lucide-react';
@@ -104,27 +121,13 @@ interface DashboardHeroProps {
 
 export function DashboardHero({ stats }: DashboardHeroProps) {
   return (
-    <div className="island p-6 lg:p-8 animate-fade-in-up">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-      </div>
+    <div className="island animate-fade-in-up p-6 lg:p-8">
+      <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          icon={Folder}
-          label="Projects"
-          value={stats?.totalProjects ?? 0}
-        />
-        <StatCard
-          icon={Key}
-          label="Keys"
-          value={stats?.totalKeys ?? 0}
-        />
-        <StatCard
-          icon={Languages}
-          label="Languages"
-          value={stats?.totalLanguages ?? 0}
-        />
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatCard icon={Folder} label="Projects" value={stats?.totalProjects ?? 0} />
+        <StatCard icon={Key} label="Keys" value={stats?.totalKeys ?? 0} />
+        <StatCard icon={Languages} label="Languages" value={stats?.totalLanguages ?? 0} />
         <StatCard
           icon={CheckCircle}
           label="Complete"
@@ -135,97 +138,32 @@ export function DashboardHero({ stats }: DashboardHeroProps) {
   );
 }
 
-// Private helper component - OK to keep in same file if small
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string | number;
-}) {
+// Small helper - OK to keep in same file
+function StatCard({ icon: Icon, label, value }: StatCardProps) {
   return (
     <div className="text-center">
-      <Icon className="size-5 mx-auto text-muted-foreground mb-2" />
+      <Icon className="text-muted-foreground mx-auto mb-2 size-5" />
       <p className="text-2xl font-semibold">{value}</p>
-      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-muted-foreground text-sm">{label}</p>
     </div>
   );
 }
 ```
 
 **Characteristics:**
+
 - Receives data via props
-- No data fetching
-- Pure rendering
-- < 100 lines typically
-- Can have small private helpers
-
-### List Component with Items
-
-```typescript
-// app/(dashboard)/dashboard/_components/recent-projects.tsx
-import Link from 'next/link';
-import type { Project } from '@lingx/shared';
-import { ChevronRight } from 'lucide-react';
-
-interface RecentProjectsProps {
-  projects: Project[] | undefined;
-}
-
-export function RecentProjects({ projects }: RecentProjectsProps) {
-  if (!projects?.length) {
-    return <EmptyState />;
-  }
-
-  return (
-    <div className="space-y-3 animate-fade-in-up stagger-2">
-      <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-        Recent Projects
-      </h2>
-      <div className="island divide-y divide-border">
-        {projects.map(project => (
-          <ProjectItem key={project.id} project={project} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProjectItem({ project }: { project: Project }) {
-  return (
-    <Link
-      href={`/projects/${project.id}`}
-      className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors"
-    >
-      <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{project.name}</p>
-        <p className="text-sm text-muted-foreground truncate">
-          {project.description || 'No description'}
-        </p>
-      </div>
-      <ChevronRight className="size-5 text-muted-foreground" />
-    </Link>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="island p-8 text-center">
-      <p className="text-muted-foreground">No projects yet</p>
-    </div>
-  );
-}
-```
+- No data fetching or mutations
+- Pure rendering logic
+- Typically < 100 lines
 
 ## Props Patterns
 
 ### Required vs Optional
 
-```typescript
+```tsx
 interface ComponentProps {
-  // Required - always needed
+  // Required
   id: string;
 
   // Optional with default
@@ -238,66 +176,66 @@ interface ComponentProps {
   onSelect?: (id: string) => void;
 }
 
-export function Component({
-  id,
-  variant = 'default',
-  description,
-  onSelect,
-}: ComponentProps) {
+export function Component({ id, variant = 'default', description, onSelect }: ComponentProps) {
   // ...
 }
 ```
 
-### Children Pattern
+### Action Slots (FSD Pattern)
 
-```typescript
-interface CardProps {
-  title: string;
-  children: React.ReactNode;
+Entities provide slots for feature actions:
+
+```tsx
+// entities/project/ui/project-card.tsx
+interface ProjectCardProps {
+  project: Project;
+  actions?: React.ReactNode; // Slot for features
 }
 
-export function Card({ title, children }: CardProps) {
+export function ProjectCard({ project, actions }: ProjectCardProps) {
   return (
-    <div className="island">
-      <h3>{title}</h3>
-      {children}
-    </div>
+    <Card>
+      <h3>{project.name}</h3>
+      <p className="text-muted-foreground">{project.slug}</p>
+      {actions && <div onClick={(e) => e.preventDefault()}>{actions}</div>}
+    </Card>
   );
 }
-```
 
-### Render Props (When Needed)
+// Usage in page - compose entity with features
+import { ProjectCard } from '@/entities/project';
+import { DeleteProjectButton } from '@/features/delete-project';
+import { EditProjectButton } from '@/features/edit-project';
 
-```typescript
-interface ListProps<T> {
-  items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
-  keyExtractor: (item: T) => string;
-}
-
-export function List<T>({ items, renderItem, keyExtractor }: ListProps<T>) {
-  return (
-    <div>
-      {items.map((item, index) => (
-        <div key={keyExtractor(item)}>{renderItem(item, index)}</div>
-      ))}
-    </div>
-  );
+function ProjectsPage({ projects }) {
+  return projects.map((project) => (
+    <ProjectCard
+      key={project.id}
+      project={project}
+      actions={
+        <div className="flex gap-2">
+          <EditProjectButton projectId={project.id} />
+          <DeleteProjectButton projectId={project.id} />
+        </div>
+      }
+    />
+  ));
 }
 ```
 
 ## File Naming
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Page component | `page.tsx` | `dashboard/page.tsx` |
-| Layout | `layout.tsx` | `dashboard/layout.tsx` |
-| Co-located | `kebab-case.tsx` | `_components/dashboard-hero.tsx` |
-| Shared | `kebab-case.tsx` | `components/ui/button.tsx` |
+| Type           | Convention       | Example                                |
+| -------------- | ---------------- | -------------------------------------- |
+| Page component | `page.tsx`       | `dashboard/page.tsx`                   |
+| Layout         | `layout.tsx`     | `dashboard/layout.tsx`                 |
+| Co-located     | `kebab-case.tsx` | `_components/dashboard-hero.tsx`       |
+| Entity/Feature | `kebab-case.tsx` | `entities/project/ui/project-card.tsx` |
+| Shared UI      | `kebab-case.tsx` | `shared/ui/button.tsx`                 |
 
 ## Import Order
 
-```typescript
+```tsx
 // 1. React/Next.js
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -305,25 +243,74 @@ import Link from 'next/link';
 // 2. External libraries
 import { useQuery } from '@tanstack/react-query';
 
-// 3. Internal hooks
-import { useDashboardStats } from '@/hooks';
+// 3. FSD layers (top to bottom)
+import { ProjectCard } from '@/entities/project';
+import { DeleteProjectButton } from '@/features/delete-project';
+import { Button } from '@/shared/ui/button';
 
-// 4. Internal components
-import { Button } from '@/components/ui/button';
+// 4. Co-located components
 import { DashboardHero } from './_components/dashboard-hero';
 
 // 5. Types
 import type { DashboardStats } from '@lingx/shared';
 
 // 6. Utilities
-import { cn } from '@/lib/utils';
+import { cn } from '@/shared/lib/utils';
+```
+
+## Migration Triggers
+
+### → entities/
+
+**When:** Business object display used in 3+ routes
+
+```tsx
+// BEFORE: Duplicated in multiple _components/ folders
+// app/(dashboard)/dashboard/_components/project-card.tsx
+// app/(project)/projects/_components/project-card.tsx
+
+// AFTER: Single source in entities/
+// entities/project/ui/project-card.tsx
+export function ProjectCard({ project }: { project: Project }) { ... }
+```
+
+### → features/
+
+**When:** User action with mutations
+
+```tsx
+// BEFORE: Mutation logic in _components/
+// app/(project)/projects/[id]/_components/delete-button.tsx
+function DeleteButton({ projectId }) {
+  const { mutate } = useDeleteProject();  // Mutation = feature
+  return <Button onClick={() => mutate(projectId)}>Delete</Button>;
+}
+
+// AFTER: Move to features/
+// features/delete-project/ui/delete-button.tsx
+export function DeleteProjectButton({ projectId }: Props) { ... }
+```
+
+### → widgets/
+
+**When:** Complex UI with internal state and multiple features
+
+```tsx
+// BEFORE: Large component with many responsibilities
+// app/workbench/_components/translation-editor.tsx (500+ lines)
+
+// AFTER: Widget with structured internals
+// widgets/translation-editor/
+// ├── ui/translation-editor.tsx
+// ├── model/use-realtime-sync.ts
+// └── lib/conflict-resolver.ts
 ```
 
 ## Anti-patterns
 
-### Don't fetch data in presentational components
+### Don't fetch in presentational components
 
-```typescript
+```tsx
 // BAD - fetching in child
 function DashboardHero() {
   const { data } = useDashboardStats(); // ❌
@@ -336,33 +323,52 @@ function DashboardHero({ stats }: { stats: DashboardStats }) {
 }
 ```
 
-### Don't pass too many props
+### Don't put mutations in entities
 
-```typescript
-// BAD - prop drilling
-<DashboardHero
-  totalProjects={stats.totalProjects}
-  totalKeys={stats.totalKeys}
-  totalLanguages={stats.totalLanguages}
-  completionRate={stats.completionRate}
-/>
-
-// GOOD - pass object
-<DashboardHero stats={stats} />
-```
-
-### Don't mix layout and logic
-
-```typescript
-// BAD - logic in layout
-function DashboardHero({ stats }) {
-  const formattedRate = Math.round(stats.completionRate * 100); // ❌
-
-  return <div>{formattedRate}%</div>;
+```tsx
+// BAD - mutation in entity
+// entities/project/ui/project-card.tsx
+function ProjectCard({ project }) {
+  const { mutate } = useDeleteProject(); // ❌ Belongs in features/
+  return <Button onClick={() => mutate(project.id)}>Delete</Button>;
 }
 
-// GOOD - format in hook or parent
-function DashboardHero({ completionPercentage }) {
-  return <div>{completionPercentage}</div>;
+// GOOD - use action slots
+function ProjectCard({ project, actions }) {
+  return (
+    <Card>
+      <h3>{project.name}</h3>
+      {actions} {/* ✅ Features passed via slot */}
+    </Card>
+  );
 }
 ```
+
+### Don't import from sibling layers
+
+```tsx
+// BAD - entity importing from another entity
+// entities/project/ui/project-card.tsx
+import { UserAvatar } from '@/entities/user'; // ❌
+
+// GOOD - compose in higher layer
+// features/project-view/ui/project-with-owner.tsx
+import { ProjectCard } from '@/entities/project';
+import { UserAvatar } from '@/entities/user'; // ✅
+```
+
+## Best Practices
+
+### DO
+
+- Start in `_components/`, migrate when needed
+- Use action slots in entities for features
+- Keep pages thin (compose FSD components)
+- Follow strict layer imports
+
+### DON'T
+
+- Prematurely migrate to FSD
+- Put mutations in entities
+- Import between sibling slices
+- Create widgets for simple components

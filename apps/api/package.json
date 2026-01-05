@@ -39,6 +39,7 @@
     "@prisma/client": "^7.2.0",
     "@simplewebauthn/server": "^13.2.2",
     "ai": "^6.0.6",
+    "awilix": "^12.0.5",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.4",
     "deepl-node": "^1.24.0",

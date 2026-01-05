@@ -1,166 +1,212 @@
-# Data Fetching
+# Data Fetching Patterns
 
-Lingx uses TanStack Query (React Query) for all data fetching.
+Hybrid approach: Server Components for initial data, React Query for mutations and real-time updates.
 
-## Configuration
+## Decision Tree
 
-```typescript
-// components/providers.tsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+```
+When to use which approach?
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000, // 1 minute
-      refetchOnWindowFocus: false,
+Initial page data?
+  └─ Server Component (async function)
+
+User-triggered updates (forms, mutations)?
+  └─ React Query useMutation
+
+Real-time data or polling?
+  └─ React Query useQuery with refetchInterval
+
+Infinite scroll or pagination?
+  └─ React Query useInfiniteQuery
+```
+
+## Server Component Fetching
+
+### Direct Database Access
+
+```tsx
+// app/(dashboard)/projects/page.tsx
+import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
+import { ProjectList } from './_components/project-list';
+
+export default async function ProjectsPage() {
+  const session = await getSession();
+
+  // Direct database query - no API needed
+  const projects = await prisma.project.findMany({
+    where: {
+      members: { some: { userId: session.userId } },
     },
-  },
-});
+    include: { languages: true },
+    orderBy: { createdAt: 'desc' },
+  });
 
-export function Providers({ children }: { children: React.ReactNode }) {
+  return <ProjectList projects={projects} />;
+}
+```
+
+### Parallel Fetching
+
+```tsx
+export default async function DashboardPage() {
+  const session = await getSession();
+
+  // Parallel fetch for better performance
+  const [projects, stats, activity] = await Promise.all([
+    prisma.project.findMany({ where: { ownerId: session.userId } }),
+    getStats(session.userId),
+    getRecentActivity(session.userId),
+  ]);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <div>
+      <StatsCards stats={stats} />
+      <ProjectGrid projects={projects} />
+      <ActivityFeed activity={activity} />
+    </div>
   );
 }
 ```
 
-## API Layer
+### Streaming with Suspense
 
-All API calls are centralized in `lib/api.ts`:
+```tsx
+import { Suspense } from 'react';
+import { ProjectsSkeleton, ActivitySkeleton } from '@/components/skeletons';
 
-```typescript
-// lib/api.ts
-import type { DashboardStats, Project } from '@lingx/shared';
+export default function DashboardPage() {
+  return (
+    <div className="space-y-6">
+      <h1>Dashboard</h1>
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      {/* Each section streams independently */}
+      <Suspense fallback={<ProjectsSkeleton />}>
+        <ProjectsSection />
+      </Suspense>
 
-async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new ApiError(response.status, error.message || 'Request failed');
-  }
-
-  return response.json();
+      <Suspense fallback={<ActivitySkeleton />}>
+        <ActivitySection />
+      </Suspense>
+    </div>
+  );
 }
 
-// Group by domain
-export const dashboardApi = {
-  getStats: () => fetchApi<DashboardStats>('/api/dashboard/stats'),
-};
+async function ProjectsSection() {
+  const projects = await getProjects();
+  return <ProjectGrid projects={projects} />;
+}
 
-export const projectApi = {
-  list: () => fetchApi<{ projects: Project[] }>('/api/projects'),
-  get: (id: string) => fetchApi<Project>(`/api/projects/${id}`),
-  create: (data: CreateProjectInput) =>
-    fetchApi<Project>('/api/projects', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-};
+async function ActivitySection() {
+  const activity = await getRecentActivity();
+  return <ActivityFeed activity={activity} />;
+}
 ```
 
-## Query Patterns
+## Passing Server Data to Client
 
-### Basic Query
+### Initial Data Pattern
 
-```typescript
-// hooks/use-projects.ts
+```tsx
+// page.tsx (Server)
+import { getProject } from '@/lib/api/projects';
+import { ProjectEditor } from './_components/project-editor';
+
+export default async function EditProjectPage({ params }) {
+  const project = await getProject(params.id);
+
+  // Pass server data as initialData
+  return <ProjectEditor initialData={project} />;
+}
+
+// _components/project-editor.tsx (Client)
+('use client');
+
 import { useQuery } from '@tanstack/react-query';
 import { projectApi } from '@/lib/api';
 
-export function useProjects() {
-  return useQuery({
-    queryKey: ['projects'],
-    queryFn: () => projectApi.list(),
+interface ProjectEditorProps {
+  initialData: Project;
+}
+
+export function ProjectEditor({ initialData }: ProjectEditorProps) {
+  // Use initialData for instant render, React Query for updates
+  const { data: project } = useQuery({
+    queryKey: ['project', initialData.id],
+    queryFn: () => projectApi.get(initialData.id),
+    initialData, // Prevents loading state
+    staleTime: 60 * 1000, // Consider fresh for 1 minute
   });
+
+  return <Form defaultValues={project} />;
 }
 ```
 
-### Parameterized Query
+## React Query Configuration
 
-```typescript
+```tsx
+// components/providers.tsx
+'use client';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
+
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
+```
+
+## Custom Query Hooks
+
+### Basic Query
+
+```tsx
 // hooks/use-project.ts
+import { useQuery } from '@tanstack/react-query';
+import { projectApi } from '@/lib/api';
+
 export function useProject(id: string) {
   return useQuery({
     queryKey: ['project', id],
     queryFn: () => projectApi.get(id),
-    enabled: !!id, // Don't fetch if no id
+    enabled: !!id,
   });
 }
 ```
 
-### Dependent Query
+### With Filters
 
-```typescript
-// Wait for first query before running second
-export function useProjectStats(projectId: string) {
-  const { data: project } = useProject(projectId);
-
+```tsx
+// hooks/use-keys.ts
+export function useKeys(branchId: string, filters: KeyFilters) {
   return useQuery({
-    queryKey: ['project-stats', projectId],
-    queryFn: () => projectApi.getStats(projectId),
-    enabled: !!project, // Only run when project is loaded
+    queryKey: ['keys', branchId, filters],
+    queryFn: () => keyApi.list(branchId, filters),
+    enabled: !!branchId,
   });
 }
-```
-
-### Parallel Queries
-
-```typescript
-// Run multiple queries in parallel
-import { useQueries } from '@tanstack/react-query';
-
-export function useMultipleProjects(ids: string[]) {
-  return useQueries({
-    queries: ids.map(id => ({
-      queryKey: ['project', id],
-      queryFn: () => projectApi.get(id),
-    })),
-  });
-}
-```
-
-## Query Keys
-
-Use consistent, hierarchical query keys:
-
-```typescript
-// Single entity
-['project', projectId]
-['branch', branchId]
-['key', keyId]
-
-// Entity list
-['projects']
-['branches', projectId]
-['keys', branchId]
-
-// With filters
-['keys', branchId, { search: 'foo', page: 1 }]
-
-// Aggregates
-['dashboard-stats']
-['project-stats', projectId]
 ```
 
 ## Mutation Patterns
 
 ### Basic Mutation
 
-```typescript
+```tsx
 // hooks/use-create-project.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { projectApi } from '@/lib/api';
 
 export function useCreateProject() {
   const queryClient = useQueryClient();
@@ -168,7 +214,6 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: projectApi.create,
     onSuccess: () => {
-      // Invalidate list to refetch
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
   });
@@ -177,9 +222,9 @@ export function useCreateProject() {
 
 ### With Callbacks
 
-```typescript
+```tsx
 // In component
-const { mutate } = useCreateProject();
+const { mutate, isPending } = useCreateProject();
 
 const handleSubmit = (data: FormData) => {
   mutate(data, {
@@ -194,38 +239,36 @@ const handleSubmit = (data: FormData) => {
 };
 ```
 
-### Optimistic Update
+### Optimistic Updates
 
-```typescript
+```tsx
 export function useUpdateTranslation(branchId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: translationApi.setTranslation,
+    mutationFn: translationApi.update,
 
-    // Before mutation
     onMutate: async (newData) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['keys', branchId] });
 
-      // Snapshot current value
       const previous = queryClient.getQueryData(['keys', branchId]);
 
-      // Optimistically update
-      queryClient.setQueryData(['keys', branchId], (old) => ({
+      // Optimistic update
+      queryClient.setQueryData(['keys', branchId], (old: Keys) => ({
         ...old,
-        // Apply optimistic update
+        items: old.items.map((item) =>
+          item.id === newData.keyId ? { ...item, translation: newData.value } : item
+        ),
       }));
 
       return { previous };
     },
 
-    // On error, rollback
     onError: (err, newData, context) => {
+      // Rollback on error
       queryClient.setQueryData(['keys', branchId], context?.previous);
     },
 
-    // Always refetch after error or success
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['keys', branchId] });
     },
@@ -233,40 +276,55 @@ export function useUpdateTranslation(branchId: string) {
 }
 ```
 
-## Loading States
-
-### In Component
+## Query Keys Convention
 
 ```typescript
-function ProjectsPage() {
-  const { data, isLoading, error } = useProjects();
+// Hierarchical structure
+['projects'][('project', projectId)][('project', projectId, 'stats')][ // List // Single // Nested
+  // With filters
+  ('keys', branchId, { search, page })
+][ // Filtered list
+  // Aggregates
+  'dashboard-stats'
+];
+```
 
-  if (isLoading) {
-    return <ProjectsSkeleton />;
-  }
+## Loading & Error States
 
-  if (error) {
-    return <ErrorState message={error.message} />;
-  }
+### Component Pattern
 
-  if (!data?.projects?.length) {
-    return <EmptyState />;
-  }
+```tsx
+function ProjectList({ projects }: { projects: Project[] }) {
+  // projects always available (from server)
 
-  return <ProjectsList projects={data.projects} />;
+  const { mutate, isPending } = useDeleteProject();
+
+  return (
+    <div>
+      {projects.map((project) => (
+        <ProjectCard
+          key={project.id}
+          project={project}
+          onDelete={() => mutate(project.id)}
+          isDeleting={isPending}
+        />
+      ))}
+    </div>
+  );
 }
 ```
 
-### Skeleton Components
+### Skeleton for Streaming
 
-```typescript
-function ProjectsSkeleton() {
+```tsx
+// app/(dashboard)/projects/loading.tsx
+export default function ProjectsLoading() {
   return (
     <div className="space-y-4">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="island p-4 animate-pulse">
-          <div className="h-5 w-1/3 bg-muted rounded" />
-          <div className="h-4 w-1/2 bg-muted rounded mt-2" />
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="island animate-pulse p-4">
+          <div className="bg-muted h-5 w-1/3 rounded" />
+          <div className="bg-muted mt-2 h-4 w-1/2 rounded" />
         </div>
       ))}
     </div>
@@ -274,87 +332,65 @@ function ProjectsSkeleton() {
 }
 ```
 
-## Error Handling
-
-### API Error Class
+## API Layer
 
 ```typescript
 // lib/api.ts
-export class ApiError extends Error {
-  constructor(
-    public statusCode: number,
-    message: string
-  ) {
-    super(message);
-    this.name = 'ApiError';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new ApiError(response.status, error.message);
   }
+
+  return response.json();
 }
-```
 
-### Error Boundaries
-
-```typescript
-// components/error-boundary.tsx
-'use client';
-
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
-
-export function QueryErrorBoundary({ children }: { children: React.ReactNode }) {
-  const { reset } = useQueryErrorResetBoundary();
-
-  return (
-    <ErrorBoundary
-      onReset={reset}
-      fallbackRender={({ resetErrorBoundary }) => (
-        <div className="p-4 text-center">
-          <p>Something went wrong</p>
-          <button onClick={resetErrorBoundary}>Try again</button>
-        </div>
-      )}
-    >
-      {children}
-    </ErrorBoundary>
-  );
-}
-```
-
-## Cache Invalidation
-
-### Manual Invalidation
-
-```typescript
-const queryClient = useQueryClient();
-
-// Invalidate single query
-queryClient.invalidateQueries({ queryKey: ['projects'] });
-
-// Invalidate with prefix
-queryClient.invalidateQueries({ queryKey: ['project', projectId] });
-
-// Invalidate exact match
-queryClient.invalidateQueries({
-  queryKey: ['keys', branchId],
-  exact: true,
-});
-```
-
-### Refetch on Focus
-
-```typescript
-// For real-time data
-useQuery({
-  queryKey: ['notifications'],
-  queryFn: fetchNotifications,
-  refetchOnWindowFocus: true, // Refetch when tab becomes active
-  refetchInterval: 30000, // Poll every 30s
-});
+export const projectApi = {
+  list: () => fetchApi<Project[]>('/api/projects'),
+  get: (id: string) => fetchApi<Project>(`/api/projects/${id}`),
+  create: (data: CreateProjectInput) =>
+    fetchApi<Project>('/api/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: UpdateProjectInput) =>
+    fetchApi<Project>(`/api/projects/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) => fetchApi<void>(`/api/projects/${id}`, { method: 'DELETE' }),
+};
 ```
 
 ## Best Practices
 
-1. **Use hooks for all queries** - Never call useQuery directly in components
-2. **Consistent query keys** - Use the same key structure everywhere
-3. **Handle all states** - Loading, error, empty, success
-4. **Use shared types** - Import from `@lingx/shared`
-5. **Invalidate appropriately** - After mutations, invalidate affected queries
+### DO
+
+- Fetch initial data in Server Components
+- Use React Query for mutations
+- Pass server data as `initialData` to queries
+- Keep query keys consistent
+- Handle loading/error states
+
+### DON'T
+
+- Fetch in useEffect for initial page data
+- Duplicate data fetching (server + client)
+- Skip loading states for mutations
+- Use React Query for static content
+
+Sources:
+
+- [TanStack Query with Server Components](https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr)
+- [Next.js Data Fetching](https://nextjs.org/docs/app/building-your-application/data-fetching)

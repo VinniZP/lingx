@@ -1,273 +1,191 @@
-# Error Handling
+# Error Handling Strategy
 
-Lingx uses a typed error hierarchy for consistent error handling across the API.
+How errors flow through the CQRS-lite architecture.
 
-## Error Hierarchy
+## Error Flow
 
 ```
-AppError (base)
-  ├── NotFoundError     (404)
-  ├── ValidationError   (400)
-  ├── UnauthorizedError (401)
-  ├── ForbiddenError    (403)
-  └── ConflictError     (409)
+Handler throws → Bus propagates → Route catches → Error plugin formats → HTTP response
 ```
 
-## Error Classes
+## Error Types
+
+### Domain Errors (Application Layer)
+
+Located in `src/plugins/error-handler.ts`:
+
+| Error Class            | HTTP Status | When to Use                |
+| ---------------------- | ----------- | -------------------------- |
+| `NotFoundError`        | 404         | Resource doesn't exist     |
+| `ValidationError`      | 400         | Business rule violation    |
+| `BadRequestError`      | 400         | Malformed request data     |
+| `UnauthorizedError`    | 401         | Missing/invalid auth       |
+| `ForbiddenError`       | 403         | Insufficient permissions   |
+| `FieldValidationError` | 409         | Field-level errors (forms) |
+
+### Usage Examples
 
 ```typescript
-// errors/index.ts
-
-export class AppError extends Error {
-  public readonly statusCode: number;
-  public readonly code: string;
-  public readonly isOperational: boolean;
-  public readonly details?: Record<string, unknown>;
-
-  constructor(
-    message: string,
-    statusCode: number,
-    code: string,
-    details?: Record<string, unknown>
-  ) {
-    super(message);
-    this.statusCode = statusCode;
-    this.code = code;
-    this.isOperational = true;
-    this.details = details;
-    Error.captureStackTrace(this, this.constructor);
-  }
+// Resource not found
+const environment = await this.repository.findById(id);
+if (!environment) {
+  throw new NotFoundError('Environment');
 }
 
-export class NotFoundError extends AppError {
-  constructor(resource: string, details?: Record<string, unknown>) {
-    super(`${resource} not found`, 404, 'NOT_FOUND', details);
-  }
+// Business rule violation
+if (branch.space.projectId !== projectId) {
+  throw new ValidationError('Branch must belong to a space in this project');
 }
 
-export class ValidationError extends AppError {
-  constructor(message: string, details?: Record<string, unknown>) {
-    super(message, 400, 'VALIDATION_ERROR', details);
-  }
-}
-
-export class UnauthorizedError extends AppError {
-  constructor(message = 'Authentication required') {
-    super(message, 401, 'UNAUTHORIZED');
-  }
-}
-
-export class ForbiddenError extends AppError {
-  constructor(message = 'Access denied', details?: Record<string, unknown>) {
-    super(message, 403, 'FORBIDDEN', details);
-  }
-}
-
-export class ConflictError extends AppError {
-  constructor(message: string, details?: Record<string, unknown>) {
-    super(message, 409, 'CONFLICT', details);
-  }
+// Field-level error (for form display)
+const existing = await this.repository.findBySlug(projectId, slug);
+if (existing) {
+  throw new FieldValidationError([
+    {
+      field: 'slug',
+      message: 'An environment with this slug already exists',
+      code: 'ENVIRONMENT_SLUG_EXISTS',
+    },
+  ]);
 }
 ```
 
-## Usage in Services
+## Error Handling Patterns
+
+### In Command Handlers
 
 ```typescript
-import { NotFoundError, ValidationError, ConflictError } from '../errors/index.js';
+async execute(command: CreateCommand): Promise<Result> {
+  // 1. Authorization first (fail fast)
+  await this.accessService.verifyProjectAccess(userId, projectId, ['MANAGER']);
 
-export class ProjectService {
-  async findById(id: string): Promise<Project> {
-    const project = await this.prisma.project.findUnique({ where: { id } });
-
-    if (!project) {
-      throw new NotFoundError('Project');
-    }
-
-    return project;
+  // 2. Validate existence
+  const parent = await this.repository.findById(command.parentId);
+  if (!parent) {
+    throw new NotFoundError('Parent');
   }
 
-  async create(input: CreateProjectInput): Promise<Project> {
-    // Validation error
-    if (!input.name?.trim()) {
-      throw new ValidationError('Name is required');
-    }
-
-    // Conflict error
-    const existing = await this.prisma.project.findUnique({
-      where: { slug: input.slug },
-    });
-    if (existing) {
-      throw new ConflictError('Slug already exists');
-    }
-
-    return this.prisma.project.create({ data: input });
+  // 3. Validate business rules
+  if (!isValidSlug(command.slug)) {
+    throw new ValidationError('Invalid slug format');
   }
+
+  // 4. Check uniqueness (field-level for forms)
+  const existing = await this.repository.findBySlug(command.slug);
+  if (existing) {
+    throw new FieldValidationError([
+      { field: 'slug', message: 'Already exists', code: 'SLUG_EXISTS' },
+    ]);
+  }
+
+  // 5. Execute operation
+  return this.repository.create(command);
 }
 ```
 
-## Global Error Handler
+### In Query Handlers (Information Disclosure Prevention)
 
 ```typescript
-// plugins/error-handler.ts
-
-import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import { AppError } from '../errors/index.js';
-
-export async function errorHandler(
-  error: FastifyError,
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
-  // Log error
-  request.log.error({
-    err: error,
-    url: request.url,
-    method: request.method,
-  });
-
-  // Handle operational errors (expected)
-  if (error instanceof AppError) {
-    return reply.status(error.statusCode).send({
-      statusCode: error.statusCode,
-      error: error.code,
-      message: error.message,
-      details: error.details,
-    });
+async execute(query: GetQuery): Promise<Result> {
+  // 1. Fetch resource
+  const resource = await this.repository.findById(query.id);
+  if (!resource) {
+    throw new NotFoundError('Resource');
   }
 
-  // Handle Fastify validation errors
-  if (error.validation) {
-    return reply.status(400).send({
-      statusCode: 400,
-      error: 'VALIDATION_ERROR',
-      message: 'Validation failed',
-      details: error.validation,
-    });
+  // 2. Authorization (hide existence from unauthorized users)
+  try {
+    await this.accessService.verifyProjectAccess(query.userId, resource.projectId);
+  } catch (error) {
+    // Convert 403 to 404 to prevent information disclosure
+    if (error instanceof Error && 'code' in error && error.code === 'FORBIDDEN') {
+      throw new NotFoundError('Resource');
+    }
+    throw error;
   }
 
-  // Unexpected errors - don't leak details
-  return reply.status(500).send({
-    statusCode: 500,
-    error: 'INTERNAL_ERROR',
-    message: 'An unexpected error occurred',
-  });
+  return resource;
+}
+```
+
+### Handling Prisma Errors (Race Conditions)
+
+```typescript
+import { Prisma } from '@prisma/client';
+
+async execute(command: CreateCommand): Promise<Result> {
+  try {
+    return await this.repository.create(command);
+  } catch (error) {
+    // Handle unique constraint violation (P2002)
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      const target = error.meta?.target as string[] | undefined;
+      const field = target?.[target.length - 1] ?? 'unknown';
+      throw new FieldValidationError([
+        { field, message: `${field} already exists`, code: `${field.toUpperCase()}_EXISTS` },
+      ]);
+    }
+    throw error;
+  }
 }
 ```
 
 ## Error Response Format
 
-All errors follow a consistent format:
+All errors return consistent JSON:
 
 ```json
 {
-  "statusCode": 404,
-  "error": "NOT_FOUND",
-  "message": "Project not found",
-  "details": {
-    "id": "abc123"
-  }
+  "statusCode": 409,
+  "error": "FIELD_VALIDATION_ERROR",
+  "message": "Validation failed",
+  "code": "FIELD_VALIDATION_ERROR",
+  "fieldErrors": [
+    {
+      "field": "slug",
+      "message": "An environment with this slug already exists",
+      "code": "ENVIRONMENT_SLUG_EXISTS"
+    }
+  ]
 }
 ```
+
+## Logging Strategy
+
+| Error Type             | Log Level | Details Logged                   |
+| ---------------------- | --------- | -------------------------------- |
+| `FieldValidationError` | `info`    | Field errors, request method/url |
+| `AppError` (4xx)       | `warn`    | Error, request details           |
+| Validation errors      | `info`    | Validation details               |
+| Unexpected errors      | `error`   | Full error, request context      |
 
 ## Best Practices
 
-### 1. Use specific error types
+1. **Fail fast** - Check authorization before expensive operations
+2. **Be specific** - Use appropriate error type for the situation
+3. **Field errors for forms** - Use `FieldValidationError` when UI needs to highlight fields
+4. **Hide sensitive info** - Return 404 instead of 403 for resource-level auth in queries
+5. **Log appropriately** - Unexpected errors get `error`, expected get `warn`/`info`
+6. **Handle race conditions** - Catch Prisma P2002 and convert to field errors
+7. **Don't expose internals** - Production hides unexpected error messages
+
+## Event Handler Errors
+
+Event handlers use fire-and-forget semantics - errors are logged but don't propagate:
 
 ```typescript
-// BAD - generic error
-throw new Error('Project not found');
-
-// GOOD - typed error
-throw new NotFoundError('Project');
+// EventBus catches and logs handler errors
+this.logger.error(
+  {
+    eventType: eventType.name,
+    handler: handlerNames[i],
+    err: result.reason,
+  },
+  'Event handler execution failed'
+);
 ```
 
-### 2. Include helpful details
-
-```typescript
-throw new ValidationError('Invalid email format', {
-  field: 'email',
-  value: input.email,
-  expected: 'valid email address',
-});
-```
-
-### 3. Check before throwing
-
-```typescript
-// BAD - throw inside map/filter
-items.map(item => {
-  if (!item.valid) throw new ValidationError('Invalid item');
-});
-
-// GOOD - collect errors, then throw
-const invalid = items.filter(item => !item.valid);
-if (invalid.length > 0) {
-  throw new ValidationError('Invalid items', {
-    invalidItems: invalid.map(i => i.id),
-  });
-}
-```
-
-### 4. Authorization vs Not Found
-
-For security, don't reveal resource existence to unauthorized users:
-
-```typescript
-// If user doesn't have access to project, they shouldn't know it exists
-async getProject(id: string, userId: string) {
-  const project = await this.projectService.findById(id);
-  const isMember = await this.projectService.checkMembership(id, userId);
-
-  // Don't reveal existence to non-members
-  if (!project || !isMember) {
-    throw new NotFoundError('Project');
-  }
-
-  return project;
-}
-```
-
-### 5. Log appropriately
-
-```typescript
-// Operational errors - debug level
-if (error instanceof AppError) {
-  request.log.debug({ err: error }, 'Operational error');
-}
-
-// Unexpected errors - error level
-request.log.error({ err: error }, 'Unexpected error');
-```
-
-## Error Codes Reference
-
-| Error | Status | Code | When to Use |
-|-------|--------|------|-------------|
-| NotFoundError | 404 | NOT_FOUND | Resource doesn't exist |
-| ValidationError | 400 | VALIDATION_ERROR | Invalid input data |
-| UnauthorizedError | 401 | UNAUTHORIZED | Missing/invalid auth |
-| ForbiddenError | 403 | FORBIDDEN | Valid auth but no access |
-| ConflictError | 409 | CONFLICT | Resource already exists |
-
-## Testing Errors
-
-```typescript
-import { describe, it, expect } from 'vitest';
-import { NotFoundError, ValidationError } from '../errors/index.js';
-
-describe('ProjectService', () => {
-  it('throws NotFoundError for missing project', async () => {
-    const service = new ProjectService(prisma);
-
-    await expect(service.findById('non-existent')).rejects.toThrow(NotFoundError);
-  });
-
-  it('throws ValidationError for empty name', async () => {
-    const service = new ProjectService(prisma);
-
-    await expect(
-      service.create({ name: '', slug: 'test', userId: 'user1' })
-    ).rejects.toThrow(ValidationError);
-  });
-});
-```
+This ensures one failing handler doesn't affect others or the main request.
