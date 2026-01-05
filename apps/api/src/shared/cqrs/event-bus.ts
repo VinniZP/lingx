@@ -92,14 +92,12 @@ export class EventBus implements IEventBus {
   }
 
   /**
-   * Publish multiple events.
-   * Events are published sequentially to maintain ordering.
+   * Publish multiple events concurrently.
+   * All events are published in parallel for better performance.
    * @param events - The events to publish
    */
   async publishAll(events: IEvent[]): Promise<void> {
-    for (const event of events) {
-      await this.publish(event);
-    }
+    await Promise.all(events.map((event) => this.publish(event)));
   }
 
   /**
