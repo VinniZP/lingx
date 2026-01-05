@@ -1,7 +1,7 @@
 /**
  * CreateEnvironmentHandler Unit Tests
  *
- * Tests for environment creation command handler with validation.
+ * Tests for environment creation command handler with validation and authorization.
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
@@ -10,6 +10,7 @@ import { CreateEnvironmentCommand } from '../create-environment.command.js';
 import { CreateEnvironmentHandler } from '../create-environment.handler.js';
 // Error classes not imported - using toMatchObject for assertions
 import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
+import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 
@@ -51,10 +52,27 @@ function createMockEventBus(): MockEventBus {
   };
 }
 
+interface MockAccessService {
+  verifyProjectAccess: Mock;
+  verifyBranchAccess: Mock;
+  verifyTranslationAccess: Mock;
+  verifyKeyAccess: Mock;
+}
+
+function createMockAccessService(): MockAccessService {
+  return {
+    verifyProjectAccess: vi.fn().mockResolvedValue({ role: 'OWNER' }),
+    verifyBranchAccess: vi.fn(),
+    verifyTranslationAccess: vi.fn(),
+    verifyKeyAccess: vi.fn(),
+  };
+}
+
 describe('CreateEnvironmentHandler', () => {
   let handler: CreateEnvironmentHandler;
   let mockRepository: MockRepository;
   let mockEventBus: MockEventBus;
+  let mockAccessService: MockAccessService;
 
   const mockEnvironmentWithBranch = {
     id: 'env-1',
@@ -92,9 +110,11 @@ describe('CreateEnvironmentHandler', () => {
   beforeEach(() => {
     mockRepository = createMockRepository();
     mockEventBus = createMockEventBus();
+    mockAccessService = createMockAccessService();
     handler = new CreateEnvironmentHandler(
       mockRepository as unknown as EnvironmentRepository,
-      mockEventBus as unknown as IEventBus
+      mockEventBus as unknown as IEventBus,
+      mockAccessService as unknown as AccessService
     );
   });
 
@@ -121,6 +141,10 @@ describe('CreateEnvironmentHandler', () => {
       // Assert
       expect(result).toEqual(mockEnvironmentWithBranch);
       expect(mockRepository.projectExists).toHaveBeenCalledWith('proj-1');
+      expect(mockAccessService.verifyProjectAccess).toHaveBeenCalledWith('user-1', 'proj-1', [
+        'MANAGER',
+        'OWNER',
+      ]);
       expect(mockRepository.findBranchById).toHaveBeenCalledWith('branch-1');
       expect(mockRepository.findByProjectAndSlug).toHaveBeenCalledWith('proj-1', 'production');
       expect(mockRepository.create).toHaveBeenCalledWith({
@@ -149,6 +173,32 @@ describe('CreateEnvironmentHandler', () => {
         message: 'Project not found',
         code: 'NOT_FOUND',
         statusCode: 404,
+      });
+      expect(mockRepository.findBranchById).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenError when user lacks required role', async () => {
+      // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
+      mockAccessService.verifyProjectAccess.mockRejectedValue({
+        message: 'Insufficient permissions for this operation',
+        code: 'FORBIDDEN',
+        statusCode: 403,
+      });
+
+      const command = new CreateEnvironmentCommand(
+        'Production',
+        'production',
+        'proj-1',
+        'branch-1',
+        'user-1'
+      );
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toMatchObject({
+        message: 'Insufficient permissions for this operation',
+        code: 'FORBIDDEN',
+        statusCode: 403,
       });
       expect(mockRepository.findBranchById).not.toHaveBeenCalled();
     });

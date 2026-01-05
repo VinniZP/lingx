@@ -331,6 +331,149 @@ describe('CreateProjectHandler', () => {
 });
 ```
 
+## Transaction Strategy
+
+### When to Use Transactions
+
+| Scenario                    | Transaction Needed? | Reason                   |
+| --------------------------- | ------------------- | ------------------------ |
+| Single entity create/update | No                  | Atomic by default        |
+| Multiple related entities   | Yes                 | Ensure consistency       |
+| Bulk operations             | Yes                 | All-or-nothing semantics |
+| Entity + child records      | Yes                 | Referential integrity    |
+
+### Transaction Patterns
+
+#### 1. Simple Commands (No Transaction)
+
+Most single-entity operations don't need explicit transactions:
+
+```typescript
+// Single update is atomic - no transaction needed
+async execute(cmd: UpdateEnvironmentCommand): Promise<Environment> {
+  const env = await this.repo.findById(cmd.id);
+  if (!env) throw new NotFoundError('Environment');
+
+  const updated = await this.repo.update(cmd.id, { name: cmd.name });
+  await this.eventBus.publish(new EnvironmentUpdatedEvent(updated, cmd.userId));
+
+  return updated;
+}
+```
+
+#### 2. Multi-Step Commands (Use Transaction)
+
+When creating related entities together:
+
+```typescript
+async execute(cmd: CreateProjectCommand): Promise<Project> {
+  // Use transaction for multi-entity creation
+  const project = await this.prisma.$transaction(async (tx) => {
+    const proj = await tx.project.create({
+      data: { name: cmd.name, slug: cmd.slug },
+    });
+
+    // Create default space
+    await tx.space.create({
+      data: { name: 'Default', projectId: proj.id },
+    });
+
+    // Add owner membership
+    await tx.projectMember.create({
+      data: { userId: cmd.userId, projectId: proj.id, role: 'OWNER' },
+    });
+
+    return proj;
+  });
+
+  // Events AFTER transaction commits
+  await this.eventBus.publish(new ProjectCreatedEvent(project, cmd.userId));
+
+  return project;
+}
+```
+
+#### 3. Events and Transactions
+
+**Critical Rule**: Always emit events AFTER the transaction commits.
+
+```typescript
+// ✅ CORRECT: Event after transaction
+const result = await this.prisma.$transaction(async (tx) => {
+  // ... database operations
+  return entity;
+});
+await this.eventBus.publish(new EntityCreatedEvent(result));
+
+// ❌ WRONG: Event inside transaction (may emit for rolled-back data)
+await this.prisma.$transaction(async (tx) => {
+  const entity = await tx.entity.create({ ... });
+  await this.eventBus.publish(new EntityCreatedEvent(entity)); // BAD!
+  return entity;
+});
+```
+
+### Event Delivery Guarantees
+
+Our current approach: **At-most-once delivery**
+
+- Events are fire-and-forget after transaction commits
+- If event publishing fails, the database change persists
+- EventBus logs failures but doesn't retry
+
+**Acceptable for:**
+
+- Activity logging (eventual consistency acceptable)
+- Real-time sync (clients can refresh)
+- Webhooks (external systems handle retries)
+
+**Future: Outbox Pattern (for critical events)**
+
+If you need guaranteed delivery:
+
+```typescript
+// Inside transaction: write to outbox table
+await this.prisma.$transaction(async (tx) => {
+  const entity = await tx.entity.create({ ... });
+
+  // Write event to outbox (same transaction)
+  await tx.eventOutbox.create({
+    data: {
+      eventType: 'EntityCreated',
+      payload: JSON.stringify({ entity, userId }),
+      status: 'pending',
+    },
+  });
+
+  return entity;
+});
+
+// Background worker processes outbox entries
+```
+
+### Repository Transaction Support
+
+Repositories should accept optional transaction context:
+
+```typescript
+// environment.repository.ts
+async create(
+  data: CreateEnvironmentData,
+  tx?: PrismaTransaction
+): Promise<Environment> {
+  const client = tx ?? this.prisma;
+  return client.environment.create({ data });
+}
+```
+
+### Summary
+
+| Pattern        | Use When                  | Event Timing      |
+| -------------- | ------------------------- | ----------------- |
+| No transaction | Single entity operations  | After operation   |
+| $transaction   | Multiple related entities | After transaction |
+| Outbox pattern | Critical event delivery   | Background worker |
+
 ## Best Practices
 
 1. **One command, one handler** - Single responsibility
@@ -340,3 +483,4 @@ describe('CreateProjectHandler', () => {
 5. **Keep commands flat** - No nested objects when possible
 6. **Use transactions** - For multi-step operations
 7. **Return the result** - Caller needs the created/updated entity
+8. **Events after commits** - Never emit inside transactions

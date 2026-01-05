@@ -3,9 +3,12 @@ import type { EnvironmentWithBranch } from '../environment.repository.js';
 
 /**
  * Command to create a new environment.
+ *
+ * Result type is encoded in the interface for automatic type inference.
  */
-export class CreateEnvironmentCommand implements ICommand {
+export class CreateEnvironmentCommand implements ICommand<EnvironmentWithBranch> {
   readonly __brand = 'command' as const;
+  declare readonly __resultType: EnvironmentWithBranch;
 
   constructor(
     /** Environment name */
@@ -20,8 +23,3 @@ export class CreateEnvironmentCommand implements ICommand {
     public readonly userId: string
   ) {}
 }
-
-/**
- * Result type for CreateEnvironmentCommand.
- */
-export type CreateEnvironmentResult = EnvironmentWithBranch;

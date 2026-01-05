@@ -7,6 +7,8 @@
 
 import type { PrismaClient } from '@prisma/client';
 import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer } from 'awilix';
+import type { FastifyBaseLogger } from 'fastify';
+import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
@@ -17,8 +19,10 @@ import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 export interface Cradle {
   // Infrastructure
   prisma: PrismaClient;
+  logger: FastifyBaseLogger;
 
   // Services
+  accessService: AccessService;
   activityService: ActivityService;
 
   // CQRS Buses
@@ -33,9 +37,13 @@ export interface Cradle {
 /**
  * Create and configure the application container.
  * @param prisma - PrismaClient instance for database access
+ * @param logger - Fastify logger instance for structured logging
  * @returns Configured Awilix container
  */
-export function createAppContainer(prisma: PrismaClient): AwilixContainer<Cradle> {
+export function createAppContainer(
+  prisma: PrismaClient,
+  logger: FastifyBaseLogger
+): AwilixContainer<Cradle> {
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.CLASSIC,
     strict: true,
@@ -44,10 +52,12 @@ export function createAppContainer(prisma: PrismaClient): AwilixContainer<Cradle
   // Register infrastructure
   container.register({
     prisma: asValue(prisma),
+    logger: asValue(logger),
   });
 
   // Register services
   container.register({
+    accessService: asClass(AccessService).singleton(),
     activityService: asClass(ActivityService).singleton(),
   });
 

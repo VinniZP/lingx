@@ -43,22 +43,20 @@ import {
   BranchSwitchedActivityHandler,
   EnvironmentCreatedActivityHandler,
   EnvironmentDeletedActivityHandler,
+  EnvironmentUpdatedActivityHandler,
 } from './handlers/environment-activity.handler.js';
 
+import { EnvironmentUpdatedEvent } from './events/environment-updated.event.js';
+
 // Re-export queries and commands for external use
+// Result types are now encoded in the command/query interfaces via ICommand<TResult>/IQuery<TResult>
 export { GetEnvironmentQuery } from './queries/get-environment.query.js';
-export type { GetEnvironmentResult } from './queries/get-environment.query.js';
 export { ListEnvironmentsQuery } from './queries/list-environments.query.js';
-export type { ListEnvironmentsResult } from './queries/list-environments.query.js';
 
 export { CreateEnvironmentCommand } from './commands/create-environment.command.js';
-export type { CreateEnvironmentResult } from './commands/create-environment.command.js';
 export { DeleteEnvironmentCommand } from './commands/delete-environment.command.js';
-export type { DeleteEnvironmentResult } from './commands/delete-environment.command.js';
 export { SwitchBranchCommand } from './commands/switch-branch.command.js';
-export type { SwitchBranchResult } from './commands/switch-branch.command.js';
 export { UpdateEnvironmentCommand } from './commands/update-environment.command.js';
-export type { UpdateEnvironmentResult } from './commands/update-environment.command.js';
 
 // Re-export events
 export { BranchSwitchedEvent } from './events/branch-switched.event.js';
@@ -107,6 +105,7 @@ export function registerEnvironmentModule(container: AwilixContainer<Cradle>): v
   // Register event handlers for activity logging
   container.register({
     environmentCreatedActivityHandler: asClass(EnvironmentCreatedActivityHandler).singleton(),
+    environmentUpdatedActivityHandler: asClass(EnvironmentUpdatedActivityHandler).singleton(),
     branchSwitchedActivityHandler: asClass(BranchSwitchedActivityHandler).singleton(),
     environmentDeletedActivityHandler: asClass(EnvironmentDeletedActivityHandler).singleton(),
   });
@@ -114,6 +113,7 @@ export function registerEnvironmentModule(container: AwilixContainer<Cradle>): v
   // Register event handlers with event bus
   const eventBus = container.resolve('eventBus');
   eventBus.register(EnvironmentCreatedEvent, 'environmentCreatedActivityHandler');
+  eventBus.register(EnvironmentUpdatedEvent, 'environmentUpdatedActivityHandler');
   eventBus.register(BranchSwitchedEvent, 'branchSwitchedActivityHandler');
   eventBus.register(EnvironmentDeletedEvent, 'environmentDeletedActivityHandler');
 }

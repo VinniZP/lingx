@@ -4,28 +4,28 @@ import {
   NotFoundError,
   ValidationError,
 } from '../../../plugins/error-handler.js';
-import type { ICommandHandler, IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../../services/access.service.js';
+import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
 import type { EnvironmentRepository } from '../environment.repository.js';
 import { EnvironmentCreatedEvent } from '../events/environment-created.event.js';
-import type {
-  CreateEnvironmentCommand,
-  CreateEnvironmentResult,
-} from './create-environment.command.js';
+import type { CreateEnvironmentCommand } from './create-environment.command.js';
 
 /**
  * Handler for CreateEnvironmentCommand.
  * Creates a new environment and publishes EnvironmentCreatedEvent.
+ *
+ * Authorization: Requires MANAGER or OWNER role on the project.
  */
-export class CreateEnvironmentHandler implements ICommandHandler<
-  CreateEnvironmentCommand,
-  CreateEnvironmentResult
-> {
+export class CreateEnvironmentHandler implements ICommandHandler<CreateEnvironmentCommand> {
   constructor(
     private readonly environmentRepository: EnvironmentRepository,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly accessService: AccessService
   ) {}
 
-  async execute(command: CreateEnvironmentCommand): Promise<CreateEnvironmentResult> {
+  async execute(
+    command: CreateEnvironmentCommand
+  ): Promise<InferCommandResult<CreateEnvironmentCommand>> {
     const { name, slug, projectId, branchId, userId } = command;
 
     // Verify project exists
@@ -33,6 +33,9 @@ export class CreateEnvironmentHandler implements ICommandHandler<
     if (!projectExists) {
       throw new NotFoundError('Project');
     }
+
+    // Authorization: requires MANAGER or OWNER role
+    await this.accessService.verifyProjectAccess(userId, projectId, ['MANAGER', 'OWNER']);
 
     // Verify branch exists and belongs to project
     const branch = await this.environmentRepository.findBranchById(branchId);

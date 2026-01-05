@@ -3,9 +3,12 @@ import type { EnvironmentWithBranch } from '../environment.repository.js';
 
 /**
  * Command to switch an environment's branch pointer.
+ *
+ * Result type is encoded in the interface for automatic type inference.
  */
-export class SwitchBranchCommand implements ICommand {
+export class SwitchBranchCommand implements ICommand<EnvironmentWithBranch> {
   readonly __brand = 'command' as const;
+  declare readonly __resultType: EnvironmentWithBranch;
 
   constructor(
     /** Environment ID to update */
@@ -16,8 +19,3 @@ export class SwitchBranchCommand implements ICommand {
     public readonly userId: string
   ) {}
 }
-
-/**
- * Result type for SwitchBranchCommand.
- */
-export type SwitchBranchResult = EnvironmentWithBranch;

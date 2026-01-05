@@ -11,7 +11,8 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before completing, check if any code was written or modified in this session that contains user-facing UI (React components, pages, forms). If so, briefly scan for potential i18n issues:\n\n1. Any hardcoded strings that should use t() or td()?\n2. Any translation function misuse (variables in t() without tKey)?\n\nIf you find issues, return 'block' with a brief note about what needs i18n review. If the work was non-UI (tests, config, backend-only) or i18n looks correct, return 'approve'.\n\nKeep this check quick and lightweight - only flag obvious issues."
+            "prompt": "Before completing, check if code was written/modified in apps/web/src/**/*.tsx. If so, scan for i18n violations:\n\n1. Hardcoded strings in JSX (labels, button text, messages, placeholders, titles)\n2. t(variable) without using td() - dynamic keys require td(tKey()) or td(tKeyUnsafe())\n3. String concatenation in t() calls: t('prefix.' + x) is invalid\n4. Interface props storing keys should use TKey type\n\nValid patterns:\n- t('namespace.key') - static key\n- t('namespace.key', {param: value}) - with interpolation\n- td(item.labelKey) - dynamic key from typed source\n- tKeyUnsafe(`${dynamic}.key`) - escape hatch\n\nRespond ONLY with valid JSON (no markdown):\n- Issues: {\"decision\": \"block\", \"reason\": \"component.tsx:L42 hardcoded 'Delete' button\"}\n- Clean: {\"decision\": \"approve\"}\n\nOnly flag clear violations. Ignore: console.log, comments, test files, error messages for developers.",
+            "timeout": 20
           }
         ]
       }

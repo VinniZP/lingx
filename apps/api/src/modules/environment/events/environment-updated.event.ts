@@ -10,6 +10,8 @@ export class EnvironmentUpdatedEvent implements IEvent {
   constructor(
     /** The updated environment */
     public readonly environment: EnvironmentWithBranch,
+    /** User ID who performed the update */
+    public readonly userId: string,
     /** Previous environment name (if changed) */
     public readonly previousName?: string
   ) {

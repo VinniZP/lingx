@@ -1,5 +1,11 @@
 import type { AwilixContainer } from 'awilix';
-import type { Constructor, ICommand, ICommandBus, ICommandHandler } from './interfaces.js';
+import type {
+  Constructor,
+  ICommand,
+  ICommandBus,
+  ICommandHandler,
+  InferCommandResult,
+} from './interfaces.js';
 
 /**
  * CommandBus dispatches commands to their registered handlers.
@@ -25,7 +31,7 @@ export class CommandBus implements ICommandBus {
    * @param commandType - The command class constructor
    * @param handlerName - The container registration name for the handler
    */
-  register<TCommand extends ICommand>(
+  register<TResult, TCommand extends ICommand<TResult>>(
     commandType: Constructor<TCommand>,
     handlerName: string
   ): void {
@@ -37,11 +43,15 @@ export class CommandBus implements ICommandBus {
 
   /**
    * Execute a command through its registered handler.
+   * Result type is automatically inferred from the command's TResult type parameter.
+   *
    * @param command - The command instance to execute
-   * @returns The result from the command handler
+   * @returns The result from the command handler (type inferred from command)
    * @throws Error if no handler is registered for the command type
    */
-  async execute<TResult>(command: ICommand): Promise<TResult> {
+  async execute<TCommand extends ICommand<unknown>>(
+    command: TCommand
+  ): Promise<InferCommandResult<TCommand>> {
     const commandType = command.constructor as Constructor;
     const handlerName = this.handlers.get(commandType);
 
@@ -49,8 +59,9 @@ export class CommandBus implements ICommandBus {
       throw new Error(`No handler registered for command: ${commandType.name}`);
     }
 
-    const handler = this.container.resolve<ICommandHandler<ICommand, TResult>>(handlerName);
-    return handler.execute(command);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = this.container.resolve<ICommandHandler<any, any>>(handlerName);
+    return handler.execute(command) as Promise<InferCommandResult<TCommand>>;
   }
 
   /**

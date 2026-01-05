@@ -1,7 +1,7 @@
 /**
  * SwitchBranchHandler Unit Tests
  *
- * Tests for environment branch switching command handler.
+ * Tests for environment branch switching command handler with authorization.
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
@@ -9,6 +9,7 @@ import { BranchSwitchedEvent } from '../../events/branch-switched.event.js';
 import { SwitchBranchCommand } from '../switch-branch.command.js';
 import { SwitchBranchHandler } from '../switch-branch.handler.js';
 // Error classes not imported - using toMatchObject for assertions
+import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 
@@ -50,10 +51,27 @@ function createMockEventBus(): MockEventBus {
   };
 }
 
+interface MockAccessService {
+  verifyProjectAccess: Mock;
+  verifyBranchAccess: Mock;
+  verifyTranslationAccess: Mock;
+  verifyKeyAccess: Mock;
+}
+
+function createMockAccessService(): MockAccessService {
+  return {
+    verifyProjectAccess: vi.fn().mockResolvedValue({ role: 'OWNER' }),
+    verifyBranchAccess: vi.fn(),
+    verifyTranslationAccess: vi.fn(),
+    verifyKeyAccess: vi.fn(),
+  };
+}
+
 describe('SwitchBranchHandler', () => {
   let handler: SwitchBranchHandler;
   let mockRepository: MockRepository;
   let mockEventBus: MockEventBus;
+  let mockAccessService: MockAccessService;
 
   const mockExistingEnvironment = {
     id: 'env-1',
@@ -107,9 +125,11 @@ describe('SwitchBranchHandler', () => {
   beforeEach(() => {
     mockRepository = createMockRepository();
     mockEventBus = createMockEventBus();
+    mockAccessService = createMockAccessService();
     handler = new SwitchBranchHandler(
       mockRepository as unknown as EnvironmentRepository,
-      mockEventBus as unknown as IEventBus
+      mockEventBus as unknown as IEventBus,
+      mockAccessService as unknown as AccessService
     );
   });
 
@@ -129,6 +149,10 @@ describe('SwitchBranchHandler', () => {
       // Assert
       expect(result).toEqual(mockSwitchedEnvironment);
       expect(mockRepository.findById).toHaveBeenCalledWith('env-1');
+      expect(mockAccessService.verifyProjectAccess).toHaveBeenCalledWith('user-1', 'proj-1', [
+        'MANAGER',
+        'OWNER',
+      ]);
       expect(mockRepository.findBranchById).toHaveBeenCalledWith('branch-2');
       expect(mockRepository.switchBranch).toHaveBeenCalledWith('env-1', 'branch-2');
     });
@@ -144,6 +168,27 @@ describe('SwitchBranchHandler', () => {
         message: 'Environment not found',
         code: 'NOT_FOUND',
         statusCode: 404,
+      });
+
+      expect(mockRepository.findBranchById).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenError when user lacks required role', async () => {
+      // Arrange
+      mockRepository.findById.mockResolvedValue(mockExistingEnvironment);
+      mockAccessService.verifyProjectAccess.mockRejectedValue({
+        message: 'Insufficient permissions for this operation',
+        code: 'FORBIDDEN',
+        statusCode: 403,
+      });
+
+      const command = new SwitchBranchCommand('env-1', 'branch-2', 'user-1');
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toMatchObject({
+        message: 'Insufficient permissions for this operation',
+        code: 'FORBIDDEN',
+        statusCode: 403,
       });
 
       expect(mockRepository.findBranchById).not.toHaveBeenCalled();

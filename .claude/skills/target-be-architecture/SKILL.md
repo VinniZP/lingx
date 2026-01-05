@@ -214,16 +214,19 @@ Is it database access?
 
 ## Documentation
 
-| Document                                           | Purpose                   |
-| -------------------------------------------------- | ------------------------- |
-| [cqrs-overview.md](cqrs-overview.md)               | CQRS-lite concepts        |
-| [commands.md](commands.md)                         | Command patterns          |
-| [queries.md](queries.md)                           | Query patterns            |
-| [events.md](events.md)                             | Event patterns, real-time |
-| [modules.md](modules.md)                           | Module organization       |
-| [routes.md](routes.md)                             | Thin HTTP layer           |
-| [repositories.md](repositories.md)                 | Data access               |
-| [dependency-injection.md](dependency-injection.md) | Awilix setup              |
+| Document                                             | Purpose                   |
+| ---------------------------------------------------- | ------------------------- |
+| [cqrs-overview.md](cqrs-overview.md)                 | CQRS-lite concepts        |
+| [commands.md](commands.md)                           | Command patterns          |
+| [queries.md](queries.md)                             | Query patterns            |
+| [events.md](events.md)                               | Event patterns, real-time |
+| [modules.md](modules.md)                             | Module organization       |
+| [routes.md](routes.md)                               | Thin HTTP layer           |
+| [repositories.md](repositories.md)                   | Data access               |
+| [dependency-injection.md](dependency-injection.md)   | Awilix setup              |
+| [migration-guide.md](migration-guide.md)             | Service → CQRS migration  |
+| [error-handling.md](error-handling.md)               | Error flow and patterns   |
+| [events-best-practices.md](events-best-practices.md) | Event design guidelines   |
 
 ## Anti-Patterns
 

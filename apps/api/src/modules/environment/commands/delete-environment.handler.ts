@@ -1,23 +1,21 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
+import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus } from '../../../shared/cqrs/index.js';
 import type { EnvironmentRepository } from '../environment.repository.js';
 import { EnvironmentDeletedEvent } from '../events/environment-deleted.event.js';
-import type {
-  DeleteEnvironmentCommand,
-  DeleteEnvironmentResult,
-} from './delete-environment.command.js';
+import type { DeleteEnvironmentCommand } from './delete-environment.command.js';
 
 /**
  * Handler for DeleteEnvironmentCommand.
  * Deletes an environment and publishes EnvironmentDeletedEvent.
+ *
+ * Authorization: Requires MANAGER or OWNER role on the project.
  */
-export class DeleteEnvironmentHandler implements ICommandHandler<
-  DeleteEnvironmentCommand,
-  DeleteEnvironmentResult
-> {
+export class DeleteEnvironmentHandler implements ICommandHandler<DeleteEnvironmentCommand> {
   constructor(
     private readonly environmentRepository: EnvironmentRepository,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly accessService: AccessService
   ) {}
 
   async execute(command: DeleteEnvironmentCommand): Promise<void> {
@@ -28,6 +26,9 @@ export class DeleteEnvironmentHandler implements ICommandHandler<
     if (!existing) {
       throw new NotFoundError('Environment');
     }
+
+    // Authorization: requires MANAGER or OWNER role
+    await this.accessService.verifyProjectAccess(userId, existing.projectId, ['MANAGER', 'OWNER']);
 
     const { name: environmentName, projectId } = existing;
 

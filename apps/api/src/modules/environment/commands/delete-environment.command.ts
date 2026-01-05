@@ -2,9 +2,12 @@ import type { ICommand } from '../../../shared/cqrs/index.js';
 
 /**
  * Command to delete an environment.
+ *
+ * Result type is void (no return value).
  */
-export class DeleteEnvironmentCommand implements ICommand {
+export class DeleteEnvironmentCommand implements ICommand<void> {
   readonly __brand = 'command' as const;
+  declare readonly __resultType: void;
 
   constructor(
     /** Environment ID to delete */
@@ -13,8 +16,3 @@ export class DeleteEnvironmentCommand implements ICommand {
     public readonly userId: string
   ) {}
 }
-
-/**
- * Result type for DeleteEnvironmentCommand.
- */
-export type DeleteEnvironmentResult = void;

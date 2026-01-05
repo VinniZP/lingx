@@ -1,7 +1,7 @@
 /**
  * DeleteEnvironmentHandler Unit Tests
  *
- * Tests for environment deletion command handler.
+ * Tests for environment deletion command handler with authorization.
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
@@ -9,6 +9,7 @@ import { EnvironmentDeletedEvent } from '../../events/environment-deleted.event.
 import { DeleteEnvironmentCommand } from '../delete-environment.command.js';
 import { DeleteEnvironmentHandler } from '../delete-environment.handler.js';
 // Error classes not imported - using toMatchObject for assertions
+import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 
@@ -50,10 +51,27 @@ function createMockEventBus(): MockEventBus {
   };
 }
 
+interface MockAccessService {
+  verifyProjectAccess: Mock;
+  verifyBranchAccess: Mock;
+  verifyTranslationAccess: Mock;
+  verifyKeyAccess: Mock;
+}
+
+function createMockAccessService(): MockAccessService {
+  return {
+    verifyProjectAccess: vi.fn().mockResolvedValue({ role: 'OWNER' }),
+    verifyBranchAccess: vi.fn(),
+    verifyTranslationAccess: vi.fn(),
+    verifyKeyAccess: vi.fn(),
+  };
+}
+
 describe('DeleteEnvironmentHandler', () => {
   let handler: DeleteEnvironmentHandler;
   let mockRepository: MockRepository;
   let mockEventBus: MockEventBus;
+  let mockAccessService: MockAccessService;
 
   const mockExistingEnvironment = {
     id: 'env-1',
@@ -79,9 +97,11 @@ describe('DeleteEnvironmentHandler', () => {
   beforeEach(() => {
     mockRepository = createMockRepository();
     mockEventBus = createMockEventBus();
+    mockAccessService = createMockAccessService();
     handler = new DeleteEnvironmentHandler(
       mockRepository as unknown as EnvironmentRepository,
-      mockEventBus as unknown as IEventBus
+      mockEventBus as unknown as IEventBus,
+      mockAccessService as unknown as AccessService
     );
   });
 
@@ -99,6 +119,10 @@ describe('DeleteEnvironmentHandler', () => {
 
       // Assert
       expect(mockRepository.findById).toHaveBeenCalledWith('env-1');
+      expect(mockAccessService.verifyProjectAccess).toHaveBeenCalledWith('user-1', 'proj-1', [
+        'MANAGER',
+        'OWNER',
+      ]);
       expect(mockRepository.delete).toHaveBeenCalledWith('env-1');
     });
 
@@ -113,6 +137,27 @@ describe('DeleteEnvironmentHandler', () => {
         message: 'Environment not found',
         code: 'NOT_FOUND',
         statusCode: 404,
+      });
+
+      expect(mockRepository.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenError when user lacks required role', async () => {
+      // Arrange
+      mockRepository.findById.mockResolvedValue(mockExistingEnvironment);
+      mockAccessService.verifyProjectAccess.mockRejectedValue({
+        message: 'Insufficient permissions for this operation',
+        code: 'FORBIDDEN',
+        statusCode: 403,
+      });
+
+      const command = new DeleteEnvironmentCommand('env-1', 'user-1');
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toMatchObject({
+        message: 'Insufficient permissions for this operation',
+        code: 'FORBIDDEN',
+        statusCode: 403,
       });
 
       expect(mockRepository.delete).not.toHaveBeenCalled();

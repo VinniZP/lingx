@@ -10,6 +10,7 @@ import type { IEventHandler } from '../../../shared/cqrs/index.js';
 import { BranchSwitchedEvent } from '../events/branch-switched.event.js';
 import { EnvironmentCreatedEvent } from '../events/environment-created.event.js';
 import { EnvironmentDeletedEvent } from '../events/environment-deleted.event.js';
+import { EnvironmentUpdatedEvent } from '../events/environment-updated.event.js';
 
 /**
  * Logs activity when an environment is created.
@@ -88,6 +89,35 @@ export class EnvironmentDeletedActivityHandler implements IEventHandler<Environm
           entityType: 'environment',
           entityId: event.environmentId,
           oldValue: event.environmentName,
+        },
+      ],
+    });
+  }
+}
+
+/**
+ * Logs activity when an environment is updated.
+ */
+export class EnvironmentUpdatedActivityHandler implements IEventHandler<EnvironmentUpdatedEvent> {
+  constructor(private readonly activityService: ActivityService) {}
+
+  async handle(event: EnvironmentUpdatedEvent): Promise<void> {
+    await this.activityService.log({
+      type: 'environment_update',
+      projectId: event.environment.projectId,
+      branchId: event.environment.branchId,
+      userId: event.userId,
+      metadata: {
+        environmentName: event.environment.name,
+        environmentId: event.environment.id,
+        previousName: event.previousName,
+      },
+      changes: [
+        {
+          entityType: 'environment',
+          entityId: event.environment.id,
+          oldValue: event.previousName,
+          newValue: event.environment.name,
         },
       ],
     });

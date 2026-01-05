@@ -500,6 +500,7 @@ export const activityMetadataSchema = z.object({
   keyCount: z.number().optional(),
   environmentName: z.string().optional(),
   environmentId: z.string().optional(),
+  previousName: z.string().optional(),
   oldBranchName: z.string().optional(),
   oldBranchId: z.string().optional(),
   newBranchName: z.string().optional(),

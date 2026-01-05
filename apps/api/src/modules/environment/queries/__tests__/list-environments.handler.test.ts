@@ -1,10 +1,11 @@
 /**
  * ListEnvironmentsHandler Unit Tests
  *
- * Tests for environments listing query handler.
+ * Tests for environments listing query handler with authorization.
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import type { AccessService } from '../../../../services/access.service.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 import { ListEnvironmentsHandler } from '../list-environments.handler.js';
 import { ListEnvironmentsQuery } from '../list-environments.query.js';
@@ -35,9 +36,26 @@ function createMockRepository(): MockRepository {
   };
 }
 
+interface MockAccessService {
+  verifyProjectAccess: Mock;
+  verifyBranchAccess: Mock;
+  verifyTranslationAccess: Mock;
+  verifyKeyAccess: Mock;
+}
+
+function createMockAccessService(): MockAccessService {
+  return {
+    verifyProjectAccess: vi.fn().mockResolvedValue({ role: 'DEVELOPER' }),
+    verifyBranchAccess: vi.fn(),
+    verifyTranslationAccess: vi.fn(),
+    verifyKeyAccess: vi.fn(),
+  };
+}
+
 describe('ListEnvironmentsHandler', () => {
   let handler: ListEnvironmentsHandler;
   let mockRepository: MockRepository;
+  let mockAccessService: MockAccessService;
 
   const mockEnvironments = [
     {
@@ -104,15 +122,20 @@ describe('ListEnvironmentsHandler', () => {
 
   beforeEach(() => {
     mockRepository = createMockRepository();
-    handler = new ListEnvironmentsHandler(mockRepository as unknown as EnvironmentRepository);
+    mockAccessService = createMockAccessService();
+    handler = new ListEnvironmentsHandler(
+      mockRepository as unknown as EnvironmentRepository,
+      mockAccessService as unknown as AccessService
+    );
   });
 
   describe('execute', () => {
-    it('should return list of environments for project', async () => {
+    it('should return list of environments for project when authorized', async () => {
       // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
       mockRepository.findByProjectId.mockResolvedValue(mockEnvironments);
 
-      const query = new ListEnvironmentsQuery('proj-1');
+      const query = new ListEnvironmentsQuery('proj-1', 'user-1');
 
       // Act
       const result = await handler.execute(query);
@@ -120,14 +143,16 @@ describe('ListEnvironmentsHandler', () => {
       // Assert
       expect(result).toEqual(mockEnvironments);
       expect(result).toHaveLength(3);
+      expect(mockAccessService.verifyProjectAccess).toHaveBeenCalledWith('user-1', 'proj-1');
       expect(mockRepository.findByProjectId).toHaveBeenCalledWith('proj-1');
     });
 
     it('should return empty array when project has no environments', async () => {
       // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
       mockRepository.findByProjectId.mockResolvedValue([]);
 
-      const query = new ListEnvironmentsQuery('proj-1');
+      const query = new ListEnvironmentsQuery('proj-1', 'user-1');
 
       // Act
       const result = await handler.execute(query);
@@ -137,11 +162,50 @@ describe('ListEnvironmentsHandler', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('should throw NotFoundError when project does not exist', async () => {
+      // Arrange
+      mockRepository.projectExists.mockResolvedValue(false);
+
+      const query = new ListEnvironmentsQuery('non-existent-proj', 'user-1');
+
+      // Act & Assert
+      await expect(handler.execute(query)).rejects.toMatchObject({
+        message: 'Project not found',
+        code: 'NOT_FOUND',
+        statusCode: 404,
+      });
+
+      expect(mockAccessService.verifyProjectAccess).not.toHaveBeenCalled();
+      expect(mockRepository.findByProjectId).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenError when user is not project member', async () => {
+      // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
+      mockAccessService.verifyProjectAccess.mockRejectedValue({
+        message: 'Not authorized to access this project',
+        code: 'FORBIDDEN',
+        statusCode: 403,
+      });
+
+      const query = new ListEnvironmentsQuery('proj-1', 'unauthorized-user');
+
+      // Act & Assert
+      await expect(handler.execute(query)).rejects.toMatchObject({
+        message: 'Not authorized to access this project',
+        code: 'FORBIDDEN',
+        statusCode: 403,
+      });
+
+      expect(mockRepository.findByProjectId).not.toHaveBeenCalled();
+    });
+
     it('should call repository with correct project id', async () => {
       // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
       mockRepository.findByProjectId.mockResolvedValue([]);
 
-      const query = new ListEnvironmentsQuery('specific-project-id');
+      const query = new ListEnvironmentsQuery('specific-project-id', 'user-1');
 
       // Act
       await handler.execute(query);
@@ -153,9 +217,10 @@ describe('ListEnvironmentsHandler', () => {
 
     it('should return environments with branch details', async () => {
       // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
       mockRepository.findByProjectId.mockResolvedValue(mockEnvironments);
 
-      const query = new ListEnvironmentsQuery('proj-1');
+      const query = new ListEnvironmentsQuery('proj-1', 'user-1');
 
       // Act
       const result = await handler.execute(query);
@@ -168,9 +233,10 @@ describe('ListEnvironmentsHandler', () => {
 
     it('should return environments pointing to different branches', async () => {
       // Arrange
+      mockRepository.projectExists.mockResolvedValue(true);
       mockRepository.findByProjectId.mockResolvedValue(mockEnvironments);
 
-      const query = new ListEnvironmentsQuery('proj-1');
+      const query = new ListEnvironmentsQuery('proj-1', 'user-1');
 
       // Act
       const result = await handler.execute(query);

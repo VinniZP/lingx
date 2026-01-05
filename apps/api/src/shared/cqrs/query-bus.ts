@@ -1,5 +1,11 @@
 import type { AwilixContainer } from 'awilix';
-import type { Constructor, IQuery, IQueryBus, IQueryHandler } from './interfaces.js';
+import type {
+  Constructor,
+  IQuery,
+  IQueryBus,
+  IQueryHandler,
+  InferQueryResult,
+} from './interfaces.js';
 
 /**
  * QueryBus dispatches queries to their registered handlers.
@@ -25,7 +31,10 @@ export class QueryBus implements IQueryBus {
    * @param queryType - The query class constructor
    * @param handlerName - The container registration name for the handler
    */
-  register<TQuery extends IQuery>(queryType: Constructor<TQuery>, handlerName: string): void {
+  register<TResult, TQuery extends IQuery<TResult>>(
+    queryType: Constructor<TQuery>,
+    handlerName: string
+  ): void {
     if (this.handlers.has(queryType)) {
       throw new Error(`Handler already registered for query: ${queryType.name}`);
     }
@@ -34,11 +43,13 @@ export class QueryBus implements IQueryBus {
 
   /**
    * Execute a query through its registered handler.
+   * Result type is automatically inferred from the query's TResult type parameter.
+   *
    * @param query - The query instance to execute
-   * @returns The result from the query handler
+   * @returns The result from the query handler (type inferred from query)
    * @throws Error if no handler is registered for the query type
    */
-  async execute<TResult>(query: IQuery): Promise<TResult> {
+  async execute<TQuery extends IQuery<unknown>>(query: TQuery): Promise<InferQueryResult<TQuery>> {
     const queryType = query.constructor as Constructor;
     const handlerName = this.handlers.get(queryType);
 
@@ -46,8 +57,9 @@ export class QueryBus implements IQueryBus {
       throw new Error(`No handler registered for query: ${queryType.name}`);
     }
 
-    const handler = this.container.resolve<IQueryHandler<IQuery, TResult>>(handlerName);
-    return handler.execute(query);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = this.container.resolve<IQueryHandler<any, any>>(handlerName);
+    return handler.execute(query) as Promise<InferQueryResult<TQuery>>;
   }
 
   /**

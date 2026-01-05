@@ -1,5 +1,14 @@
 import type { AwilixContainer } from 'awilix';
+import type { FastifyBaseLogger } from 'fastify';
 import type { Constructor, IEvent, IEventBus, IEventHandler } from './interfaces.js';
+
+/**
+ * Logger interface for EventBus.
+ * Uses Fastify's structured logging for production-grade error tracking.
+ */
+interface EventBusLogger {
+  error: (obj: Record<string, unknown>, msg: string) => void;
+}
 
 /**
  * EventBus publishes domain events to all registered handlers.
@@ -21,8 +30,14 @@ import type { Constructor, IEvent, IEventBus, IEventHandler } from './interfaces
  */
 export class EventBus implements IEventBus {
   private readonly handlers = new Map<Constructor, string[]>();
+  private readonly logger: EventBusLogger;
 
-  constructor(private readonly container: AwilixContainer) {}
+  constructor(
+    private readonly container: AwilixContainer,
+    logger: FastifyBaseLogger
+  ) {
+    this.logger = logger;
+  }
 
   /**
    * Register a handler for an event type.
@@ -64,9 +79,13 @@ export class EventBus implements IEventBus {
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       if (result.status === 'rejected') {
-        console.error(
-          `Event handler ${handlerNames[i]} failed for ${eventType.name}:`,
-          result.reason
+        this.logger.error(
+          {
+            eventType: eventType.name,
+            handler: handlerNames[i],
+            err: result.reason,
+          },
+          'Event handler execution failed'
         );
       }
     }

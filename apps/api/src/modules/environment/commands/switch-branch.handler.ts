@@ -1,23 +1,24 @@
 import { NotFoundError, ValidationError } from '../../../plugins/error-handler.js';
-import type { ICommandHandler, IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../../services/access.service.js';
+import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
 import type { EnvironmentRepository } from '../environment.repository.js';
 import { BranchSwitchedEvent } from '../events/branch-switched.event.js';
-import type { SwitchBranchCommand, SwitchBranchResult } from './switch-branch.command.js';
+import type { SwitchBranchCommand } from './switch-branch.command.js';
 
 /**
  * Handler for SwitchBranchCommand.
  * Switches an environment's branch pointer and publishes BranchSwitchedEvent.
+ *
+ * Authorization: Requires MANAGER or OWNER role on the project.
  */
-export class SwitchBranchHandler implements ICommandHandler<
-  SwitchBranchCommand,
-  SwitchBranchResult
-> {
+export class SwitchBranchHandler implements ICommandHandler<SwitchBranchCommand> {
   constructor(
     private readonly environmentRepository: EnvironmentRepository,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly accessService: AccessService
   ) {}
 
-  async execute(command: SwitchBranchCommand): Promise<SwitchBranchResult> {
+  async execute(command: SwitchBranchCommand): Promise<InferCommandResult<SwitchBranchCommand>> {
     const { environmentId, branchId, userId } = command;
 
     // Get existing environment
@@ -25,6 +26,9 @@ export class SwitchBranchHandler implements ICommandHandler<
     if (!existing) {
       throw new NotFoundError('Environment');
     }
+
+    // Authorization: requires MANAGER or OWNER role
+    await this.accessService.verifyProjectAccess(userId, existing.projectId, ['MANAGER', 'OWNER']);
 
     // Verify new branch exists and belongs to same project
     const newBranch = await this.environmentRepository.findBranchById(branchId);

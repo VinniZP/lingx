@@ -41,8 +41,8 @@ export interface CqrsPluginOptions {
  * ```
  */
 const cqrsPlugin: FastifyPluginAsync<CqrsPluginOptions> = async (fastify, options) => {
-  // Create container with Prisma client
-  const container = createAppContainer(fastify.prisma);
+  // Create container with Prisma client and logger
+  const container = createAppContainer(fastify.prisma, fastify.log);
 
   // Register all domain modules
   const allModules = [...domainModules, ...(options.additionalModules ?? [])];
