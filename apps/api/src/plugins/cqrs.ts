@@ -10,6 +10,7 @@ import {
 import type { CommandBus, EventBus, QueryBus } from '../shared/cqrs/index.js';
 
 // Import module registrars
+import { registerActivityModule } from '../modules/activity/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
@@ -22,6 +23,7 @@ const domainModules: ModuleRegistrar[] = [
   registerHealthModule,
   registerEnvironmentModule,
   registerAuthModule,
+  registerActivityModule,
 ];
 
 export interface CqrsPluginOptions {

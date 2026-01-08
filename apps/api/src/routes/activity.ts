@@ -3,20 +3,21 @@
  *
  * Provides activity feed endpoints for dashboard and project pages.
  * Per ADR-0005: Activity Tracking System
+ *
+ * Uses CQRS-lite pattern with QueryBus.
+ * Authorization is handled by query handlers, keeping routes thin.
  */
+import { activityChangesResponseSchema, activityListResponseSchema } from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  activityListResponseSchema,
-  activityChangesResponseSchema,
-} from '@lingx/shared';
-import { ActivityService } from '../services/activity.service.js';
-import { NotFoundError, ForbiddenError } from '../plugins/error-handler.js';
+
+// CQRS Queries
+// Result types are inferred from queries - no explicit type needed
+import { GetActivityChangesQuery, GetUserActivitiesQuery } from '../modules/activity/index.js';
 
 const activityRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const activityService = new ActivityService(fastify.prisma);
 
   /**
    * GET /api/activity
@@ -43,10 +44,11 @@ const activityRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request) => {
       const { limit, cursor } = request.query;
-      return await activityService.getUserActivities(request.user.userId, {
-        limit,
-        cursor,
-      });
+
+      // Result type is inferred from GetUserActivitiesQuery
+      return await fastify.queryBus.execute(
+        new GetUserActivitiesQuery(request.user.userId, { limit, cursor })
+      );
     }
   );
 
@@ -80,31 +82,11 @@ const activityRoutes: FastifyPluginAsync = async (fastify) => {
       const { id } = request.params;
       const { limit, cursor } = request.query;
 
-      // Verify user has access to this activity
-      const activity = await fastify.prisma.activity.findUnique({
-        where: { id },
-        select: { projectId: true },
-      });
-
-      if (!activity) {
-        throw new NotFoundError('Activity');
-      }
-
-      // Check if user is a member of the project
-      const membership = await fastify.prisma.projectMember.findUnique({
-        where: {
-          projectId_userId: {
-            projectId: activity.projectId,
-            userId: request.user.userId,
-          },
-        },
-      });
-
-      if (!membership) {
-        throw new ForbiddenError('Not a member of this project');
-      }
-
-      return await activityService.getActivityChanges(id, { limit, cursor });
+      // Result type is inferred from GetActivityChangesQuery
+      // Authorization is handled by the query handler
+      return await fastify.queryBus.execute(
+        new GetActivityChangesQuery(id, request.user.userId, { limit, cursor })
+      );
     }
   );
 };
