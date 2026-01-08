@@ -5,12 +5,12 @@
  * Sessions track login activity and enable "revoke all sessions" functionality.
  */
 import { PrismaClient, Session } from '@prisma/client';
-import { FastifyRequest } from 'fastify';
 import bcrypt from 'bcrypt';
+import { FastifyRequest } from 'fastify';
 import {
+  BadRequestError,
   FieldValidationError,
   UnauthorizedError,
-  BadRequestError,
 } from '../plugins/error-handler.js';
 
 /** bcrypt cost factor per Design Doc NFRs */
@@ -97,12 +97,14 @@ export class SecurityService {
    * @param sessionId - Session ID
    */
   async updateSessionActivity(sessionId: string): Promise<void> {
-    await this.prisma.session.update({
-      where: { id: sessionId },
-      data: { lastActive: new Date() },
-    }).catch(() => {
-      // Ignore errors - session might be deleted
-    });
+    await this.prisma.session
+      .update({
+        where: { id: sessionId },
+        data: { lastActive: new Date() },
+      })
+      .catch(() => {
+        // Ignore errors - session might be deleted
+      });
   }
 
   /**
@@ -179,9 +181,16 @@ export class SecurityService {
    * @param sessionId - Session to delete
    */
   async deleteSession(sessionId: string): Promise<void> {
-    await this.prisma.session.delete({ where: { id: sessionId } }).catch(() => {
-      // Ignore errors - session might already be deleted
-    });
+    try {
+      await this.prisma.session.delete({ where: { id: sessionId } });
+    } catch (err) {
+      // P2025 = Record not found - session already deleted, this is expected
+      const isPrismaNotFound =
+        err instanceof Error && 'code' in err && (err as { code: string }).code === 'P2025';
+      if (!isPrismaNotFound) {
+        throw err;
+      }
+    }
   }
 
   /**
@@ -230,14 +239,22 @@ export class SecurityService {
 
     // Check if user is passwordless
     if (!user.password) {
-      throw new BadRequestError('You are passwordless and cannot change your password. Add a password first.');
+      throw new BadRequestError(
+        'You are passwordless and cannot change your password. Add a password first.'
+      );
     }
 
     // Validate current password
     const isValid = await bcrypt.compare(input.currentPassword, user.password);
     if (!isValid) {
       throw new FieldValidationError(
-        [{ field: 'currentPassword', message: 'Current password is incorrect', code: 'INVALID_PASSWORD' }],
+        [
+          {
+            field: 'currentPassword',
+            message: 'Current password is incorrect',
+            code: 'INVALID_PASSWORD',
+          },
+        ],
         'Invalid current password'
       );
     }

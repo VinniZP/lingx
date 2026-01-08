@@ -5,13 +5,13 @@
  * Supports Google Authenticator, Authy, and similar apps.
  */
 import { PrismaClient } from '@prisma/client';
-import { authenticator } from 'otplib';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import bcrypt from 'bcrypt';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { authenticator } from 'otplib';
 import {
-  UnauthorizedError,
   BadRequestError,
   FieldValidationError,
+  UnauthorizedError,
 } from '../plugins/error-handler.js';
 
 /** bcrypt cost factor for backup code hashing */
@@ -402,7 +402,9 @@ export class TotpService {
 
     // Check if user has a password (passwordless users can't verify with password)
     if (!user.password) {
-      throw new BadRequestError('Passwordless users cannot regenerate backup codes with password verification');
+      throw new BadRequestError(
+        'Passwordless users cannot regenerate backup codes with password verification'
+      );
     }
 
     // Verify password
@@ -470,7 +472,14 @@ export class TotpService {
   // ============================================
 
   /**
-   * Check if a session is trusted for 2FA bypass
+   * Check if a session is trusted for 2FA bypass.
+   *
+   * Returns `false` for expected cases (session not found, no trust date, trust expired).
+   * Propagates database errors for unexpected failures - callers should handle accordingly.
+   *
+   * @param sessionId - The session ID to check
+   * @returns `true` if the session has a valid trust date in the future
+   * @throws Database errors (connection issues, query failures) - not caught here
    */
   async isDeviceTrusted(sessionId: string): Promise<boolean> {
     const session = await this.prisma.session.findUnique({
@@ -491,12 +500,20 @@ export class TotpService {
     const trustedUntil = new Date();
     trustedUntil.setDate(trustedUntil.getDate() + DEVICE_TRUST_DAYS);
 
-    await this.prisma.session.update({
-      where: { id: sessionId },
-      data: { trustedUntil },
-    }).catch(() => {
-      // Session might not exist
-    });
+    try {
+      await this.prisma.session.update({
+        where: { id: sessionId },
+        data: { trustedUntil },
+      });
+    } catch (err) {
+      // P2025 = Session not found - could happen if session was revoked
+      const isPrismaNotFound =
+        err instanceof Error && 'code' in err && (err as { code: string }).code === 'P2025';
+      if (!isPrismaNotFound) {
+        // Other errors should propagate - user explicitly requested this action
+        throw err;
+      }
+    }
   }
 
   /**
@@ -528,7 +545,10 @@ export class TotpService {
   /**
    * Check if user is rate-limited
    */
-  private async checkRateLimit(user: { totpLockedUntil: Date | null; totpFailedAttempts: number }): Promise<void> {
+  private async checkRateLimit(user: {
+    totpLockedUntil: Date | null;
+    totpFailedAttempts: number;
+  }): Promise<void> {
     if (user.totpLockedUntil && user.totpLockedUntil > new Date()) {
       const remainingMs = user.totpLockedUntil.getTime() - Date.now();
       const remainingMin = Math.ceil(remainingMs / 60000);
@@ -624,7 +644,7 @@ export class TotpService {
     if (!keyHex || keyHex.length !== 64) {
       throw new Error(
         'TOTP_ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
-        'Generate with: openssl rand -hex 32'
+          'Generate with: openssl rand -hex 32'
       );
     }
     return Buffer.from(keyHex, 'hex');

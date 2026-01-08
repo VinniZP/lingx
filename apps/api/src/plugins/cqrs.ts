@@ -10,6 +10,7 @@ import {
 import type { CommandBus, EventBus, QueryBus } from '../shared/cqrs/index.js';
 
 // Import module registrars
+import { registerAuthModule } from '../modules/auth/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
 
@@ -17,7 +18,11 @@ import { registerHealthModule } from '../modules/health/index.js';
  * All domain modules that register handlers with the container.
  * Add new modules here as they are created.
  */
-const domainModules: ModuleRegistrar[] = [registerHealthModule, registerEnvironmentModule];
+const domainModules: ModuleRegistrar[] = [
+  registerHealthModule,
+  registerEnvironmentModule,
+  registerAuthModule,
+];
 
 export interface CqrsPluginOptions {
   /** Additional modules to register (for testing) */
