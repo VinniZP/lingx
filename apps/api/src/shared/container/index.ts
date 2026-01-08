@@ -10,6 +10,9 @@ import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer 
 import type { FastifyBaseLogger } from 'fastify';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
+import { ApiKeyService } from '../../services/api-key.service.js';
+import { AuthService } from '../../services/auth.service.js';
+import { SecurityService } from '../../services/security.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
 /**
@@ -24,6 +27,9 @@ export interface Cradle {
   // Services
   accessService: AccessService;
   activityService: ActivityService;
+  authService: AuthService;
+  apiKeyService: ApiKeyService;
+  securityService: SecurityService;
 
   // CQRS Buses
   commandBus: CommandBus;
@@ -59,6 +65,9 @@ export function createAppContainer(
   container.register({
     accessService: asClass(AccessService).singleton(),
     activityService: asClass(ActivityService).singleton(),
+    authService: asClass(AuthService).singleton(),
+    apiKeyService: asClass(ApiKeyService).singleton(),
+    securityService: asClass(SecurityService).singleton(),
   });
 
   // Register the container itself so buses can resolve it

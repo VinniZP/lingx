@@ -1,5 +1,9 @@
 # Lingx Project Instructions
 
+## Main instructions
+
+- Use LSP for reference tracing: Prefer findReferences over Grep when finding all usages of a function/class for refactoring. Use incomingCalls when tracing what code calls a specific function.
+
 ## Tech Stack
 
 - **Monorepo**: pnpm workspaces + Turborepo
