@@ -2,6 +2,8 @@
  * LogoutUserHandler Unit Tests
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SecurityService } from '../../../services/security.service.js';
+import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { LogoutUserCommand } from '../commands/logout-user.command.js';
 import { LogoutUserHandler } from '../commands/logout-user.handler.js';
 import { UserLoggedOutEvent } from '../events/user-logged-out.event.js';
@@ -15,11 +17,17 @@ describe('LogoutUserHandler', () => {
     mockEventBus = { publish: vi.fn() };
   });
 
+  const createHandler = () =>
+    new LogoutUserHandler(
+      mockSecurityService as unknown as SecurityService,
+      mockEventBus as unknown as IEventBus
+    );
+
   it('should delete session and publish UserLoggedOutEvent when sessionId provided', async () => {
     // Arrange
     mockSecurityService.deleteSession.mockResolvedValue(undefined);
 
-    const handler = new LogoutUserHandler(mockSecurityService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act
     await handler.execute(new LogoutUserCommand('session-123'));
@@ -35,7 +43,7 @@ describe('LogoutUserHandler', () => {
 
   it('should not call deleteSession when sessionId is undefined', async () => {
     // Arrange
-    const handler = new LogoutUserHandler(mockSecurityService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act
     await handler.execute(new LogoutUserCommand(undefined));
@@ -53,7 +61,7 @@ describe('LogoutUserHandler', () => {
     // Arrange - unexpected database error (not P2025)
     mockSecurityService.deleteSession.mockRejectedValue(new Error('Database connection failed'));
 
-    const handler = new LogoutUserHandler(mockSecurityService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act & Assert - should propagate the error
     await expect(handler.execute(new LogoutUserCommand('session-123'))).rejects.toThrow(

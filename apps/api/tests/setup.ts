@@ -1,11 +1,12 @@
 /**
  * Global Test Setup
  *
- * Handles test database initialization and cleanup.
+ * Handles test database and Redis initialization and cleanup.
  * Runs before all tests and after all tests complete.
  */
 import { execSync } from 'child_process';
 import dotenv from 'dotenv';
+import Redis from 'ioredis';
 
 // Load environment variables
 dotenv.config();
@@ -74,6 +75,34 @@ async function applyMigrations(): Promise<void> {
 }
 
 /**
+ * Clean all keys in the test Redis database
+ * Uses database 1 to isolate from development (database 0)
+ */
+async function cleanRedis(): Promise<void> {
+  console.log('🧹 Cleaning test Redis...');
+
+  const testRedisUrl = process.env.TEST_REDIS_URL || 'redis://localhost:6379/1';
+  const redis = new Redis(testRedisUrl, {
+    maxRetriesPerRequest: null,
+    lazyConnect: true,
+  });
+
+  try {
+    await redis.connect();
+    await redis.flushdb(); // Only flushes the current database (db 1), not all databases
+    console.log('✅ Redis cleaned');
+  } catch (error) {
+    console.warn('⚠️  Could not clean Redis:', (error as Error).message);
+    console.warn('   Tests that depend on Redis may fail if state is polluted.');
+    console.warn('   This is expected if Redis is not running locally.');
+  } finally {
+    await redis.quit().catch(() => {
+      // Ignore quit errors - connection may have already failed
+    });
+  }
+}
+
+/**
  * Clean all tables in the test database using raw SQL
  * This is done via Prisma but with a fresh connection
  */
@@ -129,6 +158,7 @@ export async function setup(): Promise<void> {
   verifyTestEnvironment();
   await applyMigrations();
   await cleanDatabase();
+  await cleanRedis();
 
   console.log('\n✨ Test setup complete!\n');
 }
@@ -140,6 +170,7 @@ export async function teardown(): Promise<void> {
   console.log('\n🧹 Tearing down test environment...\n');
 
   await cleanDatabase();
+  await cleanRedis();
 
   console.log('✅ Test teardown complete\n');
 }

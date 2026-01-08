@@ -2,6 +2,7 @@
  * GetCurrentUserHandler Unit Tests
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AuthService } from '../../../services/auth.service.js';
 import { GetCurrentUserHandler } from '../queries/get-current-user.handler.js';
 import { GetCurrentUserQuery } from '../queries/get-current-user.query.js';
 
@@ -25,11 +26,13 @@ describe('GetCurrentUserHandler', () => {
     mockAuthService = { getUserById: vi.fn() };
   });
 
+  const createHandler = () => new GetCurrentUserHandler(mockAuthService as unknown as AuthService);
+
   it('should return user by ID', async () => {
     // Arrange
     mockAuthService.getUserById.mockResolvedValue(mockUser);
 
-    const handler = new GetCurrentUserHandler(mockAuthService as never);
+    const handler = createHandler();
 
     // Act
     const result = await handler.execute(new GetCurrentUserQuery('user-123'));
@@ -43,7 +46,7 @@ describe('GetCurrentUserHandler', () => {
     // Arrange
     mockAuthService.getUserById.mockResolvedValue(null);
 
-    const handler = new GetCurrentUserHandler(mockAuthService as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(handler.execute(new GetCurrentUserQuery('invalid-user'))).rejects.toMatchObject({
@@ -56,7 +59,7 @@ describe('GetCurrentUserHandler', () => {
     // Arrange
     mockAuthService.getUserById.mockRejectedValue(new Error('Database unavailable'));
 
-    const handler = new GetCurrentUserHandler(mockAuthService as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(handler.execute(new GetCurrentUserQuery('user-123'))).rejects.toThrow(

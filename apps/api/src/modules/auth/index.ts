@@ -92,11 +92,11 @@ const queryRegistrations = [
 ];
 
 const eventRegistrations = [
-  defineEventHandler(UserRegisteredEvent, AuthActivityHandler, 'userRegisteredActivityHandler'),
-  defineEventHandler(UserLoggedInEvent, AuthActivityHandler, 'userLoggedInActivityHandler'),
-  defineEventHandler(UserLoggedOutEvent, AuthActivityHandler, 'userLoggedOutActivityHandler'),
-  defineEventHandler(ApiKeyCreatedEvent, AuthActivityHandler, 'apiKeyCreatedActivityHandler'),
-  defineEventHandler(ApiKeyRevokedEvent, AuthActivityHandler, 'apiKeyRevokedActivityHandler'),
+  defineEventHandler(UserRegisteredEvent, AuthActivityHandler, 'authActivityHandler'),
+  defineEventHandler(UserLoggedInEvent, AuthActivityHandler, 'authActivityHandler'),
+  defineEventHandler(UserLoggedOutEvent, AuthActivityHandler, 'authActivityHandler'),
+  defineEventHandler(ApiKeyCreatedEvent, AuthActivityHandler, 'authActivityHandler'),
+  defineEventHandler(ApiKeyRevokedEvent, AuthActivityHandler, 'authActivityHandler'),
 ];
 
 /**
@@ -118,13 +118,9 @@ export function registerAuthModule(container: AwilixContainer<Cradle>): void {
     listApiKeysHandler: asClass(ListApiKeysHandler).singleton(),
   });
 
-  // Register event handlers for activity logging
+  // Register event handler for activity logging (single instance handles all auth events)
   container.register({
-    userRegisteredActivityHandler: asClass(AuthActivityHandler).singleton(),
-    userLoggedInActivityHandler: asClass(AuthActivityHandler).singleton(),
-    userLoggedOutActivityHandler: asClass(AuthActivityHandler).singleton(),
-    apiKeyCreatedActivityHandler: asClass(AuthActivityHandler).singleton(),
-    apiKeyRevokedActivityHandler: asClass(AuthActivityHandler).singleton(),
+    authActivityHandler: asClass(AuthActivityHandler).singleton(),
   });
 
   // Register with buses using type-safe registrations

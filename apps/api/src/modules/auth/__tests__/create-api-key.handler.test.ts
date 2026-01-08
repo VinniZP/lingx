@@ -2,6 +2,8 @@
  * CreateApiKeyHandler Unit Tests
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ApiKeyService } from '../../../services/api-key.service.js';
+import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { CreateApiKeyCommand } from '../commands/create-api-key.command.js';
 import { CreateApiKeyHandler } from '../commands/create-api-key.handler.js';
 import { ApiKeyCreatedEvent } from '../events/api-key-created.event.js';
@@ -29,11 +31,17 @@ describe('CreateApiKeyHandler', () => {
     mockEventBus = { publish: vi.fn() };
   });
 
+  const createHandler = () =>
+    new CreateApiKeyHandler(
+      mockApiKeyService as unknown as ApiKeyService,
+      mockEventBus as unknown as IEventBus
+    );
+
   it('should create API key and publish ApiKeyCreatedEvent', async () => {
     // Arrange
     mockApiKeyService.create.mockResolvedValue(mockApiKeyResult);
 
-    const handler = new CreateApiKeyHandler(mockApiKeyService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act
     const result = await handler.execute(new CreateApiKeyCommand('Test API Key', 'user-123'));
@@ -57,7 +65,7 @@ describe('CreateApiKeyHandler', () => {
     // Arrange
     mockApiKeyService.create.mockRejectedValue(new Error('Database error'));
 
-    const handler = new CreateApiKeyHandler(mockApiKeyService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(handler.execute(new CreateApiKeyCommand('Test Key', 'user-123'))).rejects.toThrow(

@@ -472,7 +472,14 @@ export class TotpService {
   // ============================================
 
   /**
-   * Check if a session is trusted for 2FA bypass
+   * Check if a session is trusted for 2FA bypass.
+   *
+   * Returns `false` for expected cases (session not found, no trust date, trust expired).
+   * Propagates database errors for unexpected failures - callers should handle accordingly.
+   *
+   * @param sessionId - The session ID to check
+   * @returns `true` if the session has a valid trust date in the future
+   * @throws Database errors (connection issues, query failures) - not caught here
    */
   async isDeviceTrusted(sessionId: string): Promise<boolean> {
     const session = await this.prisma.session.findUnique({

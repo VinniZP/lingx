@@ -6,6 +6,9 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UnauthorizedError } from '../../../plugins/error-handler.js';
+import type { AuthService } from '../../../services/auth.service.js';
+import type { SecurityService } from '../../../services/security.service.js';
+import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { LoginUserCommand } from '../commands/login-user.command.js';
 import { LoginUserHandler } from '../commands/login-user.handler.js';
 import { UserLoggedInEvent } from '../events/user-logged-in.event.js';
@@ -56,21 +59,30 @@ describe('LoginUserHandler', () => {
     mockEventBus = { publish: vi.fn() };
   });
 
+  const createHandler = () =>
+    new LoginUserHandler(
+      mockAuthService as unknown as AuthService,
+      mockSecurityService as unknown as SecurityService,
+      mockEventBus as unknown as IEventBus
+    );
+
+  const createCommand = (email: string, password: string, isDeviceTrusted: boolean) =>
+    new LoginUserCommand(
+      email,
+      password,
+      mockRequest as unknown as LoginUserCommand['request'],
+      isDeviceTrusted
+    );
+
   it('should login user without 2FA and publish UserLoggedInEvent', async () => {
     // Arrange
     mockAuthService.login.mockResolvedValue(mockUser);
     mockSecurityService.createSession.mockResolvedValue(mockSession);
 
-    const handler = new LoginUserHandler(
-      mockAuthService as never,
-      mockSecurityService as never,
-      mockEventBus as never
-    );
+    const handler = createHandler();
 
     // Act
-    const result = await handler.execute(
-      new LoginUserCommand('test@example.com', 'Password123!', mockRequest as never, false)
-    );
+    const result = await handler.execute(createCommand('test@example.com', 'Password123!', false));
 
     // Assert
     expect(mockAuthService.login).toHaveBeenCalledWith({
@@ -98,16 +110,10 @@ describe('LoginUserHandler', () => {
     // Arrange
     mockAuthService.login.mockResolvedValue(mockUserWith2FA);
 
-    const handler = new LoginUserHandler(
-      mockAuthService as never,
-      mockSecurityService as never,
-      mockEventBus as never
-    );
+    const handler = createHandler();
 
     // Act
-    const result = await handler.execute(
-      new LoginUserCommand('test@example.com', 'Password123!', mockRequest as never, false)
-    );
+    const result = await handler.execute(createCommand('test@example.com', 'Password123!', false));
 
     // Assert - should NOT create session or publish event
     expect(mockSecurityService.createSession).not.toHaveBeenCalled();
@@ -125,16 +131,10 @@ describe('LoginUserHandler', () => {
     mockAuthService.login.mockResolvedValue(mockUserWith2FA);
     mockSecurityService.createSession.mockResolvedValue(mockSession);
 
-    const handler = new LoginUserHandler(
-      mockAuthService as never,
-      mockSecurityService as never,
-      mockEventBus as never
-    );
+    const handler = createHandler();
 
     // Act - isDeviceTrusted = true
-    const result = await handler.execute(
-      new LoginUserCommand('test@example.com', 'Password123!', mockRequest as never, true)
-    );
+    const result = await handler.execute(createCommand('test@example.com', 'Password123!', true));
 
     // Assert - should proceed with normal login
     expect(mockSecurityService.createSession).toHaveBeenCalledWith(mockUserWith2FA.id, mockRequest);
@@ -150,17 +150,11 @@ describe('LoginUserHandler', () => {
     // Arrange
     mockAuthService.login.mockRejectedValue(new UnauthorizedError('Invalid email or password'));
 
-    const handler = new LoginUserHandler(
-      mockAuthService as never,
-      mockSecurityService as never,
-      mockEventBus as never
-    );
+    const handler = createHandler();
 
     // Act & Assert
     await expect(
-      handler.execute(
-        new LoginUserCommand('wrong@example.com', 'WrongPass!', mockRequest as never, false)
-      )
+      handler.execute(createCommand('wrong@example.com', 'WrongPass!', false))
     ).rejects.toMatchObject({
       message: 'Invalid email or password',
       statusCode: 401,
@@ -176,17 +170,11 @@ describe('LoginUserHandler', () => {
     mockAuthService.login.mockResolvedValue(mockUser);
     mockSecurityService.createSession.mockRejectedValue(new Error('Database error'));
 
-    const handler = new LoginUserHandler(
-      mockAuthService as never,
-      mockSecurityService as never,
-      mockEventBus as never
-    );
+    const handler = createHandler();
 
     // Act & Assert
     await expect(
-      handler.execute(
-        new LoginUserCommand('test@example.com', 'Password123!', mockRequest as never, false)
-      )
+      handler.execute(createCommand('test@example.com', 'Password123!', false))
     ).rejects.toThrow('Database error');
 
     // Event should NOT be published on failure

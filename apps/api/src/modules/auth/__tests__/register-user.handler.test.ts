@@ -5,6 +5,8 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FieldValidationError } from '../../../plugins/error-handler.js';
+import type { AuthService } from '../../../services/auth.service.js';
+import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { RegisterUserCommand } from '../commands/register-user.command.js';
 import { RegisterUserHandler } from '../commands/register-user.handler.js';
 import { UserRegisteredEvent } from '../events/user-registered.event.js';
@@ -31,11 +33,17 @@ describe('RegisterUserHandler', () => {
     mockEventBus = { publish: vi.fn() };
   });
 
+  const createHandler = () =>
+    new RegisterUserHandler(
+      mockAuthService as unknown as AuthService,
+      mockEventBus as unknown as IEventBus
+    );
+
   it('should register user via authService and publish UserRegisteredEvent', async () => {
     // Arrange
     mockAuthService.register.mockResolvedValue(mockUser);
 
-    const handler = new RegisterUserHandler(mockAuthService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act
     const result = await handler.execute(
@@ -64,7 +72,7 @@ describe('RegisterUserHandler', () => {
     const userWithoutName = { ...mockUser, name: null };
     mockAuthService.register.mockResolvedValue(userWithoutName);
 
-    const handler = new RegisterUserHandler(mockAuthService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act
     const result = await handler.execute(
@@ -88,7 +96,7 @@ describe('RegisterUserHandler', () => {
     );
     mockAuthService.register.mockRejectedValue(fieldError);
 
-    const handler = new RegisterUserHandler(mockAuthService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(
@@ -107,7 +115,7 @@ describe('RegisterUserHandler', () => {
     // Arrange
     mockAuthService.register.mockRejectedValue(new Error('Database connection failed'));
 
-    const handler = new RegisterUserHandler(mockAuthService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(

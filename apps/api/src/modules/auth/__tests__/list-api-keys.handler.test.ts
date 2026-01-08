@@ -2,6 +2,7 @@
  * ListApiKeysHandler Unit Tests
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ApiKeyService } from '../../../services/api-key.service.js';
 import { ListApiKeysHandler } from '../queries/list-api-keys.handler.js';
 import { ListApiKeysQuery } from '../queries/list-api-keys.query.js';
 
@@ -35,11 +36,13 @@ describe('ListApiKeysHandler', () => {
     mockApiKeyService = { list: vi.fn() };
   });
 
+  const createHandler = () => new ListApiKeysHandler(mockApiKeyService as unknown as ApiKeyService);
+
   it('should return list of API keys for user', async () => {
     // Arrange
     mockApiKeyService.list.mockResolvedValue(mockApiKeys);
 
-    const handler = new ListApiKeysHandler(mockApiKeyService as never);
+    const handler = createHandler();
 
     // Act
     const result = await handler.execute(new ListApiKeysQuery('user-123'));
@@ -54,7 +57,7 @@ describe('ListApiKeysHandler', () => {
     // Arrange
     mockApiKeyService.list.mockResolvedValue([]);
 
-    const handler = new ListApiKeysHandler(mockApiKeyService as never);
+    const handler = createHandler();
 
     // Act
     const result = await handler.execute(new ListApiKeysQuery('user-no-keys'));
@@ -69,7 +72,7 @@ describe('ListApiKeysHandler', () => {
     // Arrange
     mockApiKeyService.list.mockRejectedValue(new Error('Database error'));
 
-    const handler = new ListApiKeysHandler(mockApiKeyService as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(handler.execute(new ListApiKeysQuery('user-123'))).rejects.toThrow(

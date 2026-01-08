@@ -3,6 +3,8 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NotFoundError } from '../../../plugins/error-handler.js';
+import type { ApiKeyService } from '../../../services/api-key.service.js';
+import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { RevokeApiKeyCommand } from '../commands/revoke-api-key.command.js';
 import { RevokeApiKeyHandler } from '../commands/revoke-api-key.handler.js';
 import { ApiKeyRevokedEvent } from '../events/api-key-revoked.event.js';
@@ -16,11 +18,17 @@ describe('RevokeApiKeyHandler', () => {
     mockEventBus = { publish: vi.fn() };
   });
 
+  const createHandler = () =>
+    new RevokeApiKeyHandler(
+      mockApiKeyService as unknown as ApiKeyService,
+      mockEventBus as unknown as IEventBus
+    );
+
   it('should revoke API key and publish ApiKeyRevokedEvent', async () => {
     // Arrange
     mockApiKeyService.revoke.mockResolvedValue(undefined);
 
-    const handler = new RevokeApiKeyHandler(mockApiKeyService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act
     await handler.execute(new RevokeApiKeyCommand('apikey-123', 'user-123'));
@@ -39,7 +47,7 @@ describe('RevokeApiKeyHandler', () => {
     // Arrange
     mockApiKeyService.revoke.mockRejectedValue(new NotFoundError('API key'));
 
-    const handler = new RevokeApiKeyHandler(mockApiKeyService as never, mockEventBus as never);
+    const handler = createHandler();
 
     // Act & Assert
     await expect(

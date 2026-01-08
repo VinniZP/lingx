@@ -290,11 +290,15 @@ See `packages/sdk-nextjs/docs/type-safety.md` for full documentation.
 ### Test Structure
 
 ```
-apps/api/tests/
-├── unit/           # Pure function tests, mocked dependencies
-├── integration/    # Database tests with real Prisma
-└── e2e/            # Full API tests (if applicable)
+apps/api/
+├── src/modules/[domain]/__tests__/   # Unit tests for handlers (mocked deps)
+├── tests/
+│   ├── unit/                         # Unit tests for services
+│   ├── integration/                  # Database tests with real Prisma/Redis
+│   └── e2e/                          # Full API tests (if applicable)
 ```
+
+**Rule**: Integration tests (real database/Redis) go in `tests/integration/`, NOT in `src/modules/**/__tests__/`.
 
 ### Running Tests
 
@@ -305,9 +309,41 @@ pnpm --filter @lingx/api test:integration  # Integration only
 
 ### Test Environment
 
-- Uses `TEST_DATABASE_URL` with `?schema=test` for isolation
-- Redis required for worker/queue tests
+- Uses `TEST_DATABASE_URL` with `?schema=test` for database isolation
+- Uses `TEST_REDIS_URL` or defaults to `redis://localhost:6379/1` (db 1 for tests, db 0 for dev)
 - CI uses Docker services for Postgres and Redis
+
+### TDD for CQRS Handlers
+
+When creating new command/query handlers, follow TDD:
+
+1. **Write test first** in `modules/[domain]/__tests__/[handler].test.ts`
+2. **Run test** - verify it fails (RED)
+3. **Implement handler** - minimal code to pass
+4. **Run test** - verify it passes (GREEN)
+5. **Refactor** if needed
+
+### Test Type Safety
+
+**Never use `as never`** for mock objects - it bypasses all type checking.
+
+```typescript
+// ❌ BAD - loses all type safety
+const handler = new MyHandler(mockService as never);
+
+// ✅ GOOD - maintains type checking
+const mockService: { methodName: ReturnType<typeof vi.fn> } = {
+  methodName: vi.fn(),
+};
+const handler = new MyHandler(mockService as unknown as ServiceType);
+```
+
+Use helper functions for cleaner tests:
+
+```typescript
+const createHandler = () =>
+  new MyHandler(mockService as unknown as ServiceType, mockEventBus as unknown as IEventBus);
+```
 
 ---
 

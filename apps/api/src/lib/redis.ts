@@ -16,7 +16,11 @@ declare global {
  * Create a new Redis client instance
  */
 function createRedisClient(): Redis {
-  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+  // Use separate Redis database for tests (db 1) to isolate from development (db 0)
+  const isTest = process.env.NODE_ENV === 'test';
+  const redisUrl = isTest
+    ? process.env.TEST_REDIS_URL || 'redis://localhost:6379/1'
+    : process.env.REDIS_URL || 'redis://localhost:6379/0';
 
   const client = new Redis(redisUrl, {
     maxRetriesPerRequest: null, // Required for BullMQ
