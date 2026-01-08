@@ -1,10 +1,10 @@
 ---
 description: Refactor backend code to CQRS-lite pattern (services → commands/queries/events)
-argument-hint: [file-or-directory-path]
+argument-hint: [file-or-directory-path] [additional-notes]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(pnpm:*)
 ---
 
-Refactor the backend code at @$ARGUMENTS to follow CQRS-lite architecture patterns.
+Refactor the backend code at @$0 to follow CQRS-lite architecture patterns.
 
 ## Process
 
@@ -75,7 +75,23 @@ export class TranslationUpdatedEvent {
 
 ## Important
 
-- Maintain backward compatibility where possible
+- Do not maintain backward compatibility where possible
 - Update all imports after moving files
 - Keep routes thin - they should only validate, authorize, dispatch
 - Register new handlers in the DI container
+
+### TDD for CQRS Handlers
+
+When creating new command/query handlers, follow TDD:
+
+1. **Write test first** in `modules/[domain]/__tests__/[handler].test.ts`
+2. **Run test** - verify it fails (RED)
+3. **Implement handler** - minimal code to pass
+4. **Run test** - verify it passes (GREEN)
+5. **Refactor** if needed
+
+After refactoring create integration tests for happy path
+
+Additional notes:
+
+$ARGUMENTS

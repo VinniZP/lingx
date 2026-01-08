@@ -14,6 +14,7 @@ import { registerActivityModule } from '../modules/activity/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
+import { registerSecurityModule } from '../modules/security/index.js';
 
 /**
  * All domain modules that register handlers with the container.
@@ -24,6 +25,7 @@ const domainModules: ModuleRegistrar[] = [
   registerEnvironmentModule,
   registerAuthModule,
   registerActivityModule,
+  registerSecurityModule,
 ];
 
 export interface CqrsPluginOptions {
