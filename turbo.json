@@ -14,6 +14,10 @@
       "dependsOn": ["^build"],
       "passThroughEnv": ["DATABASE_URL", "TEST_DATABASE_URL", "NODE_ENV"]
     },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "passThroughEnv": ["DATABASE_URL", "TEST_DATABASE_URL", "NODE_ENV"]
+    },
     "typecheck": {
       "dependsOn": ["^build"]
     },
