@@ -15,6 +15,9 @@ import {
   TOTP_APP_NAME,
 } from './constants.js';
 
+/** Auth tag length in hex characters (16 bytes = 32 hex chars) */
+const AUTH_TAG_HEX_LENGTH = 32;
+
 export interface EncryptedSecret {
   encrypted: string;
   iv: string;
@@ -75,9 +78,9 @@ export class TotpCryptoService {
     const key = this.getEncryptionKey();
     const iv = Buffer.from(ivHex, 'hex');
 
-    // Split encrypted data and auth tag (last 32 hex chars = 16 bytes)
-    const authTag = Buffer.from(encrypted.slice(-32), 'hex');
-    const encryptedData = encrypted.slice(0, -32);
+    // Split encrypted data and auth tag
+    const authTag = Buffer.from(encrypted.slice(-AUTH_TAG_HEX_LENGTH), 'hex');
+    const encryptedData = encrypted.slice(0, -AUTH_TAG_HEX_LENGTH);
 
     const decipher = createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(authTag);

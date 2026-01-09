@@ -1,6 +1,7 @@
 import type { AwilixContainer } from 'awilix';
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
+import type { ChallengeStore } from '../services/challenge-store.service.js';
 import {
   createAppContainer,
   registerModules,
@@ -64,6 +65,7 @@ const cqrsPlugin: FastifyPluginAsync<CqrsPluginOptions> = async (fastify, option
   fastify.decorate('commandBus', container.resolve('commandBus'));
   fastify.decorate('queryBus', container.resolve('queryBus'));
   fastify.decorate('eventBus', container.resolve('eventBus'));
+  fastify.decorate('challengeStore', container.resolve('challengeStore'));
 
   fastify.log.info(`CQRS infrastructure initialized with ${allModules.length} module(s)`);
 };
@@ -80,5 +82,6 @@ declare module 'fastify' {
     commandBus: CommandBus;
     queryBus: QueryBus;
     eventBus: EventBus;
+    challengeStore: ChallengeStore;
   }
 }

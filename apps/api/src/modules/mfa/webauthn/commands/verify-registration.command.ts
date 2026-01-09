@@ -25,7 +25,7 @@ export class VerifyRegistrationCommand implements ICommand<VerifyRegistrationRes
   constructor(
     public readonly userId: string,
     public readonly credentialName: string,
-    public readonly expectedChallenge: string,
+    public readonly challengeToken: string,
     public readonly response: RegistrationResponseJSON
   ) {}
 }

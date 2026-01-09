@@ -5,7 +5,8 @@
  */
 import type { AuthenticatorTransportFuture } from '@simplewebauthn/server';
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
-import { UnauthorizedError } from '../../../../plugins/error-handler.js';
+import { BadRequestError, UnauthorizedError } from '../../../../plugins/error-handler.js';
+import type { ChallengeStore } from '../../../../services/challenge-store.service.js';
 import type { ICommandHandler, IEventBus } from '../../../../shared/cqrs/index.js';
 import { PasskeyAuthenticatedEvent } from '../../events/passkey-authenticated.event.js';
 import type { WebAuthnConfigService } from '../../shared/webauthn-config.service.js';
@@ -19,10 +20,22 @@ export class VerifyAuthenticationHandler implements ICommandHandler<VerifyAuthen
   constructor(
     private readonly repository: WebAuthnRepository,
     private readonly configService: WebAuthnConfigService,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly challengeStore: ChallengeStore
   ) {}
 
   async execute(command: VerifyAuthenticationCommand): Promise<VerifyAuthenticationResult> {
+    // Consume challenge from store (single use)
+    const stored = await this.challengeStore.consume(command.challengeToken);
+    if (!stored) {
+      throw new BadRequestError('Challenge expired or invalid');
+    }
+
+    // Validate purpose
+    if (stored.purpose !== 'webauthn-auth') {
+      throw new BadRequestError('Invalid challenge token');
+    }
+
     // Find the credential by credentialId from the response
     const credential = await this.repository.findCredentialByCredentialId(command.response.id);
 
@@ -35,7 +48,7 @@ export class VerifyAuthenticationHandler implements ICommandHandler<VerifyAuthen
     try {
       verification = await verifyAuthenticationResponse({
         response: command.response,
-        expectedChallenge: command.expectedChallenge,
+        expectedChallenge: stored.challenge,
         expectedOrigin: this.configService.origin,
         expectedRPID: this.configService.rpId,
         credential: {

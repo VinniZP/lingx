@@ -47,14 +47,14 @@ export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCode
       throw new BadRequestError('No backup codes available');
     }
 
-    // Try to find a matching code
+    // Try to find a matching code (constant-time: check all codes to prevent timing attacks)
     let matchedCode: { id: string; codeHash: string } | null = null;
 
     for (const code of unusedCodes) {
       const isValid = await this.cryptoService.verifyBackupCode(command.code, code.codeHash);
-      if (isValid) {
+      if (isValid && !matchedCode) {
         matchedCode = code;
-        break;
+        // Don't break - continue checking all codes to prevent timing oracle
       }
     }
 
@@ -67,11 +67,8 @@ export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCode
       );
     }
 
-    // Mark code as used
-    await this.repository.markBackupCodeUsed(matchedCode.id);
-
-    // Reset failed attempts
-    await this.repository.resetFailedAttempts(command.userId);
+    // Mark code as used and reset failed attempts atomically
+    await this.repository.markBackupCodeUsedAndResetAttempts(matchedCode.id, command.userId);
 
     // Trust device if requested
     if (command.trustDevice && command.sessionId) {

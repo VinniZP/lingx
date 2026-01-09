@@ -20,7 +20,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { toUserDto } from '../dto/user.dto.js';
-import { BadRequestError, UnauthorizedError } from '../plugins/error-handler.js';
+import { UnauthorizedError } from '../plugins/error-handler.js';
 
 // Import commands and queries from MFA module
 import {
@@ -63,18 +63,12 @@ const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { userId } = request.user;
 
-      // Get registration options from command
+      // Command handles challenge generation and storage
       const result = await fastify.commandBus.execute(
         new GenerateRegistrationOptionsCommand(userId)
       );
 
-      // Create challenge token (HTTP concern - stays in route)
-      const challengeToken = fastify.jwt.sign(
-        { challenge: result.challenge, userId, purpose: 'webauthn-register' },
-        { expiresIn: '5m' }
-      );
-
-      return { options: result.options, challengeToken };
+      return { options: result.options, challengeToken: result.challengeToken };
     }
   );
 
@@ -110,26 +104,9 @@ const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
       const { userId } = request.user;
       const { name, challengeToken, response } = request.body;
 
-      // Verify challenge token (HTTP concern - stays in route)
-      let payload: { challenge: string; userId: string; purpose: string };
-      try {
-        payload = fastify.jwt.verify(challengeToken) as typeof payload;
-      } catch (err) {
-        fastify.log.debug({ err }, 'WebAuthn registration challenge token verification failed');
-        throw new BadRequestError('Invalid or expired challenge token');
-      }
-
-      if (payload.purpose !== 'webauthn-register' || payload.userId !== userId) {
-        fastify.log.warn(
-          { purpose: payload.purpose, userId, tokenUserId: payload.userId },
-          'WebAuthn challenge token purpose/user mismatch'
-        );
-        throw new BadRequestError('Invalid challenge token');
-      }
-
-      // Verify registration (business logic - dispatch to command)
+      // Command handles challenge retrieval and validation
       const result = await fastify.commandBus.execute(
-        new VerifyRegistrationCommand(userId, name, payload.challenge, response)
+        new VerifyRegistrationCommand(userId, name, challengeToken, response)
       );
 
       return { credential: { ...result.credential, lastUsedAt: null } };
@@ -161,18 +138,12 @@ const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { email } = request.body;
 
-      // Get authentication options from command
+      // Command handles challenge generation and storage
       const result = await fastify.commandBus.execute(
         new GenerateAuthenticationOptionsCommand(email)
       );
 
-      // Create challenge token (HTTP concern - stays in route)
-      const challengeToken = fastify.jwt.sign(
-        { challenge: result.challenge, userId: result.userId, purpose: 'webauthn-auth' },
-        { expiresIn: '5m' }
-      );
-
-      return { options: result.options, challengeToken };
+      return { options: result.options, challengeToken: result.challengeToken };
     }
   );
 
@@ -197,23 +168,9 @@ const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { challengeToken, response } = request.body;
 
-      // Verify challenge token (HTTP concern - stays in route)
-      let payload: { challenge: string; userId?: string; purpose: string };
-      try {
-        payload = fastify.jwt.verify(challengeToken) as typeof payload;
-      } catch (err) {
-        fastify.log.debug({ err }, 'WebAuthn authentication challenge token verification failed');
-        throw new BadRequestError('Invalid or expired challenge token');
-      }
-
-      if (payload.purpose !== 'webauthn-auth') {
-        fastify.log.warn({ purpose: payload.purpose }, 'WebAuthn challenge token purpose mismatch');
-        throw new BadRequestError('Invalid challenge token');
-      }
-
-      // Verify the passkey authentication (business logic - dispatch to command)
+      // Command handles challenge retrieval and validation
       const result = await fastify.commandBus.execute(
-        new VerifyAuthenticationCommand(payload.challenge, response)
+        new VerifyAuthenticationCommand(challengeToken, response)
       );
 
       // Create session (HTTP concern - stays in route)

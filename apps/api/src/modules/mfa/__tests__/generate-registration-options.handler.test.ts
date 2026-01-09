@@ -27,6 +27,12 @@ describe('GenerateRegistrationOptionsHandler', () => {
     rpId: string;
     rpName: string;
   };
+  let mockChallengeStore: {
+    store: ReturnType<typeof vi.fn>;
+  };
+  let mockLogger: {
+    error: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     mockRepository = {
@@ -36,10 +42,21 @@ describe('GenerateRegistrationOptionsHandler', () => {
       rpId: 'localhost',
       rpName: 'Lingx',
     };
+    mockChallengeStore = {
+      store: vi.fn(),
+    };
+    mockLogger = {
+      error: vi.fn(),
+    };
   });
 
   const createHandler = () =>
-    new GenerateRegistrationOptionsHandler(mockRepository as any, mockConfigService as any);
+    new GenerateRegistrationOptionsHandler(
+      mockRepository as any,
+      mockConfigService as any,
+      mockChallengeStore as any,
+      mockLogger as any
+    );
 
   it('should generate registration options for a user', async () => {
     mockRepository.findUserById.mockResolvedValue({
@@ -56,7 +73,16 @@ describe('GenerateRegistrationOptionsHandler', () => {
 
     expect(result.options).toBeDefined();
     expect(result.options.challenge).toBe('test-challenge-base64');
+    expect(result.challengeToken).toBeDefined();
     expect(mockRepository.findUserById).toHaveBeenCalledWith('user-123');
+    expect(mockChallengeStore.store).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        challenge: 'test-challenge-base64',
+        purpose: 'webauthn-register',
+        userId: 'user-123',
+      })
+    );
   });
 
   it('should exclude existing credentials', async () => {
@@ -86,5 +112,26 @@ describe('GenerateRegistrationOptionsHandler', () => {
     const command = new GenerateRegistrationOptionsCommand('non-existent');
 
     await expect(handler.execute(command)).rejects.toThrow('User not found');
+  });
+
+  it('should throw AppError and log when challengeStore.store() fails', async () => {
+    mockRepository.findUserById.mockResolvedValue({
+      id: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      webauthnCredentials: [],
+    });
+    mockChallengeStore.store.mockRejectedValue(new Error('Redis connection failed'));
+
+    const handler = createHandler();
+    const command = new GenerateRegistrationOptionsCommand('user-123');
+
+    await expect(handler.execute(command)).rejects.toThrow(
+      'Failed to initiate passkey registration'
+    );
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      { error: 'Redis connection failed', userId: 'user-123' },
+      'Failed to store WebAuthn registration challenge'
+    );
   });
 });

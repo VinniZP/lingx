@@ -8,7 +8,7 @@ import type { ICommand } from '../../../../shared/cqrs/index.js';
 
 export interface GenerateRegistrationOptionsResult {
   options: PublicKeyCredentialCreationOptionsJSON;
-  challenge: string; // Challenge for verification (stored temporarily)
+  challengeToken: string; // Token to retrieve challenge during verification
 }
 
 export class GenerateRegistrationOptionsCommand implements ICommand<GenerateRegistrationOptionsResult> {

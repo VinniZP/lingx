@@ -5,6 +5,7 @@
  */
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import { BadRequestError, UnauthorizedError } from '../../../../plugins/error-handler.js';
+import type { ChallengeStore } from '../../../../services/challenge-store.service.js';
 import type { ICommandHandler, IEventBus } from '../../../../shared/cqrs/index.js';
 import { PasskeyRegisteredEvent } from '../../events/passkey-registered.event.js';
 import type { WebAuthnConfigService } from '../../shared/webauthn-config.service.js';
@@ -18,10 +19,22 @@ export class VerifyRegistrationHandler implements ICommandHandler<VerifyRegistra
   constructor(
     private readonly repository: WebAuthnRepository,
     private readonly configService: WebAuthnConfigService,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly challengeStore: ChallengeStore
   ) {}
 
   async execute(command: VerifyRegistrationCommand): Promise<VerifyRegistrationResult> {
+    // Consume challenge from store (single use)
+    const stored = await this.challengeStore.consume(command.challengeToken);
+    if (!stored) {
+      throw new BadRequestError('Challenge expired or invalid');
+    }
+
+    // Validate purpose and userId
+    if (stored.purpose !== 'webauthn-register' || stored.userId !== command.userId) {
+      throw new BadRequestError('Invalid challenge token');
+    }
+
     const user = await this.repository.findUserById(command.userId);
 
     if (!user) {
@@ -33,7 +46,7 @@ export class VerifyRegistrationHandler implements ICommandHandler<VerifyRegistra
     try {
       verification = await verifyRegistrationResponse({
         response: command.response,
-        expectedChallenge: command.expectedChallenge,
+        expectedChallenge: stored.challenge,
         expectedOrigin: this.configService.origin,
         expectedRPID: this.configService.rpId,
       });

@@ -11,9 +11,11 @@ describe('VerifyBackupCodeHandler', () => {
     findUserById: ReturnType<typeof vi.fn>;
     getUnusedBackupCodes: ReturnType<typeof vi.fn>;
     markBackupCodeUsed: ReturnType<typeof vi.fn>;
+    markBackupCodeUsedAndResetAttempts: ReturnType<typeof vi.fn>;
     resetFailedAttempts: ReturnType<typeof vi.fn>;
     setSessionTrust: ReturnType<typeof vi.fn>;
     incrementFailedAttempts: ReturnType<typeof vi.fn>;
+    countUnusedBackupCodes: ReturnType<typeof vi.fn>;
   };
   let mockCryptoService: {
     verifyBackupCode: ReturnType<typeof vi.fn>;
@@ -27,9 +29,11 @@ describe('VerifyBackupCodeHandler', () => {
       findUserById: vi.fn(),
       getUnusedBackupCodes: vi.fn(),
       markBackupCodeUsed: vi.fn(),
+      markBackupCodeUsedAndResetAttempts: vi.fn(),
       resetFailedAttempts: vi.fn(),
       setSessionTrust: vi.fn(),
       incrementFailedAttempts: vi.fn(),
+      countUnusedBackupCodes: vi.fn().mockResolvedValue(1),
     };
     mockCryptoService = {
       verifyBackupCode: vi.fn(),
@@ -69,8 +73,10 @@ describe('VerifyBackupCodeHandler', () => {
 
     expect(result.success).toBe(true);
     expect(result.remainingCodes).toBe(1);
-    expect(mockRepository.markBackupCodeUsed).toHaveBeenCalledWith('code-2');
-    expect(mockRepository.resetFailedAttempts).toHaveBeenCalledWith('user-123');
+    expect(mockRepository.markBackupCodeUsedAndResetAttempts).toHaveBeenCalledWith(
+      'code-2',
+      'user-123'
+    );
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(BackupCodeUsedEvent));
   });
 

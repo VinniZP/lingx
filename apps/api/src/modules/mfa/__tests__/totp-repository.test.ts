@@ -49,17 +49,6 @@ describe('TotpRepository', () => {
     };
   });
 
-  const createRepository = () =>
-    new TotpRepository(
-      mockPrisma as unknown as Parameters<
-        typeof TotpRepository.prototype.findUserById
-      >[0] extends infer T
-        ? T extends { id: string }
-          ? never
-          : Parameters<ConstructorParameters<typeof TotpRepository>[0]>
-        : never
-    );
-
   // ============================================
   // User Operations
   // ============================================
@@ -231,6 +220,27 @@ describe('TotpRepository', () => {
       expect(mockPrisma.backupCode.update).toHaveBeenCalledWith({
         where: { id: 'code-123' },
         data: { usedAt: expect.any(Date) },
+      });
+    });
+  });
+
+  describe('markBackupCodeUsedAndResetAttempts', () => {
+    it('should mark backup code as used and reset failed attempts atomically', async () => {
+      const repository = new TotpRepository(mockPrisma as any);
+
+      await repository.markBackupCodeUsedAndResetAttempts('code-123', 'user-123');
+
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
+      expect(mockPrisma.backupCode.update).toHaveBeenCalledWith({
+        where: { id: 'code-123' },
+        data: { usedAt: expect.any(Date) },
+      });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-123' },
+        data: {
+          totpFailedAttempts: 0,
+          totpLockedUntil: null,
+        },
       });
     });
   });

@@ -172,6 +172,27 @@ export class TotpRepository {
   }
 
   /**
+   * Atomically mark a backup code as used and reset failed attempts
+   * Prevents race conditions where one operation succeeds but the other fails
+   */
+  async markBackupCodeUsedAndResetAttempts(codeId: string, userId: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.backupCode.update({
+        where: { id: codeId },
+        data: { usedAt: new Date() },
+      });
+
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          totpFailedAttempts: 0,
+          totpLockedUntil: null,
+        },
+      });
+    });
+  }
+
+  /**
    * Count unused backup codes
    */
   async countUnusedBackupCodes(userId: string): Promise<number> {

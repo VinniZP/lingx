@@ -19,6 +19,7 @@ import {
   RevokeAllSessionsCommand,
   RevokeSessionCommand,
 } from '../modules/security/index.js';
+import { UnauthorizedError } from '../plugins/error-handler.js';
 import { extractRequestMetadata } from '../services/security.service.js';
 
 const securityRoutes: FastifyPluginAsync = async (fastify) => {
@@ -48,12 +49,16 @@ const securityRoutes: FastifyPluginAsync = async (fastify) => {
       const { currentPassword, newPassword } = request.body;
       const { userId, sessionId } = request.user;
 
+      if (!sessionId) {
+        throw new UnauthorizedError('Session ID is required');
+      }
+
       // Extract metadata from request before creating command (decouples from framework)
       const metadata = extractRequestMetadata(request);
 
       // Dispatch to command bus
       const result = await fastify.commandBus.execute(
-        new ChangePasswordCommand(userId, sessionId || '', currentPassword, newPassword, metadata)
+        new ChangePasswordCommand(userId, sessionId, currentPassword, newPassword, metadata)
       );
 
       // Issue new JWT with new session ID (HTTP-specific logic stays in route)
@@ -93,10 +98,12 @@ const securityRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { userId, sessionId } = request.user;
 
+      if (!sessionId) {
+        throw new UnauthorizedError('Session ID is required');
+      }
+
       // Dispatch to query bus
-      const sessions = await fastify.queryBus.execute(
-        new GetSessionsQuery(userId, sessionId || '')
-      );
+      const sessions = await fastify.queryBus.execute(new GetSessionsQuery(userId, sessionId));
 
       return { sessions };
     }
@@ -127,8 +134,12 @@ const securityRoutes: FastifyPluginAsync = async (fastify) => {
       const { id } = request.params;
       const { userId, sessionId } = request.user;
 
+      if (!sessionId) {
+        throw new UnauthorizedError('Session ID is required');
+      }
+
       // Dispatch to command bus
-      await fastify.commandBus.execute(new RevokeSessionCommand(userId, id, sessionId || ''));
+      await fastify.commandBus.execute(new RevokeSessionCommand(userId, id, sessionId));
 
       return reply.status(204).send();
     }
@@ -155,9 +166,13 @@ const securityRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { userId, sessionId } = request.user;
 
+      if (!sessionId) {
+        throw new UnauthorizedError('Session ID is required');
+      }
+
       // Dispatch to command bus
       const result = await fastify.commandBus.execute(
-        new RevokeAllSessionsCommand(userId, sessionId || '')
+        new RevokeAllSessionsCommand(userId, sessionId)
       );
 
       return {

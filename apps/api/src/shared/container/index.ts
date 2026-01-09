@@ -8,10 +8,13 @@
 import type { PrismaClient } from '@prisma/client';
 import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer } from 'awilix';
 import type { FastifyBaseLogger } from 'fastify';
+import type { Redis } from 'ioredis';
+import { redis } from '../../lib/redis.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
 import { ApiKeyService } from '../../services/api-key.service.js';
 import { AuthService } from '../../services/auth.service.js';
+import { ChallengeStore } from '../../services/challenge-store.service.js';
 import { SecurityService } from '../../services/security.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
@@ -23,6 +26,7 @@ export interface Cradle {
   // Infrastructure
   prisma: PrismaClient;
   logger: FastifyBaseLogger;
+  redis: Redis;
 
   // Services
   accessService: AccessService;
@@ -30,6 +34,7 @@ export interface Cradle {
   authService: AuthService;
   apiKeyService: ApiKeyService;
   securityService: SecurityService;
+  challengeStore: ChallengeStore;
 
   // CQRS Buses
   commandBus: CommandBus;
@@ -59,6 +64,7 @@ export function createAppContainer(
   container.register({
     prisma: asValue(prisma),
     logger: asValue(logger),
+    redis: asValue(redis),
   });
 
   // Register services
@@ -68,6 +74,7 @@ export function createAppContainer(
     authService: asClass(AuthService).singleton(),
     apiKeyService: asClass(ApiKeyService).singleton(),
     securityService: asClass(SecurityService).singleton(),
+    challengeStore: asClass(ChallengeStore).singleton(),
   });
 
   // Register the container itself so buses can resolve it

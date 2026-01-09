@@ -6,6 +6,10 @@
  */
 import type { AuthenticatorTransportFuture } from '@simplewebauthn/server';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
+import { randomBytes } from 'crypto';
+import type { FastifyBaseLogger } from 'fastify';
+import { AppError } from '../../../../plugins/error-handler.js';
+import type { ChallengeStore } from '../../../../services/challenge-store.service.js';
 import type { ICommandHandler } from '../../../../shared/cqrs/index.js';
 import type { WebAuthnConfigService } from '../../shared/webauthn-config.service.js';
 import type { WebAuthnRepository } from '../webauthn.repository.js';
@@ -17,7 +21,9 @@ import {
 export class GenerateAuthenticationOptionsHandler implements ICommandHandler<GenerateAuthenticationOptionsCommand> {
   constructor(
     private readonly repository: WebAuthnRepository,
-    private readonly configService: WebAuthnConfigService
+    private readonly configService: WebAuthnConfigService,
+    private readonly challengeStore: ChallengeStore,
+    private readonly logger: FastifyBaseLogger
   ) {}
 
   async execute(
@@ -46,10 +52,25 @@ export class GenerateAuthenticationOptionsHandler implements ICommandHandler<Gen
       userVerification: 'preferred',
     });
 
+    // Generate secure token and store challenge
+    const challengeToken = randomBytes(32).toString('base64url');
+    try {
+      await this.challengeStore.store(challengeToken, {
+        challenge: options.challenge,
+        purpose: 'webauthn-auth',
+        userId, // May be undefined for discoverable credentials
+      });
+    } catch (error) {
+      this.logger.error(
+        { error: error instanceof Error ? error.message : 'Unknown error', email: command.email },
+        'Failed to store WebAuthn authentication challenge'
+      );
+      throw new AppError('Failed to initiate passkey authentication', 500, 'CHALLENGE_STORE_ERROR');
+    }
+
     return {
       options,
-      challenge: options.challenge,
-      userId,
+      challengeToken,
     };
   }
 }

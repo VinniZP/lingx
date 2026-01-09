@@ -16,7 +16,7 @@ export class VerifyAuthenticationCommand implements ICommand<VerifyAuthenticatio
   declare readonly __resultType: VerifyAuthenticationResult;
 
   constructor(
-    public readonly expectedChallenge: string,
+    public readonly challengeToken: string,
     public readonly response: AuthenticationResponseJSON
   ) {}
 }
