@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import type { FastifyBaseLogger } from 'fastify';
 import type { IQueryHandler } from '../../../shared/cqrs/index.js';
 import type { GetHealthQuery, HealthResult } from './get-health.query.js';
 
@@ -7,7 +8,10 @@ import type { GetHealthQuery, HealthResult } from './get-health.query.js';
  * Checks database connectivity and returns system health status.
  */
 export class GetHealthHandler implements IQueryHandler<GetHealthQuery, HealthResult> {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly logger: FastifyBaseLogger
+  ) {}
 
   async execute(query: GetHealthQuery): Promise<HealthResult> {
     const timestamp = new Date();
@@ -34,7 +38,7 @@ export class GetHealthHandler implements IQueryHandler<GetHealthQuery, HealthRes
     };
   }
 
-  private async checkDatabase(): Promise<{ status: 'up' | 'down'; latencyMs?: number }> {
+  private async checkDatabase(): Promise<{ status: 'up' | 'down'; latencyMs: number }> {
     const start = Date.now();
     try {
       await this.prisma.$queryRaw`SELECT 1`;
@@ -42,8 +46,10 @@ export class GetHealthHandler implements IQueryHandler<GetHealthQuery, HealthRes
         status: 'up',
         latencyMs: Date.now() - start,
       };
-    } catch {
-      return { status: 'down' };
+    } catch (error) {
+      const latencyMs = Date.now() - start;
+      this.logger.error({ err: error, latencyMs }, 'Database health check failed');
+      return { status: 'down', latencyMs };
     }
   }
 }

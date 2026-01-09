@@ -1,95 +1,107 @@
 import { FastifyPluginAsync } from 'fastify';
+import { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
+import { GetHealthQuery } from '../modules/health/index.js';
+
+// Response schemas
+const healthResponseSchema = z.object({
+  status: z.string(),
+  timestamp: z.string(),
+  version: z.string(),
+});
+
+const detailedHealthResponseSchema = z.object({
+  status: z.string(),
+  timestamp: z.string(),
+  version: z.string(),
+  checks: z.object({
+    database: z.object({
+      status: z.string(),
+      latencyMs: z.number(),
+    }),
+  }),
+});
 
 /**
  * Health Check Routes
  *
  * Provides endpoints for monitoring the application's health status.
+ * Uses CQRS-lite pattern - routes dispatch to query bus.
+ *
  * - /health: Basic health check for load balancer probes
  * - /health/detailed: Comprehensive health check including database status
  */
 const healthRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<ZodTypeProvider>();
+
   // Basic health check
-  fastify.get('/health', {
-    schema: {
-      description: 'Health check endpoint',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            version: { type: 'string' },
-          },
+  app.get(
+    '/health',
+    {
+      schema: {
+        description: 'Health check endpoint',
+        tags: ['Health'],
+        response: {
+          200: healthResponseSchema,
         },
       },
     },
-  }, async (_request, _reply) => {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '0.0.0',
-    };
-  });
+    async (_request, _reply) => {
+      const result = await fastify.queryBus.execute(new GetHealthQuery(false));
 
-  // Detailed health check with database
-  fastify.get('/health/detailed', {
-    schema: {
-      description: 'Detailed health check with database status',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            version: { type: 'string' },
-            checks: {
-              type: 'object',
-              properties: {
-                database: {
-                  type: 'object',
-                  properties: {
-                    status: { type: 'string' },
-                    latencyMs: { type: 'number' },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  }, async (request, _reply) => {
-    const checks = {
-      database: { status: 'unknown', latencyMs: 0 },
-    };
-
-    // Check database
-    const dbStart = Date.now();
-    try {
-      await fastify.prisma.$queryRaw`SELECT 1`;
-      checks.database = {
-        status: 'ok',
-        latencyMs: Date.now() - dbStart,
-      };
-    } catch (error) {
-      request.log.error({ err: error }, 'Database health check failed');
-      checks.database = {
-        status: 'error',
-        latencyMs: Date.now() - dbStart,
+      return {
+        status: result.status === 'healthy' ? 'ok' : 'degraded',
+        timestamp: result.timestamp.toISOString(),
+        version: process.env.npm_package_version || '0.0.0',
       };
     }
+  );
 
-    const allHealthy = Object.values(checks).every((c) => c.status === 'ok');
+  // Detailed health check with database
+  app.get(
+    '/health/detailed',
+    {
+      schema: {
+        description: 'Detailed health check with database status',
+        tags: ['Health'],
+        response: {
+          200: detailedHealthResponseSchema,
+        },
+      },
+    },
+    async (request, _reply) => {
+      try {
+        const result = await fastify.queryBus.execute(new GetHealthQuery(true));
 
-    return {
-      status: allHealthy ? 'ok' : 'degraded',
-      timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '0.0.0',
-      checks,
-    };
-  });
+        // Map domain terminology to API response format
+        const dbStatus = result.details?.database;
+        const checks = {
+          database: {
+            status: dbStatus?.status === 'up' ? 'ok' : 'error',
+            latencyMs: dbStatus?.latencyMs ?? 0,
+          },
+        };
+
+        return {
+          status: result.status === 'healthy' ? 'ok' : 'degraded',
+          timestamp: result.timestamp.toISOString(),
+          version: process.env.npm_package_version || '0.0.0',
+          checks,
+        };
+      } catch (error) {
+        // Infrastructure failure - health check itself is broken
+        request.log.error({ err: error }, 'Health check query execution failed');
+        return {
+          status: 'degraded',
+          timestamp: new Date().toISOString(),
+          version: process.env.npm_package_version || '0.0.0',
+          checks: {
+            database: { status: 'error', latencyMs: 0 },
+          },
+        };
+      }
+    }
+  );
 };
 
 export default healthRoutes;

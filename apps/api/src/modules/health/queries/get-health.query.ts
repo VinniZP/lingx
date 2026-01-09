@@ -7,7 +7,7 @@ export interface HealthResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: Date;
   details?: {
-    database: { status: 'up' | 'down'; latencyMs?: number };
+    database: { status: 'up' | 'down'; latencyMs: number };
   };
 }
 
