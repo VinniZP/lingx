@@ -32,6 +32,7 @@ import {
   RegisterUserCommand,
   RevokeApiKeyCommand,
 } from '../modules/auth/index.js';
+import { IsDeviceTrustedQuery } from '../modules/mfa/index.js';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -102,7 +103,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         await request.jwtVerify();
         if (request.user?.sessionId) {
           try {
-            isDeviceTrusted = await fastify.totpService.isDeviceTrusted(request.user.sessionId);
+            isDeviceTrusted = await fastify.queryBus.execute(
+              new IsDeviceTrustedQuery(request.user.sessionId)
+            );
           } catch (err) {
             // Log service errors but continue with untrusted device
             fastify.log.error(

@@ -14,6 +14,7 @@ import { registerActivityModule } from '../modules/activity/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
+import { registerMfaModule } from '../modules/mfa/index.js';
 import { registerSecurityModule } from '../modules/security/index.js';
 
 /**
@@ -26,6 +27,7 @@ const domainModules: ModuleRegistrar[] = [
   registerAuthModule,
   registerActivityModule,
   registerSecurityModule,
+  registerMfaModule,
 ];
 
 export interface CqrsPluginOptions {
