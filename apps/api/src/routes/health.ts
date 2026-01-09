@@ -70,6 +70,7 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
+      const start = Date.now();
       try {
         const result = await fastify.queryBus.execute(new GetHealthQuery(true));
 
@@ -78,7 +79,7 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
         const checks = {
           database: {
             status: dbStatus?.status === 'up' ? 'ok' : 'error',
-            latencyMs: dbStatus?.latencyMs ?? 0,
+            latencyMs: dbStatus?.latencyMs ?? Date.now() - start,
           },
         };
 
@@ -96,7 +97,7 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
           timestamp: new Date().toISOString(),
           version: process.env.npm_package_version || '0.0.0',
           checks: {
-            database: { status: 'error', latencyMs: 0 },
+            database: { status: 'error', latencyMs: Date.now() - start },
           },
         };
       }
