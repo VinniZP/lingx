@@ -1,29 +1,31 @@
 # Lingx Roadmap
 
-> **Updated**: 2026-01-03 (Phase 9 in progress - AI Quality Estimation complete)
+> **Updated**: 2026-01-09 (Phase 9 in progress - AI Quality Estimation complete)
 
 ---
 
 ## Status Legend
 
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Complete |
-| 🚧 | In Progress |
-| 📋 | Planned |
-| 🔮 | Future |
+| Symbol | Meaning     |
+| ------ | ----------- |
+| ✅     | Complete    |
+| 🚧     | In Progress |
+| 📋     | Planned     |
+| 🔮     | Future      |
 
 ---
 
 ## MVP Milestone (Complete)
 
 ### Phase 1: Foundation ✅
+
 - [x] Monorepo setup (pnpm + Turborepo)
 - [x] API server with authentication
 - [x] Database schema
 - [x] Web application scaffold
 
 ### Phase 2: Core Features ✅
+
 - [x] Project management
 - [x] Space management
 - [x] Branch management
@@ -31,11 +33,13 @@
 - [x] Environment management
 
 ### Phase 3: Branch Operations ✅
+
 - [x] Branch diff view
 - [x] Branch merge
 - [x] Conflict resolution UI
 
 ### Phase 4: CLI Tool ✅
+
 - [x] Authentication commands
 - [x] Pull/push/sync translations
 - [x] Key extraction from source code
@@ -45,6 +49,7 @@
 - [x] Key management commands (add, remove, move)
 
 ### Phase 5: Next.js SDK ✅
+
 - [x] Translation hooks
 - [x] ICU MessageFormat support
 - [x] Language switching
@@ -52,6 +57,7 @@
 - [x] Server component support
 
 ### Phase 6: UI Polish ✅
+
 - [x] Responsive design
 - [x] Premium design system
 - [x] Animations & accessibility
@@ -63,6 +69,7 @@
 ## Completed Phases
 
 ### Phase 7: Dashboard & Analytics ✅
+
 - [x] Dashboard statistics API
 - [x] Project statistics on cards
 - [x] Activity tracking infrastructure (Redis/BullMQ, schema, service, workers, API)
@@ -80,6 +87,7 @@
 ## Completed Phases (continued)
 
 ### Phase 8: Translation Productivity ✅
+
 - [x] **Translation memory** (pg_trgm fuzzy matching, auto-index approved translations, sidebar panel with TM/AI/MT placeholders)
 - [x] **Server-side filtering** (all/missing/complete/pending/approved/rejected with proper pagination)
 - [x] **Translation editor UX redesign**
@@ -130,6 +138,7 @@
 ## Current Development
 
 ### Phase 9: AI & Context 🚧
+
 - [x] **AI-powered translation with context** (near-keys, glossary, domain, TM)
   - [x] Multi-provider support (OpenAI, Anthropic, Google AI, Mistral) via Vercel AI SDK
   - [x] Context-aware prompts (glossary terms, TM matches, related keys, project description)
@@ -158,6 +167,7 @@
 - [ ] Additional file formats (XLIFF, Gettext, etc.)
 
 ### Phase 10: Ecosystem & Integrations 📋
+
 - [ ] Webhooks
 - [ ] Git repository integration
 - [ ] **ESLint plugin** (React + Angular rules)
@@ -181,14 +191,14 @@
 
 **Phase 9: AI & Context**
 
-| Priority | Deliverable | Status |
-|----------|-------------|--------|
-| High | AI-powered translation with context | ✅ Complete |
-| High | MCP Server (Model Context Protocol) | ✅ Complete |
-| High | Near-key context detection | ✅ Complete |
-| High | AI quality estimation | ✅ Complete |
-| Medium | Screenshot context system | 📋 Planned |
-| Low | Additional file formats (XLIFF, Gettext) | 📋 Planned |
+| Priority | Deliverable                              | Status      |
+| -------- | ---------------------------------------- | ----------- |
+| High     | AI-powered translation with context      | ✅ Complete |
+| High     | MCP Server (Model Context Protocol)      | ✅ Complete |
+| High     | Near-key context detection               | ✅ Complete |
+| High     | AI quality estimation                    | ✅ Complete |
+| Medium   | Screenshot context system                | 📋 Planned  |
+| Low      | Additional file formats (XLIFF, Gettext) | 📋 Planned  |
 
 ---
 
@@ -197,7 +207,7 @@
 - `docs/prd/PRD.md` - Product requirements
 - `docs/STRATEGIC-ANALYSIS.md` - Competitive analysis & feature details
 - `docs/TODO-API-FEATURES.md` - API feature specs
-- `docs/ARCHITECTURE-IMPROVEMENTS.md` - Architecture migration tracking
+- `docs/CQRS-MIGRATION.md` - CQRS-lite architecture migration tracking
 - `docs/design/MCP-SERVER.md` - MCP Server design specification
 - `docs/adr/` - Architecture decisions
 - `.claude/skills/target-be-architecture/` - Backend architecture patterns

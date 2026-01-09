@@ -1,34 +1,36 @@
 /**
  * Project Routes
  *
- * Handles project CRUD operations.
+ * Thin HTTP layer for project operations.
+ * Routes validate input, dispatch to CQRS buses, and return DTOs.
  * Per Design Doc: AC-WEB-001, AC-WEB-002, AC-WEB-003
  */
-import { FastifyPluginAsync } from 'fastify';
-import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { z } from 'zod';
 import {
+  activityListResponseSchema,
   createProjectSchema,
-  updateProjectSchema,
   projectListResponseSchema,
   projectResponseSchema,
   projectStatsDetailSchema,
   projectTreeResponseSchema,
-  activityListResponseSchema,
+  updateProjectSchema,
 } from '@lingx/shared';
-import { ProjectService } from '../services/project.service.js';
-import { ActivityService } from '../services/activity.service.js';
+import type { FastifyPluginAsync } from 'fastify';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
+import { toProjectDto, toProjectTreeDto, toProjectWithStatsDtoList } from '../dto/index.js';
 import {
-  toProjectDto,
-  toProjectWithStatsDtoList,
-  toProjectTreeDto,
-} from '../dto/index.js';
-import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
+  CreateProjectCommand,
+  DeleteProjectCommand,
+  GetProjectActivityQuery,
+  GetProjectQuery,
+  GetProjectStatsQuery,
+  GetProjectTreeQuery,
+  ListProjectsQuery,
+  UpdateProjectCommand,
+} from '../modules/project/index.js';
 
 const projectRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const projectService = new ProjectService(fastify.prisma);
-  const activityService = new ActivityService(fastify.prisma);
 
   /**
    * GET /api/projects - List user's projects with stats
@@ -47,8 +49,8 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const projects = await projectService.findByUserIdWithStats(request.user.userId);
-      return { projects: toProjectWithStatsDtoList(projects) };
+      const result = await fastify.queryBus.execute(new ListProjectsQuery(request.user.userId));
+      return { projects: toProjectWithStatsDtoList(result) };
     }
   );
 
@@ -72,14 +74,16 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { name, slug, description, languageCodes, defaultLanguage } = request.body;
 
-      const project = await projectService.create({
-        name,
-        slug,
-        description,
-        languageCodes,
-        defaultLanguage,
-        userId: request.user.userId,
-      });
+      const project = await fastify.commandBus.execute(
+        new CreateProjectCommand(
+          name,
+          slug,
+          description,
+          languageCodes,
+          defaultLanguage,
+          request.user.userId
+        )
+      );
 
       // Creator is always the owner
       return reply.status(201).send(toProjectDto(project, 'OWNER'));
@@ -106,23 +110,9 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { id } = request.params;
-
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(id);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check membership and get role
-      const role = await projectService.getMemberRole(
-        project.id,
-        request.user.userId
+      const { project, role } = await fastify.queryBus.execute(
+        new GetProjectQuery(request.params.id, request.user.userId)
       );
-      if (!role) {
-        throw new ForbiddenError('Not a member of this project');
-      }
-
       return toProjectDto(project, role);
     }
   );
@@ -148,50 +138,17 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { id } = request.params;
-      const input = request.body;
+      const project = await fastify.commandBus.execute(
+        new UpdateProjectCommand(request.params.id, request.user.userId, request.body)
+      );
 
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(id);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
+      // Get user's role for the response DTO
+      // Since update requires MANAGER or OWNER, we can safely use the role from authorization
+      const { role } = await fastify.queryBus.execute(
+        new GetProjectQuery(project.id, request.user.userId)
+      );
 
-      // Check membership and role
-      const role = await projectService.getMemberRole(project.id, request.user.userId);
-      if (!role || role === 'DEVELOPER') {
-        throw new ForbiddenError('Requires manager or owner role');
-      }
-
-      // Track which fields are being changed
-      const changedFields: string[] = [];
-      if (input.name !== undefined && input.name !== project.name) changedFields.push('name');
-      if (input.description !== undefined && input.description !== project.description) changedFields.push('description');
-      if (input.languageCodes !== undefined) changedFields.push('languageCodes');
-      if (input.defaultLanguage !== undefined && input.defaultLanguage !== project.defaultLanguage) changedFields.push('defaultLanguage');
-
-      const updated = await projectService.update(project.id, input);
-
-      // Log activity (async, non-blocking)
-      if (changedFields.length > 0) {
-        activityService.log({
-          type: 'project_settings',
-          projectId: project.id,
-          userId: request.user.userId,
-          metadata: {
-            changedFields,
-          },
-          changes: changedFields.map((field) => ({
-            entityType: 'project',
-            entityId: project.id,
-            keyName: field,
-            oldValue: String((project as unknown as Record<string, unknown>)[field] ?? ''),
-            newValue: String((input as unknown as Record<string, unknown>)[field] ?? ''),
-          })),
-        });
-      }
-
-      return toProjectDto(updated, role);
+      return toProjectDto(project, role);
     }
   );
 
@@ -212,21 +169,9 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const { id } = request.params;
-
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(id);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check ownership
-      const role = await projectService.getMemberRole(project.id, request.user.userId);
-      if (role !== 'OWNER') {
-        throw new ForbiddenError('Only project owner can delete');
-      }
-
-      await projectService.delete(project.id);
+      await fastify.commandBus.execute(
+        new DeleteProjectCommand(request.params.id, request.user.userId)
+      );
       return reply.status(204).send();
     }
   );
@@ -251,25 +196,9 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { id } = request.params;
-
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(id);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check membership
-      const isMember = await projectService.checkMembership(
-        project.id,
-        request.user.userId
+      return fastify.queryBus.execute(
+        new GetProjectStatsQuery(request.params.id, request.user.userId)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
-
-      const stats = await projectService.getStats(project.id);
-      return stats;
     }
   );
 
@@ -296,58 +225,10 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { id } = request.params;
-
-      // Look up project by ID or slug (flexible lookup)
-      const projectRef = await projectService.findByIdOrSlug(id);
-      if (!projectRef) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check membership
-      const isMember = await projectService.checkMembership(
-        projectRef.id,
-        request.user.userId
+      const tree = await fastify.queryBus.execute(
+        new GetProjectTreeQuery(request.params.id, request.user.userId)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
-
-      // Fetch project with spaces and branches including key counts
-      const project = await fastify.prisma.project.findUnique({
-        where: { id: projectRef.id },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          spaces: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              branches: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                  isDefault: true,
-                  _count: {
-                    select: { keys: true },
-                  },
-                },
-                orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-              },
-            },
-            orderBy: { createdAt: 'asc' },
-          },
-        },
-      });
-
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      return toProjectTreeDto(project);
+      return toProjectTreeDto(tree);
     }
   );
 
@@ -378,28 +259,10 @@ const projectRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, _reply) => {
-      const { id } = request.params;
       const { limit, cursor } = request.query;
-
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(id);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check membership
-      const isMember = await projectService.checkMembership(
-        project.id,
-        request.user.userId
+      return fastify.queryBus.execute(
+        new GetProjectActivityQuery(request.params.id, request.user.userId, limit, cursor)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
-
-      return await activityService.getProjectActivities(project.id, {
-        limit,
-        cursor,
-      });
     }
   );
 };
