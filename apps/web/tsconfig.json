@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "composite": false,
     "plugins": [
       {
         "name": "next"
@@ -22,6 +23,7 @@
       "@/*": ["./src/*"]
     }
   },
+  "references": [{ "path": "../../packages/shared" }],
   "include": [
     "next-env.d.ts",
     "**/*.ts",
@@ -30,5 +32,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "vitest.setup.ts", "vitest.config.ts", "**/*.test.ts", "**/*.test.tsx"]
+  "exclude": [
+    "node_modules",
+    "vitest.setup.ts",
+    "vitest.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
 }

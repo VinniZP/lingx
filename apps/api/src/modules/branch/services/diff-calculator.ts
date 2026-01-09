@@ -1,12 +1,13 @@
 /**
- * Diff Service
+ * Diff Calculator
  *
  * Computes differences between two branches.
  * Per ADR-0002: Uses copy-on-write storage, each branch has complete data.
  * Per Design Doc: AC-WEB-014 - Diff shows added, modified, deleted keys
  */
-import { PrismaClient } from '@prisma/client';
-import { NotFoundError, ValidationError } from '../plugins/error-handler.js';
+import { NotFoundError, ValidationError } from '../../../plugins/error-handler.js';
+import type { BranchRepository } from '../repositories/branch.repository.js';
+import type { TranslationKeyRepository } from '../repositories/translation-key.repository.js';
 
 export interface TranslationMap {
   [language: string]: string;
@@ -38,14 +39,11 @@ export interface BranchDiffResult {
   conflicts: ConflictEntry[];
 }
 
-interface KeyWithTranslations {
-  id: string;
-  name: string;
-  translations: Array<{ language: string; value: string }>;
-}
-
-export class DiffService {
-  constructor(private prisma: PrismaClient) {}
+export class DiffCalculator {
+  constructor(
+    private readonly branchRepository: BranchRepository,
+    private readonly translationKeyRepository: TranslationKeyRepository
+  ) {}
 
   /**
    * Compute diff between source and target branches
@@ -65,34 +63,16 @@ export class DiffService {
    * @throws NotFoundError if either branch doesn't exist
    * @throws ValidationError if branches are from different spaces
    */
-  async computeDiff(
-    sourceBranchId: string,
-    targetBranchId: string
-  ): Promise<BranchDiffResult> {
-    // Load source branch with space info
-    const sourceBranch = await this.prisma.branch.findUnique({
-      where: { id: sourceBranchId },
-      select: {
-        id: true,
-        name: true,
-        spaceId: true,
-        sourceBranchId: true,
-      },
-    });
+  async computeDiff(sourceBranchId: string, targetBranchId: string): Promise<BranchDiffResult> {
+    // Load branches with minimal data
+    const [sourceBranch, targetBranch] = await Promise.all([
+      this.branchRepository.findBranchForDiff(sourceBranchId),
+      this.branchRepository.findBranchForDiff(targetBranchId),
+    ]);
 
     if (!sourceBranch) {
       throw new NotFoundError('Source branch');
     }
-
-    // Load target branch
-    const targetBranch = await this.prisma.branch.findUnique({
-      where: { id: targetBranchId },
-      select: {
-        id: true,
-        name: true,
-        spaceId: true,
-      },
-    });
 
     if (!targetBranch) {
       throw new NotFoundError('Target branch');
@@ -105,8 +85,8 @@ export class DiffService {
 
     // Load all keys with translations from both branches
     const [sourceKeys, targetKeys] = await Promise.all([
-      this.loadBranchKeys(sourceBranchId),
-      this.loadBranchKeys(targetBranchId),
+      this.translationKeyRepository.findByBranchId(sourceBranchId),
+      this.translationKeyRepository.findByBranchId(targetBranchId),
     ]);
 
     // Build lookup maps for O(1) access
@@ -177,25 +157,6 @@ export class DiffService {
       deleted,
       conflicts,
     };
-  }
-
-  /**
-   * Load all keys with translations for a branch
-   */
-  private async loadBranchKeys(branchId: string): Promise<KeyWithTranslations[]> {
-    return this.prisma.translationKey.findMany({
-      where: { branchId },
-      select: {
-        id: true,
-        name: true,
-        translations: {
-          select: {
-            language: true,
-            value: true,
-          },
-        },
-      },
-    });
   }
 
   /**

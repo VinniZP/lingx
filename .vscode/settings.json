@@ -1,0 +1,31 @@
+{
+  // TypeScript LSP settings for better monorepo performance
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enableProjectDiagnostics": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.workspaceSymbols.scope": "currentProject",
+
+  // Prefer project references for navigation
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+
+  // Search exclusions for better performance
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.tsbuildinfo": true,
+    "**/.turbo": true,
+    "**/coverage": true
+  },
+
+  // File watcher exclusions
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.turbo/**": true
+  },
+
+  // Exclude from file explorer for cleaner view
+  "files.exclude": {
+    "**/.tsbuildinfo": true
+  }
+}

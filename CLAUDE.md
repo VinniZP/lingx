@@ -2,7 +2,12 @@
 
 ## Main instructions
 
-- Use LSP for reference tracing: Prefer findReferences over Grep when finding all usages of a function/class for refactoring. Use incomingCalls when tracing what code calls a specific function.
+- **LSP-First Navigation**: Always use LSP over grep/search for code symbols:
+  - `Go to Definition` for jumping to symbol definitions
+  - `Find References` / `incomingCalls` for finding all usages
+  - `Go to Type Definition` for type declarations
+  - `Find Implementations` for interface implementations
+  - Use grep only for: string literals, comments, cross-language search, or regex patterns
 
 ## Tech Stack
 
@@ -304,7 +309,6 @@ apps/api/
 
 ```bash
 pnpm --filter @lingx/api test              # Run all tests
-pnpm --filter @lingx/api test:integration  # Integration only
 pnpm --filter @lingx/api test --run src/modules/project  # Run specific module tests
 ```
 
