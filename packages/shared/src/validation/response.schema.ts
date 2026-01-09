@@ -488,6 +488,7 @@ export type ActivityChange = z.infer<typeof activityChangeSchema>;
 
 /** Activity metadata (varies by activity type) */
 export const activityMetadataSchema = z.object({
+  projectName: z.string().optional(),
   languages: z.array(z.string()).optional(),
   branchName: z.string().optional(),
   branchId: z.string().optional(),

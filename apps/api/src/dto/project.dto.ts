@@ -74,6 +74,7 @@ export function toProjectWithStatsDtoList(
 
 /**
  * Transform project tree data to ProjectTreeResponse
+ * Accepts either Prisma raw format (_count.keys) or repository format (keyCount)
  */
 export function toProjectTreeDto(project: {
   id: string;
@@ -88,7 +89,8 @@ export function toProjectTreeDto(project: {
       name: string;
       slug: string;
       isDefault: boolean;
-      _count: { keys: number };
+      keyCount?: number;
+      _count?: { keys: number };
     }>;
   }>;
 }): ProjectTreeResponse {
@@ -105,7 +107,7 @@ export function toProjectTreeDto(project: {
         name: branch.name,
         slug: branch.slug,
         isDefault: branch.isDefault,
-        keyCount: branch._count.keys,
+        keyCount: branch.keyCount ?? branch._count?.keys ?? 0,
       })),
     })),
   };

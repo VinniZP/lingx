@@ -305,7 +305,10 @@ apps/api/
 ```bash
 pnpm --filter @lingx/api test              # Run all tests
 pnpm --filter @lingx/api test:integration  # Integration only
+pnpm --filter @lingx/api test --run src/modules/project  # Run specific module tests
 ```
+
+**Note**: Do not use `--` before arguments. pnpm passes arguments after script name automatically. The path filter matches any test file containing that path.
 
 ### Test Environment
 
