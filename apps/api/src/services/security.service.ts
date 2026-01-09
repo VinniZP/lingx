@@ -33,6 +33,35 @@ export interface SessionInfo {
   isCurrent: boolean;
 }
 
+/**
+ * Request metadata extracted from HTTP request.
+ * Used to decouple domain operations from framework-specific types.
+ */
+export interface RequestMetadata {
+  readonly userAgent: string | null;
+  readonly ipAddress: string | null;
+}
+
+/**
+ * Extract request metadata from a Fastify request.
+ * Call this in routes before creating commands.
+ */
+export function extractRequestMetadata(request: FastifyRequest): RequestMetadata {
+  const userAgent = request.headers['user-agent'] || null;
+
+  // Check for forwarded IP (behind proxy)
+  const forwarded = request.headers['x-forwarded-for'];
+  let ipAddress: string | null = null;
+  if (forwarded) {
+    const ips = (typeof forwarded === 'string' ? forwarded : forwarded[0]).split(',');
+    ipAddress = ips[0].trim();
+  } else {
+    ipAddress = request.ip || null;
+  }
+
+  return { userAgent, ipAddress };
+}
+
 export class SecurityService {
   constructor(private prisma: PrismaClient) {}
 
@@ -48,9 +77,20 @@ export class SecurityService {
    * @returns Created session
    */
   async createSession(userId: string, request: FastifyRequest): Promise<Session> {
-    const userAgent = request.headers['user-agent'] || null;
-    const deviceInfo = userAgent ? this.parseUserAgent(userAgent) : null;
-    const ipAddress = this.getClientIp(request);
+    const metadata = extractRequestMetadata(request);
+    return this.createSessionFromMetadata(userId, metadata);
+  }
+
+  /**
+   * Create a new session for a user from pre-extracted metadata.
+   * Prefer this over createSession when metadata is already available.
+   *
+   * @param userId - User ID
+   * @param metadata - Request metadata (userAgent, ipAddress)
+   * @returns Created session
+   */
+  async createSessionFromMetadata(userId: string, metadata: RequestMetadata): Promise<Session> {
+    const deviceInfo = metadata.userAgent ? this.parseUserAgent(metadata.userAgent) : null;
 
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + SESSION_EXPIRY_HOURS);
@@ -58,9 +98,9 @@ export class SecurityService {
     return this.prisma.session.create({
       data: {
         userId,
-        userAgent,
+        userAgent: metadata.userAgent,
         deviceInfo,
-        ipAddress,
+        ipAddress: metadata.ipAddress,
         expiresAt,
       },
     });
@@ -219,14 +259,14 @@ export class SecurityService {
    * @param userId - User ID
    * @param currentSessionId - Current session ID
    * @param input - Current and new password
-   * @param request - Fastify request (for new session creation)
+   * @param metadata - Request metadata (for new session creation)
    * @returns New session ID
    */
   async changePassword(
     userId: string,
     _currentSessionId: string,
     input: ChangePasswordInput,
-    request: FastifyRequest
+    metadata: RequestMetadata
   ): Promise<{ newSessionId: string }> {
     // Get user with password
     const user = await this.prisma.user.findUnique({
@@ -277,7 +317,7 @@ export class SecurityService {
     });
 
     // Create new session for current device
-    const newSession = await this.createSession(userId, request);
+    const newSession = await this.createSessionFromMetadata(userId, metadata);
 
     return { newSessionId: newSession.id };
   }
@@ -319,20 +359,6 @@ export class SecurityService {
     }
 
     return `${browser} on ${os}`;
-  }
-
-  /**
-   * Get client IP from request
-   */
-  private getClientIp(request: FastifyRequest): string | null {
-    // Check for forwarded IP (behind proxy)
-    const forwarded = request.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = (typeof forwarded === 'string' ? forwarded : forwarded[0]).split(',');
-      return ips[0].trim();
-    }
-
-    return request.ip || null;
   }
 
   /**

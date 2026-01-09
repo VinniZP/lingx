@@ -1,6 +1,7 @@
 import type { AwilixContainer } from 'awilix';
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
+import type { ChallengeStore } from '../services/challenge-store.service.js';
 import {
   createAppContainer,
   registerModules,
@@ -14,6 +15,8 @@ import { registerActivityModule } from '../modules/activity/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
+import { registerMfaModule } from '../modules/mfa/index.js';
+import { registerSecurityModule } from '../modules/security/index.js';
 
 /**
  * All domain modules that register handlers with the container.
@@ -24,6 +27,8 @@ const domainModules: ModuleRegistrar[] = [
   registerEnvironmentModule,
   registerAuthModule,
   registerActivityModule,
+  registerSecurityModule,
+  registerMfaModule,
 ];
 
 export interface CqrsPluginOptions {
@@ -60,6 +65,7 @@ const cqrsPlugin: FastifyPluginAsync<CqrsPluginOptions> = async (fastify, option
   fastify.decorate('commandBus', container.resolve('commandBus'));
   fastify.decorate('queryBus', container.resolve('queryBus'));
   fastify.decorate('eventBus', container.resolve('eventBus'));
+  fastify.decorate('challengeStore', container.resolve('challengeStore'));
 
   fastify.log.info(`CQRS infrastructure initialized with ${allModules.length} module(s)`);
 };
@@ -76,5 +82,6 @@ declare module 'fastify' {
     commandBus: CommandBus;
     queryBus: QueryBus;
     eventBus: EventBus;
+    challengeStore: ChallengeStore;
   }
 }

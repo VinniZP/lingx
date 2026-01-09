@@ -18,8 +18,6 @@ import cqrsPlugin from './plugins/cqrs.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
 import prismaPlugin from './plugins/prisma.js';
 import profilePlugin from './plugins/profile.js';
-import totpPlugin from './plugins/totp.js';
-import webauthnPlugin from './plugins/webauthn.js';
 import activityRoutes from './routes/activity.js';
 import aiTranslationRoutes from './routes/ai-translation.js';
 import authRoutes from './routes/auth.js';
@@ -163,8 +161,6 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(cqrsPlugin);
   await fastify.register(authPlugin);
   await fastify.register(profilePlugin);
-  await fastify.register(totpPlugin);
-  await fastify.register(webauthnPlugin);
 
   // Register routes
   await fastify.register(healthRoutes);
