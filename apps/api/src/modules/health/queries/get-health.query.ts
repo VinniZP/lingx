@@ -4,10 +4,10 @@ import type { IQuery } from '../../../shared/cqrs/index.js';
  * Health check result.
  */
 export interface HealthResult {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: 'healthy' | 'unhealthy';
   timestamp: Date;
   details?: {
-    database: { status: 'up' | 'down'; latencyMs?: number };
+    database: { status: 'up' | 'down'; latencyMs: number };
   };
 }
 
