@@ -31,7 +31,6 @@ const config: KnipConfig = {
       project: ['src/**/*.ts', 'prisma/**/*.ts', 'tests/**/*.ts'],
       ignoreDependencies: [
         'pino-pretty', // CLI-only, not imported
-        '@vitest/coverage-v8', // Used by vitest config
       ],
     },
 
@@ -53,8 +52,6 @@ const config: KnipConfig = {
         // Radix UI - used by shadcn components
         '@radix-ui/react-progress',
         '@radix-ui/react-tabs',
-        // Command palette
-        'cmdk',
       ],
     },
 

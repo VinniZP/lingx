@@ -35,6 +35,3 @@ export const TOTP_APP_NAME = 'Lingx';
 
 /** Minimum passkeys required for passwordless */
 export const MIN_PASSKEYS_FOR_PASSWORDLESS = 2;
-
-/** Challenge token expiry for WebAuthn operations */
-export const WEBAUTHN_CHALLENGE_EXPIRY = '5m';
