@@ -21,13 +21,13 @@ import {
 
 export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCodeCommand> {
   constructor(
-    private readonly repository: TotpRepository,
-    private readonly cryptoService: TotpCryptoService,
+    private readonly totpRepository: TotpRepository,
+    private readonly totpCryptoService: TotpCryptoService,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: VerifyBackupCodeCommand): Promise<VerifyBackupCodeResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -41,7 +41,7 @@ export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCode
     checkTotpRateLimit(user);
 
     // Get unused backup codes
-    const unusedCodes = await this.repository.getUnusedBackupCodes(command.userId);
+    const unusedCodes = await this.totpRepository.getUnusedBackupCodes(command.userId);
 
     if (unusedCodes.length === 0) {
       throw new BadRequestError('No backup codes available');
@@ -51,7 +51,7 @@ export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCode
     let matchedCode: { id: string; codeHash: string } | null = null;
 
     for (const code of unusedCodes) {
-      const isValid = await this.cryptoService.verifyBackupCode(command.code, code.codeHash);
+      const isValid = await this.totpCryptoService.verifyBackupCode(command.code, code.codeHash);
       if (isValid && !matchedCode) {
         matchedCode = code;
         // Don't break - continue checking all codes to prevent timing oracle
@@ -68,13 +68,13 @@ export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCode
     }
 
     // Mark code as used and reset failed attempts atomically
-    await this.repository.markBackupCodeUsedAndResetAttempts(matchedCode.id, command.userId);
+    await this.totpRepository.markBackupCodeUsedAndResetAttempts(matchedCode.id, command.userId);
 
     // Trust device if requested
     if (command.trustDevice && command.sessionId) {
       const trustedUntil = new Date();
       trustedUntil.setDate(trustedUntil.getDate() + DEVICE_TRUST_DAYS);
-      await this.repository.setSessionTrust(command.sessionId, trustedUntil);
+      await this.totpRepository.setSessionTrust(command.sessionId, trustedUntil);
     }
 
     // Publish event
@@ -89,6 +89,6 @@ export class VerifyBackupCodeHandler implements ICommandHandler<VerifyBackupCode
 
   private async handleFailedAttempt(userId: string, currentAttempts: number): Promise<void> {
     const { newAttempts, lockUntil } = calculateFailedAttempt(currentAttempts);
-    await this.repository.incrementFailedAttempts(userId, newAttempts, lockUntil);
+    await this.totpRepository.incrementFailedAttempts(userId, newAttempts, lockUntil);
   }
 }

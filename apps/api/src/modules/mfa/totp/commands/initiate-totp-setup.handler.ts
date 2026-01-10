@@ -11,12 +11,12 @@ import { InitiateTotpSetupCommand, type TotpSetupResult } from './initiate-totp-
 
 export class InitiateTotpSetupHandler implements ICommandHandler<InitiateTotpSetupCommand> {
   constructor(
-    private readonly repository: TotpRepository,
-    private readonly cryptoService: TotpCryptoService
+    private readonly totpRepository: TotpRepository,
+    private readonly totpCryptoService: TotpCryptoService
   ) {}
 
   async execute(command: InitiateTotpSetupCommand): Promise<TotpSetupResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -27,26 +27,26 @@ export class InitiateTotpSetupHandler implements ICommandHandler<InitiateTotpSet
     }
 
     // Generate new TOTP secret
-    const secret = this.cryptoService.generateSecret();
+    const secret = this.totpCryptoService.generateSecret();
 
     // Generate backup codes
-    const backupCodes = this.cryptoService.generateBackupCodes();
+    const backupCodes = this.totpCryptoService.generateBackupCodes();
 
     // Hash backup codes for storage
-    const backupCodeHashes = await this.cryptoService.hashBackupCodes(backupCodes);
+    const backupCodeHashes = await this.totpCryptoService.hashBackupCodes(backupCodes);
 
     // Encrypt the secret
-    const { encrypted, iv } = this.cryptoService.encryptSecret(secret);
+    const { encrypted, iv } = this.totpCryptoService.encryptSecret(secret);
 
     // Store encrypted secret and backup codes (NOT enabled yet)
-    await this.repository.saveTotpSetup(command.userId, {
+    await this.totpRepository.saveTotpSetup(command.userId, {
       encryptedSecret: encrypted,
       secretIv: iv,
       backupCodeHashes,
     });
 
     // Generate QR code URI
-    const qrCodeUri = this.cryptoService.generateQrCodeUri(user.email, secret);
+    const qrCodeUri = this.totpCryptoService.generateQrCodeUri(user.email, secret);
 
     return {
       secret,

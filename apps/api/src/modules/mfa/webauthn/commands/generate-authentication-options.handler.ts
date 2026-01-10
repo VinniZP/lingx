@@ -20,8 +20,8 @@ import {
 
 export class GenerateAuthenticationOptionsHandler implements ICommandHandler<GenerateAuthenticationOptionsCommand> {
   constructor(
-    private readonly repository: WebAuthnRepository,
-    private readonly configService: WebAuthnConfigService,
+    private readonly webAuthnRepository: WebAuthnRepository,
+    private readonly webAuthnConfigService: WebAuthnConfigService,
     private readonly challengeStore: ChallengeStore,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -34,7 +34,7 @@ export class GenerateAuthenticationOptionsHandler implements ICommandHandler<Gen
 
     // If email is provided, get user's credentials
     if (command.email) {
-      const user = await this.repository.findUserByEmail(command.email);
+      const user = await this.webAuthnRepository.findUserByEmail(command.email);
 
       if (user && user.webauthnCredentials.length > 0) {
         userId = user.id;
@@ -47,7 +47,7 @@ export class GenerateAuthenticationOptionsHandler implements ICommandHandler<Gen
 
     // Generate options (allowCredentials undefined = discoverable credential flow)
     const options = await generateAuthenticationOptions({
-      rpID: this.configService.rpId,
+      rpID: this.webAuthnConfigService.rpId,
       allowCredentials,
       userVerification: 'preferred',
     });

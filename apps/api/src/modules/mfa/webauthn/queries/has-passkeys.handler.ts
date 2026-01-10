@@ -8,16 +8,16 @@ import type { WebAuthnRepository } from '../webauthn.repository.js';
 import { HasPasskeysQuery } from './has-passkeys.query.js';
 
 export class HasPasskeysHandler implements IQueryHandler<HasPasskeysQuery> {
-  constructor(private readonly repository: WebAuthnRepository) {}
+  constructor(private readonly webAuthnRepository: WebAuthnRepository) {}
 
   async execute(query: HasPasskeysQuery): Promise<boolean> {
-    const user = await this.repository.findUserByEmail(query.email);
+    const user = await this.webAuthnRepository.findUserByEmail(query.email);
 
     if (!user) {
       return false;
     }
 
-    const count = await this.repository.countCredentials(user.id);
+    const count = await this.webAuthnRepository.countCredentials(user.id);
     return count > 0;
   }
 }

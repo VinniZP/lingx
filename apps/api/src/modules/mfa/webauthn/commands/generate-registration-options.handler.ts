@@ -19,8 +19,8 @@ import {
 
 export class GenerateRegistrationOptionsHandler implements ICommandHandler<GenerateRegistrationOptionsCommand> {
   constructor(
-    private readonly repository: WebAuthnRepository,
-    private readonly configService: WebAuthnConfigService,
+    private readonly webAuthnRepository: WebAuthnRepository,
+    private readonly webAuthnConfigService: WebAuthnConfigService,
     private readonly challengeStore: ChallengeStore,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -28,7 +28,7 @@ export class GenerateRegistrationOptionsHandler implements ICommandHandler<Gener
   async execute(
     command: GenerateRegistrationOptionsCommand
   ): Promise<GenerateRegistrationOptionsResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.webAuthnRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -41,8 +41,8 @@ export class GenerateRegistrationOptionsHandler implements ICommandHandler<Gener
     }));
 
     const options = await generateRegistrationOptions({
-      rpName: this.configService.rpName,
-      rpID: this.configService.rpId,
+      rpName: this.webAuthnConfigService.rpName,
+      rpID: this.webAuthnConfigService.rpId,
       userName: user.email,
       userDisplayName: user.name || user.email,
       userID: new TextEncoder().encode(user.id),

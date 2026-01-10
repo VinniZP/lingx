@@ -8,9 +8,9 @@ import type { WebAuthnRepository } from '../webauthn.repository.js';
 import { IsPasswordlessQuery } from './is-passwordless.query.js';
 
 export class IsPasswordlessHandler implements IQueryHandler<IsPasswordlessQuery> {
-  constructor(private readonly repository: WebAuthnRepository) {}
+  constructor(private readonly webAuthnRepository: WebAuthnRepository) {}
 
   async execute(query: IsPasswordlessQuery): Promise<boolean> {
-    return this.repository.isPasswordless(query.userId);
+    return this.webAuthnRepository.isPasswordless(query.userId);
   }
 }

@@ -12,12 +12,12 @@ import { GoPasswordlessCommand, type GoPasswordlessResult } from './go-passwordl
 
 export class GoPasswordlessHandler implements ICommandHandler<GoPasswordlessCommand> {
   constructor(
-    private readonly repository: WebAuthnRepository,
+    private readonly webAuthnRepository: WebAuthnRepository,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: GoPasswordlessCommand): Promise<GoPasswordlessResult> {
-    const user = await this.repository.findUserForPasswordCheck(command.userId);
+    const user = await this.webAuthnRepository.findUserForPasswordCheck(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -27,7 +27,7 @@ export class GoPasswordlessHandler implements ICommandHandler<GoPasswordlessComm
       throw new BadRequestError('You are already passwordless');
     }
 
-    const credentialsCount = await this.repository.countCredentials(command.userId);
+    const credentialsCount = await this.webAuthnRepository.countCredentials(command.userId);
 
     if (credentialsCount < MIN_PASSKEYS_FOR_PASSWORDLESS) {
       throw new BadRequestError(
@@ -37,7 +37,7 @@ export class GoPasswordlessHandler implements ICommandHandler<GoPasswordlessComm
     }
 
     // Remove password
-    await this.repository.setPasswordless(command.userId);
+    await this.webAuthnRepository.setPasswordless(command.userId);
 
     // Publish event
     await this.eventBus.publish(new WentPasswordlessEvent(command.userId));

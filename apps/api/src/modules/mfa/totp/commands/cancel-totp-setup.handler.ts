@@ -9,10 +9,10 @@ import type { TotpRepository } from '../totp.repository.js';
 import { CancelTotpSetupCommand, type CancelTotpSetupResult } from './cancel-totp-setup.command.js';
 
 export class CancelTotpSetupHandler implements ICommandHandler<CancelTotpSetupCommand> {
-  constructor(private readonly repository: TotpRepository) {}
+  constructor(private readonly totpRepository: TotpRepository) {}
 
   async execute(command: CancelTotpSetupCommand): Promise<CancelTotpSetupResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -24,7 +24,7 @@ export class CancelTotpSetupHandler implements ICommandHandler<CancelTotpSetupCo
     }
 
     // Clear any pending setup
-    await this.repository.clearTotpSetup(command.userId);
+    await this.totpRepository.clearTotpSetup(command.userId);
 
     return { success: true };
   }

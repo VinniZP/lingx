@@ -17,13 +17,13 @@ import { DisableTotpCommand, type DisableTotpResult } from './disable-totp.comma
 
 export class DisableTotpHandler implements ICommandHandler<DisableTotpCommand> {
   constructor(
-    private readonly repository: TotpRepository,
-    private readonly cryptoService: TotpCryptoService,
+    private readonly totpRepository: TotpRepository,
+    private readonly totpCryptoService: TotpCryptoService,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: DisableTotpCommand): Promise<DisableTotpResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -39,7 +39,7 @@ export class DisableTotpHandler implements ICommandHandler<DisableTotpCommand> {
     }
 
     // Verify password
-    const isValidPassword = await this.cryptoService.verifyPassword(
+    const isValidPassword = await this.totpCryptoService.verifyPassword(
       command.password,
       user.password
     );
@@ -52,7 +52,7 @@ export class DisableTotpHandler implements ICommandHandler<DisableTotpCommand> {
     }
 
     // Disable TOTP (also clears backup codes and device trust)
-    await this.repository.disableTotp(command.userId);
+    await this.totpRepository.disableTotp(command.userId);
 
     // Publish event
     await this.eventBus.publish(new TotpDisabledEvent(command.userId));
