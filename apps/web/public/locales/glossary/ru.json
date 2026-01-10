@@ -36,11 +36,11 @@
     "description": "Статистика и аналитика глоссария",
     "active": "Активных",
     "totalTerms": "Всего терминов",
-    "title": "Обзор",
-    "languagePairs": "Языковые пары",
     "activeCombinations": "Активные комбинации переводов",
     "categories": "Категории",
     "tagsDefined": "Определенные теги",
+    "title": "Обзор",
+    "languagePairs": "Языковые пары",
     "organizationalCategories": "Категории организации"
   },
   "tags": {
@@ -54,9 +54,9 @@
   "dialog": {
     "editDescription": "Обновите детали записи глоссария и переводы",
     "editTerm": "Редактировать термин",
-    "caseSensitive": "Учет регистра при совпадении",
-    "addNewTerm": "Добавить новый термин",
     "termInformation": "Информация о термине",
+    "addNewTerm": "Добавить новый термин",
+    "caseSensitive": "Учет регистра при совпадении",
     "notesPlaceholder": "Добавьте рекомендации или специальные инструкции для переводчиков...",
     "caseSensitiveDescription": "Требовать точное совпадение регистра букв при сопоставлении этого термина",
     "tags": "Теги",
@@ -66,9 +66,9 @@
     "addTerm": "Добавить термин",
     "domainPlaceholder": "например, технический, юридический, медицинский",
     "sourceTerm": "Исходный термин",
+    "addDescription": "Добавьте новый термин в глоссарий проекта для согласованных переводов",
     "sourceTermPlaceholder": "например, API, Dashboard, Settings",
     "sourceLanguage": "Исходный язык",
-    "addDescription": "Добавьте новый термин в глоссарий проекта для согласованных переводов",
     "selectLanguage": "Выберите язык",
     "classification": "Классификация",
     "partOfSpeech": "Часть речи",
@@ -85,10 +85,10 @@
     "title": "Терминология",
     "description": "Управляйте записями словаря",
     "addTerm": "Добавить термин",
-    "export": "Экспорт",
     "exportAsCsv": "Экспорт в CSV",
     "exportAsTbx": "Экспорт в TBX",
-    "import": "Импорт"
+    "import": "Импорт",
+    "export": "Экспорт"
   },
   "providerSync": {
     "syncToDeepL": "Синхронизировать с DeepL",
@@ -112,8 +112,8 @@
     "options": "Параметры импорта",
     "accepts": "Принимает файлы {format}",
     "selectFile": "Выбрать файл",
-    "fileFormat": "Формат файла",
     "description": "Импортировать терминологию из стандартных форматов файлов",
+    "fileFormat": "Формат файла",
     "tbxDescription": "TermBase eXchange (ISO)",
     "csvDescription": "Значения, разделённые запятыми",
     "title": "Импортировать глоссарий"
@@ -121,10 +121,10 @@
   "partOfSpeech": {
     "pronoun": "Местоимение",
     "verb": "Глагол",
+    "adjective": "Прилагательное",
     "preposition": "Предлог",
     "conjunction": "Союз",
     "interjection": "Междометие",
-    "adjective": "Прилагательное",
     "adverb": "Наречие",
     "other": "Другое",
     "determiner": "Определитель",
@@ -146,9 +146,9 @@
     "description": "Это действие навсегда удалит \"{term}\" и все его переводы. Это действие нельзя отменить."
   },
   "filters": {
-    "domain": "Домен",
     "language": "Язык",
     "allLanguages": "Все языки",
+    "domain": "Домен",
     "allDomains": "Все домены",
     "tag": "Тег",
     "entriesCount": "{count, plural, one {# запись} other {# записей}}",

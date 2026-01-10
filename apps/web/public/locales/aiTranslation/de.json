@@ -1,58 +1,71 @@
 {
-  "context": {
-    "customInstructions": {
-      "description": "",
-      "placeholder": "",
-      "title": ""
-    },
-    "description": "",
-    "glossary": {
-      "description": "",
-      "label": ""
-    },
-    "maxItems": "",
-    "minSimilarity": "",
-    "relatedKeys": {
-      "description": "",
-      "label": ""
-    },
-    "saveNote": "",
-    "saveSettings": "",
-    "title": "",
-    "tm": {
-      "description": "",
-      "label": ""
-    }
+  "quality": {
+    "noProvidersWarning": "Keine AI-Anbieter konfiguriert. Aktivieren Sie mindestens einen Anbieter oben.",
+    "save": "Speichern",
+    "saved": "Qualitätseinstellungen gespeichert",
+    "saveFailed": "Qualitätseinstellungen konnten nicht gespeichert werden",
+    "enable": "AI-Qualitätsbewertung aktivieren",
+    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
+    "selectProvider": "Anbieter auswählen",
+    "provider": "AI-Anbieter",
+    "enableDescription": "AI zur Analyse von Übersetzungsgenauigkeit und -stil verwenden",
+    "title": "Qualitätsbewertung",
+    "providerDescription": "Wählen Sie den aktivierten AI-Anbieter für die Qualitätsbewertung",
+    "model": "Modell",
+    "selectModel": "Modell auswählen",
+    "modelDescription": "Wählen Sie das Modell für die Qualitätsanalyse",
+    "configuredWith": "Konfiguriert"
   },
-  "pageDescription": "",
+  "usage": {
+    "stats": {
+      "totalTokens": "",
+      "requests": "",
+      "cacheHits": "",
+      "estCost": ""
+    },
+    "title": "",
+    "description": "",
+    "byProvider": "",
+    "tokens": "",
+    "requests": ""
+  },
+  "sections": {
+    "providers": "",
+    "contextSettings": "",
+    "usage": "",
+    "qualityEvaluation": "Qualitätsbewertung"
+  },
+  "toasts": {
+    "configSaved": "",
+    "configSavedDescription": "{provider} wurde konfiguriert.",
+    "configSaveFailed": "",
+    "configRemoved": "",
+    "configRemovedDescription": "{provider} wurde entfernt.",
+    "configRemoveFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "Erfolgreich mit {provider} verbunden.",
+    "connectionFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": ""
+  },
   "provider": {
-    "actions": {
-      "cancel": "",
-      "edit": "",
-      "remove": "",
-      "save": "",
-      "saving": "",
-      "test": ""
-    },
-    "anthropic": {
-      "description": ""
-    },
     "form": {
-      "apiKey": "",
+      "apiKeyPlaceholder": "{provider} API-Schlüssel eingeben",
+      "model": "",
+      "modelPlaceholder": "",
+      "enableProviderDescription": "",
+      "modelDescription": "",
+      "enableProvider": "",
       "apiKeyHint": {
+        "openai": "",
         "anthropic": "",
         "googleAI": "",
-        "mistral": "",
-        "openai": ""
+        "mistral": ""
       },
+      "apiKey": "",
       "apiKeyKeepCurrent": "",
-      "apiKeyPlaceholder": "{provider} API-Schlüssel eingeben",
-      "apiKeyUpdatePlaceholder": "",
-      "enableProvider": "",
-      "enableProviderDescription": "",
-      "model": "",
-      "modelDescription": "",
-      "modelPlaceholder": ""
+      "apiKeyUpdatePlaceholder": ""
     },
     "googleAI": {
       "description": ""
@@ -60,66 +73,53 @@
     "mistral": {
       "description": ""
     },
-    "openai": {
+    "actions": {
+      "cancel": "",
+      "edit": "",
+      "save": "",
+      "remove": "",
+      "saving": "",
+      "test": ""
+    },
+    "anthropic": {
       "description": ""
     },
     "removeDialog": {
-      "description": "Sind Sie sicher, dass Sie {provider} entfernen möchten?",
-      "title": "{provider} entfernen"
+      "title": "{provider} entfernen",
+      "description": "Sind Sie sicher, dass Sie {provider} entfernen möchten?"
     },
     "status": {
       "active": "",
       "inactive": ""
+    },
+    "openai": {
+      "description": ""
     }
   },
-  "quality": {
-    "configuredWith": "Konfiguriert",
-    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
-    "enable": "AI-Qualitätsbewertung aktivieren",
-    "enableDescription": "AI zur Analyse von Übersetzungsgenauigkeit und -stil verwenden",
-    "model": "Modell",
-    "modelDescription": "Wählen Sie das Modell für die Qualitätsanalyse",
-    "noProvidersWarning": "Keine AI-Anbieter konfiguriert. Aktivieren Sie mindestens einen Anbieter oben.",
-    "provider": "AI-Anbieter",
-    "providerDescription": "Wählen Sie den aktivierten AI-Anbieter für die Qualitätsbewertung",
-    "save": "Speichern",
-    "saveFailed": "Qualitätseinstellungen konnten nicht gespeichert werden",
-    "saved": "Qualitätseinstellungen gespeichert",
-    "selectModel": "Modell auswählen",
-    "selectProvider": "Anbieter auswählen",
-    "title": "Qualitätsbewertung"
-  },
-  "sections": {
-    "contextSettings": "",
-    "providers": "",
-    "qualityEvaluation": "Qualitätsbewertung",
-    "usage": ""
-  },
-  "toasts": {
-    "configRemoveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} wurde entfernt.",
-    "configSaveFailed": "",
-    "configSaved": "",
-    "configSavedDescription": "{provider} wurde konfiguriert.",
-    "connectionFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Erfolgreich mit {provider} verbunden.",
-    "connectionTestFailed": "",
-    "contextSaveFailed": "",
-    "contextSaved": ""
-  },
-  "usage": {
-    "byProvider": "",
-    "description": "",
-    "requests": "",
-    "stats": {
-      "cacheHits": "",
-      "estCost": "",
-      "requests": "",
-      "totalTokens": ""
-    },
+  "context": {
+    "saveSettings": "",
     "title": "",
-    "tokens": ""
-  }
+    "description": "",
+    "relatedKeys": {
+      "label": "",
+      "description": ""
+    },
+    "glossary": {
+      "label": "",
+      "description": ""
+    },
+    "tm": {
+      "label": "",
+      "description": ""
+    },
+    "maxItems": "",
+    "minSimilarity": "",
+    "customInstructions": {
+      "title": "",
+      "description": "",
+      "placeholder": ""
+    },
+    "saveNote": ""
+  },
+  "pageDescription": ""
 }

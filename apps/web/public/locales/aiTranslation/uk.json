@@ -1,58 +1,71 @@
 {
-  "context": {
-    "customInstructions": {
-      "description": "Додайте конкретні інструкції для ШІ",
-      "placeholder": "наприклад, «Використовуйте формальний стиль для перекладів німецькою» або «Робіть переклади лаконічними для мобільного інтерфейсу»",
-      "title": "Користувацькі інструкції"
-    },
-    "description": "Налаштуйте, який контекст ШІ використовує для розумніших перекладів",
-    "glossary": {
-      "description": "Використовуйте глосарій вашого проєкту для узгодженої термінології",
-      "label": "Терміни глосарію"
-    },
-    "maxItems": "Максимальна кількість елементів",
-    "minSimilarity": "Мінімальна схожість",
-    "relatedKeys": {
-      "description": "Враховуйте переклади з пов’язаних ключів",
-      "label": "Пов’язані ключі"
-    },
-    "saveNote": "Зміни застосовуються до всіх майбутніх перекладів ШІ",
-    "saveSettings": "Зберегти налаштування",
-    "title": "Налаштування контексту",
-    "tm": {
-      "description": "Використовувати подібні переклади з вашої ТМ як контекст",
-      "label": "Пам'ять перекладів"
-    }
+  "quality": {
+    "noProvidersWarning": "AI провайдери не налаштовані. Увімкніть хоча б один провайдер вище.",
+    "save": "Зберегти",
+    "saved": "Налаштування якості збережено",
+    "saveFailed": "Не вдалося зберегти налаштування якості",
+    "enable": "Увімкнути AI оцінку якості",
+    "description": "Налаштуйте AI-оцінку якості перекладів",
+    "selectProvider": "Оберіть провайдера",
+    "provider": "AI провайдер",
+    "enableDescription": "Використовувати AI для аналізу точності та стилю перекладу",
+    "title": "Оцінка якості",
+    "providerDescription": "Оберіть увімкнений AI провайдер для оцінки якості",
+    "model": "Модель",
+    "selectModel": "Оберіть модель",
+    "modelDescription": "Оберіть модель для аналізу якості",
+    "configuredWith": "Налаштовано"
   },
-  "pageDescription": "Налаштуйте провайдерів ШІ для контекстних підказок перекладу",
+  "usage": {
+    "stats": {
+      "totalTokens": "Усього токенів",
+      "requests": "Запити",
+      "cacheHits": "Влучання кешу",
+      "estCost": "Орієнтовна вартість"
+    },
+    "title": "Статистика використання",
+    "description": "Використання ШІ-перекладу цього місяця",
+    "byProvider": "За провайдером",
+    "tokens": "токени",
+    "requests": "запити"
+  },
+  "sections": {
+    "providers": "Провайдери ШІ",
+    "contextSettings": "Налаштування контексту",
+    "usage": "Використання",
+    "qualityEvaluation": "Оцінка якості"
+  },
+  "toasts": {
+    "configSaved": "Конфігурацію збережено",
+    "configSavedDescription": "{provider} налаштовано.",
+    "configSaveFailed": "Не вдалося зберегти конфігурацію",
+    "configRemoved": "Конфігурацію видалено",
+    "configRemovedDescription": "{provider} видалено.",
+    "configRemoveFailed": "Не вдалося видалити конфігурацію",
+    "connectionSuccess": "З’єднання успішне",
+    "connectionSuccessDescription": "Успішно підключено до {provider}.",
+    "connectionFailed": "Не вдалося підключитися",
+    "connectionTestFailed": "Не вдалося виконати тест з’єднання",
+    "contextSaved": "Налаштування контексту збережено",
+    "contextSaveFailed": "Не вдалося зберегти налаштування контексту"
+  },
   "provider": {
-    "actions": {
-      "cancel": "Скасувати",
-      "edit": "Редагувати",
-      "remove": "Видалити",
-      "save": "Зберегти",
-      "saving": "Збереження...",
-      "test": "Тест"
-    },
-    "anthropic": {
-      "description": "Моделі Claude 4.5 для тонких, контекстно-орієнтованих перекладів"
-    },
     "form": {
-      "apiKey": "API ключ",
+      "apiKeyPlaceholder": "Введіть API ключ {provider}",
+      "model": "Модель",
+      "modelPlaceholder": "Виберіть модель",
+      "enableProviderDescription": "Дозволити цьому провайдеру виконувати переклади за допомогою ШІ",
+      "modelDescription": "Виберіть модель для перекладів за допомогою ШІ",
+      "enableProvider": "Увімкнути провайдера",
       "apiKeyHint": {
+        "openai": "Отримайте свій API-ключ на platform.openai.com",
         "anthropic": "Отримайте свій ключ API на console.anthropic.com",
         "googleAI": "Отримайте свій API-ключ на aistudio.google.com",
-        "mistral": "Отримайте свій API-ключ на console.mistral.ai",
-        "openai": "Отримайте свій API-ключ на platform.openai.com"
+        "mistral": "Отримайте свій API-ключ на console.mistral.ai"
       },
+      "apiKey": "API ключ",
       "apiKeyKeepCurrent": "Залиште порожнім, щоб зберегти поточне",
-      "apiKeyPlaceholder": "Введіть API ключ {provider}",
-      "apiKeyUpdatePlaceholder": "Введіть новий ключ для оновлення",
-      "enableProvider": "Увімкнути провайдера",
-      "enableProviderDescription": "Дозволити цьому провайдеру виконувати переклади за допомогою ШІ",
-      "model": "Модель",
-      "modelDescription": "Виберіть модель для перекладів за допомогою ШІ",
-      "modelPlaceholder": "Виберіть модель"
+      "apiKeyUpdatePlaceholder": "Введіть новий ключ для оновлення"
     },
     "googleAI": {
       "description": "Моделі Gemini 3 для швидких і економічно вигідних перекладів"
@@ -60,66 +73,53 @@
     "mistral": {
       "description": "Моделі Mistral для ефективної підтримки європейських мов"
     },
-    "openai": {
-      "description": "Моделі GPT-5 і GPT-4.1 для високоякісних перекладів"
+    "actions": {
+      "cancel": "Скасувати",
+      "edit": "Редагувати",
+      "save": "Зберегти",
+      "remove": "Видалити",
+      "saving": "Збереження...",
+      "test": "Тест"
+    },
+    "anthropic": {
+      "description": "Моделі Claude 4.5 для тонких, контекстно-орієнтованих перекладів"
     },
     "removeDialog": {
-      "description": "Це видалить API ключ і вимкне переклад за допомогою ШІ через {provider}. Ви зможете додати його знову пізніше.",
-      "title": "Видалити {provider}"
+      "title": "Видалити {provider}",
+      "description": "Це видалить API ключ і вимкне переклад за допомогою ШІ через {provider}. Ви зможете додати його знову пізніше."
     },
     "status": {
       "active": "Активно",
       "inactive": "Неактивно"
+    },
+    "openai": {
+      "description": "Моделі GPT-5 і GPT-4.1 для високоякісних перекладів"
     }
   },
-  "quality": {
-    "configuredWith": "Налаштовано",
-    "description": "Налаштуйте AI-оцінку якості перекладів",
-    "enable": "Увімкнути AI оцінку якості",
-    "enableDescription": "Використовувати AI для аналізу точності та стилю перекладу",
-    "model": "Модель",
-    "modelDescription": "Оберіть модель для аналізу якості",
-    "noProvidersWarning": "AI провайдери не налаштовані. Увімкніть хоча б один провайдер вище.",
-    "provider": "AI провайдер",
-    "providerDescription": "Оберіть увімкнений AI провайдер для оцінки якості",
-    "save": "Зберегти",
-    "saveFailed": "Не вдалося зберегти налаштування якості",
-    "saved": "Налаштування якості збережено",
-    "selectModel": "Оберіть модель",
-    "selectProvider": "Оберіть провайдера",
-    "title": "Оцінка якості"
-  },
-  "sections": {
-    "contextSettings": "Налаштування контексту",
-    "providers": "Провайдери ШІ",
-    "qualityEvaluation": "Оцінка якості",
-    "usage": "Використання"
-  },
-  "toasts": {
-    "configRemoveFailed": "Не вдалося видалити конфігурацію",
-    "configRemoved": "Конфігурацію видалено",
-    "configRemovedDescription": "{provider} видалено.",
-    "configSaveFailed": "Не вдалося зберегти конфігурацію",
-    "configSaved": "Конфігурацію збережено",
-    "configSavedDescription": "{provider} налаштовано.",
-    "connectionFailed": "Не вдалося підключитися",
-    "connectionSuccess": "З’єднання успішне",
-    "connectionSuccessDescription": "Успішно підключено до {provider}.",
-    "connectionTestFailed": "Не вдалося виконати тест з’єднання",
-    "contextSaveFailed": "Не вдалося зберегти налаштування контексту",
-    "contextSaved": "Налаштування контексту збережено"
-  },
-  "usage": {
-    "byProvider": "За провайдером",
-    "description": "Використання ШІ-перекладу цього місяця",
-    "requests": "запити",
-    "stats": {
-      "cacheHits": "Влучання кешу",
-      "estCost": "Орієнтовна вартість",
-      "requests": "Запити",
-      "totalTokens": "Усього токенів"
+  "context": {
+    "saveSettings": "Зберегти налаштування",
+    "title": "Налаштування контексту",
+    "description": "Налаштуйте, який контекст ШІ використовує для розумніших перекладів",
+    "relatedKeys": {
+      "label": "Пов’язані ключі",
+      "description": "Враховуйте переклади з пов’язаних ключів"
     },
-    "title": "Статистика використання",
-    "tokens": "токени"
-  }
+    "glossary": {
+      "label": "Терміни глосарію",
+      "description": "Використовуйте глосарій вашого проєкту для узгодженої термінології"
+    },
+    "tm": {
+      "label": "Пам'ять перекладів",
+      "description": "Використовувати подібні переклади з вашої ТМ як контекст"
+    },
+    "maxItems": "Максимальна кількість елементів",
+    "minSimilarity": "Мінімальна схожість",
+    "customInstructions": {
+      "title": "Користувацькі інструкції",
+      "description": "Додайте конкретні інструкції для ШІ",
+      "placeholder": "наприклад, «Використовуйте формальний стиль для перекладів німецькою» або «Робіть переклади лаконічними для мобільного інтерфейсу»"
+    },
+    "saveNote": "Зміни застосовуються до всіх майбутніх перекладів ШІ"
+  },
+  "pageDescription": "Налаштуйте провайдерів ШІ для контекстних підказок перекладу"
 }

@@ -1,58 +1,71 @@
 {
-  "context": {
-    "customInstructions": {
-      "description": "",
-      "placeholder": "",
-      "title": ""
-    },
-    "description": "",
-    "glossary": {
-      "description": "",
-      "label": ""
-    },
-    "maxItems": "",
-    "minSimilarity": "",
-    "relatedKeys": {
-      "description": "",
-      "label": ""
-    },
-    "saveNote": "",
-    "saveSettings": "",
-    "title": "",
-    "tm": {
-      "description": "",
-      "label": ""
-    }
+  "quality": {
+    "noProvidersWarning": "No hay proveedores de IA configurados. Habilite al menos un proveedor arriba.",
+    "save": "Guardar",
+    "saved": "Configuración de calidad guardada",
+    "saveFailed": "Error al guardar la configuración de calidad",
+    "enable": "Habilitar evaluación de calidad con IA",
+    "description": "Configure la evaluación de calidad de traducción con IA",
+    "selectProvider": "Seleccionar proveedor",
+    "provider": "Proveedor de IA",
+    "enableDescription": "Usar IA para analizar la precisión y estilo de traducción",
+    "title": "Evaluación de calidad",
+    "providerDescription": "Elija qué proveedor de IA habilitado usar para la evaluación de calidad",
+    "model": "Modelo",
+    "selectModel": "Seleccionar modelo",
+    "modelDescription": "Elija el modelo para el análisis de calidad",
+    "configuredWith": "Configurado"
   },
-  "pageDescription": "",
+  "usage": {
+    "stats": {
+      "totalTokens": "",
+      "requests": "",
+      "cacheHits": "",
+      "estCost": ""
+    },
+    "title": "",
+    "description": "",
+    "byProvider": "",
+    "tokens": "",
+    "requests": ""
+  },
+  "sections": {
+    "providers": "",
+    "contextSettings": "",
+    "usage": "",
+    "qualityEvaluation": "Evaluación de calidad"
+  },
+  "toasts": {
+    "configSaved": "",
+    "configSavedDescription": "{provider} ha sido configurado.",
+    "configSaveFailed": "",
+    "configRemoved": "",
+    "configRemovedDescription": "{provider} ha sido eliminado.",
+    "configRemoveFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "Conectado exitosamente a {provider}.",
+    "connectionFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": ""
+  },
   "provider": {
-    "actions": {
-      "cancel": "",
-      "edit": "",
-      "remove": "",
-      "save": "",
-      "saving": "",
-      "test": ""
-    },
-    "anthropic": {
-      "description": ""
-    },
     "form": {
-      "apiKey": "",
+      "apiKeyPlaceholder": "Ingrese la clave API de {provider}",
+      "model": "",
+      "modelPlaceholder": "",
+      "enableProviderDescription": "",
+      "modelDescription": "",
+      "enableProvider": "",
       "apiKeyHint": {
+        "openai": "",
         "anthropic": "",
         "googleAI": "",
-        "mistral": "",
-        "openai": ""
+        "mistral": ""
       },
+      "apiKey": "",
       "apiKeyKeepCurrent": "",
-      "apiKeyPlaceholder": "Ingrese la clave API de {provider}",
-      "apiKeyUpdatePlaceholder": "",
-      "enableProvider": "",
-      "enableProviderDescription": "",
-      "model": "",
-      "modelDescription": "",
-      "modelPlaceholder": ""
+      "apiKeyUpdatePlaceholder": ""
     },
     "googleAI": {
       "description": ""
@@ -60,66 +73,53 @@
     "mistral": {
       "description": ""
     },
-    "openai": {
+    "actions": {
+      "cancel": "",
+      "edit": "",
+      "save": "",
+      "remove": "",
+      "saving": "",
+      "test": ""
+    },
+    "anthropic": {
       "description": ""
     },
     "removeDialog": {
-      "description": "¿Está seguro de que desea eliminar {provider}?",
-      "title": "Eliminar {provider}"
+      "title": "Eliminar {provider}",
+      "description": "¿Está seguro de que desea eliminar {provider}?"
     },
     "status": {
       "active": "",
       "inactive": ""
+    },
+    "openai": {
+      "description": ""
     }
   },
-  "quality": {
-    "configuredWith": "Configurado",
-    "description": "Configure la evaluación de calidad de traducción con IA",
-    "enable": "Habilitar evaluación de calidad con IA",
-    "enableDescription": "Usar IA para analizar la precisión y estilo de traducción",
-    "model": "Modelo",
-    "modelDescription": "Elija el modelo para el análisis de calidad",
-    "noProvidersWarning": "No hay proveedores de IA configurados. Habilite al menos un proveedor arriba.",
-    "provider": "Proveedor de IA",
-    "providerDescription": "Elija qué proveedor de IA habilitado usar para la evaluación de calidad",
-    "save": "Guardar",
-    "saveFailed": "Error al guardar la configuración de calidad",
-    "saved": "Configuración de calidad guardada",
-    "selectModel": "Seleccionar modelo",
-    "selectProvider": "Seleccionar proveedor",
-    "title": "Evaluación de calidad"
-  },
-  "sections": {
-    "contextSettings": "",
-    "providers": "",
-    "qualityEvaluation": "Evaluación de calidad",
-    "usage": ""
-  },
-  "toasts": {
-    "configRemoveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} ha sido eliminado.",
-    "configSaveFailed": "",
-    "configSaved": "",
-    "configSavedDescription": "{provider} ha sido configurado.",
-    "connectionFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Conectado exitosamente a {provider}.",
-    "connectionTestFailed": "",
-    "contextSaveFailed": "",
-    "contextSaved": ""
-  },
-  "usage": {
-    "byProvider": "",
-    "description": "",
-    "requests": "",
-    "stats": {
-      "cacheHits": "",
-      "estCost": "",
-      "requests": "",
-      "totalTokens": ""
-    },
+  "context": {
+    "saveSettings": "",
     "title": "",
-    "tokens": ""
-  }
+    "description": "",
+    "relatedKeys": {
+      "label": "",
+      "description": ""
+    },
+    "glossary": {
+      "label": "",
+      "description": ""
+    },
+    "tm": {
+      "label": "",
+      "description": ""
+    },
+    "maxItems": "",
+    "minSimilarity": "",
+    "customInstructions": {
+      "title": "",
+      "description": "",
+      "placeholder": ""
+    },
+    "saveNote": ""
+  },
+  "pageDescription": ""
 }

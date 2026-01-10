@@ -1,58 +1,71 @@
 {
-  "context": {
-    "customInstructions": {
-      "description": "Добавьте конкретные инструкции для ИИ",
-      "placeholder": "например: «Используйте формальный стиль для переводов на немецкий» или «Делайте переводы лаконичными для мобильного интерфейса»",
-      "title": "Дополнительные инструкции"
-    },
-    "description": "Настройте, какой контекст ИИ использует для более точных переводов",
-    "glossary": {
-      "description": "Используйте глоссарий проекта для единообразной терминологии",
-      "label": "Термины глоссария"
-    },
-    "maxItems": "Максимум элементов",
-    "minSimilarity": "Минимальное сходство",
-    "relatedKeys": {
-      "description": "Учитывать переводы из связанных ключей",
-      "label": "Связанные ключи"
-    },
-    "saveNote": "Изменения будут применяться ко всем будущим переводам ИИ",
-    "saveSettings": "Сохранить настройки",
-    "title": "Настройка контекста",
-    "tm": {
-      "description": "Использовать похожие переводы из вашей Памяти переводов",
-      "label": "Память переводов"
-    }
+  "quality": {
+    "noProvidersWarning": "AI провайдеры не настроены. Включите хотя бы один провайдер выше.",
+    "save": "Сохранить",
+    "saved": "Настройки качества сохранены",
+    "saveFailed": "Не удалось сохранить настройки качества",
+    "enable": "Включить AI оценку качества",
+    "description": "Настройте AI-оценку качества переводов",
+    "selectProvider": "Выберите провайдера",
+    "provider": "AI провайдер",
+    "enableDescription": "Использовать AI для анализа точности и стиля перевода",
+    "title": "Оценка качества",
+    "providerDescription": "Выберите включенный AI провайдер для оценки качества",
+    "model": "Модель",
+    "selectModel": "Выберите модель",
+    "modelDescription": "Выберите модель для анализа качества",
+    "configuredWith": "Настроено"
   },
-  "pageDescription": "Настройка провайдеров ИИ для контекстных подсказок по переводу",
+  "usage": {
+    "stats": {
+      "totalTokens": "Всего токенов",
+      "requests": "Запросы",
+      "cacheHits": "Попадания в кэш",
+      "estCost": "Оценочная стоимость"
+    },
+    "title": "Статистика использования",
+    "description": "Использование ИИ-перевода в этом месяце",
+    "byProvider": "По провайдерам",
+    "tokens": "токены",
+    "requests": "запросы"
+  },
+  "sections": {
+    "providers": "Провайдеры ИИ",
+    "contextSettings": "Настройки контекста",
+    "usage": "Использование",
+    "qualityEvaluation": "Оценка качества"
+  },
+  "toasts": {
+    "configSaved": "Конфигурация сохранена",
+    "configSavedDescription": "{provider} настроен.",
+    "configSaveFailed": "Не удалось сохранить конфигурацию",
+    "configRemoved": "Конфигурация удалена",
+    "configRemovedDescription": "{provider} удалён.",
+    "configRemoveFailed": "Не удалось удалить конфигурацию",
+    "connectionSuccess": "Подключение успешно",
+    "connectionSuccessDescription": "Успешно подключено к {provider}.",
+    "connectionFailed": "Сбой подключения",
+    "connectionTestFailed": "Тест соединения не выполнен",
+    "contextSaved": "Настройки контекста сохранены",
+    "contextSaveFailed": "Не удалось сохранить настройки контекста"
+  },
   "provider": {
-    "actions": {
-      "cancel": "Отмена",
-      "edit": "Изменить",
-      "remove": "Удалить",
-      "save": "Сохранить",
-      "saving": "Сохранение...",
-      "test": "Тест"
-    },
-    "anthropic": {
-      "description": "Модели Claude 4.5 для тонких, контекстно-зависимых переводов"
-    },
     "form": {
-      "apiKey": "API ключ",
+      "apiKeyPlaceholder": "Введите API ключ {provider}",
+      "model": "Модель",
+      "modelPlaceholder": "Выберите модель",
+      "enableProviderDescription": "Разрешить этому провайдеру использоваться для ИИ-переводов",
+      "modelDescription": "Выберите модель для ИИ-переводов",
+      "enableProvider": "Включить провайдера",
       "apiKeyHint": {
+        "openai": "Получите свой API ключ на platform.openai.com",
         "anthropic": "Получите свой API-ключ на console.anthropic.com",
         "googleAI": "Получите свой API-ключ на aistudio.google.com",
-        "mistral": "Получите свой API-ключ на console.mistral.ai",
-        "openai": "Получите свой API ключ на platform.openai.com"
+        "mistral": "Получите свой API-ключ на console.mistral.ai"
       },
+      "apiKey": "API ключ",
       "apiKeyKeepCurrent": "Оставьте пустым, чтобы сохранить текущее значение",
-      "apiKeyPlaceholder": "Введите API ключ {provider}",
-      "apiKeyUpdatePlaceholder": "Введите новый ключ для обновления",
-      "enableProvider": "Включить провайдера",
-      "enableProviderDescription": "Разрешить этому провайдеру использоваться для ИИ-переводов",
-      "model": "Модель",
-      "modelDescription": "Выберите модель для ИИ-переводов",
-      "modelPlaceholder": "Выберите модель"
+      "apiKeyUpdatePlaceholder": "Введите новый ключ для обновления"
     },
     "googleAI": {
       "description": "Gemini 3 — модели для быстрых и экономичных переводов"
@@ -60,66 +73,53 @@
     "mistral": {
       "description": "Модели Mistral для эффективной поддержки европейских языков"
     },
-    "openai": {
-      "description": "Модели GPT-5 и GPT-4.1 для высококачественных переводов"
+    "actions": {
+      "cancel": "Отмена",
+      "edit": "Изменить",
+      "save": "Сохранить",
+      "remove": "Удалить",
+      "saving": "Сохранение...",
+      "test": "Тест"
+    },
+    "anthropic": {
+      "description": "Модели Claude 4.5 для тонких, контекстно-зависимых переводов"
     },
     "removeDialog": {
-      "description": "Это удалит API ключ и отключит AI‑переводы с использованием {provider}. Вы сможете добавить его снова позже.",
-      "title": "Удалить {provider}"
+      "title": "Удалить {provider}",
+      "description": "Это удалит API ключ и отключит AI‑переводы с использованием {provider}. Вы сможете добавить его снова позже."
     },
     "status": {
       "active": "Активно",
       "inactive": "Неактивно"
+    },
+    "openai": {
+      "description": "Модели GPT-5 и GPT-4.1 для высококачественных переводов"
     }
   },
-  "quality": {
-    "configuredWith": "Настроено",
-    "description": "Настройте AI-оценку качества переводов",
-    "enable": "Включить AI оценку качества",
-    "enableDescription": "Использовать AI для анализа точности и стиля перевода",
-    "model": "Модель",
-    "modelDescription": "Выберите модель для анализа качества",
-    "noProvidersWarning": "AI провайдеры не настроены. Включите хотя бы один провайдер выше.",
-    "provider": "AI провайдер",
-    "providerDescription": "Выберите включенный AI провайдер для оценки качества",
-    "save": "Сохранить",
-    "saveFailed": "Не удалось сохранить настройки качества",
-    "saved": "Настройки качества сохранены",
-    "selectModel": "Выберите модель",
-    "selectProvider": "Выберите провайдера",
-    "title": "Оценка качества"
-  },
-  "sections": {
-    "contextSettings": "Настройки контекста",
-    "providers": "Провайдеры ИИ",
-    "qualityEvaluation": "Оценка качества",
-    "usage": "Использование"
-  },
-  "toasts": {
-    "configRemoveFailed": "Не удалось удалить конфигурацию",
-    "configRemoved": "Конфигурация удалена",
-    "configRemovedDescription": "{provider} удалён.",
-    "configSaveFailed": "Не удалось сохранить конфигурацию",
-    "configSaved": "Конфигурация сохранена",
-    "configSavedDescription": "{provider} настроен.",
-    "connectionFailed": "Сбой подключения",
-    "connectionSuccess": "Подключение успешно",
-    "connectionSuccessDescription": "Успешно подключено к {provider}.",
-    "connectionTestFailed": "Тест соединения не выполнен",
-    "contextSaveFailed": "Не удалось сохранить настройки контекста",
-    "contextSaved": "Настройки контекста сохранены"
-  },
-  "usage": {
-    "byProvider": "По провайдерам",
-    "description": "Использование ИИ-перевода в этом месяце",
-    "requests": "запросы",
-    "stats": {
-      "cacheHits": "Попадания в кэш",
-      "estCost": "Оценочная стоимость",
-      "requests": "Запросы",
-      "totalTokens": "Всего токенов"
+  "context": {
+    "saveSettings": "Сохранить настройки",
+    "title": "Настройка контекста",
+    "description": "Настройте, какой контекст ИИ использует для более точных переводов",
+    "relatedKeys": {
+      "label": "Связанные ключи",
+      "description": "Учитывать переводы из связанных ключей"
     },
-    "title": "Статистика использования",
-    "tokens": "токены"
-  }
+    "glossary": {
+      "label": "Термины глоссария",
+      "description": "Используйте глоссарий проекта для единообразной терминологии"
+    },
+    "tm": {
+      "label": "Память переводов",
+      "description": "Использовать похожие переводы из вашей Памяти переводов"
+    },
+    "maxItems": "Максимум элементов",
+    "minSimilarity": "Минимальное сходство",
+    "customInstructions": {
+      "title": "Дополнительные инструкции",
+      "description": "Добавьте конкретные инструкции для ИИ",
+      "placeholder": "например: «Используйте формальный стиль для переводов на немецкий» или «Делайте переводы лаконичными для мобильного интерфейса»"
+    },
+    "saveNote": "Изменения будут применяться ко всем будущим переводам ИИ"
+  },
+  "pageDescription": "Настройка провайдеров ИИ для контекстных подсказок по переводу"
 }

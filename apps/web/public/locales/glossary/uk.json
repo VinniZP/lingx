@@ -36,11 +36,11 @@
     "description": "Статистика та аналітика глосарію",
     "active": "Активних",
     "totalTerms": "Всього термінів",
-    "title": "Огляд",
-    "languagePairs": "Мовні пари",
     "activeCombinations": "Активні комбінації перекладів",
     "categories": "Категорії",
     "tagsDefined": "Визначених тегів",
+    "title": "Огляд",
+    "languagePairs": "Мовні пари",
     "organizationalCategories": "Організаційні категорії"
   },
   "tags": {
@@ -54,9 +54,9 @@
   "dialog": {
     "editDescription": "Оновіть деталі запису глосарія та переклади",
     "editTerm": "Редагувати термін",
-    "caseSensitive": "Чутливість до регістру під час порівняння",
-    "addNewTerm": "Додати новий термін",
     "termInformation": "Інформація про термін",
+    "addNewTerm": "Додати новий термін",
+    "caseSensitive": "Чутливість до регістру під час порівняння",
     "notesPlaceholder": "Додайте вказівки або спеціальні інструкції для перекладачів...",
     "caseSensitiveDescription": "Вимагати точного регістру літер під час пошуку збігів для цього терміна",
     "tags": "Теги",
@@ -66,9 +66,9 @@
     "addTerm": "Додати термін",
     "domainPlaceholder": "напр. технічна, юридична, медична",
     "sourceTerm": "Термін оригіналу",
+    "addDescription": "Додайте новий термін до глосарія вашого проєкту для узгоджених перекладів",
     "sourceTermPlaceholder": "напр. API, Панель керування, Параметри",
     "sourceLanguage": "Мова оригіналу",
-    "addDescription": "Додайте новий термін до глосарія вашого проєкту для узгоджених перекладів",
     "selectLanguage": "Виберіть мову",
     "classification": "Класифікація",
     "partOfSpeech": "Частина мови",
@@ -85,10 +85,10 @@
     "title": "Термінологія",
     "description": "Керуйте записами вашого глосарію",
     "addTerm": "Додати термін",
-    "export": "Експорт",
     "exportAsCsv": "Експортувати як CSV",
     "exportAsTbx": "Експортувати як TBX",
-    "import": "Імпорт"
+    "import": "Імпорт",
+    "export": "Експорт"
   },
   "providerSync": {
     "syncToDeepL": "Синхронізувати з DeepL",
@@ -112,8 +112,8 @@
     "options": "Параметри імпорту",
     "accepts": "Приймає файли {format}",
     "selectFile": "Виберіть файл",
-    "fileFormat": "Формат файлу",
     "description": "Імпортувати термінологію з файлів у форматах промислових стандартів",
+    "fileFormat": "Формат файлу",
     "tbxDescription": "TermBase eXchange (ISO)",
     "csvDescription": "Значення, розділені комами",
     "title": "Імпортувати глосарій"
@@ -121,10 +121,10 @@
   "partOfSpeech": {
     "pronoun": "Займенник",
     "verb": "Дієслово",
+    "adjective": "Прикметник",
     "preposition": "Прийменник",
     "conjunction": "Сполучник",
     "interjection": "Вигук",
-    "adjective": "Прикметник",
     "adverb": "Прислівник",
     "other": "Інше",
     "determiner": "Визначник",
@@ -146,9 +146,9 @@
     "description": "Це назавжди видалить \"{term}\" та всі його переклади. Цю дію неможливо скасувати."
   },
   "filters": {
-    "domain": "Домен",
     "language": "Мова",
     "allLanguages": "Усі мови",
+    "domain": "Домен",
     "allDomains": "Усі домени",
     "tag": "Тег",
     "entriesCount": "{count, plural, one {# запис} other {# записи}}",
