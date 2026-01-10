@@ -927,7 +927,6 @@ declare module '@lingx/sdk-nextjs' {
       | 'verifyEmail.verifying'
       | 'workbench.commandPalette.a11y.keyNameMatch'
       | 'workbench.commandPalette.a11y.recentKey'
-      | 'workbench.commandPalette.a11y.shortcut'
       | 'workbench.commandPalette.a11y.translationMatch'
       | 'workbench.commandPalette.actions.aiTranslateAll'
       | 'workbench.commandPalette.actions.aiTranslateLanguage'
@@ -950,13 +949,8 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.commandPalette.description'
       | 'workbench.commandPalette.errors.executionFailed'
       | 'workbench.commandPalette.errors.unknownError'
-      | 'workbench.commandPalette.groups.approval'
-      | 'workbench.commandPalette.groups.navigation'
-      | 'workbench.commandPalette.groups.quickActions'
       | 'workbench.commandPalette.groups.recentActions'
       | 'workbench.commandPalette.groups.searchResults'
-      | 'workbench.commandPalette.groups.translation'
-      | 'workbench.commandPalette.groups.utility'
       | 'workbench.commandPalette.noResults'
       | 'workbench.commandPalette.placeholder'
       | 'workbench.commandPalette.title'
@@ -1103,8 +1097,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'workbench.toolbar.statusFilter.missing'
       | 'workbench.toolbar.statusFilter.pending'
       | 'workbench.toolbar.statusFilter.placeholder'
-      | 'workbench.toolbar.statusFilter.rejected'
-      | 'workbench.toolbar.statusFilter.warnings';
+      | 'workbench.toolbar.statusFilter.rejected';
   }
 
   /**

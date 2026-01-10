@@ -1092,6 +1092,13 @@
       "usingAI": "Using AI translation",
       "usingMT": "Using machine translation"
     },
+    "dialogs": {
+      "bulkDeleteKeys": {
+        "confirm": "Delete {count, plural, one {Key} other {Keys}}",
+        "description": "This will permanently delete the selected translation keys and all their translations. This action cannot be undone.",
+        "title": "Delete {count, plural, one {# key} other {# keys}}?"
+      }
+    },
     "toasts": {
       "failedToApprove": "Failed to update approval status",
       "failedToApproveTranslations": "Failed to approve translations",
@@ -1110,13 +1117,6 @@
       "translationsGenerated": "{count, plural, one {# translation} other {# translations}} generated",
       "translationsRejected": "{count} translations rejected",
       "translationsUpdated": "{count} translations {status}"
-    },
-    "dialogs": {
-      "bulkDeleteKeys": {
-        "title": "Delete {count, plural, one {# key} other {# keys}}?",
-        "description": "This will permanently delete the selected translation keys and all their translations. This action cannot be undone.",
-        "confirm": "Delete {count, plural, one {Key} other {Keys}}"
-      }
     }
   },
   "twoFactor": {
@@ -1208,52 +1208,43 @@
   },
   "workbench": {
     "commandPalette": {
-      "title": "Command Palette",
-      "description": "Search keys or run commands",
-      "placeholder": "Search keys or type a command...",
-      "noResults": "No results found",
-      "groups": {
-        "quickActions": "Quick Actions",
-        "recentActions": "Recent",
-        "searchResults": "Keys",
-        "translation": "Translation",
-        "approval": "Approval",
-        "navigation": "Navigation",
-        "utility": "Utilities"
+      "a11y": {
+        "keyNameMatch": "Matched by key name",
+        "recentKey": "Recently accessed key: {keyName}",
+        "translationMatch": "Matched in {language} translation"
       },
       "actions": {
-        "aiTranslateLanguage": "AI Translate ({language})",
         "aiTranslateAll": "AI Translate All Languages",
-        "mtTranslateLanguage": "Machine Translate ({language})",
-        "mtTranslateAll": "Machine Translate All Languages",
-        "copySource": "Copy Source to Target",
-        "approveLanguage": "Approve ({language})",
+        "aiTranslateLanguage": "AI Translate ({language})",
         "approveAll": "Approve All Languages",
-        "rejectLanguage": "Reject ({language})",
-        "rejectAll": "Reject All Languages",
+        "approveLanguage": "Approve ({language})",
+        "collapseAll": "Collapse All Languages",
+        "copyKeyName": "Copy Key Name",
+        "copySource": "Copy Source to Target",
+        "deleteKey": "Delete Key",
+        "evaluateQuality": "Evaluate Quality",
+        "expandAll": "Expand All Languages",
+        "focusSource": "Focus Source Field",
+        "mtTranslateAll": "Machine Translate All Languages",
+        "mtTranslateLanguage": "Machine Translate ({language})",
         "nextKey": "Go to Next Key",
         "prevKey": "Go to Previous Key",
-        "expandAll": "Expand All Languages",
-        "collapseAll": "Collapse All Languages",
-        "focusSource": "Focus Source Field",
-        "copyKeyName": "Copy Key Name",
-        "deleteKey": "Delete Key",
-        "showShortcuts": "Show Keyboard Shortcuts",
-        "evaluateQuality": "Evaluate Quality"
+        "rejectAll": "Reject All Languages",
+        "rejectLanguage": "Reject ({language})",
+        "showShortcuts": "Show Keyboard Shortcuts"
       },
+      "description": "Search keys or run commands",
       "errors": {
         "executionFailed": "Command failed",
         "unknownError": "An unexpected error occurred"
       },
-      "a11y": {
-        "shortcut": "Keyboard shortcut",
-        "keyNameMatch": "Matched by key name",
-        "translationMatch": "Matched in {language} translation",
-        "recentKey": "Recently accessed key: {keyName}"
-      }
-    },
-    "toasts": {
-      "copiedToClipboard": "Copied to clipboard"
+      "groups": {
+        "recentActions": "Recent",
+        "searchResults": "Keys"
+      },
+      "noResults": "No results found",
+      "placeholder": "Search keys or type a command...",
+      "title": "Command Palette"
     },
     "guide": {
       "demo": {
@@ -1424,6 +1415,9 @@
     "suggestion": {
       "clickToApply": "Click to apply"
     },
+    "toasts": {
+      "copiedToClipboard": "Copied to clipboard"
+    },
     "toolbar": {
       "addKey": "Add Key",
       "back": "Back",
@@ -1449,8 +1443,7 @@
         "missing": "Missing",
         "pending": "Pending",
         "placeholder": "Status",
-        "rejected": "Rejected",
-        "warnings": "Warnings"
+        "rejected": "Rejected"
       }
     }
   }

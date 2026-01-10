@@ -1,72 +1,58 @@
 {
-  "quality": {
-    "title": "Évaluation de la qualité",
-    "saved": "Paramètres de qualité enregistrés",
-    "save": "Enregistrer",
-    "noProvidersWarning": "Aucun fournisseur IA configuré. Activez au moins un fournisseur ci-dessus.",
-    "provider": "Fournisseur IA",
-    "saveFailed": "Échec de l'enregistrement des paramètres de qualité",
-    "description": "Configurez l'évaluation de la qualité des traductions par IA",
-    "enable": "Activer l'évaluation de la qualité par IA",
-    "enableDescription": "Utiliser l'IA pour analyser la précision et le style des traductions",
-    "selectProvider": "Sélectionner un fournisseur",
-    "providerDescription": "Choisissez quel fournisseur IA activé utiliser pour l'évaluation de la qualité",
-    "model": "Modèle",
-    "selectModel": "Sélectionner un modèle",
-    "modelDescription": "Choisissez le modèle pour l'analyse de la qualité",
-    "configuredWith": "Configuré"
-  },
-  "pageTitle": "AI Translation",
-  "toasts": {
-    "configSaved": "",
-    "configSavedDescription": "{provider} a été configuré.",
-    "configSaveFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} a été supprimé.",
-    "configRemoveFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Connecté avec succès à {provider}.",
-    "connectionFailed": ""
-  },
-  "usage": {
-    "stats": {
-      "totalTokens": "",
-      "requests": "",
-      "cacheHits": "",
-      "estCost": ""
+  "context": {
+    "customInstructions": {
+      "description": "",
+      "placeholder": "",
+      "title": ""
     },
-    "title": "",
-    "byProvider": "",
     "description": "",
-    "tokens": "",
-    "requests": ""
+    "glossary": {
+      "description": "",
+      "label": ""
+    },
+    "maxItems": "",
+    "minSimilarity": "",
+    "relatedKeys": {
+      "description": "",
+      "label": ""
+    },
+    "saveNote": "",
+    "saveSettings": "",
+    "title": "",
+    "tm": {
+      "description": "",
+      "label": ""
+    }
   },
-  "sections": {
-    "providers": "",
-    "contextSettings": "",
-    "qualityEvaluation": "Évaluation de la qualité",
-    "usage": ""
-  },
+  "pageDescription": "",
   "provider": {
+    "actions": {
+      "cancel": "",
+      "edit": "",
+      "remove": "",
+      "save": "",
+      "saving": "",
+      "test": ""
+    },
+    "anthropic": {
+      "description": ""
+    },
     "form": {
-      "apiKeyPlaceholder": "Entrez la clé API {provider}",
+      "apiKey": "",
       "apiKeyHint": {
-        "openai": "",
         "anthropic": "",
         "googleAI": "",
-        "mistral": ""
+        "mistral": "",
+        "openai": ""
       },
-      "modelPlaceholder": "",
-      "modelDescription": "",
+      "apiKeyKeepCurrent": "",
+      "apiKeyPlaceholder": "Entrez la clé API {provider}",
+      "apiKeyUpdatePlaceholder": "",
       "enableProvider": "",
       "enableProviderDescription": "",
       "model": "",
-      "apiKey": "",
-      "apiKeyKeepCurrent": "",
-      "apiKeyUpdatePlaceholder": ""
+      "modelDescription": "",
+      "modelPlaceholder": ""
     },
     "googleAI": {
       "description": ""
@@ -77,50 +63,63 @@
     "openai": {
       "description": ""
     },
-    "anthropic": {
-      "description": ""
-    },
-    "actions": {
-      "cancel": "",
-      "saving": "",
-      "save": "",
-      "remove": "",
-      "test": "",
-      "edit": ""
-    },
     "removeDialog": {
-      "title": "Supprimer {provider}",
-      "description": "Êtes-vous sûr de vouloir supprimer {provider}?"
+      "description": "Êtes-vous sûr de vouloir supprimer {provider}?",
+      "title": "Supprimer {provider}"
     },
     "status": {
       "active": "",
       "inactive": ""
     }
   },
-  "context": {
-    "customInstructions": {
-      "placeholder": "",
-      "title": "",
-      "description": ""
+  "quality": {
+    "configuredWith": "Configuré",
+    "description": "Configurez l'évaluation de la qualité des traductions par IA",
+    "enable": "Activer l'évaluation de la qualité par IA",
+    "enableDescription": "Utiliser l'IA pour analyser la précision et le style des traductions",
+    "model": "Modèle",
+    "modelDescription": "Choisissez le modèle pour l'analyse de la qualité",
+    "noProvidersWarning": "Aucun fournisseur IA configuré. Activez au moins un fournisseur ci-dessus.",
+    "provider": "Fournisseur IA",
+    "providerDescription": "Choisissez quel fournisseur IA activé utiliser pour l'évaluation de la qualité",
+    "save": "Enregistrer",
+    "saveFailed": "Échec de l'enregistrement des paramètres de qualité",
+    "saved": "Paramètres de qualité enregistrés",
+    "selectModel": "Sélectionner un modèle",
+    "selectProvider": "Sélectionner un fournisseur",
+    "title": "Évaluation de la qualité"
+  },
+  "sections": {
+    "contextSettings": "",
+    "providers": "",
+    "qualityEvaluation": "Évaluation de la qualité",
+    "usage": ""
+  },
+  "toasts": {
+    "configRemoveFailed": "",
+    "configRemoved": "",
+    "configRemovedDescription": "{provider} a été supprimé.",
+    "configSaveFailed": "",
+    "configSaved": "",
+    "configSavedDescription": "{provider} a été configuré.",
+    "connectionFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "Connecté avec succès à {provider}.",
+    "connectionTestFailed": "",
+    "contextSaveFailed": "",
+    "contextSaved": ""
+  },
+  "usage": {
+    "byProvider": "",
+    "description": "",
+    "requests": "",
+    "stats": {
+      "cacheHits": "",
+      "estCost": "",
+      "requests": "",
+      "totalTokens": ""
     },
     "title": "",
-    "description": "",
-    "maxItems": "",
-    "minSimilarity": "",
-    "saveNote": "",
-    "saveSettings": "",
-    "glossary": {
-      "label": "",
-      "description": ""
-    },
-    "tm": {
-      "label": "",
-      "description": ""
-    },
-    "relatedKeys": {
-      "label": "",
-      "description": ""
-    }
-  },
-  "pageDescription": ""
+    "tokens": ""
+  }
 }

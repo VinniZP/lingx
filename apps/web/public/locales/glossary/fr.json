@@ -1,13 +1,167 @@
 {
-  "tags": {
-    "title": "",
-    "description": "",
-    "addTag": "",
-    "noTagsYet": "",
-    "createToOrganize": "",
-    "createFirstTag": ""
-  },
   "common": {
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "color": "",
+    "delete": "",
+    "name": ""
+  },
+  "deleteEntry": {
+    "description": "",
+    "title": ""
+  },
+  "deleteTag": {
+    "description": "",
+    "title": ""
+  },
+  "dialog": {
+    "addDescription": "",
+    "addNewTerm": "",
+    "addTerm": "",
+    "additionalDetails": "",
+    "caseSensitive": "",
+    "caseSensitiveDescription": "",
+    "changesApplyToAll": "",
+    "classification": "",
+    "contextPlaceholder": "",
+    "domain": "",
+    "domainPlaceholder": "",
+    "editDescription": "",
+    "editTerm": "",
+    "noneSpecified": "",
+    "notesPlaceholder": "",
+    "partOfSpeech": "",
+    "saveChanges": "",
+    "selectLanguage": "",
+    "selectType": "",
+    "sourceLanguage": "",
+    "sourceTerm": "",
+    "sourceTermPlaceholder": "",
+    "tags": "",
+    "tagsSelected": "",
+    "termAvailableForMatching": "",
+    "termInformation": "",
+    "translatorNotes": "",
+    "usageContext": ""
+  },
+  "entry": {
+    "moreTranslations": ""
+  },
+  "filters": {
+    "allDomains": "",
+    "allLanguages": "",
+    "allTags": "",
+    "domain": "",
+    "entriesCount": "",
+    "language": "",
+    "searchPlaceholder": "",
+    "tag": ""
+  },
+  "import": {
+    "accepts": "",
+    "clickToSelect": "",
+    "csvDescription": "",
+    "description": "",
+    "dragAndDrop": "",
+    "fileFormat": "",
+    "options": "",
+    "overwriteDescription": "",
+    "overwriteExisting": "",
+    "selectFile": "",
+    "tbxDescription": "",
+    "title": ""
+  },
+  "list": {
+    "addFirstTerm": "",
+    "addTerminology": "",
+    "adjustFilters": "",
+    "loading": "",
+    "noMatching": "",
+    "startBuilding": ""
+  },
+  "pagination": {
+    "next": "",
+    "pageOf": "",
+    "previous": ""
+  },
+  "partOfSpeech": {
+    "adjective": "",
+    "adverb": "",
+    "conjunction": "",
+    "determiner": "",
+    "interjection": "",
+    "noun": "",
+    "other": "",
+    "preposition": "",
+    "pronoun": "",
+    "verb": ""
+  },
+  "providerSync": {
+    "activeSyncs": "",
+    "connectBelow": "",
+    "connected": "",
+    "consistency": "",
+    "consistencyDescription": "",
+    "description": "",
+    "noSyncs": "",
+    "quickSync": "",
+    "syncToDeepL": "",
+    "syncToGoogle": "",
+    "termsSynced": "",
+    "title": ""
+  },
+  "stats": {
+    "active": "",
+    "activeCombinations": "",
+    "categories": "",
+    "description": "",
+    "languagePairs": "",
+    "organizationalCategories": "",
+    "pairs": "",
+    "tagsDefined": "",
+    "title": "",
+    "totalTerms": "",
+    "translationsAcross": ""
+  },
+  "tagDialog": {
+    "createTag": "",
+    "description": "",
+    "namePlaceholder": "",
+    "title": ""
+  },
+  "tags": {
+    "addTag": "",
+    "createFirstTag": "",
+    "createToOrganize": "",
+    "description": "",
+    "noTagsYet": "",
+    "title": ""
+  },
+  "terminology": {
+    "addTerm": "",
+    "description": "",
+    "export": "",
+    "exportAsCsv": "",
+    "exportAsTbx": "",
+    "import": "",
+    "title": ""
+  },
+  "toasts": {
+    "deleteFailed": "",
+    "deleteTagFailed": "",
+    "entryCreated": "",
+    "entryDeleted": "",
+    "entryFailed": "",
+    "entryUpdated": "",
+    "exportFailed": "",
+    "exportSuccess": "",
+    "importFailed": "",
+    "importSuccess": "",
+    "syncDeleteFailed": "",
+    "syncDeleted": "",
+    "syncFailed": "",
+    "syncSuccess": "",
+    "tagCreated": "",
+    "tagDeleted": "",
+    "tagFailed": ""
   }
 }
