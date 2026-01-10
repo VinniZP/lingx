@@ -1,7 +1,7 @@
 'use client';
 
 import { CommandGroup, CommandItem, CommandShortcut } from '@/components/ui/command';
-import { useTranslation } from '@lingx/sdk-nextjs';
+import { tKey, useTranslation } from '@lingx/sdk-nextjs';
 import type { ActionCommand } from '../types';
 
 interface QuickActionsGroupProps {
@@ -11,10 +11,10 @@ interface QuickActionsGroupProps {
 }
 
 const GROUP_LABELS = {
-  translation: 'workbench.commandPalette.groups.translation',
-  approval: 'workbench.commandPalette.groups.approval',
-  navigation: 'workbench.commandPalette.groups.navigation',
-  utility: 'workbench.commandPalette.groups.utility',
+  translation: tKey('workbench.commandPalette.groups.translation'),
+  approval: tKey('workbench.commandPalette.groups.approval'),
+  navigation: tKey('workbench.commandPalette.groups.navigation'),
+  utility: tKey('workbench.commandPalette.groups.utility'),
 } as const;
 
 export function QuickActionsGroup({
@@ -38,7 +38,7 @@ export function QuickActionsGroup({
         if (!groupCommands || groupCommands.length === 0) return null;
 
         return (
-          <CommandGroup key={groupKey} heading={t(GROUP_LABELS[groupKey])}>
+          <CommandGroup key={groupKey} heading={td(GROUP_LABELS[groupKey])}>
             {groupCommands.map((command) => {
               const Icon = command.icon;
               // Get the translated label, passing language name if needed

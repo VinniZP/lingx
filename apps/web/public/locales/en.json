@@ -1211,6 +1211,7 @@
       "a11y": {
         "keyNameMatch": "Matched by key name",
         "recentKey": "Recently accessed key: {keyName}",
+        "shortcut": "Shortcut",
         "translationMatch": "Matched in {language} translation"
       },
       "actions": {
@@ -1239,8 +1240,12 @@
         "unknownError": "An unexpected error occurred"
       },
       "groups": {
+        "approval": "Approval",
+        "navigation": "Navigation",
         "recentActions": "Recent",
-        "searchResults": "Keys"
+        "searchResults": "Keys",
+        "translation": "Translation",
+        "utility": "Utility"
       },
       "noResults": "No results found",
       "placeholder": "Search keys or type a command...",

@@ -1211,6 +1211,7 @@
       "a11y": {
         "keyNameMatch": "",
         "recentKey": "",
+        "shortcut": "",
         "translationMatch": ""
       },
       "actions": {
@@ -1239,8 +1240,12 @@
         "unknownError": ""
       },
       "groups": {
+        "approval": "",
+        "navigation": "",
         "recentActions": "",
-        "searchResults": ""
+        "searchResults": "",
+        "translation": "",
+        "utility": ""
       },
       "noResults": "",
       "placeholder": "",

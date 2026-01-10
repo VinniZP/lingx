@@ -6,7 +6,11 @@ import { mkdir, readdir, readFile, stat, writeFile } from 'fs/promises';
 import { glob } from 'glob';
 import { dirname, extname, join, relative } from 'path';
 import { loadConfig } from '../lib/config.js';
-import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
+import {
+  createExtractor,
+  type ExtractedKey,
+  type ExtractionError,
+} from '../lib/extractor/index.js';
 import { createFormatter } from '../lib/formatter/index.js';
 import { extractLanguageFromFilename } from '../lib/translation-io.js';
 import { logger } from '../utils/logger.js';
@@ -95,10 +99,14 @@ async function extract(options: ExtractOptions): Promise<void> {
 
     // Extract keys from all files
     const allKeys: ExtractedKeyWithIcu[] = [];
+    const allErrors: ExtractionError[] = [];
 
     for (const file of files) {
       const code = await readFile(file, 'utf-8');
-      const keys = extractor.extractFromCodeWithDetails(code, file);
+      const { keys, errors } = extractor.extract(code, file);
+
+      // Collect errors
+      allErrors.push(...errors);
 
       // Detect ICU patterns if requested
       for (const key of keys) {
@@ -197,6 +205,27 @@ async function extract(options: ExtractOptions): Promise<void> {
 
     // Regenerate types if enabled
     await regenerateTypesIfEnabled(cwd);
+
+    // Report extraction errors at the end so they're visible
+    if (allErrors.length > 0) {
+      console.log();
+      console.log(chalk.bold.yellow(`⚠ ${allErrors.length} Extraction Error(s):`));
+      console.log();
+      for (const error of allErrors) {
+        const location = `${relative(cwd, error.location.file)}:${error.location.line}`;
+        console.log(chalk.yellow(`  ${location}`));
+        console.log(chalk.red(`    ${error.message}`));
+        if (error.code) {
+          console.log(chalk.gray(`    ${error.code}`));
+        }
+      }
+      console.log();
+      console.log(
+        chalk.yellow(
+          '  Tip: Use td() for dynamic keys, or add @lingx-key comment for static analysis'
+        )
+      );
+    }
   } catch (error) {
     spinner.fail('Extraction failed');
     throw error;

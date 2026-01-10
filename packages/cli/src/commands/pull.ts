@@ -1,15 +1,15 @@
-import { Command } from 'commander';
-import { join, dirname } from 'path';
-import { mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
 import { parseNamespacedKey, type CliTranslationsResponse } from '@lingx/shared';
+import { Command } from 'commander';
+import { existsSync } from 'fs';
+import { mkdir } from 'fs/promises';
+import { dirname, join } from 'path';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
 import { createFormatter } from '../lib/formatter/index.js';
-import { writeTranslationFile } from '../lib/translation-io.js';
-import { regenerateTypesIfEnabled } from './types.js';
+import { readTranslationFilesWithNamespaces, writeTranslationFile } from '../lib/translation-io.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
+import { regenerateTypesIfEnabled } from './types.js';
 
 interface PullOptions {
   project?: string;
@@ -64,11 +64,11 @@ async function pull(options: PullOptions): Promise<void> {
     const client = await createApiClientFromConfig(cwd);
 
     // Get branch ID from space
-    const spaces = await client.get<{ spaces: { id: string; slug: string; branches: { id: string; name: string }[] }[] }>(
-      `/api/projects/${project}/spaces`
-    );
+    const spaces = await client.get<{
+      spaces: { id: string; slug: string; branches: { id: string; name: string }[] }[];
+    }>(`/api/projects/${project}/spaces`);
 
-    const targetSpace = spaces.spaces.find(s => s.slug === space);
+    const targetSpace = spaces.spaces.find((s) => s.slug === space);
     if (!targetSpace) {
       throw new Error(`Space "${space}" not found in project "${project}"`);
     }
@@ -78,7 +78,7 @@ async function pull(options: PullOptions): Promise<void> {
       `/api/spaces/${targetSpace.id}`
     );
 
-    const targetBranch = spaceDetails.branches.find(b => b.name === branch);
+    const targetBranch = spaceDetails.branches.find((b) => b.name === branch);
     if (!targetBranch) {
       throw new Error(`Branch "${branch}" not found in space "${space}"`);
     }
@@ -87,8 +87,6 @@ async function pull(options: PullOptions): Promise<void> {
     const response = await client.get<CliTranslationsResponse>(
       `/api/branches/${targetBranch.id}/translations`
     );
-
-    spinner.text = 'Writing translation files...';
 
     // Create formatter
     const formatter = createFormatter(format, {
@@ -99,17 +97,55 @@ async function pull(options: PullOptions): Promise<void> {
     // Absolute output directory
     const absOutputDir = join(cwd, outputDir);
 
+    // Read existing local translations to preserve non-empty values
+    spinner.text = 'Reading local translations...';
+    let localTranslations: Record<string, Record<string, string>> = {};
+    try {
+      localTranslations = await readTranslationFilesWithNamespaces(
+        absOutputDir,
+        format,
+        formatter,
+        config.pull.filePattern
+      );
+    } catch {
+      // No local files yet, that's fine
+    }
+
+    spinner.text = 'Writing translation files...';
+
     // Filter languages if specified
     const languages = options.lang
       ? [options.lang]
-      : (config.pull.languages.length > 0 ? config.pull.languages : response.languages);
+      : config.pull.languages.length > 0
+        ? config.pull.languages
+        : response.languages;
 
     // Write translation files, split by namespace
     let filesWritten = 0;
+    let preservedCount = 0;
     const namespaceSummary = new Map<string | null, number>();
 
     for (const lang of languages) {
-      const allTranslations = response.translations[lang] ?? {};
+      const serverTranslations = response.translations[lang] ?? {};
+      const localLangTranslations = localTranslations[lang] ?? {};
+
+      // Merge server with local, preserving non-empty local values when server is empty
+      const allTranslations: Record<string, string> = {};
+
+      // First, add all server translations
+      for (const [key, serverValue] of Object.entries(serverTranslations)) {
+        const localValue = localLangTranslations[key] ?? '';
+
+        // Server empty, local has value → preserve local
+        if (serverValue === '' && localValue !== '') {
+          allTranslations[key] = localValue;
+          preservedCount++;
+        } else {
+          // Server has value (or both empty) → use server
+          allTranslations[key] = serverValue;
+        }
+      }
+
       if (Object.keys(allTranslations).length === 0) {
         continue;
       }
@@ -131,8 +167,8 @@ async function pull(options: PullOptions): Promise<void> {
         }
 
         // Determine file path based on namespace
-        const fileName = config.pull.filePattern.replace('{lang}', lang)
-          || `${lang}${formatter.extension}`;
+        const fileName =
+          config.pull.filePattern.replace('{lang}', lang) || `${lang}${formatter.extension}`;
         const filePath = namespace
           ? join(absOutputDir, namespace, fileName)
           : join(absOutputDir, fileName);
@@ -152,7 +188,8 @@ async function pull(options: PullOptions): Promise<void> {
       }
     }
 
-    spinner.succeed(`Downloaded ${filesWritten} translation file(s) to ${outputDir}`);
+    const preserved = preservedCount > 0 ? ` (${preservedCount} local values preserved)` : '';
+    spinner.succeed(`Downloaded ${filesWritten} translation file(s) to ${outputDir}${preserved}`);
 
     // Show summary by namespace
     for (const [namespace, keyCount] of namespaceSummary) {
