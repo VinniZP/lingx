@@ -1,12 +1,12 @@
 /**
- * Translation Repository
+ * Branch Translation Repository
  *
- * Data access layer for translation operations.
- * Currently in branch module, may move to dedicated translation module later.
+ * Data access layer for translation operations during branch merges.
+ * Provides simple upsert/createMany operations for merge operations.
  */
 import type { Prisma, PrismaClient } from '@prisma/client';
 
-export class TranslationRepository {
+export class BranchTranslationRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   /**

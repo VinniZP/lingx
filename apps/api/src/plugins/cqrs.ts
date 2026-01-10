@@ -19,6 +19,7 @@ import { registerHealthModule } from '../modules/health/index.js';
 import { registerMfaModule } from '../modules/mfa/index.js';
 import { registerProjectModule } from '../modules/project/index.js';
 import { registerSecurityModule } from '../modules/security/index.js';
+import { registerTranslationModule } from '../modules/translation/index.js';
 
 /**
  * All domain modules that register handlers with the container.
@@ -33,6 +34,7 @@ const domainModules: ModuleRegistrar[] = [
   registerMfaModule,
   registerProjectModule,
   registerBranchModule,
+  registerTranslationModule,
 ];
 
 export interface CqrsPluginOptions {

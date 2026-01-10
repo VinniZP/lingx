@@ -10,11 +10,14 @@ import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer 
 import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { redis } from '../../lib/redis.js';
+import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
+import { AITranslationService } from '../../services/ai-translation.service.js';
 import { ApiKeyService } from '../../services/api-key.service.js';
 import { AuthService } from '../../services/auth.service.js';
 import { ChallengeStore } from '../../services/challenge-store.service.js';
+import { MTService } from '../../services/mt.service.js';
 import { SecurityService } from '../../services/security.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
@@ -31,8 +34,10 @@ export interface Cradle {
   // Services
   accessService: AccessService;
   activityService: ActivityService;
+  aiService: AITranslationService;
   authService: AuthService;
   apiKeyService: ApiKeyService;
+  mtService: MTService;
   securityService: SecurityService;
   challengeStore: ChallengeStore;
 
@@ -40,6 +45,9 @@ export interface Cradle {
   commandBus: CommandBus;
   queryBus: QueryBus;
   eventBus: EventBus;
+
+  // Repositories
+  translationRepository: TranslationRepository;
 
   // Allow dynamic handler registrations
   [key: string]: unknown;
@@ -71,8 +79,10 @@ export function createAppContainer(
   container.register({
     accessService: asClass(AccessService).singleton(),
     activityService: asClass(ActivityService).singleton(),
+    aiService: asClass(AITranslationService).singleton(),
     authService: asClass(AuthService).singleton(),
     apiKeyService: asClass(ApiKeyService).singleton(),
+    mtService: asClass(MTService).singleton(),
     securityService: asClass(SecurityService).singleton(),
     challengeStore: asClass(ChallengeStore).singleton(),
   });

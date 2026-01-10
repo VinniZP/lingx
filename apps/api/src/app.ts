@@ -191,7 +191,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     // Start workers after prisma is ready
     fastify.addHook('onReady', async () => {
       try {
-        await startWorkers(fastify.prisma);
+        await startWorkers(fastify.container);
       } catch (err) {
         fastify.log.warn({ err }, 'Failed to start workers (Redis may not be running)');
       }

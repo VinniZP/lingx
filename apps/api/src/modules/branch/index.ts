@@ -21,7 +21,7 @@ import {
 // Repositories
 import { BranchRepository } from './repositories/branch.repository.js';
 import { TranslationKeyRepository } from './repositories/translation-key.repository.js';
-import { TranslationRepository } from './repositories/translation.repository.js';
+import { BranchTranslationRepository } from './repositories/translation.repository.js';
 
 // Services
 import { DiffCalculator } from './services/diff-calculator.js';
@@ -119,7 +119,7 @@ export function registerBranchModule(container: AwilixContainer<Cradle>): void {
   container.register({
     branchRepository: asClass(BranchRepository).singleton(),
     translationKeyRepository: asClass(TranslationKeyRepository).singleton(),
-    translationRepository: asClass(TranslationRepository).singleton(),
+    branchTranslationRepository: asClass(BranchTranslationRepository).singleton(),
   });
 
   // Register services (injected with repositories)

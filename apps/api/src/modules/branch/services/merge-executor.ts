@@ -6,7 +6,7 @@
  */
 import type { BranchRepository } from '../repositories/branch.repository.js';
 import type { TranslationKeyRepository } from '../repositories/translation-key.repository.js';
-import type { TranslationRepository } from '../repositories/translation.repository.js';
+import type { BranchTranslationRepository } from '../repositories/translation.repository.js';
 import type { ConflictEntry, DiffCalculator, TranslationMap } from './diff-calculator.js';
 
 export interface Resolution {
@@ -29,7 +29,7 @@ export class MergeExecutor {
   constructor(
     private readonly branchRepository: BranchRepository,
     private readonly translationKeyRepository: TranslationKeyRepository,
-    private readonly translationRepository: TranslationRepository,
+    private readonly branchTranslationRepository: BranchTranslationRepository,
     private readonly diffCalculator: DiffCalculator
   ) {}
 
@@ -77,7 +77,7 @@ export class MergeExecutor {
       // Apply added keys (copy from source to target)
       for (const added of diff.added) {
         const newKey = await this.translationKeyRepository.create(targetBranchId, added.key, tx);
-        await this.translationRepository.createMany(newKey.id, added.translations, tx);
+        await this.branchTranslationRepository.createMany(newKey.id, added.translations, tx);
         mergedCount++;
       }
 
@@ -91,7 +91,7 @@ export class MergeExecutor {
 
         if (targetKey) {
           for (const [language, value] of Object.entries(modified.source)) {
-            await this.translationRepository.upsert(targetKey.id, language, value, tx);
+            await this.branchTranslationRepository.upsert(targetKey.id, language, value, tx);
           }
           mergedCount++;
         }
@@ -124,7 +124,7 @@ export class MergeExecutor {
 
         // Apply resolved values
         for (const [language, value] of Object.entries(valuesToApply)) {
-          await this.translationRepository.upsert(targetKey.id, language, value, tx);
+          await this.branchTranslationRepository.upsert(targetKey.id, language, value, tx);
         }
         mergedCount++;
       }
