@@ -3,6 +3,7 @@ import type { ICommand } from '../../../shared/cqrs/index.js';
 export interface BulkTranslateSyncResult {
   translated: number;
   skipped: number;
+  failed: number;
   errors?: Array<{ keyId: string; language: string; error: string }>;
 }
 

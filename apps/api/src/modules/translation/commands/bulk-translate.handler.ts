@@ -44,7 +44,7 @@ export class BulkTranslateHandler implements ICommandHandler<BulkTranslateComman
       : projectLanguages.filter((l) => l !== sourceLanguage);
 
     if (targets.length === 0) {
-      return { translated: 0, skipped: 0 };
+      return { translated: 0, skipped: 0, failed: 0 };
     }
 
     // Determine if this should be async (large batch)
@@ -179,6 +179,7 @@ export class BulkTranslateHandler implements ICommandHandler<BulkTranslateComman
     return {
       translated,
       skipped,
+      failed: errors.length,
       errors: errors.length > 0 ? errors : undefined,
     };
   }

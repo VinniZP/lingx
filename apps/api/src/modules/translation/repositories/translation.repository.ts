@@ -16,6 +16,7 @@ import {
 } from '@lingx/shared';
 import type {
   ApprovalStatus,
+  Prisma,
   PrismaClient,
   Translation,
   TranslationKey,
@@ -236,8 +237,7 @@ export class TranslationRepository {
     }
 
     // Build the where clause for standard filters
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { branchId };
+    const where: Prisma.TranslationKeyWhereInput = { branchId };
 
     // Filter by namespace (use "__root__" for keys without namespace)
     if (options.namespace !== undefined) {
@@ -411,8 +411,7 @@ export class TranslationRepository {
     const page = options.page || 1;
     const limit = options.limit || 50;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { branchId };
+    const where: Prisma.TranslationKeyWhereInput = { branchId };
 
     if (options.namespace !== undefined) {
       where.namespace = options.namespace === '__root__' ? null : options.namespace;
@@ -479,8 +478,7 @@ export class TranslationRepository {
     const page = options.page || 1;
     const limit = options.limit || 50;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { branchId };
+    const where: Prisma.TranslationKeyWhereInput = { branchId };
 
     if (options.namespace !== undefined) {
       where.namespace = options.namespace === '__root__' ? null : options.namespace;
