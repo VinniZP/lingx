@@ -1,17 +1,20 @@
+import { combineKey, type CliTranslationsResponse } from '@lingx/shared';
 import { Command } from 'commander';
-import { join, relative } from 'path';
 import { readFile } from 'fs/promises';
 import { glob } from 'glob';
-import { combineKey, type CliTranslationsResponse } from '@lingx/shared';
+import { join, relative } from 'path';
 import { createApiClientFromConfig } from '../lib/api.js';
 import { loadConfig } from '../lib/config.js';
-import { createFormatter } from '../lib/formatter/index.js';
 import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
-import { readTranslationFilesWithNamespaces, computeTranslationDiff } from '../lib/translation-io.js';
+import { createFormatter } from '../lib/formatter/index.js';
+import {
+  computeTranslationDiff,
+  readTranslationFilesWithNamespaces,
+} from '../lib/translation-io.js';
 import { resolveConflicts, type TranslationConflict } from '../utils/conflict-resolver.js';
-import { regenerateTypesIfEnabled } from './types.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
+import { regenerateTypesIfEnabled } from './types.js';
 
 interface PushOptions {
   project?: string;
@@ -62,8 +65,8 @@ async function push(options: PushOptions): Promise<void> {
   const deleteRemote = options.delete ?? false;
 
   // Language filtering: CLI flag > config > all detected
-  const languageFilter = options.languages?.split(',').map(l => l.trim())
-    ?? config.push?.languages;
+  const languageFilter =
+    options.languages?.split(',').map((l) => l.trim()) ?? config.push?.languages;
 
   if (!project) {
     throw new Error('Project is required. Use --project or set in config file.');
@@ -95,9 +98,7 @@ async function push(options: PushOptions): Promise<void> {
     // Apply language filter if specified
     if (languageFilter && languageFilter.length > 0) {
       allTranslations = Object.fromEntries(
-        Object.entries(allTranslations).filter(([lang]) =>
-          languageFilter.includes(lang)
-        )
+        Object.entries(allTranslations).filter(([lang]) => languageFilter.includes(lang))
       );
       spinner.text = `Pushing languages: ${languageFilter.join(', ')}`;
     }
@@ -121,7 +122,7 @@ async function push(options: PushOptions): Promise<void> {
       `/api/projects/${project}/spaces`
     );
 
-    const targetSpace = spaces.spaces.find(s => s.slug === space);
+    const targetSpace = spaces.spaces.find((s) => s.slug === space);
     if (!targetSpace) {
       throw new Error(`Space "${space}" not found in project "${project}"`);
     }
@@ -130,7 +131,7 @@ async function push(options: PushOptions): Promise<void> {
       `/api/spaces/${targetSpace.id}`
     );
 
-    const targetBranch = spaceDetails.branches.find(b => b.name === branch);
+    const targetBranch = spaceDetails.branches.find((b) => b.name === branch);
     if (!targetBranch) {
       throw new Error(`Branch "${branch}" not found in space "${space}"`);
     }
@@ -149,14 +150,68 @@ async function push(options: PushOptions): Promise<void> {
     let pushPayload = structuredClone(allTranslations);
     let skippedCount = 0;
     let updatedCount = 0;
-    let newCount = diff.localOnly.length;
+    let newCount = 0;
+    let filledCount = 0;
 
-    if (diff.conflicts.length > 0) {
+    // Filter push payload: only push values that fill gaps or resolve conflicts
+    // - Local empty → skip (never push empty values)
+    // - Local = Server → skip (no change needed)
+    // - Local has value + Server empty → push (fills the gap)
+    // - Local has value + Server different → conflict (handled below)
+    const autoResolvedKeys = new Set<string>();
+    for (const lang of Object.keys(pushPayload)) {
+      const serverLang = serverTranslations[lang] ?? {};
+      const keysToRemove: string[] = [];
+
+      for (const key of Object.keys(pushPayload[lang])) {
+        const localValue = pushPayload[lang][key];
+        const serverValue = serverLang[key];
+
+        // Local empty → skip (and filter from conflicts)
+        if (localValue === '') {
+          keysToRemove.push(key);
+          autoResolvedKeys.add(`${lang}:${key}`);
+          continue;
+        }
+
+        // Server doesn't have this key → new key
+        if (serverValue === undefined) {
+          newCount++;
+          continue;
+        }
+
+        // Same value → skip
+        if (localValue === serverValue) {
+          keysToRemove.push(key);
+          continue;
+        }
+
+        // Server empty, local has value → fills the gap (auto-resolve)
+        if (serverValue === '') {
+          autoResolvedKeys.add(`${lang}:${key}`);
+          filledCount++;
+          continue;
+        }
+
+        // Different non-empty values → conflict (handled below)
+      }
+
+      for (const key of keysToRemove) {
+        delete pushPayload[lang][key];
+      }
+    }
+
+    // Filter out auto-resolved keys from conflicts (server was empty)
+    const filteredConflicts = diff.conflicts.filter(
+      (c) => !autoResolvedKeys.has(`${c.lang}:${c.key}`)
+    );
+
+    if (filteredConflicts.length > 0) {
       spinner.stop();
 
       // Resolve conflicts interactively (or with force flag)
       const { useLocal, useRemote } = await resolveConflicts(
-        diff.conflicts as TranslationConflict[],
+        filteredConflicts as TranslationConflict[],
         { mode: 'push', forceLocal: force }
       );
 
@@ -174,7 +229,7 @@ async function push(options: PushOptions): Promise<void> {
 
     // Check if there's anything to push
     const hasContent = Object.values(pushPayload).some(
-      langTrans => Object.keys(langTrans).length > 0
+      (langTrans) => Object.keys(langTrans).length > 0
     );
 
     if (!hasContent) {
@@ -201,7 +256,7 @@ async function push(options: PushOptions): Promise<void> {
       spinner.text = 'Deleting remote-only keys...';
 
       // Get unique key names to delete
-      const keysToDelete = new Set(diff.remoteOnly.map(r => r.key));
+      const keysToDelete = new Set(diff.remoteOnly.map((r) => r.key));
 
       // Fetch all keys from branch to get their IDs (paginated)
       interface KeyListResponse {
@@ -243,6 +298,7 @@ async function push(options: PushOptions): Promise<void> {
 
     // Build success message
     const parts: string[] = [];
+    if (filledCount > 0) parts.push(`${filledCount} filled`);
     if (updatedCount > 0) parts.push(`${updatedCount} updated`);
     if (newCount > 0) parts.push(`${newCount} new`);
     if (skippedCount > 0) parts.push(`${skippedCount} skipped`);
@@ -302,9 +358,7 @@ async function syncKeyContext(
 
     // Find source files
     const sourceDir = config.paths.source;
-    const patterns = config.extract.patterns.map((p: string) =>
-      join(sourceDir, p)
-    );
+    const patterns = config.extract.patterns.map((p: string) => join(sourceDir, p));
     const files = await glob(patterns, {
       ignore: config.extract.exclude,
       absolute: true,
@@ -346,9 +400,7 @@ async function syncKeyContext(
         const payload: KeyContextPayload = {
           name,
           namespace,
-          sourceFile: key.location?.file
-            ? relative(cwd, key.location.file)
-            : undefined,
+          sourceFile: key.location?.file ? relative(cwd, key.location.file) : undefined,
           sourceLine: key.location?.line,
           sourceComponent: key.componentContext?.name,
         };
@@ -364,23 +416,21 @@ async function syncKeyContext(
 
     for (let i = 0; i < contextPayload.length; i += CHUNK_SIZE) {
       const chunk = contextPayload.slice(i, i + CHUNK_SIZE);
-      const result = (await client.put(
-        `/api/branches/${branchId}/keys/context`,
-        { keys: chunk }
-      )) as { updated: number; notFound: number };
+      const result = (await client.put(`/api/branches/${branchId}/keys/context`, {
+        keys: chunk,
+      })) as { updated: number; notFound: number };
       totalUpdated += result.updated;
       totalNotFound += result.notFound;
     }
 
-    const keysWithComponent = contextPayload.filter(k => k.sourceComponent).length;
+    const keysWithComponent = contextPayload.filter((k) => k.sourceComponent).length;
     spinner.succeed(
       `Context synced: ${totalUpdated} keys (${keysWithComponent} with component info)`
     );
   } catch (error) {
     // Don't fail the push if context sync fails
     spinner.warn(
-      'Context sync failed: ' +
-        (error instanceof Error ? error.message : 'Unknown error')
+      'Context sync failed: ' + (error instanceof Error ? error.message : 'Unknown error')
     );
   }
 }

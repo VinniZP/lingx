@@ -1,360 +1,749 @@
 {
-  "quality": {
-    "bulkEvaluation": {
-      "forceAI": "Принудительная AI оценка",
-      "forceAIDescription": "Пропустить эвристику и использовать AI для всех переводов (выше стоимость)",
-      "jobId": "ID задачи: {jobId}",
-      "queued": "Оценка качества поставлена в очередь",
-      "failed": "Не удалось поставить оценку качества в очередь",
-      "title": "Оценить качество перевода",
-      "descriptionSelected": "Оценить качество для {count} выбранных переводов",
-      "descriptionAll": "Оценить качество всех переводов в этой ветке",
-      "infoHeuristic": "Бесплатные эвристические проверки (ICU, заполнители, длина)",
-      "infoAI": "AI оценка для сложных проблем качества",
-      "infoProcessing": "Обработка происходит в фоновом режиме",
-      "queuing": "Постановка в очередь...",
-      "evaluate": "Оценить качество"
+  "workbench": {
+    "guide": {
+      "demo": {
+        "sampleKeys": {
+          "authSignOut": "",
+          "commonGreeting": "",
+          "helloWorld": "",
+          "authSignIn": "",
+          "signInToContinue": "",
+          "logOut": "",
+          "errorNotFound": "",
+          "pageNotFound": ""
+        },
+        "languages": {
+          "russian": "",
+          "german": "",
+          "english": "",
+          "ukrainian": ""
+        },
+        "status": {
+          "approved": "",
+          "pending": ""
+        },
+        "charCount": "",
+        "filters": {
+          "language": "",
+          "status": "",
+          "missing": "",
+          "quality": "",
+          "low": "",
+          "all": "",
+          "namespace": ""
+        },
+        "previous": "",
+        "dockPanel": "",
+        "autoSaved": "",
+        "autoSave": "",
+        "selected": "",
+        "aiTranslate": "",
+        "approve": "",
+        "tm": "",
+        "icuMessageFormat": "",
+        "tmPreview": "",
+        "glossary": "",
+        "ai": "",
+        "machineTranslate": "",
+        "keys": "",
+        "keyCount": "",
+        "navigateBetweenKeys": "",
+        "clickRow": "",
+        "reject": "",
+        "collapse": "",
+        "platform": "",
+        "macModifier": "",
+        "winModifier": "",
+        "toExpand": "",
+        "toCycleLanguages": "",
+        "toCollapse": "",
+        "nextField": "",
+        "glossaryPreview": "",
+        "aiPreview": "",
+        "related": "",
+        "relatedPreview": "",
+        "delete": "",
+        "pagination": "",
+        "searchKeys": "",
+        "source": "",
+        "chars": "",
+        "pullUp": ""
+      },
+      "steps": {
+        "dock": {
+          "features": {
+            "tmDescription": "Reuse approved translations from your project history",
+            "glossaryDescription": "Ensure terminology consistency across translations",
+            "aiDescription": "Context-aware suggestions based on surrounding text",
+            "relatedDescription": "Find similar keys to maintain consistency",
+            "tm": "TM Matches: See similar translations from your Translation Memory",
+            "glossary": "Glossary: View approved terminology for consistency",
+            "ai": "AI Suggestions: Get context-aware translation suggestions",
+            "related": "Related Keys: Find keys with similar content"
+          },
+          "proTip": "Click a suggestion to instantly apply it to your translation",
+          "title": "Bottom Dock",
+          "description": "Access helpful resources while translating"
+        },
+        "editor": {
+          "features": {
+            "autoSave": "Changes are auto-saved as you type - no save button needed",
+            "sourceEdit": "Edit the source (default language) text directly",
+            "icuSupport": "Full ICU MessageFormat support with syntax highlighting"
+          },
+          "title": "Key Editor Panel",
+          "description": "Edit the source text and manage key properties",
+          "proTip": "ICU syntax like {count, plural, one {# item} other {# items}} is auto-highlighted"
+        },
+        "shortcuts": {
+          "title": "Quick Actions & Shortcuts",
+          "description": "Speed up your workflow with keyboard shortcuts",
+          "proTip": "Master these shortcuts and you'll translate 10x faster than using the mouse",
+          "features": {
+            "approve": "Cmd/Ctrl + Enter: Approve the current translation",
+            "mtTranslate": "Cmd/Ctrl + M: Machine translate the focused translation",
+            "aiTranslate": "Cmd/Ctrl + I: AI translate with context awareness"
+          }
+        },
+        "batch": {
+          "features": {
+            "actions": "A floating bar appears with batch actions",
+            "translate": "Translate, approve, or delete multiple items at once",
+            "select": "Use checkboxes to select multiple keys"
+          },
+          "proTip": "Perfect for translating an entire feature or section at once",
+          "title": "Batch Operations",
+          "description": "Perform actions on multiple keys at once"
+        },
+        "filters": {
+          "features": {
+            "status": "Filter by status: Missing, Complete, Pending, Approved",
+            "quality": "Filter by quality score to find items needing review",
+            "namespace": "Filter by namespace to focus on specific areas"
+          },
+          "title": "Filters & Search",
+          "description": "Quickly find the keys you need to work on",
+          "proTip": "Filter by 'Missing' to focus on untranslated keys"
+        },
+        "sidebar": {
+          "title": "Key List Sidebar",
+          "features": {
+            "statusDots": "Colored dots show translation status (missing, pending, approved)",
+            "browse": "Browse all translation keys with instant search",
+            "selection": "Click to select a key, or use checkboxes for multi-select",
+            "qualityMeter": "Quality score bars indicate translation confidence"
+          },
+          "description": "Browse and select translation keys from your project",
+          "proTip": "Use arrow keys for lightning-fast navigation through your translation keys"
+        },
+        "languages": {
+          "title": "Language Rows",
+          "description": "View and edit translations for each target language",
+          "features": {
+            "expand": "Click a language row to expand and edit the translation",
+            "edit": "Type directly in the textarea to update translations",
+            "status": "Each row shows approval status and quality indicators"
+          },
+          "proTip": "Press Tab to quickly move between language fields when editing"
+        }
+      },
+      "shortcuts": {
+        "prevKey": "Previous key (skip over)",
+        "nextKey": "Next key (skip over)",
+        "collapse": "Collapse / close panel",
+        "machineTranslate": "Machine translate",
+        "aiTranslate": "AI translate with context",
+        "approve": "Approve translation",
+        "reject": "Reject translation",
+        "nextField": "Next field",
+        "prevField": "Previous field"
+      },
+      "title": "Welcome to the Workbench",
+      "next": "Next",
+      "description": "Let's take a quick tour of the translation editor",
+      "stepIndicators": "",
+      "skip": "Skip tour",
+      "previous": "Previous",
+      "finish": "Get started"
+    },
+    "commandPalette": {
+      "a11y": {
+        "keyNameMatch": "",
+        "shortcut": "",
+        "recentKey": "",
+        "translationMatch": ""
+      },
+      "errors": {
+        "executionFailed": "",
+        "unknownError": ""
+      },
+      "groups": {
+        "approval": "",
+        "translation": "",
+        "navigation": "",
+        "utility": "",
+        "searchResults": "",
+        "recentActions": ""
+      },
+      "title": "",
+      "actions": {
+        "aiTranslateAll": "",
+        "aiTranslateLanguage": "",
+        "mtTranslateLanguage": "",
+        "mtTranslateAll": "",
+        "copySource": "",
+        "nextKey": "",
+        "prevKey": "",
+        "expandAll": "",
+        "collapseAll": "",
+        "focusSource": "",
+        "rejectAll": "",
+        "copyKeyName": "",
+        "showShortcuts": "",
+        "deleteKey": "",
+        "evaluateQuality": "",
+        "approveLanguage": "",
+        "approveAll": "",
+        "rejectLanguage": ""
+      },
+      "description": "",
+      "placeholder": "",
+      "noResults": ""
+    },
+    "toasts": {
+      "copiedToClipboard": ""
+    },
+    "toolbar": {
+      "qualityFilter": {
+        "excellent": "",
+        "good": "",
+        "unscored": "",
+        "needsReview": "",
+        "placeholder": "",
+        "all": ""
+      },
+      "statusFilter": {
+        "all": "",
+        "missing": "",
+        "placeholder": "",
+        "complete": "",
+        "approved": "",
+        "pending": "",
+        "rejected": ""
+      },
+      "namespaceFilter": {
+        "all": "",
+        "placeholder": ""
+      },
+      "evaluate": "",
+      "back": "",
+      "searchPlaceholder": "",
+      "help": "",
+      "addKey": ""
+    },
+    "suggestion": {
+      "clickToApply": ""
     }
   },
-  "projects": {
-    "card": {
-      "main": "main",
-      "keys": "{count} ключей",
-      "progress": "Прогресс"
-    },
-    "search": {
-      "placeholder": "Поиск проектов...",
-      "noResults": "Проекты не найдены",
-      "noResultsHint": "Попробуйте изменить поисковый запрос"
-    },
-    "empty": {
-      "cta": "Создать первый проект",
-      "title": "Проектов пока нет",
-      "description": "Создайте первый проект для начала управления переводами с контролем версий и совместной работой."
-    },
-    "failedToLoad": "Не удалось загрузить проекты. Попробуйте еще раз.",
-    "newProject": {
-      "details": {
-        "description": "Введите основную информацию о проекте",
-        "title": "Детали проекта"
+  "landing": {
+    "features": {
+      "branching": {
+        "description": "Создавайте ветки для переводов, проверяйте изменения и объединяйте с уверенностью.",
+        "title": "Git-подобное ветвление"
       },
-      "slug": {
-        "label": "Slug",
-        "placeholder": "my-application",
-        "description": "URL-совместимый идентификатор проекта"
+      "title": "Все что вам нужно",
+      "subtitle": "Полная платформа локализации для современных рабочих процессов разработки.",
+      "collaboration": {
+        "title": "Командная работа",
+        "description": "Приглашайте переводчиков, назначайте роли и отслеживайте прогресс в реальном времени."
       },
-      "title": "Новый проект",
-      "description": {
-        "label": "Описание",
-        "optional": "(необязательно)",
-        "placeholder": "Краткое описание проекта..."
+      "fast": {
+        "title": "Молниеносная скорость",
+        "description": "Оптимизировано для производительности с мгновенным поиском и обновлениями в реальном времени."
       },
-      "languages": {
-        "defaultPlaceholder": "Выберите язык по умолчанию",
-        "defaultDescription": "Исходный язык переводов",
-        "title": "Языки",
-        "description": "Выберите языки для проекта",
-        "defaultLabel": "Язык по умолчанию"
+      "secure": {
+        "title": "Самостоятельный хостинг и безопасность",
+        "description": "Ваши данные остаются на вашей инфраструктуре. Полный контроль, всегда."
       },
-      "name": {
-        "placeholder": "Мое приложение",
-        "label": "Название проекта"
+      "anyLanguage": {
+        "title": "Любой язык",
+        "description": "RTL, множественное число и сложные языковые правила поддерживаются из коробки."
       },
-      "success": "Проект создан",
-      "successDescription": "{name} успешно создан.",
-      "failed": "Не удалось создать проект",
-      "backLabel": "Вернуться к проектам",
-      "subtitle": "Создать новый проект локализации",
-      "actions": {
-        "cancel": "Отмена",
-        "creating": "Создание...",
-        "create": "Создать проект"
+      "developerFirst": {
+        "title": "Для разработчиков",
+        "description": "CLI инструменты, SDK и API, разработанные для современных рабочих процессов."
       }
     },
-    "filters": "Фильтры",
-    "title": "Проекты",
-    "description": "Управление проектами локализации",
-    "stats": {
-      "totalKeys": "Всего ключей"
+    "getStarted": "Начать",
+    "startForFree": "Начать бесплатно",
+    "viewOnGitHub": "Смотреть на GitHub",
+    "openSourceBadge": "Открытый код и самостоятельный хостинг",
+    "headline": "Локализация, которая",
+    "headlineHighlight": "течет естественно",
+    "subheadline": "Управляйте переводами с git-подобным ветвлением. Работайте с командой, проверяйте изменения и выпускайте локализованные продукты с уверенностью.",
+    "footer": {
+      "legal": "Правовая информация",
+      "mitLicense": "Лицензия MIT",
+      "copyright": "© {year} Lingx. Открытый исходный код под лицензией MIT.",
+      "description": "Платформа управления переводами с открытым исходным кодом для современных команд разработки.",
+      "project": "Проект",
+      "github": "GitHub",
+      "documentation": "Документация",
+      "issues": "Проблемы",
+      "discussions": "Обсуждения",
+      "resources": "Ресурсы",
+      "readme": "README",
+      "contributing": "Участие"
+    },
+    "benefits": {
+      "selfHosted": "Самостоятельный хостинг",
+      "selfHostedDesc": "Ваши данные, ваши серверы",
+      "openSource": "Открытый код",
+      "openSourceDesc": "MIT лицензия, навсегда бесплатно",
+      "gitLike": "Git-подобный рабочий процесс",
+      "gitLikeDesc": "Ветвление, проверка, слияние",
+      "devFirst": "Для разработчиков",
+      "devFirstDesc": "CLI, SDK и API"
+    },
+    "openSourceSection": {
+      "reportIssue": "Сообщить о проблеме",
+      "starOnGitHub": "Поставить звезду на GitHub",
+      "title": "Создано открыто",
+      "description": "Lingx - это проект с открытым исходным кодом для обучения и экспериментов."
+    },
+    "cta": {
+      "title": "Готовы оптимизировать ваш",
+      "getStartedFree": "Начать бесплатно",
+      "readTheDocs": "Читать документацию",
+      "titleHighlight": "рабочий процесс локализации?",
+      "description": "Присоединяйтесь к командам, которые доверяют Lingx управление переводами."
+    },
+    "brand": "Lingx",
+    "signIn": "Войти"
+  },
+  "authLayout": {
+    "teamCollabDesc": "работа",
+    "selfHosted": "Самостоятельный хостинг",
+    "privacyFirst": "Приватность прежде всего",
+    "brand": "Lingx",
+    "headline": "Переводы, которые",
+    "headlineHighlight": "текут бесшовно",
+    "multiLanguage": "Мультиязычность",
+    "multiLanguageDesc": "поддержка",
+    "subheadline": "Git-подобное ветвление для рабочего процесса локализации.",
+    "branchBased": "На основе веток",
+    "branchBasedDesc": "рабочий процесс",
+    "teamCollab": "Командная",
+    "openSource": "Открытый код"
+  },
+  "keyForm": {
+    "editTitle": "Редактировать ключ перевода",
+    "editDescription": "Обновите идентификатор ключа и контекст",
+    "saving": "Сохранение...",
+    "creating": "Создание...",
+    "createTitle": "Новый ключ перевода",
+    "keyName": {
+      "description": "Используйте точечную нотацию для пространств имен (напр., page.home.hero_title)",
+      "label": "Имя ключа",
+      "placeholder": "напр., common.welcome.title"
+    },
+    "context": {
+      "placeholder": "Опишите где появляется этот текст и важный контекст для точного перевода...",
+      "label": "Контекст для переводчиков",
+      "optional": "необязательно",
+      "description": "Помогите переводчикам понять контекст и тон"
+    },
+    "prefix": {
+      "common": "Общие строки",
+      "page": "Специфичные для страницы",
+      "error": "Сообщения об ошибках",
+      "settings": "Метки настроек"
+    },
+    "createSuccess": "Ключ создан",
+    "createSuccessDescription": "\"{name}\" был создан.",
+    "createFailed": "Не удалось создать ключ",
+    "updateFailed": "Не удалось обновить ключ",
+    "updateSuccess": "Ключ обновлен",
+    "updateSuccessDescription": "Изменения сохранены.",
+    "proTip": {
+      "title": "Совет профи",
+      "description": "После создания ключа вы сразу можете добавить переводы в редакторе ниже."
+    },
+    "saveChanges": "Сохранить изменения",
+    "createKey": "Создать ключ",
+    "createDescription": "Создайте уникальный идентификатор для переводимой строки",
+    "namespacePrefix": "Префикс пространства имен",
+    "cancel": "Отмена"
+  },
+  "twoFactorSetup": {
+    "successBanner": {
+      "description": "Ваш аккаунт теперь более защищен",
+      "title": "2FA успешно включена!"
+    },
+    "completeSetup": "Завершить настройку",
+    "backupCodesFile": {
+      "oneTimeUse": "Каждый код можно использовать только один раз.",
+      "keepSafe": "Храните эти коды в безопасном месте!",
+      "generated": "Сгенерированы",
+      "description": "Эти коды можно использовать для входа при потере доступа к приложению-аутентификатору.",
+      "title": "Резервные коды Lingx"
+    },
+    "title": {
+      "qrcode": "Сканировать QR код",
+      "verify": "Проверить настройку",
+      "intro": "Включить двухфакторную аутентификацию",
+      "backup": "Сохранить резервные коды"
+    },
+    "failedToStart": "Не удалось начать настройку. Попробуйте еще раз.",
+    "steps": {
+      "scanQr": {
+        "description": "Свяжите аккаунт сканированием QR кода",
+        "title": "Сканируйте QR код"
+      },
+      "downloadApp": {
+        "description": "Google Authenticator, Authy или любое TOTP приложение",
+        "title": "Скачайте приложение-аутентификатор"
+      },
+      "saveBackup": {
+        "title": "Сохраните резервные коды",
+        "description": "Храните коды на случай потери устройства"
+      }
+    },
+    "enabled": "Двухфакторная аутентификация включена!",
+    "description": {
+      "intro": "Добавьте дополнительный уровень защиты аккаунта",
+      "qrcode": "Используйте приложение-аутентификатор для сканирования кода",
+      "verify": "Введите 6-значный код из приложения",
+      "backup": "Сохраните коды для восстановления аккаунта"
+    },
+    "enterCodeFromApp": "Введите 6-значный код из приложения-аутентификатора",
+    "verifyCode": "Проверить код",
+    "secretCopied": "Секрет скопирован в буфер обмена",
+    "backupCodesDownloaded": "Резервные коды загружены",
+    "getStarted": "Начать",
+    "cantScan": "Не можете сканировать? Введите код вручную:",
+    "iveScannedIt": "Я отсканировал",
+    "acknowledgement": "Я сохранил резервные коды в безопасном месте. Я понимаю, что больше не смогу их увидеть.",
+    "downloadBackupCodes": "Скачать резервные коды"
+  },
+  "security": {
+    "twoFactor": {
+      "features": {
+        "totp": "Используйте любое TOTP приложение-аутентификатор",
+        "backupCodes": "10 резервных кодов для восстановления аккаунта",
+        "trustDevice": "Возможность доверять устройствам на 30 дней"
+      },
+      "inactive": "Неактивно",
+      "activeDescription": "Ваш аккаунт защищен приложением-аутентификатором",
+      "disable": "Отключить 2FA",
+      "enable": "Включить двухфакторную аутентификацию",
+      "regenerateDialog": {
+        "title": "Сгенерировать резервные коды",
+        "description": "Это сделает недействительными все существующие резервные коды и создаст новые.",
+        "submit": "Сгенерировать коды"
+      },
+      "disableDialog": {
+        "confirmPassword": "Подтвердите пароль",
+        "description": "Это удалит дополнительный уровень защиты вашего аккаунта.",
+        "submit": "Отключить 2FA",
+        "title": "Отключить двухфакторную аутентификацию"
+      },
+      "regenerateCodes": "Сгенерировать резервные коды",
+      "considerRegenerating": "Рекомендуется сгенерировать новые",
+      "backupCodes": "Резервные коды",
+      "active": "Активно",
+      "title": "Двухфакторная аутентификация",
+      "disabled": "Двухфакторная аутентификация отключена",
+      "disableFailed": "Не удалось отключить 2FA",
+      "inactiveDescription": "Добавьте дополнительный уровень защиты аккаунта",
+      "remaining": "осталось",
+      "newCodesDialog": {
+        "title": "Новые резервные коды сгенерированы",
+        "description": "Сохраните эти коды в безопасном месте. Каждый код можно использовать только один раз.",
+        "download": "Скачать как текстовый файл",
+        "saved": "Я сохранил коды"
+      },
+      "regenerateFailed": "Не удалось сгенерировать резервные коды",
+      "trustedDevices": "Доверенные устройства",
+      "devices": "устройств",
+      "codesDownloaded": "Резервные коды загружены"
+    },
+    "changePassword": {
+      "currentPassword": "Текущий пароль",
+      "newPassword": "Новый пароль",
+      "currentPasswordPlaceholder": "Введите текущий пароль",
+      "submit": "Обновить пароль",
+      "title": "Изменить пароль",
+      "description": "Регулярно обновляйте пароль аккаунта",
+      "confirmPassword": "Подтвердите пароль",
+      "confirmPasswordPlaceholder": "Подтвердите новый пароль",
+      "signOutWarning": "Это выйдет из всех других устройств",
+      "newPasswordPlaceholder": "Создайте надежный пароль"
+    },
+    "activeSessions": {
+      "sessionRevoked": "Сессия отозвана",
+      "sessionRevokeFailed": "Не удалось отозвать сессию",
+      "sessionsRevokeFailed": "Не удалось отозвать сессии",
+      "sessionsAppearHere": "Сессии появятся здесь",
+      "noActiveSessions": "Нет активных сессий",
+      "revokeConfirm": "Это выйдет из устройства. Потребуется повторный вход.",
+      "title": "Активные сессии",
+      "otherSessions": "{count, plural, one {# другая сессия} few {# другие сессии} many {# других сессий} other {# других сессий}}",
+      "failedToLoad": "Не удалось загрузить сессии",
+      "tryAgainLater": "Попробуйте позже",
+      "revokeSession": "Отозвать сессию",
+      "revokeAllSessions": "Отозвать все сессии",
+      "current": "Текущая",
+      "activeNow": "Активна сейчас",
+      "revokeAllConfirm": "Это выйдет из всех {count} других устройств.",
+      "unknownDevice": "Неизвестное устройство",
+      "revokeAll": "Отозвать все",
+      "noOtherSessions": "Нет других активных сессий"
+    },
+    "loading": "Загрузка настроек безопасности",
+    "passkeys": {
+      "toasts": {
+        "passkeyAddFailed": "Не удалось добавить passkey",
+        "passkeyDeleted": "Passkey удален",
+        "passkeyAdded": "Passkey успешно добавлен",
+        "passkeyDeleteFailed": "Не удалось удалить passkey",
+        "passwordlessEnabled": "Теперь вы без пароля!",
+        "passwordlessEnabledDescription": "Используйте passkeys для входа.",
+        "passwordlessFailed": "Не удалось перейти на режим без пароля"
+      },
+      "deleteDialog": {
+        "submit": "Удалить Passkey",
+        "title": "Удалить Passkey",
+        "description": "Этот passkey будет удален из вашего аккаунта. Вы не сможете использовать его для входа."
+      },
+      "addDialog": {
+        "secureNoteDescription": "Ваш passkey надежно хранится на устройстве и никогда не покидает его.",
+        "secureNote": "Безопасно и приватно",
+        "suggestions": {
+          "macbook": "MacBook Pro",
+          "iphone": "iPhone",
+          "securityKey": "Ключ безопасности"
+        },
+        "title": "Добавить Passkey",
+        "description": "Дайте passkey запоминающееся имя для идентификации на устройствах",
+        "nameLabel": "Имя Passkey",
+        "namePlaceholder": "напр., MacBook Pro, iPhone 15, YubiKey"
+      },
+      "addPasskey": "Добавить Passkey",
+      "features": {
+        "biometrics": "Используйте биометрию или ключи безопасности для входа",
+        "phishingResistant": "Устойчивы к фишингу и безопаснее паролей",
+        "synced": "Синхронизируются между устройствами через iCloud, Google или Microsoft"
+      },
+      "goPasswordless": "Без пароля",
+      "passwordlessEnabled": {
+        "title": "Вход без пароля включен",
+        "description": "Ваш аккаунт защищен только passkeys. Вы можете входить используя биометрию или ключи безопасности."
+      },
+      "title": "Passkeys",
+      "notSupported": "Passkey не поддерживается",
+      "notSupportedDescription": "Ваш браузер не поддерживает passkeys. Попробуйте современный браузер Chrome, Safari или Edge.",
+      "passwordlessDialog": {
+        "passkeyCount": "У вас зарегистрировано {count} passkey(s), этого достаточно для входа без пароля.",
+        "submit": "Удалить пароль",
+        "title": "Без пароля",
+        "description": "Ваш пароль будет удален. Вы сможете входить только с помощью passkeys.",
+        "warning": "Убедитесь, что у вас есть доступ к passkeys на нескольких устройствах."
+      },
+      "description": "Входите без паролей используя биометрию или ключи безопасности"
+    },
+    "tips": {
+      "enableBoth": "Включите и 2FA, и passkeys для максимальной безопасности. Они работают вместе.",
+      "quickTip": "Совет"
+    },
+    "completeCount": "{current} из {total} выполнено",
+    "title": "Настройки безопасности",
+    "description": "Защитите аккаунт многоуровневой безопасностью. Управляйте методами аутентификации, отслеживайте сессии.",
+    "scoreLevel": {
+      "moderate": "Умеренно",
+      "excellent": "Отлично",
+      "strong": "Надежно",
+      "needsImprovement": "Требует улучшения"
+    },
+    "securityChecklist": "Чек-лист безопасности",
+    "securityScore": "Оценка безопасности",
+    "checklistItems": {
+      "passkeys": "Passkeys зарегистрированы",
+      "passkeysDesc": "Метод входа устойчивый к фишингу"
     }
   },
+  "activity": {
+    "noRecent": "Нет недавней активности",
+    "preview": {
+      "metadata": {
+        "to": "В",
+        "target": "Цель",
+        "conflictsResolved": "Конфликтов разрешено",
+        "source": "Источник",
+        "file": "Файл",
+        "keys": "Ключи",
+        "languages": "Языки",
+        "changed": "Изменено",
+        "environment": "Окружение",
+        "format": "Формат",
+        "branch": "Ветка",
+        "from": "Из"
+      },
+      "noDetails": "Нет доступных деталей",
+      "loading": "Загрузка...",
+      "viewAllHint": "Нажмите, чтобы увидеть {count} изменений",
+      "andMore": "+{count} еще",
+      "empty": "пусто"
+    },
+    "viewAll": "Показать все изменения",
+    "title": "Недавняя активность",
+    "lastDay": "Последние 24 часа",
+    "empty": "Активность появится здесь по мере работы",
+    "description": {
+      "environmentSwitchBranch": "Переключено \"{environmentName}\" на \"{newBranchName}\"",
+      "translationPlural": "Обновлено {count} переводов{languages, select, undefined {} other { на {languages}}}",
+      "merge": "Слито \"{sourceBranchName}\" в \"{targetBranchName}\"",
+      "importWithFile": "Импортировано {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}} из {fileName}",
+      "import": "Импортировано {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}",
+      "export": "Экспортированы переводы в {format}",
+      "translationSingle": "Обновлен перевод{languages, select, undefined {} other { на {languages}}}",
+      "keyAddSingle": "Добавлен ключ перевода",
+      "keyAddPlural": "Добавлено {count} ключей перевода",
+      "keyDeleteSingle": "Удален ключ перевода",
+      "keyDeletePlural": "Удалено {count} ключей перевода",
+      "branchCreateWithSource": "Создана ветка \"{branchName}\" из \"{sourceBranchName}\"",
+      "branchDelete": "Удалена ветка \"{branchName}\"",
+      "branchCreate": "Создана ветка \"{branchName}\"",
+      "projectSettings": "Обновлены настройки проекта {fields}",
+      "environmentCreate": "Создано окружение \"{environmentName}\"",
+      "environmentDelete": "Удалено окружение \"{environmentName}\"",
+      "aiTranslateWithLanguages": "AI перевел {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}} на {languages}",
+      "aiTranslate": "AI перевел {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}",
+      "default": "Активность записана"
+    },
+    "lastWeek": "Последние 7 дней",
+    "modal": {
+      "noChanges": "Детальные изменения не записаны",
+      "noChangesHint": "Эта активность не имеет детального отслеживания изменений.",
+      "auditTrail": "Журнал аудита",
+      "loadMore": "Загрузить еще",
+      "empty": "Пусто"
+    },
+    "viewAllChanges": "Показать все {count} изменений"
+  },
   "common": {
-    "save": "Сохранить",
-    "delete": "Удалить",
+    "back": "Назад",
     "languages": "{count, plural, one {# язык} few {# языка} many {# языков} other {# языков}}",
     "loading": "Загрузка...",
-    "pleaseWait": "Пожалуйста, подождите...",
     "verified": "Подтверждено",
     "remove": "Удалить",
     "continue": "Продолжить",
-    "saving": "Сохранение...",
-    "create": "Создать",
+    "pleaseWait": "Пожалуйста, подождите...",
     "deleting": "Удаление...",
+    "delete": "Удалить",
+    "saving": "Сохранение...",
     "optional": "(необязательно)",
-    "active": "Активен",
     "branch": "Ветка",
-    "cancel": "Отмена",
-    "close": "Закрыть",
-    "learnMore": "Подробнее",
-    "back": "Назад",
+    "switching": "Переключение...",
+    "create": "Создать",
+    "active": "Активен",
     "keys": "{count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}",
+    "learnMore": "Подробнее",
     "viewAll": "Показать все",
-    "saveChanges": "Сохранить изменения",
     "goBack": "Вернуться",
-    "switching": "Переключение..."
+    "saveChanges": "Сохранить изменения",
+    "cancel": "Отмена",
+    "close": "Закрыть"
   },
-  "translations": {
-    "relatedKeys": {
-      "sameFile": "Тот же файл",
-      "sameComponent": "Тот же компонент",
-      "semantic": "Семантически похожие",
-      "loading": "Загрузка связанных ключей...",
-      "title": "Связанные ключи",
-      "andMore": "+{count} еще связанных ключей"
+  "dialogs": {
+    "mergeBranch": {
+      "steps": {
+        "select": "Выбор",
+        "preview": "Предпросмотр",
+        "resolve": "Разрешение"
+      },
+      "targetBranch": "Целевая ветка",
+      "successDescription": "Успешно слито {count} изменений в {branch}.",
+      "failed": "Не удалось слить ветки",
+      "sourceBranch": "Исходная ветка",
+      "translationKeys": "{count, plural, one {# ключ перевода} few {# ключа перевода} many {# ключей перевода} other {# ключей перевода}}",
+      "branchesInSync": "Ветки синхронизированы",
+      "noChanges": "Нет изменений для слияния между этими ветками",
+      "success": "Ветки слиты",
+      "conflictsDetected": "Обнаружены конфликты",
+      "conflictsDescription": "{count, plural, one {# конфликт требует} few {# конфликта требуют} many {# конфликтов требуют} other {# конфликтов требуют}} разрешения перед слиянием.",
+      "title": "Слияние ветки",
+      "description": "Слить изменения из \"{branch}\" в другую ветку",
+      "ready": "Готово",
+      "deleted": "Удалено",
+      "conflicts": "Конфликты",
+      "conflict": "Конфликт",
+      "comparingBranches": "Сравнение веток...",
+      "howItWorksNote": "Все ключи и значения переводов из исходной ветки будут применены к целевой. Конфликты будут показаны для ручного разрешения.",
+      "previewChanges": "Предпросмотр изменений",
+      "failedToLoadDiff": "Не удалось загрузить различия",
+      "modified": "Изменено",
+      "merging": "Слияние...",
+      "selectTargetBranch": "Выберите целевую ветку",
+      "added": "Добавлено",
+      "reviewConflicts": "Просмотр конфликтов",
+      "conflictsCount": "{count, plural, one {# конфликт обнаружен} few {# конфликта обнаружено} many {# конфликтов обнаружено} other {# конфликтов обнаружено}}",
+      "chooseVersion": "Выберите версию для каждого конфликтующего ключа перевода",
+      "resolved": "разрешено",
+      "completeMerge": "Завершить слияние",
+      "mergeChanges": "Слить изменения",
+      "howItWorks": "Как работает слияние",
+      "pleaseTryAgain": "Попробуйте еще раз"
     },
-    "qualityIssues": {
-      "info": "Информация",
-      "placeholderMissing": "Отсутствует плейсхолдер",
-      "placeholderExtra": "Лишний плейсхолдер",
-      "whitespaceLeading": "Начальный пробел",
-      "whitespaceTrailing": "Конечный пробел",
-      "whitespaceDouble": "Двойные пробелы",
-      "whitespaceTab": "Символ табуляции",
-      "punctuationMismatch": "Несоответствие пунктуации",
-      "title": "Проблемы качества ({count})",
-      "error": "Ошибка",
-      "warning": "Предупреждение"
+    "createSpace": {
+      "slugLabel": "Slug",
+      "slugPlaceholder": "web-app",
+      "namePlaceholder": "напр., Web App, Mobile, Marketing",
+      "slugDescription": "URL-совместимый идентификатор пространства",
+      "descriptionLabel": "Описание",
+      "descriptionPlaceholder": "Какие переводы содержит это пространство?",
+      "autoCreatedBranch": "Автоматически созданная ветка",
+      "success": "Пространство создано",
+      "creating": "Создание...",
+      "createButton": "Создать пространство",
+      "successDescription": "Пространство \"{name}\" создано с веткой main.",
+      "failed": "Не удалось создать пространство",
+      "title": "Новое пространство",
+      "description": "Организуйте переводы по функциям или платформам",
+      "nameLabel": "Имя пространства",
+      "autoCreatedBranchNote": "Ветка \"main\" будет создана автоматически как ваша ветка по умолчанию."
     },
-    "editor": {
-      "selectKeyPrompt": "Выберите ключ из списка для редактирования переводов",
-      "saving": "Сохранение...",
-      "saveChanges": "Сохранить изменения",
-      "unsavedChanges": "Несохраненные изменения",
-      "default": "по умолчанию",
-      "enterTranslationPlaceholder": "Введите перевод на {language}..."
+    "createBranch": {
+      "nameLabel": "Имя ветки",
+      "created": "Ветка создана",
+      "createFailed": "Не удалось создать ветку",
+      "createdDescription": "Ветка \"{name}\" создана из {source}.",
+      "title": "Новая ветка",
+      "description": "Создать ветку в \"{spaceName}\"",
+      "copyFrom": "Копировать из",
+      "copyNote": "Все переводы будут скопированы из этой ветки",
+      "copyingKeys": "Копирование {count} ключей перевода",
+      "isolationNote": "Изменения в этой ветке не повлияют на \"{branchName}\" до слияния.",
+      "selectSource": "Выберите исходную ветку",
+      "namePlaceholder": "напр., feature-checkout, v2-redesign",
+      "willBeCreatedAs": "Будет создана как:"
     },
-    "memoryPanel": {
-      "similarMatches": "Похожие совпадения",
-      "machineTranslation": "Машинный перевод",
-      "enterMinChars": "Введите минимум 3 символа на исходном языке",
-      "toSeeSuggestions": "чтобы увидеть предложения переводов",
-      "searching": "Поиск...",
-      "noMatches": "Совпадений не найдено",
-      "approveToBuildMemory": "Одобряйте переводы для создания памяти",
-      "exactMatches": "Точные совпадения",
-      "translating": "Перевод...",
-      "getTranslation": "Получить перевод",
-      "cached": "кэшировано",
-      "applied": "Применено",
-      "apply": "Применить",
-      "usedCount": "Использовано {count}x",
-      "title": "Память переводов"
-    },
-    "commandPalette": {
-      "translateCurrentField": "Перевести текущее поле",
-      "translateAllLanguages": "Перевести все языки",
-      "aiTranslateCurrentField": "ИИ перевести текущее поле",
-      "aiTranslateAllLanguages": "Искусственный интеллект перевести все языки",
-      "copyFromSource": "Копировать из источника",
-      "approveTranslation": "Одобрить перевод",
-      "rejectTranslation": "Отклонить перевод",
-      "searchPlaceholder": "Поиск ключей или введите команду...",
-      "quickActions": "Быстрые действия",
-      "approveAllTranslations": "Одобрить все переводы",
-      "rejectAllTranslations": "Отклонить все переводы",
-      "jumpToKey": "Перейти к ключу"
-    },
-    "toasts": {
-      "noTranslationsToUpdate": "Нет переводов для обновления",
-      "failedToApproveTranslations": "Не удалось одобрить переводы",
-      "failedToSave": "Не удалось сохранить перевод",
-      "failedToApprove": "Не удалось обновить статус одобрения",
-      "failedToUpdateTranslations": "Не удалось обновить переводы",
-      "failedToRejectTranslations": "Не удалось отклонить переводы",
-      "keysDeleted": "{count, plural, one {# ключ удален} other {# ключей удалено}}",
-      "failedToDeleteKeys": "Не удалось удалить ключи",
-      "translationsGenerated": "{count, plural, one {# перевод} other {# переводов}} сгенерировано",
-      "noEmptyTranslations": "Нет пустых переводов для заполнения",
-      "failedToTranslate": "Ошибка перевода",
-      "jobCancelled": "Задача перевода отменена",
-      "invalidICUSyntax": "Неправильный ICU синтаксис",
-      "translationsUpdated": "{count} переводов {status}",
-      "translationsApproved": "{count} переводов одобрено",
-      "translationsRejected": "{count} переводов отклонено"
-    },
-    "dialogs": {
-      "bulkDeleteKeys": {
-        "title": "Удалить {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}?",
-        "description": "Это навсегда удалит выбранные ключи перевода и все их переводы. Это действие нельзя отменить.",
-        "confirm": "Удалить {count, plural, one {ключ} few {ключа} many {ключей} other {ключей}}"
-      }
-    },
-    "inlineSuggestion": {
-      "from": "из {source}",
-      "cached": "кэшировано",
-      "applied": "Применено",
-      "apply": "Применить",
-      "dismiss": "Отклонить",
-      "showLess": "Показать меньше",
-      "moreSuggestions": "{count, plural, one {# еще предложение} few {# еще предложения} many {# еще предложений} other {# еще предложений}}"
-    },
-    "keyCard": {
-      "saving": "Сохранение",
-      "saved": "Сохранено",
-      "translating": "Перевод...",
-      "qualityIssuesFound": "Найдены проблемы качества",
-      "qualityWarnings": "Предупреждения качества",
-      "nextField": "следующее поле",
-      "pending": "В ожидании",
-      "approved": "Одобрено",
-      "rejected": "Отклонено",
-      "noSourceText": "Нет исходного текста",
-      "source": "Источник",
-      "copyFromSource": "Копировать из источника",
-      "machineTranslate": "Машинный перевод",
-      "aiTranslate": "ИИ перевод",
-      "approve": "Одобрить",
-      "reject": "Отклонить",
-      "applySuggestion": "применить предложение",
-      "collapse": "свернуть",
-      "enterTextPlaceholder": "Введите текст на {language}...",
-      "translate": "Перевести"
-    },
-    "glossaryPanel": {
-      "matchingTerminology": "соответствующую терминологию",
-      "searchingGlossary": "Поиск в глоссарии...",
-      "noTermsFound": "Терминов не найдено",
-      "addTermsHint": "Добавьте термины в Настройки → Глоссарий",
-      "exactMatches": "Точные совпадения",
-      "termFoundInText": "Термин найден в тексте",
-      "title": "Глоссарий",
-      "enterSourceText": "Введите исходный текст чтобы увидеть",
-      "caseSensitive": "Учет регистра",
-      "exact": "точно",
-      "found": "найдено",
-      "applied": "Применено",
-      "applyTerm": "Применить термин"
-    },
-    "stats": {
-      "lastUpdated": "Последнее обновление:",
-      "totalKeys": "Всего ключей",
-      "languages": "Языки",
-      "complete": "Завершено",
-      "keys": "ключей",
-      "translationCoverage": "Охват переводов",
-      "percentComplete": "{percent}% завершено"
-    },
-    "row": {
-      "approved": "Одобрено",
-      "rejected": "Отклонено",
-      "enterTranslationPlaceholder": "Введите перевод на {language}...",
-      "missingTranslation": "Перевод отсутствует",
-      "pending": "В ожидании",
-      "approve": "Одобрить",
-      "reject": "Отклонить",
-      "saving": "Сохранение",
-      "saved": "Сохранено"
-    },
-    "branchHeader": {
-      "changes": "{count, plural, one {# изменение} few {# изменения} many {# изменений} other {# изменений}}",
-      "translatorsOnline": "{count, plural, one {# переводчик} few {# переводчика} many {# переводчиков} other {# переводчиков}} онлайн",
-      "complete": "{percent}% завершено"
-    },
-    "filters": {
-      "allNamespaces": "Все пространства имён",
-      "all": "Все ключи",
-      "complete": "Завершенные",
-      "approved": "Одобренные",
-      "noNamespace": "Нет пространства имён",
-      "missing": "Отсутствующие",
-      "pending": "На проверке",
-      "rejected": "Отклоненные",
-      "warnings": "Есть предупреждения"
-    },
-    "keyboard": {
-      "navigate": "↑↓ Навигация по клавишам",
-      "switchFields": "Tab Переключение полей",
-      "applySuggestion": "↵ Применить предложение",
-      "machineTranslate": "M Машинный перевод",
-      "collapse": "Esc Свернуть"
-    },
-    "noResults": "Нет ключей, соответствующих поиску или фильтру.",
-    "merge": "Объединить",
-    "title": "Переводы",
-    "batch": {
-      "aiTranslate": "AI Перевод",
-      "approveAll": "Одобрить все",
-      "rejectAll": "Отклонить все",
-      "delete": "Удалить",
-      "deleteTitle": "Удалить Ключи",
-      "machineTranslate": "Машинный перевод",
-      "deleteDescription": "Вы уверены, что хотите удалить {count, plural, one {# ключ перевода} few {# ключа перевода} other {# ключей перевода}}? Это действие нельзя отменить.",
-      "confirmDelete": "Удалить Ключи",
-      "keysSelected": "{count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}} выбрано",
-      "translateEmpty": "Нет переводов"
-    },
-    "loading": "Загрузка переводов...",
-    "empty": {
-      "title": "Ключей перевода пока нет",
-      "description": "Создайте первый ключ перевода для начала локализации.",
-      "createFirst": "Создать первый ключ"
-    },
-    "newKey": "Новый ключ",
-    "searchPlaceholder": "Поиск ключей...",
-    "bulkTranslate": {
-      "complete": "Перевод завершен!",
-      "title": "Массовый перевод",
-      "usingAI": "Использование AI-перевода",
-      "usingMT": "Использование машинного перевода",
-      "translating": "Перевод",
-      "completedMessage": "{count, plural, one {# перевод} other {# переводов}} успешно обработано",
-      "translated": "Переведено",
-      "skipped": "Пропущено",
-      "failedLabel": "Ошибка",
-      "errors": "Ошибки",
-      "failed": "Перевод не удался"
+    "deleteConfirm": {
+      "deleteProject": "Удалить проект?",
+      "removeIntegration": "Удалить {name}?",
+      "deleteEnvironment": "Удалить окружение?",
+      "removeIntegrationDescription": "Это удалит API ключ и отключит {name} для этого проекта. Вы можете добавить его снова позже."
     }
   },
   "settings": {
-    "quality": {
-      "title": "Оценка качества",
-      "description": "Настройка автоматической оценки качества переводов",
-      "ai": {
-        "title": "AI оценка",
-        "description": "Использовать AI для оценки качества перевода (точность, беглость, терминология)",
-        "enabled": "Включить AI оценку",
-        "enabledDescription": "Использовать AI для оценки сложных проблем качества",
-        "provider": "AI провайдер",
-        "providerPlaceholder": "Выберите провайдера",
-        "useProjectDefault": "Использовать настройки проекта",
-        "providerDescription": "AI провайдер для оценки качества",
-        "model": "AI модель",
-        "modelPlaceholder": "например, claude-sonnet-4-5",
-        "modelDescription": "Конкретная модель для использования при оценке"
-      },
-      "saved": "Настройки качества сохранены",
-      "saveFailed": "Не удалось сохранить настройки качества",
-      "loading": "Загрузка настроек качества",
-      "aiProviderLink": {
-        "title": "Настройки AI провайдера",
-        "description": "Настройте, какого AI провайдера использовать для оценки качества"
-      },
-      "triggers": {
-        "title": "Триггеры оценки",
-        "description": "Когда автоматически оценивать переводы",
-        "afterAI": "Оценивать после AI перевода",
-        "afterAIDescription": "Автоматически оценивать переводы созданные AI",
-        "beforeMerge": "Оценивать перед слиянием",
-        "beforeMergeDescription": "Требовать проверку качества перед слиянием веток"
-      },
-      "thresholds": {
-        "title": "Пороги качества",
-        "description": "Пороговые значения оценки для автоматизированных рабочих процессов",
-        "autoApprove": "Порог автоутверждения",
-        "autoApproveDescription": "Автоматически утверждать переводы с оценкой ≥ этого значения",
-        "flag": "Порог маркировки",
-        "flagDescription": "Маркировать переводы с оценкой < этого значения для проверки"
-      }
+    "tips": {
+      "activeSessions": "Активные сессии",
+      "apiKeyRotation": "Ротация API ключей",
+      "title": "Советы по безопасности",
+      "strongPassword": "Надежный пароль",
+      "strongPasswordDesc": "Используйте уникальный пароль из 12+ символов",
+      "apiKeyRotationDesc": "Периодически меняйте API ключи для лучшей безопасности",
+      "activeSessionsDesc": "Регулярно проверяйте и отзывайте неиспользуемые сессии"
     },
     "resources": {
       "apiDesc": "Интеграция с REST API",
@@ -365,181 +754,52 @@
       "cliGuide": "Руководство CLI",
       "cliGuideDesc": "Настройка инструмента командной строки"
     },
-    "tips": {
-      "activeSessions": "Активные сессии",
-      "apiKeyRotation": "Ротация API ключей",
-      "apiKeyRotationDesc": "Периодически меняйте API ключи для лучшей безопасности",
-      "activeSessionsDesc": "Регулярно проверяйте и отзывайте неиспользуемые сессии",
-      "title": "Советы по безопасности",
-      "strongPassword": "Надежный пароль",
-      "strongPasswordDesc": "Используйте уникальный пароль из 12+ символов"
-    },
     "title": "Настройки аккаунта",
-    "apiKeys": {
-      "title": "API ключи",
-      "description": "Генерация и управление API ключами для CLI и SDK аутентификации"
-    },
-    "security": {
-      "title": "Безопасность",
-      "description": "Управление паролем и активными сессиями"
+    "quality": {
+      "saved": "Настройки качества сохранены",
+      "saveFailed": "Не удалось сохранить настройки качества",
+      "loading": "Загрузка настроек качества",
+      "aiProviderLink": {
+        "title": "Настройки AI провайдера",
+        "description": "Настройте, какого AI провайдера использовать для оценки качества"
+      },
+      "triggers": {
+        "title": "Триггеры оценки",
+        "description": "Когда автоматически оценивать переводы",
+        "beforeMergeDescription": "Требовать проверку качества перед слиянием веток",
+        "afterAI": "Оценивать после AI перевода",
+        "afterAIDescription": "Автоматически оценивать переводы созданные AI",
+        "beforeMerge": "Оценивать перед слиянием"
+      },
+      "thresholds": {
+        "description": "Пороговые значения оценки для автоматизированных рабочих процессов",
+        "autoApprove": "Порог автоутверждения",
+        "autoApproveDescription": "Автоматически утверждать переводы с оценкой ≥ этого значения",
+        "flag": "Порог маркировки",
+        "title": "Пороги качества",
+        "flagDescription": "Маркировать переводы с оценкой < этого значения для проверки"
+      }
     },
     "backToSettings": "Назад к настройкам",
+    "security": {
+      "description": "Управление паролем и активными сессиями",
+      "title": "Безопасность"
+    },
+    "profile": {
+      "title": "Профиль",
+      "description": "Обновление имени, email и настроек профиля"
+    },
     "joined": "Присоединился",
     "accountHealth": "Состояние аккаунта",
     "excellent": "Отлично",
     "accountSettings": "Настройки аккаунта",
-    "profile": {
-      "title": "Профиль",
-      "description": "Обновление имени, email и настроек профиля"
+    "apiKeys": {
+      "description": "Генерация и управление API ключами для CLI и SDK аутентификации",
+      "title": "API ключи"
     }
-  },
-  "dialogs": {
-    "createSpace": {
-      "slugDescription": "URL-совместимый идентификатор пространства",
-      "descriptionLabel": "Описание",
-      "nameLabel": "Имя пространства",
-      "namePlaceholder": "напр., Web App, Mobile, Marketing",
-      "slugLabel": "Slug",
-      "descriptionPlaceholder": "Какие переводы содержит это пространство?",
-      "success": "Пространство создано",
-      "successDescription": "Пространство \"{name}\" создано с веткой main.",
-      "failed": "Не удалось создать пространство",
-      "title": "Новое пространство",
-      "description": "Организуйте переводы по функциям или платформам",
-      "slugPlaceholder": "web-app",
-      "autoCreatedBranch": "Автоматически созданная ветка",
-      "autoCreatedBranchNote": "Ветка \"main\" будет создана автоматически как ваша ветка по умолчанию.",
-      "creating": "Создание...",
-      "createButton": "Создать пространство"
-    },
-    "deleteConfirm": {
-      "deleteProject": "Удалить проект?",
-      "removeIntegration": "Удалить {name}?",
-      "removeIntegrationDescription": "Это удалит API ключ и отключит {name} для этого проекта. Вы можете добавить его снова позже.",
-      "deleteEnvironment": "Удалить окружение?"
-    },
-    "createBranch": {
-      "namePlaceholder": "напр., feature-checkout, v2-redesign",
-      "willBeCreatedAs": "Будет создана как:",
-      "copyFrom": "Копировать из",
-      "selectSource": "Выберите исходную ветку",
-      "copyNote": "Все переводы будут скопированы из этой ветки",
-      "copyingKeys": "Копирование {count} ключей перевода",
-      "isolationNote": "Изменения в этой ветке не повлияют на \"{branchName}\" до слияния.",
-      "created": "Ветка создана",
-      "createdDescription": "Ветка \"{name}\" создана из {source}.",
-      "createFailed": "Не удалось создать ветку",
-      "title": "Новая ветка",
-      "description": "Создать ветку в \"{spaceName}\"",
-      "nameLabel": "Имя ветки"
-    },
-    "mergeBranch": {
-      "failedToLoadDiff": "Не удалось загрузить различия",
-      "merging": "Слияние...",
-      "reviewConflicts": "Просмотр конфликтов",
-      "ready": "Готово",
-      "deleted": "Удалено",
-      "conflicts": "Конфликты",
-      "conflict": "Конфликт",
-      "steps": {
-        "select": "Выбор",
-        "preview": "Предпросмотр",
-        "resolve": "Разрешение"
-      },
-      "success": "Ветки слиты",
-      "successDescription": "Успешно слито {count} изменений в {branch}.",
-      "conflictsDetected": "Обнаружены конфликты",
-      "conflictsDescription": "{count, plural, one {# конфликт требует} few {# конфликта требуют} many {# конфликтов требуют} other {# конфликтов требуют}} разрешения перед слиянием.",
-      "failed": "Не удалось слить ветки",
-      "title": "Слияние ветки",
-      "description": "Слить изменения из \"{branch}\" в другую ветку",
-      "sourceBranch": "Исходная ветка",
-      "translationKeys": "{count, plural, one {# ключ перевода} few {# ключа перевода} many {# ключей перевода} other {# ключей перевода}}",
-      "targetBranch": "Целевая ветка",
-      "selectTargetBranch": "Выберите целевую ветку",
-      "howItWorks": "Как работает слияние",
-      "howItWorksNote": "Все ключи и значения переводов из исходной ветки будут применены к целевой. Конфликты будут показаны для ручного разрешения.",
-      "previewChanges": "Предпросмотр изменений",
-      "comparingBranches": "Сравнение веток...",
-      "pleaseTryAgain": "Попробуйте еще раз",
-      "branchesInSync": "Ветки синхронизированы",
-      "noChanges": "Нет изменений для слияния между этими ветками",
-      "added": "Добавлено",
-      "modified": "Изменено",
-      "mergeChanges": "Слить изменения",
-      "conflictsCount": "{count, plural, one {# конфликт обнаружен} few {# конфликта обнаружено} many {# конфликтов обнаружено} other {# конфликтов обнаружено}}",
-      "chooseVersion": "Выберите версию для каждого конфликтующего ключа перевода",
-      "resolved": "разрешено",
-      "completeMerge": "Завершить слияние"
-    }
-  },
-  "activity": {
-    "noRecent": "Нет недавней активности",
-    "preview": {
-      "metadata": {
-        "source": "Источник",
-        "target": "Цель",
-        "conflictsResolved": "Конфликтов разрешено",
-        "branch": "Ветка",
-        "from": "Из",
-        "file": "Файл",
-        "keys": "Ключи",
-        "languages": "Языки",
-        "format": "Формат",
-        "changed": "Изменено",
-        "environment": "Окружение",
-        "to": "В"
-      },
-      "noDetails": "Нет доступных деталей",
-      "empty": "пусто",
-      "loading": "Загрузка...",
-      "andMore": "+{count} еще",
-      "viewAllHint": "Нажмите, чтобы увидеть {count} изменений"
-    },
-    "viewAll": "Показать все изменения",
-    "viewAllChanges": "Показать все {count} изменений",
-    "description": {
-      "translationSingle": "Обновлен перевод{languages, select, undefined {} other { на {languages}}}",
-      "environmentSwitchBranch": "Переключено \"{environmentName}\" на \"{newBranchName}\"",
-      "keyAddSingle": "Добавлен ключ перевода",
-      "translationPlural": "Обновлено {count} переводов{languages, select, undefined {} other { на {languages}}}",
-      "keyAddPlural": "Добавлено {count} ключей перевода",
-      "keyDeleteSingle": "Удален ключ перевода",
-      "keyDeletePlural": "Удалено {count} ключей перевода",
-      "branchCreateWithSource": "Создана ветка \"{branchName}\" из \"{sourceBranchName}\"",
-      "branchCreate": "Создана ветка \"{branchName}\"",
-      "branchDelete": "Удалена ветка \"{branchName}\"",
-      "merge": "Слито \"{sourceBranchName}\" в \"{targetBranchName}\"",
-      "importWithFile": "Импортировано {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}} из {fileName}",
-      "import": "Импортировано {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}",
-      "export": "Экспортированы переводы в {format}",
-      "projectSettings": "Обновлены настройки проекта {fields}",
-      "environmentCreate": "Создано окружение \"{environmentName}\"",
-      "environmentDelete": "Удалено окружение \"{environmentName}\"",
-      "aiTranslateWithLanguages": "AI перевел {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}} на {languages}",
-      "aiTranslate": "AI перевел {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}",
-      "default": "Активность записана"
-    },
-    "modal": {
-      "loadMore": "Загрузить еще",
-      "noChanges": "Детальные изменения не записаны",
-      "noChangesHint": "Эта активность не имеет детального отслеживания изменений.",
-      "auditTrail": "Журнал аудита",
-      "empty": "Пусто"
-    },
-    "title": "Недавняя активность",
-    "lastDay": "Последние 24 часа",
-    "lastWeek": "Последние 7 дней",
-    "empty": "Активность появится здесь по мере работы"
   },
   "apiKeys": {
-    "copyWarning": "Скопируйте сейчас - он больше не будет показан.",
-    "createFailed": "Не удалось создать API ключ",
-    "revokedSuccess": "API ключ отозван",
-    "revokedDescription": "Ключ больше нельзя использовать для аутентификации.",
     "revokeFailed": "Не удалось отозвать API ключ",
-    "generateFirst": "Сгенерируйте первый ключ",
-    "revokedKeys": "Отозванные ключи",
     "copiedToClipboard": "Скопировано в буфер обмена",
     "revokeDialog": {
       "cancel": "Отмена",
@@ -560,103 +820,58 @@
     "lastUsed": "Последнее использование:",
     "never": "Никогда",
     "revoked": "Отозван",
+    "copyWarning": "Скопируйте сейчас - он больше не будет показан.",
+    "key": "ключ",
+    "keys": "ключей",
+    "noActiveKeys": "Нет активных API ключей",
+    "generateFirst": "Сгенерируйте первый ключ",
+    "revokedKeys": "Отозванные ключи",
+    "docs": {
+      "apiReferenceDesc": "Полная документация API",
+      "sdkIntegration": "Интеграция SDK",
+      "apiReference": "Справочник REST API",
+      "sdkIntegrationDesc": "Интеграция с вашим приложением",
+      "title": "Документация",
+      "cliSetup": "Руководство по настройке CLI",
+      "cliSetupDesc": "Настройка инструмента командной строки"
+    },
+    "generating": "Создание...",
+    "generate": "Сгенерировать ключ",
+    "oneTimeDisplayHint": "Ключ будет показан только один раз после создания. Храните его безопасно.",
     "storeSecurely": "Храните ключ безопасно. Вы не сможете увидеть его снова.",
-    "copyFailed": "Не удалось скопировать",
-    "copyKeyNow": "Скопируйте ключ сейчас - он больше не будет показан",
+    "stats": {
+      "total": "Всего",
+      "active": "Активных"
+    },
     "suggestions": {
       "cli": "CLI",
       "development": "Разработка",
       "production": "Продакшн"
     },
     "title": "Сгенерировать новый API ключ",
+    "copyFailed": "Не удалось скопировать",
+    "createdSuccess": "API ключ успешно создан",
+    "createFailed": "Не удалось создать API ключ",
+    "revokedSuccess": "API ключ отозван",
+    "revokedDescription": "Ключ больше нельзя использовать для аутентификации.",
+    "loading": "Загрузка...",
+    "pageDescription": "Генерация и управление API ключами для CLI и SDK аутентификации",
+    "activeKeys": "Активные ключи",
+    "copyKeyNow": "Скопируйте ключ сейчас - он больше не будет показан",
+    "generateNew": "Сгенерировать новый ключ",
+    "pageTitle": "API ключи",
     "description": "Создайте ключ для CLI или SDK аутентификации",
     "quickStart": "Быстрый старт",
     "nameLabel": "Имя ключа",
     "namePlaceholder": "напр., Production API, CI/CD Pipeline",
     "nameHint": "Описательное имя для идентификации назначения ключа",
-    "oneTimeDisplay": "Одноразовый показ",
-    "oneTimeDisplayHint": "Ключ будет показан только один раз после создания. Храните его безопасно.",
-    "generating": "Создание...",
-    "generate": "Сгенерировать ключ",
-    "createdSuccess": "API ключ успешно создан",
-    "loading": "Загрузка...",
-    "stats": {
-      "active": "Активных",
-      "total": "Всего"
-    },
-    "generateNew": "Сгенерировать новый ключ",
-    "pageTitle": "API ключи",
-    "pageDescription": "Генерация и управление API ключами для CLI и SDK аутентификации",
-    "activeKeys": "Активные ключи",
-    "key": "ключ",
-    "keys": "ключей",
-    "noActiveKeys": "Нет активных API ключей",
-    "docs": {
-      "title": "Документация",
-      "cliSetup": "Руководство по настройке CLI",
-      "cliSetupDesc": "Настройка инструмента командной строки",
-      "sdkIntegration": "Интеграция SDK",
-      "sdkIntegrationDesc": "Интеграция с вашим приложением",
-      "apiReference": "Справочник REST API",
-      "apiReferenceDesc": "Полная документация API"
-    }
-  },
-  "twoFactorSetup": {
-    "backupCodesFile": {
-      "oneTimeUse": "Каждый код можно использовать только один раз.",
-      "keepSafe": "Храните эти коды в безопасном месте!",
-      "title": "Резервные коды Lingx",
-      "generated": "Сгенерированы",
-      "description": "Эти коды можно использовать для входа при потере доступа к приложению-аутентификатору."
-    },
-    "enabled": "Двухфакторная аутентификация включена!",
-    "title": {
-      "intro": "Включить двухфакторную аутентификацию",
-      "qrcode": "Сканировать QR код",
-      "backup": "Сохранить резервные коды",
-      "verify": "Проверить настройку"
-    },
-    "description": {
-      "intro": "Добавьте дополнительный уровень защиты аккаунта",
-      "qrcode": "Используйте приложение-аутентификатор для сканирования кода",
-      "verify": "Введите 6-значный код из приложения",
-      "backup": "Сохраните коды для восстановления аккаунта"
-    },
-    "steps": {
-      "downloadApp": {
-        "title": "Скачайте приложение-аутентификатор",
-        "description": "Google Authenticator, Authy или любое TOTP приложение"
-      },
-      "scanQr": {
-        "title": "Сканируйте QR код",
-        "description": "Свяжите аккаунт сканированием QR кода"
-      },
-      "saveBackup": {
-        "title": "Сохраните резервные коды",
-        "description": "Храните коды на случай потери устройства"
-      }
-    },
-    "getStarted": "Начать",
-    "enterCodeFromApp": "Введите 6-значный код из приложения-аутентификатора",
-    "verifyCode": "Проверить код",
-    "successBanner": {
-      "title": "2FA успешно включена!",
-      "description": "Ваш аккаунт теперь более защищен"
-    },
-    "downloadBackupCodes": "Скачать резервные коды",
-    "cantScan": "Не можете сканировать? Введите код вручную:",
-    "failedToStart": "Не удалось начать настройку. Попробуйте еще раз.",
-    "secretCopied": "Секрет скопирован в буфер обмена",
-    "backupCodesDownloaded": "Резервные коды загружены",
-    "iveScannedIt": "Я отсканировал",
-    "acknowledgement": "Я сохранил резервные коды в безопасном месте. Я понимаю, что больше не смогу их увидеть.",
-    "completeSetup": "Завершить настройку"
+    "oneTimeDisplay": "Одноразовый показ"
   },
   "environments": {
     "switchBranchDialog": {
       "selectBranch": "Выберите ветку",
-      "quickUpdate": "Быстрое обновление",
       "description": "Выберите ветку для \"{name}\"",
+      "quickUpdate": "Быстрое обновление",
       "updateNote": "Ответы SDK отразят новую ветку в течение 5 секунд."
     },
     "form": {
@@ -668,87 +883,103 @@
     "deleteDialog": {
       "description": "Это безвозвратно удалит окружение \"{name}\". SDK, использующие это окружение, перестанут получать переводы."
     },
-    "docsLink": {
-      "title": "Документация SDK",
-      "description": "Узнайте больше об интеграции"
-    },
     "toasts": {
-      "branchSwitched": "Ветка переключена",
-      "branchSwitchedDescription": "Ответы SDK обновятся в течение 5 секунд.",
+      "environmentDeletedDescription": "Окружение было удалено.",
+      "environmentDeleteFailed": "Не удалось удалить окружение",
       "branchSwitchFailed": "Не удалось переключить ветку",
       "environmentDeleted": "Окружение удалено",
-      "environmentDeletedDescription": "Окружение было удалено.",
-      "environmentDeleteFailed": "Не удалось удалить окружение"
+      "branchSwitched": "Ветка переключена",
+      "branchSwitchedDescription": "Ответы SDK обновятся в течение 5 секунд."
     },
     "loadError": "Не удалось загрузить окружения. Попробуйте еще раз.",
-    "title": "Окружения",
-    "subtitle": "Управление окружениями развертывания",
-    "newEnvironment": "Новое окружение",
+    "docsLink": {
+      "description": "Узнайте больше об интеграции",
+      "title": "Документация SDK"
+    },
+    "tips": {
+      "branches": "Переключайте ветки для тестирования изменений перед публикацией",
+      "updateTime": "Ответы SDK обновляются в течение 5 секунд после переключения ветки",
+      "separate": "Используйте отдельные окружения для разработки, staging и production",
+      "title": "Советы"
+    },
     "empty": {
+      "createFirst": "Создать первое окружение",
       "title": "Окружений пока нет",
-      "description": "Окружения связывают SDK с конкретными ветками. Создайте окружения \"production\", \"staging\" или \"development\" для управления развертыванием переводов.",
-      "createFirst": "Создать первое окружение"
+      "description": "Окружения связывают SDK с конкретными ветками. Создайте окружения \"production\", \"staging\" или \"development\" для управления развертыванием переводов."
     },
     "switchBranch": "Переключить ветку",
     "sdkIntegration": {
       "title": "Интеграция SDK",
       "description": "Используйте slug окружений с SDK для динамического получения переводов."
     },
-    "tips": {
-      "title": "Советы",
-      "separate": "Используйте отдельные окружения для разработки, staging и production",
-      "branches": "Переключайте ветки для тестирования изменений перед публикацией",
-      "updateTime": "Ответы SDK обновляются в течение 5 секунд после переключения ветки"
+    "title": "Окружения",
+    "subtitle": "Управление окружениями развертывания",
+    "newEnvironment": "Новое окружение"
+  },
+  "verifyEmail": {
+    "expiredLink": "Не удалось подтвердить email. Ссылка могла истечь.",
+    "verifying": "Проверка Email",
+    "pleaseWait": "Пожалуйста, подождите, пока мы проверяем ваш email...",
+    "goToLogin": "Перейти к входу",
+    "loading": "Загрузка",
+    "loadingMessage": "Пожалуйста, подождите...",
+    "verified": "Email подтвержден!",
+    "successMessage": "Ваш email успешно изменен на:",
+    "goToProfile": "Перейти в профиль",
+    "failed": "Проверка не удалась",
+    "invalidLink": "Недействительная ссылка проверки. Токен не предоставлен."
+  },
+  "translations": {
+    "bulkTranslate": {
+      "complete": "Перевод завершен!",
+      "completedMessage": "{count, plural, one {# перевод} other {# переводов}} успешно обработано",
+      "translated": "Переведено",
+      "title": "Массовый перевод",
+      "usingAI": "Использование AI-перевода",
+      "usingMT": "Использование машинного перевода",
+      "translating": "Перевод",
+      "skipped": "Пропущено",
+      "failedLabel": "Ошибка",
+      "errors": "Ошибки",
+      "failed": "Перевод не удался"
+    },
+    "toasts": {
+      "failedToTranslate": "Ошибка перевода",
+      "jobCancelled": "Задача перевода отменена",
+      "noTranslationsToUpdate": "Нет переводов для обновления",
+      "failedToApproveTranslations": "Не удалось одобрить переводы",
+      "failedToSave": "Не удалось сохранить перевод",
+      "failedToApprove": "Не удалось обновить статус одобрения",
+      "failedToUpdateTranslations": "Не удалось обновить переводы",
+      "invalidICUSyntax": "Неправильный ICU синтаксис",
+      "icuValidationUnavailable": "",
+      "translationsUpdated": "{count} переводов {status}",
+      "translationsApproved": "{count} переводов одобрено",
+      "translationsRejected": "{count} переводов отклонено",
+      "failedToDeleteKeys": "Не удалось удалить ключи",
+      "noEmptyTranslations": "Нет пустых переводов для заполнения",
+      "translationsGenerated": "{count, plural, one {# перевод} other {# переводов}} сгенерировано",
+      "failedToRejectTranslations": "Не удалось отклонить переводы",
+      "keysDeleted": "{status, select, one {# ключ удален} other {# ключей удалено}}"
+    },
+    "dialogs": {
+      "bulkDeleteKeys": {
+        "title": "Удалить {count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}?",
+        "description": "Это навсегда удалит выбранные ключи перевода и все их переводы. Это действие нельзя отменить.",
+        "confirm": "Удалить {count, plural, one {ключ} few {ключа} many {ключей} other {ключей}}"
+      }
     }
   },
-  "auth": {
-    "welcomeToast": "С возвращением!",
-    "unexpectedError": "Произошла непредвиденная ошибка. Попробуйте еще раз.",
-    "accountCreated": "Аккаунт создан!",
-    "accountCreatedDescription": "Добро пожаловать в Lingx. Ваш аккаунт готов.",
-    "termsOfService": "Условиями использования",
-    "and": "и",
-    "privacyPolicy": "Политикой конфиденциальности",
-    "signInFailed": "Вход не удался",
-    "creatingAccount": "Создание аккаунта...",
-    "registrationFailed": "Регистрация не удалась",
-    "enterCredentials": "Введите данные для доступа к проектам",
-    "authenticating": "Аутентификация...",
-    "signInWithPasskey": "Войти с passkey",
-    "orContinueWithEmail": "или продолжить с email",
-    "forgotPassword": "Забыли пароль?",
-    "passwordPlaceholder": "Введите пароль",
-    "signingIn": "Вход...",
-    "signIn": "Войти",
-    "newToLingx": "Новый в Lingx?",
-    "createAnAccount": "Создать аккаунт",
-    "termsAgreement": "Продолжая, вы соглашаетесь с нашими",
-    "passkeySignInSuccess": "Вход с passkey выполнен",
-    "passkeyAuthFailed": "Аутентификация не удалась",
-    "passkeySignInFailed": "Вход с passkey не удался",
-    "welcomeDescription": "Вы успешно вошли в систему.",
-    "welcomeBack": "С возвращением",
-    "emailAddress": "Email адрес",
-    "emailPlaceholder": "you@example.com",
-    "password": "Пароль",
-    "createAccount": "Создайте аккаунт",
-    "startManaging": "Начните управлять переводами за считанные минуты",
-    "fullName": "Полное имя",
-    "fullNamePlaceholder": "Иван Иванов",
-    "createPassword": "Создайте надежный пароль",
-    "alreadyHaveAccount": "Уже есть аккаунт?",
-    "signInInstead": "Войти"
-  },
   "dashboard": {
-    "quickActions": "Быстрые действия",
     "welcome": {
       "title": "Добро пожаловать в Lingx",
       "description": "Профессиональное управление переводами с git-подобным контролем версий для современных команд"
     },
+    "quickActions": "Быстрые действия",
     "cli": {
       "command": "npx lingx pull",
-      "title": "CLI доступен",
-      "description": "Синхронизируйте переводы из терминала"
+      "description": "Синхронизируйте переводы из терминала",
+      "title": "CLI доступен"
     },
     "onboarding": {
       "cta": "Создать первый проект",
@@ -756,135 +987,242 @@
         "title": "Создайте проект",
         "description": "Определите исходный и целевые языки"
       },
-      "step2": {
-        "title": "Добавьте ключи перевода",
-        "description": "Импортируйте существующие или создайте новые"
-      },
       "step3": {
         "title": "Синхронизируйте с приложением",
         "description": "Используйте CLI или API для получения переводов"
+      },
+      "step2": {
+        "description": "Импортируйте существующие или создайте новые",
+        "title": "Добавьте ключи перевода"
       }
     },
+    "recentProjects": "Недавние проекты",
+    "overview": "Обзор ваших переводов",
+    "greeting": {
+      "afternoon": "Добрый день",
+      "evening": "Добрый вечер",
+      "morning": "Доброе утро"
+    },
     "stats": {
-      "keys": "Ключи",
-      "complete": "Завершено",
       "pending": "В ожидании",
       "projects": "Проекты",
+      "keys": "Ключи",
+      "complete": "Завершено",
       "languages": "Языки"
     },
-    "greeting": {
-      "evening": "Добрый вечер",
-      "morning": "Доброе утро",
-      "afternoon": "Добрый день"
-    },
-    "overview": "Обзор ваших переводов",
-    "progress": "Общий прогресс перевода",
-    "team": {
-      "title": "Участники команды",
-      "description": "Совместная работа"
+    "resources": {
+      "docs": "Документация",
+      "title": "Ресурсы",
+      "guide": "Руководство по началу работы",
+      "bestPractices": "Лучшие практики локализации"
     },
     "branches": {
       "description": "Контроль версий",
       "title": "Управление ветками"
     },
-    "resources": {
-      "title": "Ресурсы",
-      "docs": "Документация",
-      "guide": "Руководство по началу работы",
-      "bestPractices": "Лучшие практики локализации"
+    "team": {
+      "title": "Участники команды",
+      "description": "Совместная работа"
     },
     "createProject": {
       "title": "Создать новый проект",
       "description": "Начните проект локализации с контролем версий, ветвлением и командной работой",
       "cta": "Начать"
     },
-    "recentProjects": "Недавние проекты",
+    "apiKeys": {
+      "description": "Управление доступом",
+      "title": "API ключи"
+    },
     "import": {
       "title": "Импорт переводов",
       "formats": "JSON, YAML, XLIFF"
     },
-    "apiKeys": {
-      "title": "API ключи",
-      "description": "Управление доступом"
-    }
+    "progress": "Общий прогресс перевода"
   },
-  "branch": {
-    "conflictResolver": {
-      "noConflictsDescription": "Нет конфликтов для разрешения.",
-      "conflictsToResolve": "Конфликты для разрешения",
-      "previousConflict": "Предыдущий конфликт",
-      "conflictOf": "Конфликт {current} из {total}",
-      "nextConflict": "Следующий конфликт",
-      "resolved": "Разрешено",
-      "compare": "Сравнить",
-      "custom": "Свой",
-      "sourceIncoming": "Источник (Входящее)",
-      "selected": "Выбрано",
-      "useSource": "Использовать источник",
-      "keepTarget": "Оставить существующий",
-      "customEdit": "Своё редактирование",
-      "customDescriptionDesktop": "Создайте свое решение редактированием значений для каждого языка. Начните с исходных значений или введите свои.",
-      "clearResolution": "Очистить решение",
-      "customDescription": "Создайте свое решение редактированием значений для каждого языка.",
-      "targetCurrent": "Цель (Текущее)",
-      "startWithSource": "Начать с исходных значений",
-      "startWithTarget": "Начать с целевых значений",
-      "enterTranslation": "Введите перевод на {lang}...",
-      "applyCustomValues": "Применить свои значения",
-      "reset": "Сбросить",
-      "customResolutionApplied": "Свое решение применено",
-      "noConflicts": "Нет конфликтов"
+  "profile": {
+    "displayName": "Отображаемое имя",
+    "noName": "Имя не указано",
+    "memberSince": "Участник с",
+    "toasts": {
+      "profileUpdated": "Профиль обновлен",
+      "copiedToClipboard": "Скопировано в буфер обмена",
+      "invalidImageFile": "Пожалуйста, загрузите файл изображения",
+      "verificationEmailSent": "Письмо для подтверждения отправлено!",
+      "emailChangeCancelled": "Изменение email отменено",
+      "avatarRemoveFailed": "Не удалось удалить аватар",
+      "avatarRemoved": "Аватар удален",
+      "avatarUpdated": "Аватар обновлен",
+      "preferencesSaved": "Настройки сохранены",
+      "fileTooLarge": "Размер файла должен быть менее 5МБ",
+      "preferencesSaveFailed": "Не удалось сохранить настройки"
     },
-    "mergeDialog": {
-      "merge": "Слить",
-      "into": "в",
-      "description": "Просмотрите изменения и разрешите конфликты перед слиянием.",
-      "stats": {
-        "added": "Добавлено",
-        "modified": "Изменено",
-        "deleted": "Удалено",
-        "conflicts": "Конфликты"
+    "preferences": {
+      "inAppNotificationsDesc": "Показывать уведомления в приложении",
+      "activityDigest": "Дайджест активности",
+      "language": "Язык",
+      "spanish": "Español",
+      "french": "Французский",
+      "daily": "Ежедневно",
+      "weekly": "Еженедельно",
+      "interfaceLanguage": "Язык интерфейса",
+      "colorScheme": "Цветовая схема",
+      "english": "English",
+      "ukrainian": "Украинский",
+      "russian": "Русский",
+      "japanese": "日本語",
+      "workflow": "Рабочий процесс",
+      "defaultProject": "Проект по умолчанию",
+      "openOnLogin": "Открывать при входе",
+      "notifications": "Уведомления",
+      "never": "Никогда",
+      "appearance": "Внешний вид",
+      "theme": "Тема",
+      "light": "Светлая",
+      "dark": "Темная",
+      "system": "Системная",
+      "inAppNotifications": "Уведомления в приложении",
+      "summaryFrequency": "Частота сводки",
+      "german": "Немецкий",
+      "emailNotifications": "Email уведомления",
+      "emailNotificationsDesc": "Получать обновления по email",
+      "description": "Настройте ваш опыт",
+      "title": "Настройки"
+    },
+    "emailChangePending": "Ожидается изменение Email",
+    "changeEmailDialog": {
+      "submit": "Отправить подтверждение",
+      "newEmailPlaceholder": "Введите новый email",
+      "passwordHint": "Требуется для проверки безопасности",
+      "title": "Изменить Email адрес",
+      "passwordPlaceholder": "Введите пароль для подтверждения",
+      "description": "Ссылка для подтверждения будет отправлена на новый email",
+      "currentEmail": "Текущий:"
+    },
+    "title": "Детали профиля",
+    "loading": "Загрузка профиля...",
+    "loadingMessage": "Подождите немного",
+    "cancelEmailChange": "Отменить изменение",
+    "avatarActions": {
+      "uploadPhoto": "Загрузить фото",
+      "removePhoto": "Удалить фото"
+    },
+    "description": "Управление личной информацией и настройками",
+    "avatar": "Фото профиля",
+    "quickTips": {
+      "apiKeysDesc": "Генерируйте ключи в Настройки → API ключи",
+      "security": "Безопасность",
+      "securityDesc": "Регулярно проверяйте активные сессии",
+      "title": "Быстрые советы",
+      "keyboardShortcuts": "Горячие клавиши",
+      "keyboardShortcutsDesc": "Нажмите Cmd+K для быстрых действий",
+      "apiKeys": "API ключи"
+    },
+    "verificationSentTo": "Подтверждение отправлено на",
+    "removeAvatar": "Удалить",
+    "accountDetails": {
+      "userId": "ID пользователя",
+      "role": "Роль",
+      "title": "Детали аккаунта",
+      "created": "Создан"
+    },
+    "personalInfo": "Личная информация",
+    "personalInfoDescription": "Обновите имя и email адрес",
+    "displayNamePlaceholder": "Введите ваше имя",
+    "displayNameHint": "Так вы будете отображаться в приложении",
+    "accountStatus": "Статус аккаунта",
+    "emailAddress": "Email адрес",
+    "uploadNew": "Загрузить новое",
+    "avatarDescription": "Загрузите фото для персонализации аккаунта",
+    "uploadAvatar": "Загрузить фото",
+    "avatarRequirements": "JPG, PNG или GIF. Максимум 5МБ. Рекомендуется 256x256px.",
+    "changeEmail": "Изменить Email",
+    "emailChangeHint": "Изменение email требует подтверждения",
+    "discard": "Отменить",
+    "saveChanges": "Сохранить изменения"
+  },
+  "projects": {
+    "empty": {
+      "cta": "Создать первый проект",
+      "title": "Проектов пока нет",
+      "description": "Создайте первый проект для начала управления переводами с контролем версий и совместной работой."
+    },
+    "card": {
+      "keys": "{count} ключей",
+      "progress": "Прогресс"
+    },
+    "failedToLoad": "Не удалось загрузить проекты. Попробуйте еще раз.",
+    "newProject": {
+      "details": {
+        "description": "Введите основную информацию о проекте",
+        "title": "Детали проекта"
       },
-      "conflictsDetected": "Обнаружены конфликты",
-      "conflictsDescription": "{count, plural, one {# ключ перевода был изменен} few {# ключа перевода были изменены} many {# ключей перевода были изменены} other {# ключей перевода были изменены}} в обеих ветках. Разрешите все конфликты перед слиянием.",
-      "mergeFailed": "Слияние не удалось",
-      "resolvedCount": "{resolved}/{total} разрешено",
-      "readyToMerge": "Готово к слиянию",
-      "merging": "Слияние...",
-      "mergeBranch": "Слить ветку",
-      "readyToMergeDescription": "{count, plural, one {Это слияние применит # изменение} few {Это слияние применит # изменения} many {Это слияние применит # изменений} other {Это слияние применит # изменений}} к целевой ветке. Конфликтов не обнаружено.",
-      "noChanges": "Нет изменений для слияния. Обе ветки идентичны.",
-      "changesSummary": "Сводка изменений",
-      "backToPreview": "Назад к предпросмотру",
-      "resolveConflicts": "Разрешить конфликты ({count})"
+      "slug": {
+        "label": "Slug",
+        "placeholder": "my-application",
+        "description": "URL-совместимый идентификатор проекта"
+      },
+      "title": "Новый проект",
+      "description": {
+        "label": "Описание",
+        "optional": "(необязательно)",
+        "placeholder": "Краткое описание проекта..."
+      },
+      "actions": {
+        "create": "Создать проект",
+        "cancel": "Отмена",
+        "creating": "Создание..."
+      },
+      "name": {
+        "placeholder": "Мое приложение",
+        "label": "Название проекта"
+      },
+      "languages": {
+        "title": "Языки",
+        "description": "Выберите языки для проекта",
+        "defaultLabel": "Язык по умолчанию",
+        "defaultPlaceholder": "Выберите язык по умолчанию",
+        "defaultDescription": "Исходный язык переводов"
+      },
+      "success": "Проект создан",
+      "successDescription": "{name} успешно создан.",
+      "failed": "Не удалось создать проект",
+      "backLabel": "Вернуться к проектам",
+      "subtitle": "Создать новый проект локализации"
     },
-    "diffView": {
-      "conflicts": "Конфликты",
-      "clickToResolve": "Нажмите для разрешения этого конфликта",
-      "added": "Добавлено",
-      "modified": "Изменено",
-      "deleted": "Удалено",
-      "noDifferences": "Различий между ветками не найдено.",
-      "branchesIdentical": "Обе ветки содержат идентичные переводы.",
-      "sourceNew": "Источник (Новое)",
-      "targetCurrent": "Цель (Текущее)",
-      "selectConflict": "Выберите конфликт для ключа {key}",
-      "sourceIncoming": "Источник (Входящее)",
-      "tapToResolve": "Нажмите для разрешения"
-    }
+    "search": {
+      "placeholder": "Поиск проектов...",
+      "noResults": "Проекты не найдены",
+      "noResultsHint": "Попробуйте изменить поисковый запрос"
+    },
+    "stats": {
+      "totalKeys": "Всего ключей"
+    },
+    "filters": "Фильтры",
+    "title": "Проекты",
+    "description": "Управление проектами локализации"
   },
-  "verifyEmail": {
-    "verified": "Email подтвержден!",
-    "successMessage": "Ваш email успешно изменен на:",
-    "goToProfile": "Перейти в профиль",
-    "failed": "Проверка не удалась",
-    "invalidLink": "Недействительная ссылка проверки. Токен не предоставлен.",
-    "expiredLink": "Не удалось подтвердить email. Ссылка могла истечь.",
-    "verifying": "Проверка Email",
-    "pleaseWait": "Пожалуйста, подождите, пока мы проверяем ваш email...",
-    "goToLogin": "Перейти к входу",
-    "loading": "Загрузка",
-    "loadingMessage": "Пожалуйста, подождите..."
+  "twoFactor": {
+    "lostAccess": "Потеряли доступ?",
+    "useAuthenticatorApp": "Использовать приложение-аутентификатор",
+    "backupCode": "Резервный код",
+    "backupCodeTitle": "Резервный код",
+    "codesRemaining": "Осталось только {count} резервных кодов. Рекомендуется сгенерировать новые.",
+    "backToLogin": "Вернуться к входу",
+    "backupCodePlaceholder": "XXXXXXXX",
+    "rememberDeviceDescription": "Пропустить 2FA на 30 дней на этом устройстве",
+    "enterAllDigits": "Пожалуйста, введите все 6 цифр",
+    "verificationFailed": "Проверка не удалась. Попробуйте еще раз.",
+    "title": "Двухфакторная аутентификация",
+    "enterBackupCode": "Введите один из резервных кодов для входа",
+    "enterCode": "Введите 6-значный код из приложения-аутентификатора",
+    "verificationCode": "Код проверки",
+    "rememberDevice": "Запомнить это устройство",
+    "verifying": "Проверка...",
+    "verifyAndSignIn": "Проверить и войти",
+    "haveYourApp": "Есть приложение?",
+    "useBackupCode": "Использовать резервный код",
+    "havingTrouble": "Проблемы?",
+    "getHelp": "Получить помощь"
   },
   "projectSettings": {
     "languages": {
@@ -896,54 +1234,54 @@
       "selectSourceLanguage": "Выберите исходный язык",
       "sourceLanguageDescription": "Основной язык вашего контента"
     },
-    "layout": {
-      "needHelpDescription": "Смотрите документацию для руководств по настройке проекта.",
-      "nav": {
-        "general": "Общие",
-        "integrations": "Интеграции",
-        "integrationsDescription": "Провайдеры переводов",
-        "team": "Команда",
-        "teamDescription": "Участники и роли",
-        "security": "Безопасность",
-        "glossary": "Глоссарий",
-        "glossaryDescription": "Управление терминологией",
-        "securityDescription": "Контроль доступа",
-        "generalDescription": "Детали проекта и языки"
-      },
-      "needHelp": "Нужна помощь?",
-      "title": "Настройки",
-      "loadingSettings": "Загрузка настроек",
-      "subtitle": "Настроить {projectName}",
-      "configure": "Настроить",
-      "comingSoon": "Скоро"
-    },
-    "unsavedChanges": "У вас есть несохраненные изменения",
     "details": {
       "descriptionPlaceholder": "Краткое описание проекта...",
+      "identifierDescription": "Используется в API вызовах и URL. Нельзя изменить.",
+      "identifier": "Идентификатор",
+      "readOnly": "Только чтение",
+      "description": "Описание",
       "title": "Детали проекта",
       "subtitle": "Основная информация о проекте",
       "name": "Название проекта",
-      "namePlaceholder": "Мое приложение",
-      "identifier": "Идентификатор",
-      "readOnly": "Только чтение",
-      "identifierDescription": "Используется в API вызовах и URL. Нельзя изменить.",
-      "description": "Описание"
+      "namePlaceholder": "Мое приложение"
     },
+    "layout": {
+      "needHelp": "Нужна помощь?",
+      "nav": {
+        "general": "Общие",
+        "integrationsDescription": "Провайдеры переводов",
+        "integrations": "Интеграции",
+        "glossary": "Глоссарий",
+        "glossaryDescription": "Управление терминологией",
+        "securityDescription": "Контроль доступа",
+        "generalDescription": "Детали проекта и языки",
+        "team": "Команда",
+        "teamDescription": "Участники и роли",
+        "security": "Безопасность"
+      },
+      "configure": "Настроить",
+      "comingSoon": "Скоро",
+      "needHelpDescription": "Смотрите документацию для руководств по настройке проекта.",
+      "title": "Настройки",
+      "loadingSettings": "Загрузка настроек",
+      "subtitle": "Настроить {projectName}"
+    },
+    "unsavedChanges": "У вас есть несохраненные изменения",
     "dangerZone": {
+      "deleteDialogDescription": "Это безвозвратно удалит \"{projectName}\" и все пространства, ветки и переводы. Это действие нельзя отменить.",
       "subtitle": "Необратимые и деструктивные действия",
+      "deleteButton": "Удалить проект",
       "title": "Опасная зона",
       "deleteTitle": "Удалить этот проект",
-      "deleteDescription": "Безвозвратно удалит проект и все данные включая пространства, ветки, ключи переводов и историю. Это действие нельзя отменить.",
-      "deleteButton": "Удалить проект",
-      "deleteDialogDescription": "Это безвозвратно удалит \"{projectName}\" и все пространства, ветки и переводы. Это действие нельзя отменить."
+      "deleteDescription": "Безвозвратно удалит проект и все данные включая пространства, ветки, ключи переводов и историю. Это действие нельзя отменить."
     },
     "toasts": {
       "projectUpdated": "Проект обновлен",
       "projectUpdatedDescription": "Ваши изменения сохранены.",
       "projectUpdateFailed": "Не удалось обновить проект",
       "projectDeleted": "Проект удален",
-      "projectDeletedDescription": "Проект был удален.",
-      "projectDeleteFailed": "Не удалось удалить проект"
+      "projectDeleteFailed": "Не удалось удалить проект",
+      "projectDeletedDescription": "Проект был удален."
     },
     "allChangesSaved": "Все изменения сохранены"
   },
@@ -958,173 +1296,27 @@
       "createFirstSpace": "Создать первое пространство",
       "branchCount": "{count, plural, one {# ветка} few {# ветки} many {# веток} other {# веток}}",
       "keyCount": "{count, plural, one {# ключ} few {# ключа} many {# ключей} other {# ключей}}",
+      "newSpace": "Новое пространство",
       "mergeBranchAriaLabel": "Слить ветку {branchName}",
-      "newBranch": "Новая ветка",
       "title": "Пространства и ветки",
       "description": "Организуйте переводы по пространствам и работайте над функциональными ветками",
-      "newSpace": "Новое пространство"
+      "newBranch": "Новая ветка"
     },
     "quickActions": {
-      "environments": "Окружения",
-      "environmentsSubtitle": "Production, staging, dev",
       "apiKeys": "API ключи",
       "title": "Быстрые действия",
-      "editTranslations": "Редактировать переводы",
-      "editTranslationsSubtitle": "Управление ключами и значениями",
+      "environmentsSubtitle": "Production, staging, dev",
       "apiKeysSubtitle": "Управление токенами доступа",
       "projectSettings": "Настройки проекта",
-      "projectSettingsSubtitle": "Языки, участники"
+      "projectSettingsSubtitle": "Языки, участники",
+      "editTranslations": "Редактировать переводы",
+      "editTranslationsSubtitle": "Управление ключами и значениями",
+      "environments": "Окружения"
     },
     "notFound": "Проект не найден.",
+    "openEditor": "Открыть редактор",
     "startTranslating": "Начать перевод",
-    "editOnBranch": "Редактировать переводы в ветке {branchName}",
-    "openEditor": "Открыть редактор"
-  },
-  "security": {
-    "activeSessions": {
-      "revokeConfirm": "Это выйдет из устройства. Потребуется повторный вход.",
-      "sessionRevoked": "Сессия отозвана",
-      "sessionRevokeFailed": "Не удалось отозвать сессию",
-      "sessionsRevokeFailed": "Не удалось отозвать сессии",
-      "failedToLoad": "Не удалось загрузить сессии",
-      "tryAgainLater": "Попробуйте позже",
-      "sessionsAppearHere": "Сессии появятся здесь",
-      "noActiveSessions": "Нет активных сессий",
-      "otherSessions": "{count, plural, one {# другая сессия} few {# другие сессии} many {# других сессий} other {# других сессий}}",
-      "revokeAll": "Отозвать все",
-      "noOtherSessions": "Нет других активных сессий",
-      "unknownDevice": "Неизвестное устройство",
-      "current": "Текущая",
-      "activeNow": "Активна сейчас",
-      "revokeAllSessions": "Отозвать все сессии",
-      "revokeAllConfirm": "Это выйдет из всех {count} других устройств.",
-      "title": "Активные сессии",
-      "revokeSession": "Отозвать сессию"
-    },
-    "changePassword": {
-      "currentPassword": "Текущий пароль",
-      "currentPasswordPlaceholder": "Введите текущий пароль",
-      "newPassword": "Новый пароль",
-      "submit": "Обновить пароль",
-      "title": "Изменить пароль",
-      "description": "Регулярно обновляйте пароль аккаунта",
-      "confirmPassword": "Подтвердите пароль",
-      "confirmPasswordPlaceholder": "Подтвердите новый пароль",
-      "signOutWarning": "Это выйдет из всех других устройств",
-      "newPasswordPlaceholder": "Создайте надежный пароль"
-    },
-    "twoFactor": {
-      "backupCodes": "Резервные коды",
-      "considerRegenerating": "Рекомендуется сгенерировать новые",
-      "title": "Двухфакторная аутентификация",
-      "inactiveDescription": "Добавьте дополнительный уровень защиты аккаунта",
-      "active": "Активно",
-      "disableDialog": {
-        "title": "Отключить двухфакторную аутентификацию",
-        "confirmPassword": "Подтвердите пароль",
-        "description": "Это удалит дополнительный уровень защиты вашего аккаунта.",
-        "submit": "Отключить 2FA"
-      },
-      "disabled": "Двухфакторная аутентификация отключена",
-      "disableFailed": "Не удалось отключить 2FA",
-      "regenerateFailed": "Не удалось сгенерировать резервные коды",
-      "remaining": "осталось",
-      "trustedDevices": "Доверенные устройства",
-      "devices": "устройств",
-      "features": {
-        "totp": "Используйте любое TOTP приложение-аутентификатор",
-        "backupCodes": "10 резервных кодов для восстановления аккаунта",
-        "trustDevice": "Возможность доверять устройствам на 30 дней"
-      },
-      "inactive": "Неактивно",
-      "activeDescription": "Ваш аккаунт защищен приложением-аутентификатором",
-      "regenerateCodes": "Сгенерировать резервные коды",
-      "disable": "Отключить 2FA",
-      "enable": "Включить двухфакторную аутентификацию",
-      "regenerateDialog": {
-        "title": "Сгенерировать резервные коды",
-        "description": "Это сделает недействительными все существующие резервные коды и создаст новые.",
-        "submit": "Сгенерировать коды"
-      },
-      "codesDownloaded": "Резервные коды загружены",
-      "newCodesDialog": {
-        "title": "Новые резервные коды сгенерированы",
-        "description": "Сохраните эти коды в безопасном месте. Каждый код можно использовать только один раз.",
-        "download": "Скачать как текстовый файл",
-        "saved": "Я сохранил коды"
-      }
-    },
-    "tips": {
-      "enableBoth": "Включите и 2FA, и passkeys для максимальной безопасности. Они работают вместе.",
-      "quickTip": "Совет"
-    },
-    "loading": "Загрузка настроек безопасности",
-    "title": "Настройки безопасности",
-    "passkeys": {
-      "toasts": {
-        "passkeyAddFailed": "Не удалось добавить passkey",
-        "passkeyDeleted": "Passkey удален",
-        "passkeyDeleteFailed": "Не удалось удалить passkey",
-        "passwordlessEnabled": "Теперь вы без пароля!",
-        "passwordlessEnabledDescription": "Используйте passkeys для входа.",
-        "passwordlessFailed": "Не удалось перейти на режим без пароля",
-        "passkeyAdded": "Passkey успешно добавлен"
-      },
-      "passwordlessEnabled": {
-        "title": "Вход без пароля включен",
-        "description": "Ваш аккаунт защищен только passkeys. Вы можете входить используя биометрию или ключи безопасности."
-      },
-      "deleteDialog": {
-        "submit": "Удалить Passkey",
-        "title": "Удалить Passkey",
-        "description": "Этот passkey будет удален из вашего аккаунта. Вы не сможете использовать его для входа."
-      },
-      "addDialog": {
-        "description": "Дайте passkey запоминающееся имя для идентификации на устройствах",
-        "nameLabel": "Имя Passkey",
-        "namePlaceholder": "напр., MacBook Pro, iPhone 15, YubiKey",
-        "secureNote": "Безопасно и приватно",
-        "secureNoteDescription": "Ваш passkey надежно хранится на устройстве и никогда не покидает его.",
-        "suggestions": {
-          "macbook": "MacBook Pro",
-          "iphone": "iPhone",
-          "securityKey": "Ключ безопасности"
-        },
-        "title": "Добавить Passkey"
-      },
-      "passwordlessDialog": {
-        "title": "Без пароля",
-        "description": "Ваш пароль будет удален. Вы сможете входить только с помощью passkeys.",
-        "passkeyCount": "У вас зарегистрировано {count} passkey(s), этого достаточно для входа без пароля.",
-        "warning": "Убедитесь, что у вас есть доступ к passkeys на нескольких устройствах.",
-        "submit": "Удалить пароль"
-      },
-      "notSupported": "Passkey не поддерживается",
-      "notSupportedDescription": "Ваш браузер не поддерживает passkeys. Попробуйте современный браузер Chrome, Safari или Edge.",
-      "title": "Passkeys",
-      "features": {
-        "biometrics": "Используйте биометрию или ключи безопасности для входа",
-        "phishingResistant": "Устойчивы к фишингу и безопаснее паролей",
-        "synced": "Синхронизируются между устройствами через iCloud, Google или Microsoft"
-      },
-      "addPasskey": "Добавить Passkey",
-      "goPasswordless": "Без пароля",
-      "description": "Входите без паролей используя биометрию или ключи безопасности"
-    },
-    "description": "Защитите аккаунт многоуровневой безопасностью. Управляйте методами аутентификации, отслеживайте сессии.",
-    "securityScore": "Оценка безопасности",
-    "checklistItems": {
-      "passkeys": "Passkeys зарегистрированы",
-      "passkeysDesc": "Метод входа устойчивый к фишингу"
-    },
-    "completeCount": "{current} из {total} выполнено",
-    "scoreLevel": {
-      "excellent": "Отлично",
-      "strong": "Надежно",
-      "moderate": "Умеренно",
-      "needsImprovement": "Требует улучшения"
-    },
-    "securityChecklist": "Чек-лист безопасности"
+    "editOnBranch": "Редактировать переводы в ветке {branchName}"
   },
   "integrations": {
     "toasts": {
@@ -1133,10 +1325,10 @@
       "configSaveFailed": "Не удалось сохранить конфигурацию",
       "configRemoved": "Конфигурация удалена",
       "configRemoveFailed": "Не удалось удалить конфигурацию",
-      "connectionFailed": "Соединение не удалось",
       "configRemovedDescription": "{provider} отключен.",
       "connectionSuccessful": "Соединение успешно",
       "connectionSuccessfulDescription": "{provider} работает корректно.",
+      "connectionFailed": "Соединение не удалось",
       "connectionFailedDescription": "Не удалось подключиться к провайдеру.",
       "testFailed": "Тест не удался",
       "testFailedDescription": "Не удалось протестировать соединение."
@@ -1147,24 +1339,22 @@
     },
     "usage": {
       "subtitle": "Статистика переводов и примерные расходы",
-      "active": "Активно",
       "title": "Использование в этом месяце",
+      "active": "Активно",
+      "noData": "Нет данных",
       "cacheHits": "Попаданий в кэш",
       "estCost": "Примерная стоимость",
-      "noData": "Нет данных",
       "characters": "Символов",
       "requests": "Запросов"
     },
-    "update": "Обновить",
-    "connectAccount": "Подключите аккаунт {provider} для включения автоматических переводов",
-    "configure": "Настроить {provider}",
-    "test": "Тест",
+    "getOneHere": "Получить здесь",
+    "enableProvider": "Включить провайдера",
     "howItWorks": {
       "title": "Как это работает",
       "subtitle": "Понимание машинного перевода",
       "caching": {
-        "title": "Интеллектуальное кэширование",
-        "description": "Результаты переводов кэшируются на 30 дней для снижения расходов и улучшения производительности."
+        "description": "Результаты переводов кэшируются на 30 дней для снижения расходов и улучшения производительности.",
+        "title": "Интеллектуальное кэширование"
       },
       "priority": {
         "title": "Приоритет провайдеров",
@@ -1174,244 +1364,24 @@
     "connected": "Подключено",
     "apiKey": "API ключ",
     "enterApiKey": "Введите API ключ",
-    "apiKeyDescription": "Ваш {provider} API ключ.",
-    "getOneHere": "Получить здесь",
-    "enableProvider": "Включить провайдера",
     "enableProviderDescription": "Сделать этот провайдер доступным для переводов",
-    "saveConfiguration": "Сохранить конфигурацию"
+    "saveConfiguration": "Сохранить конфигурацию",
+    "test": "Тест",
+    "connectAccount": "Подключите аккаунт {provider} для включения автоматических переводов",
+    "configure": "Настроить {provider}",
+    "update": "Обновить",
+    "apiKeyDescription": "Ваш {provider} API ключ."
   },
   "sidebar": {
     "signOut": "Выйти",
-    "brand": "Lingx",
     "userFallback": "user@example.com",
     "apiKeys": "API ключи",
     "projects": "Проекты",
     "language": "Язык",
     "dashboard": "Панель управления",
     "settings": "Настройки",
+    "brand": "Lingx",
     "tagline": "Переводы"
-  },
-  "profile": {
-    "memberSince": "Участник с",
-    "accountStatus": "Статус аккаунта",
-    "personalInfo": "Личная информация",
-    "noName": "Имя не указано",
-    "personalInfoDescription": "Обновите имя и email адрес",
-    "toasts": {
-      "profileUpdated": "Профиль обновлен",
-      "copiedToClipboard": "Скопировано в буфер обмена",
-      "invalidImageFile": "Пожалуйста, загрузите файл изображения",
-      "avatarUpdated": "Аватар обновлен",
-      "avatarRemoveFailed": "Не удалось удалить аватар",
-      "avatarRemoved": "Аватар удален",
-      "preferencesSaved": "Настройки сохранены",
-      "preferencesSaveFailed": "Не удалось сохранить настройки",
-      "emailChangeCancelled": "Изменение email отменено",
-      "fileTooLarge": "Размер файла должен быть менее 5МБ",
-      "verificationEmailSent": "Письмо для подтверждения отправлено!"
-    },
-    "preferences": {
-      "inAppNotificationsDesc": "Показывать уведомления в приложении",
-      "activityDigest": "Дайджест активности",
-      "summaryFrequency": "Частота сводки",
-      "dark": "Темная",
-      "language": "Язык",
-      "spanish": "Español",
-      "french": "Французский",
-      "emailNotificationsDesc": "Получать обновления по email",
-      "inAppNotifications": "Уведомления в приложении",
-      "daily": "Ежедневно",
-      "weekly": "Еженедельно",
-      "emailNotifications": "Email уведомления",
-      "russian": "Русский",
-      "never": "Никогда",
-      "notifications": "Уведомления",
-      "description": "Настройте ваш опыт",
-      "interfaceLanguage": "Язык интерфейса",
-      "english": "English",
-      "title": "Настройки",
-      "appearance": "Внешний вид",
-      "theme": "Тема",
-      "colorScheme": "Цветовая схема",
-      "system": "Системная",
-      "light": "Светлая",
-      "german": "Немецкий",
-      "ukrainian": "Украинский",
-      "japanese": "日本語",
-      "workflow": "Рабочий процесс",
-      "defaultProject": "Проект по умолчанию",
-      "openOnLogin": "Открывать при входе"
-    },
-    "emailChangePending": "Ожидается изменение Email",
-    "verificationSentTo": "Подтверждение отправлено на",
-    "cancelEmailChange": "Отменить изменение",
-    "changeEmailDialog": {
-      "title": "Изменить Email адрес",
-      "description": "Ссылка для подтверждения будет отправлена на новый email",
-      "submit": "Отправить подтверждение",
-      "newEmailPlaceholder": "Введите новый email",
-      "passwordPlaceholder": "Введите пароль для подтверждения",
-      "passwordHint": "Требуется для проверки безопасности",
-      "currentEmail": "Текущий:"
-    },
-    "uploadNew": "Загрузить новое",
-    "removeAvatar": "Удалить",
-    "accountDetails": {
-      "title": "Детали аккаунта",
-      "userId": "ID пользователя",
-      "role": "Роль",
-      "created": "Создан"
-    },
-    "loading": "Загрузка профиля...",
-    "loadingMessage": "Подождите немного",
-    "title": "Детали профиля",
-    "description": "Управление личной информацией и настройками",
-    "avatar": "Фото профиля",
-    "avatarActions": {
-      "uploadPhoto": "Загрузить фото",
-      "removePhoto": "Удалить фото"
-    },
-    "quickTips": {
-      "title": "Быстрые советы",
-      "keyboardShortcuts": "Горячие клавиши",
-      "keyboardShortcutsDesc": "Нажмите Cmd+K для быстрых действий",
-      "apiKeys": "API ключи",
-      "apiKeysDesc": "Генерируйте ключи в Настройки → API ключи",
-      "security": "Безопасность",
-      "securityDesc": "Регулярно проверяйте активные сессии"
-    },
-    "uploadAvatar": "Загрузить фото",
-    "avatarRequirements": "JPG, PNG или GIF. Максимум 5МБ. Рекомендуется 256x256px.",
-    "displayName": "Отображаемое имя",
-    "displayNamePlaceholder": "Введите ваше имя",
-    "emailChangeHint": "Изменение email требует подтверждения",
-    "displayNameHint": "Так вы будете отображаться в приложении",
-    "emailAddress": "Email адрес",
-    "changeEmail": "Изменить Email",
-    "avatarDescription": "Загрузите фото для персонализации аккаунта",
-    "discard": "Отменить",
-    "saveChanges": "Сохранить изменения"
-  },
-  "nav": {
-    "toggleNavigation": "Переключить навигацию",
-    "toggleTheme": "Переключить тему",
-    "toggleSidebar": "Переключить боковую панель",
-    "language": "Язык",
-    "search": "Поиск..."
-  },
-  "landing": {
-    "openSourceSection": {
-      "starOnGitHub": "Поставить звезду на GitHub",
-      "reportIssue": "Сообщить о проблеме",
-      "title": "Создано открыто",
-      "description": "Lingx - это проект с открытым исходным кодом для обучения и экспериментов."
-    },
-    "footer": {
-      "github": "GitHub",
-      "issues": "Проблемы",
-      "discussions": "Обсуждения",
-      "resources": "Ресурсы",
-      "documentation": "Документация",
-      "project": "Проект",
-      "description": "Платформа управления переводами с открытым исходным кодом для современных команд разработки.",
-      "readme": "README",
-      "contributing": "Участие",
-      "legal": "Правовая информация",
-      "mitLicense": "Лицензия MIT",
-      "copyright": "© {year} Lingx. Открытый исходный код под лицензией MIT."
-    },
-    "features": {
-      "branching": {
-        "title": "Git-подобное ветвление",
-        "description": "Создавайте ветки для переводов, проверяйте изменения и объединяйте с уверенностью."
-      },
-      "collaboration": {
-        "title": "Командная работа",
-        "description": "Приглашайте переводчиков, назначайте роли и отслеживайте прогресс в реальном времени."
-      },
-      "fast": {
-        "title": "Молниеносная скорость",
-        "description": "Оптимизировано для производительности с мгновенным поиском и обновлениями в реальном времени."
-      },
-      "secure": {
-        "title": "Самостоятельный хостинг и безопасность",
-        "description": "Ваши данные остаются на вашей инфраструктуре. Полный контроль, всегда."
-      },
-      "anyLanguage": {
-        "title": "Любой язык",
-        "description": "RTL, множественное число и сложные языковые правила поддерживаются из коробки."
-      },
-      "developerFirst": {
-        "title": "Для разработчиков",
-        "description": "CLI инструменты, SDK и API, разработанные для современных рабочих процессов."
-      },
-      "title": "Все что вам нужно",
-      "subtitle": "Полная платформа локализации для современных рабочих процессов разработки."
-    },
-    "benefits": {
-      "selfHosted": "Самостоятельный хостинг",
-      "selfHostedDesc": "Ваши данные, ваши серверы",
-      "openSource": "Открытый код",
-      "openSourceDesc": "MIT лицензия, навсегда бесплатно",
-      "gitLike": "Git-подобный рабочий процесс",
-      "gitLikeDesc": "Ветвление, проверка, слияние",
-      "devFirst": "Для разработчиков",
-      "devFirstDesc": "CLI, SDK и API"
-    },
-    "brand": "Lingx",
-    "signIn": "Войти",
-    "getStarted": "Начать",
-    "openSourceBadge": "Открытый код и самостоятельный хостинг",
-    "headline": "Локализация, которая",
-    "headlineHighlight": "течет естественно",
-    "subheadline": "Управляйте переводами с git-подобным ветвлением. Работайте с командой, проверяйте изменения и выпускайте локализованные продукты с уверенностью.",
-    "startForFree": "Начать бесплатно",
-    "viewOnGitHub": "Смотреть на GitHub",
-    "cta": {
-      "title": "Готовы оптимизировать ваш",
-      "titleHighlight": "рабочий процесс локализации?",
-      "description": "Присоединяйтесь к командам, которые доверяют Lingx управление переводами.",
-      "getStartedFree": "Начать бесплатно",
-      "readTheDocs": "Читать документацию"
-    }
-  },
-  "authLayout": {
-    "branchBased": "На основе веток",
-    "branchBasedDesc": "рабочий процесс",
-    "teamCollab": "Командная",
-    "teamCollabDesc": "работа",
-    "selfHosted": "Самостоятельный хостинг",
-    "openSource": "Открытый код",
-    "privacyFirst": "Приватность прежде всего",
-    "brand": "Lingx",
-    "headline": "Переводы, которые",
-    "headlineHighlight": "текут бесшовно",
-    "subheadline": "Git-подобное ветвление для рабочего процесса локализации.",
-    "multiLanguage": "Мультиязычность",
-    "multiLanguageDesc": "поддержка"
-  },
-  "twoFactor": {
-    "backupCode": "Резервный код",
-    "backupCodePlaceholder": "XXXXXXXX",
-    "rememberDeviceDescription": "Пропустить 2FA на 30 дней на этом устройстве",
-    "lostAccess": "Потеряли доступ?",
-    "useAuthenticatorApp": "Использовать приложение-аутентификатор",
-    "enterAllDigits": "Пожалуйста, введите все 6 цифр",
-    "verificationFailed": "Проверка не удалась. Попробуйте еще раз.",
-    "codesRemaining": "Осталось только {count} резервных кодов. Рекомендуется сгенерировать новые.",
-    "backToLogin": "Вернуться к входу",
-    "backupCodeTitle": "Резервный код",
-    "title": "Двухфакторная аутентификация",
-    "enterBackupCode": "Введите один из резервных кодов для входа",
-    "enterCode": "Введите 6-значный код из приложения-аутентификатора",
-    "verificationCode": "Код проверки",
-    "rememberDevice": "Запомнить это устройство",
-    "verifying": "Проверка...",
-    "verifyAndSignIn": "Проверить и войти",
-    "haveYourApp": "Есть приложение?",
-    "useBackupCode": "Использовать резервный код",
-    "havingTrouble": "Проблемы?",
-    "getHelp": "Получить помощь"
   },
   "time": {
     "date": "{date}",
@@ -1422,152 +1392,64 @@
     "today": "Сегодня",
     "yesterday": "Вчера"
   },
-  "workbench": {
-    "guide": {
-      "title": "Welcome to the Workbench",
-      "description": "Let's take a quick tour of the translation editor",
-      "steps": {
-        "sidebar": {
-          "title": "Key List Sidebar",
-          "description": "Browse and select translation keys from your project",
-          "features": {
-            "browse": "Browse all translation keys with instant search",
-            "selection": "Click to select a key, or use checkboxes for multi-select",
-            "statusDots": "Colored dots show translation status (missing, pending, approved)",
-            "qualityMeter": "Quality score bars indicate translation confidence"
-          },
-          "proTip": "Use arrow keys for lightning-fast navigation through your translation keys"
-        },
-        "editor": {
-          "title": "Key Editor Panel",
-          "description": "Edit the source text and manage key properties",
-          "features": {
-            "sourceEdit": "Edit the source (default language) text directly",
-            "autoSave": "Changes are auto-saved as you type - no save button needed",
-            "icuSupport": "Full ICU MessageFormat support with syntax highlighting"
-          },
-          "proTip": "ICU syntax like {count, plural, one {# item} other {# items}} is auto-highlighted"
-        },
-        "languages": {
-          "title": "Language Rows",
-          "description": "View and edit translations for each target language",
-          "features": {
-            "expand": "Click a language row to expand and edit the translation",
-            "edit": "Type directly in the textarea to update translations",
-            "status": "Each row shows approval status and quality indicators"
-          },
-          "proTip": "Press Tab to quickly move between language fields when editing"
-        },
-        "shortcuts": {
-          "title": "Quick Actions & Shortcuts",
-          "description": "Speed up your workflow with keyboard shortcuts",
-          "features": {
-            "mtTranslate": "Cmd/Ctrl + M: Machine translate the focused translation",
-            "aiTranslate": "Cmd/Ctrl + I: AI translate with context awareness",
-            "approve": "Cmd/Ctrl + Enter: Approve the current translation",
-            "reject": "Cmd/Ctrl + Backspace: Reject and clear the translation",
-            "navigation": "Arrow keys: Navigate between keys and languages"
-          },
-          "proTip": "Master these shortcuts and you'll translate 10x faster than using the mouse"
-        },
-        "dock": {
-          "title": "Bottom Dock",
-          "description": "Access helpful resources while translating",
-          "features": {
-            "tm": "TM Matches: See similar translations from your Translation Memory",
-            "glossary": "Glossary: View approved terminology for consistency",
-            "ai": "AI Suggestions: Get context-aware translation suggestions",
-            "related": "Related Keys: Find keys with similar content",
-            "tmDescription": "Reuse approved translations from your project history",
-            "glossaryDescription": "Ensure terminology consistency across translations",
-            "aiDescription": "Context-aware suggestions based on surrounding text",
-            "relatedDescription": "Find similar keys to maintain consistency"
-          },
-          "proTip": "Click a suggestion to instantly apply it to your translation"
-        },
-        "batch": {
-          "title": "Batch Operations",
-          "description": "Perform actions on multiple keys at once",
-          "features": {
-            "select": "Use checkboxes to select multiple keys",
-            "actions": "A floating bar appears with batch actions",
-            "translate": "Translate, approve, or delete multiple items at once"
-          },
-          "proTip": "Perfect for translating an entire feature or section at once"
-        },
-        "filters": {
-          "title": "Filters & Search",
-          "description": "Quickly find the keys you need to work on",
-          "features": {
-            "status": "Filter by status: Missing, Complete, Pending, Approved",
-            "quality": "Filter by quality score to find items needing review",
-            "namespace": "Filter by namespace to focus on specific areas"
-          },
-          "proTip": "Filter by 'Missing' to focus on untranslated keys"
-        }
-      },
-      "skip": "Skip tour",
-      "previous": "Previous",
-      "finish": "Get started",
-      "next": "Next",
-      "shortcuts": {
-        "navigateKeys": "Navigate between keys",
-        "prevKey": "Previous key (skip over)",
-        "nextKey": "Next key (skip over)",
-        "nextField": "Next field",
-        "prevField": "Previous field",
-        "collapseRow": "Collapse expanded row",
-        "expandRow": "Expand selected row",
-        "machineTranslate": "Machine translate",
-        "aiTranslate": "AI translate with context",
-        "approve": "Approve translation",
-        "reject": "Reject translation",
-        "collapse": "Collapse / close panel",
-        "selectAll": "Select all visible keys",
-        "rangeSelect": "Select range of keys",
-        "commandPalette": "Open command palette",
-        "focusSearch": "Focus search input"
-      },
-      "stepIndicators": ""
+  "auth": {
+    "and": "и",
+    "termsAgreement": "Продолжая, вы соглашаетесь с нашими",
+    "unexpectedError": "Произошла непредвиденная ошибка. Попробуйте еще раз.",
+    "termsOfService": "Условиями использования",
+    "password": "Пароль",
+    "registrationFailed": "Регистрация не удалась",
+    "startManaging": "Начните управлять переводами за считанные минуты",
+    "fullName": "Полное имя",
+    "fullNamePlaceholder": "Иван Иванов",
+    "privacyPolicy": "Политикой конфиденциальности",
+    "welcomeDescription": "Вы успешно вошли в систему.",
+    "welcomeToast": "С возвращением!",
+    "accountCreated": "Аккаунт создан!",
+    "accountCreatedDescription": "Добро пожаловать в Lingx. Ваш аккаунт готов.",
+    "emailAddress": "Email адрес",
+    "createAccount": "Создайте аккаунт",
+    "createAnAccount": "Создать аккаунт",
+    "creatingAccount": "Создание аккаунта...",
+    "alreadyHaveAccount": "Уже есть аккаунт?",
+    "signInInstead": "Войти",
+    "passkeyAuthFailed": "Аутентификация не удалась",
+    "passkeySignInFailed": "Вход с passkey не удался",
+    "signInFailed": "Вход не удался",
+    "welcomeBack": "С возвращением",
+    "enterCredentials": "Введите данные для доступа к проектам",
+    "passkeySignInSuccess": "Вход с passkey выполнен",
+    "authenticating": "Аутентификация...",
+    "signInWithPasskey": "Войти с passkey",
+    "signingIn": "Вход...",
+    "signIn": "Войти",
+    "newToLingx": "Новый в Lingx?",
+    "emailPlaceholder": "you@example.com",
+    "createPassword": "Создайте надежный пароль",
+    "orContinueWithEmail": "или продолжить с email",
+    "forgotPassword": "Забыли пароль?",
+    "passwordPlaceholder": "Введите пароль"
+  },
+  "quality": {
+    "bulkEvaluation": {
+      "allCached": "Все кешировано",
+      "descriptionSelected": "Оценить качество для {count} выбранных переводов",
+      "queued": "Оценка качества поставлена в очередь",
+      "failed": "Не удалось поставить оценку качества в очередь",
+      "title": "Оценить качество перевода",
+      "descriptionAll": "Оценить качество всех переводов в этой ветке",
+      "infoAI": "AI оценка для сложных проблем качества",
+      "infoProcessing": "Обработка происходит в фоновом режиме",
+      "queuing": "Постановка в очередь...",
+      "evaluate": "Оценить качество",
+      "infoHeuristic": "Бесплатные эвристические проверки (ICU, заполнители, длина)"
     }
   },
-  "keyForm": {
-    "prefix": {
-      "common": "Общие строки",
-      "page": "Специфичные для страницы",
-      "error": "Сообщения об ошибках",
-      "settings": "Метки настроек"
-    },
-    "createSuccess": "Ключ создан",
-    "createSuccessDescription": "\"{name}\" был создан.",
-    "createFailed": "Не удалось создать ключ",
-    "updateSuccess": "Ключ обновлен",
-    "updateSuccessDescription": "Изменения сохранены.",
-    "updateFailed": "Не удалось обновить ключ",
-    "editTitle": "Редактировать ключ перевода",
-    "createTitle": "Новый ключ перевода",
-    "editDescription": "Обновите идентификатор ключа и контекст",
-    "createDescription": "Создайте уникальный идентификатор для переводимой строки",
-    "namespacePrefix": "Префикс пространства имен",
-    "keyName": {
-      "label": "Имя ключа",
-      "placeholder": "напр., common.welcome.title",
-      "description": "Используйте точечную нотацию для пространств имен (напр., page.home.hero_title)"
-    },
-    "context": {
-      "label": "Контекст для переводчиков",
-      "optional": "необязательно",
-      "placeholder": "Опишите где появляется этот текст и важный контекст для точного перевода...",
-      "description": "Помогите переводчикам понять контекст и тон"
-    },
-    "proTip": {
-      "title": "Совет профи",
-      "description": "После создания ключа вы сразу можете добавить переводы в редакторе ниже."
-    },
-    "cancel": "Отмена",
-    "saving": "Сохранение...",
-    "creating": "Создание...",
-    "saveChanges": "Сохранить изменения",
-    "createKey": "Создать ключ"
+  "nav": {
+    "language": "Язык",
+    "search": "Поиск...",
+    "toggleNavigation": "Переключить навигацию",
+    "toggleTheme": "Переключить тему",
+    "toggleSidebar": "Переключить боковую панель"
   }
 }

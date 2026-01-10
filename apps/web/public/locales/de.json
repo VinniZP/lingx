@@ -1,260 +1,140 @@
 {
-  "quality": {
-    "bulkEvaluation": {
-      "forceAI": "Force AI evaluation",
-      "forceAIDescription": "Skip heuristics and use AI for all translations (higher cost)",
-      "jobId": "Job ID: {jobId}",
-      "queued": "Quality evaluation queued",
-      "failed": "Failed to queue quality evaluation",
-      "title": "Evaluate Translation Quality",
-      "descriptionSelected": "Evaluate quality for {count} selected translations",
-      "descriptionAll": "Evaluate quality for all translations in this branch",
-      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)",
-      "infoAI": "AI evaluation for complex quality issues",
-      "infoProcessing": "Processing happens in the background",
-      "queuing": "Queuing...",
-      "evaluate": "Evaluate Quality"
-    }
-  },
-  "projects": {
-    "card": {
-      "main": "main",
-      "keys": "{count} Schlüssel",
-      "progress": "Fortschritt"
-    },
-    "search": {
-      "placeholder": "Projekte suchen...",
-      "noResults": "Keine Projekte gefunden",
-      "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
-    },
-    "empty": {
-      "cta": "Erstellen Sie Ihr erstes Projekt",
-      "title": "Noch keine Projekte",
-      "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen."
-    },
-    "filters": "Filter",
-    "title": "Projekte",
-    "description": "Verwalten Sie Ihre Lokalisierungsprojekte",
-    "stats": {
-      "totalKeys": "Schlüssel Gesamt"
-    }
-  },
-  "common": {
-    "save": "Speichern",
-    "delete": "Löschen",
-    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
-    "loading": "Laden...",
-    "cancel": "Abbrechen",
-    "viewAll": "Alle anzeigen"
-  },
-  "settings": {
-    "quality": {
-      "title": "",
-      "description": "",
-      "ai": {
-        "title": "AI Evaluation",
-        "description": "Use AI to evaluate translation quality (accuracy, fluency, terminology)",
-        "enabled": "Enable AI evaluation",
-        "enabledDescription": "Use AI to evaluate complex quality issues",
-        "provider": "AI Provider",
-        "providerPlaceholder": "Select provider",
-        "useProjectDefault": "Use project default",
-        "providerDescription": "AI provider for quality evaluation",
-        "model": "AI Model",
-        "modelPlaceholder": "e.g., claude-sonnet-4-5",
-        "modelDescription": "Specific model to use for evaluation"
-      },
-      "saved": "",
-      "saveFailed": "",
-      "loading": "Qualitätseinstellungen werden geladen",
-      "aiProviderLink": {
-        "title": "AI-Anbieter-Einstellungen",
-        "description": "Konfigurieren Sie, welcher AI-Anbieter für die Qualitätsbewertung verwendet werden soll"
-      },
-      "triggers": {
-        "title": "",
-        "description": "When to automatically score translations",
-        "afterAI": "Score after AI translation",
-        "afterAIDescription": "Automatically score translations created by AI",
-        "beforeMerge": "Score before merge",
-        "beforeMergeDescription": "Require quality check before merging branches"
-      },
-      "thresholds": {
-        "title": "Quality Thresholds",
-        "description": "Score thresholds for automated workflows",
-        "autoApprove": "Auto-approve threshold",
-        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
-        "flag": "Flag threshold",
-        "flagDescription": "Flag translations with score < this value for review"
-      }
-    }
-  },
-  "activity": {
-    "noRecent": "Keine aktuelle Aktivität",
-    "preview": {
-      "metadata": {
-        "source": "Quelle",
-        "target": "Ziel",
-        "conflictsResolved": "Konflikte gelöst",
-        "branch": "Branch",
-        "from": "Von",
-        "file": "Datei",
-        "keys": "Schlüssel",
-        "languages": "Sprachen",
-        "format": "Format",
-        "changed": "Geändert",
-        "environment": "Umgebung",
-        "to": "Zu"
-      },
-      "noDetails": "Keine Details verfügbar",
-      "empty": "leer",
-      "loading": "Laden...",
-      "andMore": "+{count} weitere",
-      "viewAllHint": "Klicken Sie, um {count} Änderungen anzuzeigen"
-    },
-    "viewAll": "Alle Änderungen anzeigen",
-    "viewAllChanges": "Alle {count} Änderungen anzeigen",
-    "description": {
-      "translationSingle": "Übersetzung aktualisiert{languages, select, undefined {} other { in {languages}}}",
-      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
-      "keyAddSingle": "Übersetzungsschlüssel hinzugefügt",
-      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
-      "keyAddPlural": "Hinzugefügt {count} Übersetzungsschlüssel",
-      "keyDeleteSingle": "Übersetzungsschlüssel gelöscht",
-      "keyDeletePlural": "Gelöschte {count} Übersetzungsschlüssel",
-      "branchCreateWithSource": "Branch \"{branchName}\" wurde aus \"{sourceBranchName}\" erstellt",
-      "branchCreate": "Branch \"{branchName}\" erstellt",
-      "branchDelete": "Branch \"{branchName}\" gelöscht",
-      "merge": "Hat \"{sourceBranchName}\" in \"{targetBranchName}\" zusammengeführt",
-      "importWithFile": "Importierte {count, plural, one {# Schlüssel} other {# Schlüssel}} aus {fileName}",
-      "import": "Importiert {count, plural, one {# Schlüssel} other {# Schlüssel}}",
-      "export": "Übersetzungen in {format} exportiert",
-      "projectSettings": "Projekt {fields} aktualisiert",
-      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
-      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht",
-      "aiTranslateWithLanguages": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} zu {languages} übersetzt",
-      "aiTranslate": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} übersetzt",
-      "default": "Aktivität aufgezeichnet"
-    },
-    "modal": {
-      "loadMore": "Mehr laden",
-      "noChanges": "Keine detaillierten Änderungen aufgezeichnet",
-      "noChangesHint": "Diese Aktivität verfügt nicht über detaillierte Änderungsverfolgung.",
-      "auditTrail": "Audit-Trail",
-      "empty": "Leer"
-    },
-    "title": "Aktuelle Aktivität",
-    "lastDay": "Letzte 24 Stunden",
-    "lastWeek": "Letzte 7 Tage",
-    "empty": "Aktivitäten erscheinen hier während Sie arbeiten"
-  },
-  "apiKeys": {
-    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
-    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
-    "copiedToClipboard": "In die Zwischenablage kopiert",
-    "revokeDialog": {
-      "cancel": "Abbrechen"
-    },
-    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
-    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt",
-    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
-    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
-    "activeKeys": "Aktive Schlüssel"
-  },
-  "dashboard": {
-    "quickActions": "Schnellaktionen",
-    "welcome": {
-      "title": "Willkommen bei Lingx",
-      "description": "Professionelles Übersetzungsmanagement mit Git-ähnlicher Versionskontrolle für moderne Teams"
-    },
-    "onboarding": {
-      "step1": {
-        "title": "Projekt erstellen",
-        "description": "Definieren Sie Ihre Quell- und Zielsprachen"
-      },
-      "step2": {
-        "title": "Übersetzungsschlüssel hinzufügen",
-        "description": "Vorhandene importieren oder neue erstellen"
-      },
-      "step3": {
-        "title": "Mit Ihrer App synchronisieren",
-        "description": "CLI oder API zum Abrufen von Übersetzungen verwenden"
-      }
-    },
-    "stats": {
-      "keys": "Schlüssel",
-      "complete": "Fertig",
-      "projects": "Projekte",
-      "languages": "Sprachen"
-    },
-    "greeting": {
-      "evening": "Guten Abend",
-      "morning": "Guten Morgen",
-      "afternoon": "Guten Tag"
-    },
-    "overview": "Hier ist Ihre Übersetzungsübersicht",
-    "progress": "Gesamtfortschritt der Übersetzungen",
-    "team": {
-      "title": "Teammitglieder",
-      "description": "Zusammenarbeiten"
-    },
-    "cli": {
-      "title": "CLI verfügbar",
-      "description": "Übersetzungen vom Terminal synchronisieren"
-    },
-    "branches": {
-      "description": "Versionskontrolle",
-      "title": "Branches verwalten"
-    },
-    "resources": {
-      "title": "Ressourcen",
-      "docs": "Dokumentation",
-      "guide": "Erste Schritte",
-      "bestPractices": "Best Practices für Sprachen"
-    },
-    "createProject": {
-      "title": "Neues Projekt erstellen",
-      "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
-      "cta": "Loslegen"
-    },
-    "recentProjects": "Aktuelle Projekte",
-    "import": {
-      "title": "Übersetzungen importieren",
-      "formats": "JSON, YAML, XLIFF"
-    },
-    "apiKeys": {
-      "title": "API-Schlüssel",
-      "description": "Zugriff verwalten"
-    }
-  },
-  "auth": {
-    "forgotPassword": "Passwort vergessen?"
-  },
   "workbench": {
     "guide": {
-      "title": "Welcome to the Workbench",
-      "description": "Let's take a quick tour of the translation editor",
+      "demo": {
+        "sampleKeys": {
+          "authSignOut": "",
+          "commonGreeting": "",
+          "helloWorld": "",
+          "authSignIn": "",
+          "signInToContinue": "",
+          "logOut": "",
+          "errorNotFound": "",
+          "pageNotFound": ""
+        },
+        "languages": {
+          "russian": "",
+          "german": "",
+          "english": "",
+          "ukrainian": ""
+        },
+        "status": {
+          "approved": "",
+          "pending": ""
+        },
+        "charCount": "",
+        "filters": {
+          "language": "",
+          "status": "",
+          "missing": "",
+          "quality": "",
+          "low": "",
+          "all": "",
+          "namespace": ""
+        },
+        "previous": "",
+        "dockPanel": "",
+        "autoSaved": "",
+        "autoSave": "",
+        "selected": "",
+        "aiTranslate": "",
+        "approve": "",
+        "tm": "",
+        "icuMessageFormat": "",
+        "tmPreview": "",
+        "glossary": "",
+        "ai": "",
+        "machineTranslate": "",
+        "keys": "",
+        "keyCount": "",
+        "navigateBetweenKeys": "",
+        "clickRow": "",
+        "reject": "",
+        "collapse": "",
+        "platform": "",
+        "macModifier": "",
+        "winModifier": "",
+        "toExpand": "",
+        "toCycleLanguages": "",
+        "toCollapse": "",
+        "nextField": "",
+        "glossaryPreview": "",
+        "aiPreview": "",
+        "related": "",
+        "relatedPreview": "",
+        "delete": "",
+        "pagination": "",
+        "searchKeys": "",
+        "source": "",
+        "chars": "",
+        "pullUp": ""
+      },
       "steps": {
-        "sidebar": {
-          "title": "Key List Sidebar",
-          "description": "Browse and select translation keys from your project",
+        "dock": {
           "features": {
-            "browse": "Browse all translation keys with instant search",
-            "selection": "Click to select a key, or use checkboxes for multi-select",
-            "statusDots": "Colored dots show translation status (missing, pending, approved)",
-            "qualityMeter": "Quality score bars indicate translation confidence"
+            "tmDescription": "Reuse approved translations from your project history",
+            "glossaryDescription": "Ensure terminology consistency across translations",
+            "aiDescription": "Context-aware suggestions based on surrounding text",
+            "relatedDescription": "Find similar keys to maintain consistency",
+            "tm": "TM Matches: See similar translations from your Translation Memory",
+            "glossary": "Glossary: View approved terminology for consistency",
+            "ai": "AI Suggestions: Get context-aware translation suggestions",
+            "related": "Related Keys: Find keys with similar content"
           },
-          "proTip": "Use arrow keys for lightning-fast navigation through your translation keys"
+          "proTip": "Click a suggestion to instantly apply it to your translation",
+          "title": "Bottom Dock",
+          "description": "Access helpful resources while translating"
         },
         "editor": {
-          "title": "Key Editor Panel",
-          "description": "Edit the source text and manage key properties",
           "features": {
-            "sourceEdit": "Edit the source (default language) text directly",
             "autoSave": "Changes are auto-saved as you type - no save button needed",
+            "sourceEdit": "Edit the source (default language) text directly",
             "icuSupport": "Full ICU MessageFormat support with syntax highlighting"
           },
+          "title": "Key Editor Panel",
+          "description": "Edit the source text and manage key properties",
           "proTip": "ICU syntax like {count, plural, one {# item} other {# items}} is auto-highlighted"
+        },
+        "shortcuts": {
+          "title": "Quick Actions & Shortcuts",
+          "description": "Speed up your workflow with keyboard shortcuts",
+          "proTip": "Master these shortcuts and you'll translate 10x faster than using the mouse",
+          "features": {
+            "approve": "Cmd/Ctrl + Enter: Approve the current translation",
+            "mtTranslate": "Cmd/Ctrl + M: Machine translate the focused translation",
+            "aiTranslate": "Cmd/Ctrl + I: AI translate with context awareness"
+          }
+        },
+        "batch": {
+          "features": {
+            "actions": "A floating bar appears with batch actions",
+            "translate": "Translate, approve, or delete multiple items at once",
+            "select": "Use checkboxes to select multiple keys"
+          },
+          "proTip": "Perfect for translating an entire feature or section at once",
+          "title": "Batch Operations",
+          "description": "Perform actions on multiple keys at once"
+        },
+        "filters": {
+          "features": {
+            "status": "Filter by status: Missing, Complete, Pending, Approved",
+            "quality": "Filter by quality score to find items needing review",
+            "namespace": "Filter by namespace to focus on specific areas"
+          },
+          "title": "Filters & Search",
+          "description": "Quickly find the keys you need to work on",
+          "proTip": "Filter by 'Missing' to focus on untranslated keys"
+        },
+        "sidebar": {
+          "title": "Key List Sidebar",
+          "features": {
+            "statusDots": "Colored dots show translation status (missing, pending, approved)",
+            "browse": "Browse all translation keys with instant search",
+            "selection": "Click to select a key, or use checkboxes for multi-select",
+            "qualityMeter": "Quality score bars indicate translation confidence"
+          },
+          "description": "Browse and select translation keys from your project",
+          "proTip": "Use arrow keys for lightning-fast navigation through your translation keys"
         },
         "languages": {
           "title": "Language Rows",
@@ -265,83 +145,1311 @@
             "status": "Each row shows approval status and quality indicators"
           },
           "proTip": "Press Tab to quickly move between language fields when editing"
-        },
-        "shortcuts": {
-          "title": "Quick Actions & Shortcuts",
-          "description": "Speed up your workflow with keyboard shortcuts",
-          "features": {
-            "mtTranslate": "Cmd/Ctrl + M: Machine translate the focused translation",
-            "aiTranslate": "Cmd/Ctrl + I: AI translate with context awareness",
-            "approve": "Cmd/Ctrl + Enter: Approve the current translation",
-            "reject": "Cmd/Ctrl + Backspace: Reject and clear the translation",
-            "navigation": "Arrow keys: Navigate between keys and languages"
-          },
-          "proTip": "Master these shortcuts and you'll translate 10x faster than using the mouse"
-        },
-        "dock": {
-          "title": "Bottom Dock",
-          "description": "Access helpful resources while translating",
-          "features": {
-            "tm": "TM Matches: See similar translations from your Translation Memory",
-            "glossary": "Glossary: View approved terminology for consistency",
-            "ai": "AI Suggestions: Get context-aware translation suggestions",
-            "related": "Related Keys: Find keys with similar content",
-            "tmDescription": "Reuse approved translations from your project history",
-            "glossaryDescription": "Ensure terminology consistency across translations",
-            "aiDescription": "Context-aware suggestions based on surrounding text",
-            "relatedDescription": "Find similar keys to maintain consistency"
-          },
-          "proTip": "Click a suggestion to instantly apply it to your translation"
-        },
-        "batch": {
-          "title": "Batch Operations",
-          "description": "Perform actions on multiple keys at once",
-          "features": {
-            "select": "Use checkboxes to select multiple keys",
-            "actions": "A floating bar appears with batch actions",
-            "translate": "Translate, approve, or delete multiple items at once"
-          },
-          "proTip": "Perfect for translating an entire feature or section at once"
-        },
-        "filters": {
-          "title": "Filters & Search",
-          "description": "Quickly find the keys you need to work on",
-          "features": {
-            "status": "Filter by status: Missing, Complete, Pending, Approved",
-            "quality": "Filter by quality score to find items needing review",
-            "namespace": "Filter by namespace to focus on specific areas"
-          },
-          "proTip": "Filter by 'Missing' to focus on untranslated keys"
         }
       },
-      "skip": "Skip tour",
-      "previous": "Previous",
-      "finish": "Get started",
-      "next": "Next",
       "shortcuts": {
-        "navigateKeys": "Navigate between keys",
         "prevKey": "Previous key (skip over)",
         "nextKey": "Next key (skip over)",
-        "nextField": "Next field",
-        "prevField": "Previous field",
-        "collapseRow": "Collapse expanded row",
-        "expandRow": "Expand selected row",
+        "collapse": "Collapse / close panel",
         "machineTranslate": "Machine translate",
         "aiTranslate": "AI translate with context",
         "approve": "Approve translation",
         "reject": "Reject translation",
-        "collapse": "Collapse / close panel",
-        "selectAll": "Select all visible keys",
-        "rangeSelect": "Select range of keys",
-        "commandPalette": "Open command palette",
-        "focusSearch": "Focus search input"
+        "nextField": "Next field",
+        "prevField": "Previous field"
       },
-      "stepIndicators": ""
+      "title": "Welcome to the Workbench",
+      "next": "Next",
+      "description": "Let's take a quick tour of the translation editor",
+      "stepIndicators": "",
+      "skip": "Skip tour",
+      "previous": "Previous",
+      "finish": "Get started"
+    },
+    "commandPalette": {
+      "a11y": {
+        "keyNameMatch": "",
+        "shortcut": "",
+        "recentKey": "",
+        "translationMatch": ""
+      },
+      "errors": {
+        "executionFailed": "",
+        "unknownError": ""
+      },
+      "groups": {
+        "approval": "",
+        "translation": "",
+        "navigation": "",
+        "utility": "",
+        "searchResults": "",
+        "recentActions": ""
+      },
+      "title": "",
+      "actions": {
+        "aiTranslateAll": "",
+        "aiTranslateLanguage": "",
+        "mtTranslateLanguage": "",
+        "mtTranslateAll": "",
+        "copySource": "",
+        "nextKey": "",
+        "prevKey": "",
+        "expandAll": "",
+        "collapseAll": "",
+        "focusSource": "",
+        "rejectAll": "",
+        "copyKeyName": "",
+        "showShortcuts": "",
+        "deleteKey": "",
+        "evaluateQuality": "",
+        "approveLanguage": "",
+        "approveAll": "",
+        "rejectLanguage": ""
+      },
+      "description": "",
+      "placeholder": "",
+      "noResults": ""
+    },
+    "toasts": {
+      "copiedToClipboard": ""
+    },
+    "toolbar": {
+      "qualityFilter": {
+        "excellent": "",
+        "good": "",
+        "unscored": "",
+        "needsReview": "",
+        "placeholder": "",
+        "all": ""
+      },
+      "statusFilter": {
+        "all": "",
+        "missing": "",
+        "placeholder": "",
+        "complete": "",
+        "approved": "",
+        "pending": "",
+        "rejected": ""
+      },
+      "namespaceFilter": {
+        "all": "",
+        "placeholder": ""
+      },
+      "evaluate": "",
+      "back": "",
+      "searchPlaceholder": "",
+      "help": "",
+      "addKey": ""
+    },
+    "suggestion": {
+      "clickToApply": ""
     }
   },
-  "translations": {
-    "toasts": {
-      "invalidICUSyntax": "Invalid ICU syntax"
+  "landing": {
+    "features": {
+      "branching": {
+        "description": "",
+        "title": ""
+      },
+      "title": "",
+      "subtitle": "",
+      "collaboration": {
+        "title": "",
+        "description": ""
+      },
+      "fast": {
+        "title": "",
+        "description": ""
+      },
+      "secure": {
+        "title": "",
+        "description": ""
+      },
+      "anyLanguage": {
+        "title": "",
+        "description": ""
+      },
+      "developerFirst": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "getStarted": "",
+    "startForFree": "",
+    "viewOnGitHub": "",
+    "openSourceBadge": "",
+    "headline": "",
+    "headlineHighlight": "",
+    "subheadline": "",
+    "footer": {
+      "legal": "",
+      "mitLicense": "",
+      "copyright": "",
+      "description": "",
+      "project": "",
+      "github": "",
+      "documentation": "",
+      "issues": "",
+      "discussions": "",
+      "resources": "",
+      "readme": "",
+      "contributing": ""
+    },
+    "benefits": {
+      "selfHosted": "",
+      "selfHostedDesc": "",
+      "openSource": "",
+      "openSourceDesc": "",
+      "gitLike": "",
+      "gitLikeDesc": "",
+      "devFirst": "",
+      "devFirstDesc": ""
+    },
+    "openSourceSection": {
+      "reportIssue": "",
+      "starOnGitHub": "",
+      "title": "",
+      "description": ""
+    },
+    "cta": {
+      "title": "",
+      "getStartedFree": "",
+      "readTheDocs": "",
+      "titleHighlight": "",
+      "description": ""
+    },
+    "brand": "",
+    "signIn": ""
+  },
+  "authLayout": {
+    "teamCollabDesc": "",
+    "selfHosted": "",
+    "privacyFirst": "",
+    "brand": "",
+    "headline": "",
+    "headlineHighlight": "",
+    "multiLanguage": "",
+    "multiLanguageDesc": "",
+    "subheadline": "",
+    "branchBased": "",
+    "branchBasedDesc": "",
+    "teamCollab": "",
+    "openSource": ""
+  },
+  "keyForm": {
+    "editTitle": "",
+    "editDescription": "",
+    "saving": "",
+    "creating": "",
+    "createTitle": "",
+    "keyName": {
+      "description": "",
+      "label": "",
+      "placeholder": ""
+    },
+    "context": {
+      "placeholder": "",
+      "label": "",
+      "optional": "",
+      "description": ""
+    },
+    "prefix": {
+      "common": "",
+      "page": "",
+      "error": "",
+      "settings": ""
+    },
+    "createSuccess": "",
+    "createSuccessDescription": "",
+    "createFailed": "",
+    "updateFailed": "",
+    "updateSuccess": "",
+    "updateSuccessDescription": "",
+    "proTip": {
+      "title": "",
+      "description": ""
+    },
+    "saveChanges": "",
+    "createKey": "",
+    "createDescription": "",
+    "namespacePrefix": "",
+    "cancel": ""
+  },
+  "twoFactorSetup": {
+    "successBanner": {
+      "description": "",
+      "title": ""
+    },
+    "completeSetup": "",
+    "backupCodesFile": {
+      "oneTimeUse": "",
+      "keepSafe": "",
+      "generated": "",
+      "description": "",
+      "title": ""
+    },
+    "title": {
+      "qrcode": "",
+      "verify": "",
+      "intro": "",
+      "backup": ""
+    },
+    "failedToStart": "",
+    "steps": {
+      "scanQr": {
+        "description": "",
+        "title": ""
+      },
+      "downloadApp": {
+        "description": "",
+        "title": ""
+      },
+      "saveBackup": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "enabled": "",
+    "description": {
+      "intro": "",
+      "qrcode": "",
+      "verify": "",
+      "backup": ""
+    },
+    "enterCodeFromApp": "",
+    "verifyCode": "",
+    "secretCopied": "",
+    "backupCodesDownloaded": "",
+    "getStarted": "",
+    "cantScan": "",
+    "iveScannedIt": "",
+    "acknowledgement": "",
+    "downloadBackupCodes": ""
+  },
+  "security": {
+    "twoFactor": {
+      "features": {
+        "totp": "",
+        "backupCodes": "",
+        "trustDevice": ""
+      },
+      "inactive": "",
+      "activeDescription": "",
+      "disable": "",
+      "enable": "",
+      "regenerateDialog": {
+        "title": "",
+        "description": "",
+        "submit": ""
+      },
+      "disableDialog": {
+        "confirmPassword": "",
+        "description": "",
+        "submit": "",
+        "title": ""
+      },
+      "regenerateCodes": "",
+      "considerRegenerating": "",
+      "backupCodes": "",
+      "active": "",
+      "title": "",
+      "disabled": "",
+      "disableFailed": "",
+      "inactiveDescription": "",
+      "remaining": "",
+      "newCodesDialog": {
+        "title": "",
+        "description": "",
+        "download": "",
+        "saved": ""
+      },
+      "regenerateFailed": "",
+      "trustedDevices": "",
+      "devices": "",
+      "codesDownloaded": ""
+    },
+    "changePassword": {
+      "currentPassword": "",
+      "newPassword": "",
+      "currentPasswordPlaceholder": "",
+      "submit": "",
+      "title": "",
+      "description": "",
+      "confirmPassword": "",
+      "confirmPasswordPlaceholder": "",
+      "signOutWarning": "",
+      "newPasswordPlaceholder": ""
+    },
+    "activeSessions": {
+      "sessionRevoked": "",
+      "sessionRevokeFailed": "",
+      "sessionsRevokeFailed": "",
+      "sessionsAppearHere": "",
+      "noActiveSessions": "",
+      "revokeConfirm": "",
+      "title": "",
+      "otherSessions": "",
+      "failedToLoad": "",
+      "tryAgainLater": "",
+      "revokeSession": "",
+      "revokeAllSessions": "",
+      "current": "",
+      "activeNow": "",
+      "revokeAllConfirm": "",
+      "unknownDevice": "",
+      "revokeAll": "",
+      "noOtherSessions": ""
+    },
+    "loading": "",
+    "passkeys": {
+      "toasts": {
+        "passkeyAddFailed": "",
+        "passkeyDeleted": "",
+        "passkeyAdded": "",
+        "passkeyDeleteFailed": "",
+        "passwordlessEnabled": "",
+        "passwordlessEnabledDescription": "",
+        "passwordlessFailed": ""
+      },
+      "deleteDialog": {
+        "submit": "",
+        "title": "",
+        "description": ""
+      },
+      "addDialog": {
+        "secureNoteDescription": "",
+        "secureNote": "",
+        "suggestions": {
+          "macbook": "",
+          "iphone": "",
+          "securityKey": ""
+        },
+        "title": "",
+        "description": "",
+        "nameLabel": "",
+        "namePlaceholder": ""
+      },
+      "addPasskey": "",
+      "features": {
+        "biometrics": "",
+        "phishingResistant": "",
+        "synced": ""
+      },
+      "goPasswordless": "",
+      "passwordlessEnabled": {
+        "title": "",
+        "description": ""
+      },
+      "title": "",
+      "notSupported": "",
+      "notSupportedDescription": "",
+      "passwordlessDialog": {
+        "passkeyCount": "",
+        "submit": "",
+        "title": "",
+        "description": "",
+        "warning": ""
+      },
+      "description": ""
+    },
+    "tips": {
+      "enableBoth": "",
+      "quickTip": ""
+    },
+    "completeCount": "",
+    "title": "",
+    "description": "",
+    "scoreLevel": {
+      "moderate": "",
+      "excellent": "",
+      "strong": "",
+      "needsImprovement": ""
+    },
+    "securityChecklist": "",
+    "securityScore": "",
+    "checklistItems": {
+      "passkeys": "",
+      "passkeysDesc": ""
     }
+  },
+  "activity": {
+    "noRecent": "Keine aktuelle Aktivität",
+    "preview": {
+      "metadata": {
+        "to": "Zu",
+        "target": "Ziel",
+        "conflictsResolved": "Konflikte gelöst",
+        "source": "Quelle",
+        "file": "Datei",
+        "keys": "Schlüssel",
+        "languages": "Sprachen",
+        "changed": "Geändert",
+        "environment": "Umgebung",
+        "format": "Format",
+        "branch": "Branch",
+        "from": "Von"
+      },
+      "noDetails": "Keine Details verfügbar",
+      "loading": "Laden...",
+      "viewAllHint": "Klicken Sie, um {count} Änderungen anzuzeigen",
+      "andMore": "+{count} weitere",
+      "empty": "leer"
+    },
+    "viewAll": "Alle Änderungen anzeigen",
+    "title": "Aktuelle Aktivität",
+    "lastDay": "Letzte 24 Stunden",
+    "empty": "Aktivitäten erscheinen hier während Sie arbeiten",
+    "description": {
+      "environmentSwitchBranch": "Wurde zu \"{newBranchName}\" für \"{environmentName}\" gewechselt",
+      "translationPlural": "Aktualisiert {count} Übersetzungen{languages, select, undefined {} other { in {languages}}}",
+      "merge": "Hat \"{sourceBranchName}\" in \"{targetBranchName}\" zusammengeführt",
+      "importWithFile": "Importierte {count, plural, one {# Schlüssel} other {# Schlüssel}} aus {fileName}",
+      "import": "Importiert {count, plural, one {# Schlüssel} other {# Schlüssel}}",
+      "export": "Übersetzungen in {format} exportiert",
+      "translationSingle": "Übersetzung aktualisiert{languages, select, undefined {} other { in {languages}}}",
+      "keyAddSingle": "Übersetzungsschlüssel hinzugefügt",
+      "keyAddPlural": "Hinzugefügt {count} Übersetzungsschlüssel",
+      "keyDeleteSingle": "Übersetzungsschlüssel gelöscht",
+      "keyDeletePlural": "Gelöschte {count} Übersetzungsschlüssel",
+      "branchCreateWithSource": "Branch \"{branchName}\" wurde aus \"{sourceBranchName}\" erstellt",
+      "branchDelete": "Branch \"{branchName}\" gelöscht",
+      "branchCreate": "Branch \"{branchName}\" erstellt",
+      "projectSettings": "Projekt {fields} aktualisiert",
+      "environmentCreate": "Umgebung „{environmentName}\" erstellt",
+      "environmentDelete": "Umgebung \"{environmentName}\" gelöscht",
+      "aiTranslateWithLanguages": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} zu {languages} übersetzt",
+      "aiTranslate": "KI hat {count, plural, one {# Schlüssel} other {# Schlüssel}} übersetzt",
+      "default": "Aktivität aufgezeichnet"
+    },
+    "lastWeek": "Letzte 7 Tage",
+    "modal": {
+      "noChanges": "Keine detaillierten Änderungen aufgezeichnet",
+      "noChangesHint": "Diese Aktivität verfügt nicht über detaillierte Änderungsverfolgung.",
+      "auditTrail": "Audit-Trail",
+      "loadMore": "Mehr laden",
+      "empty": "Leer"
+    },
+    "viewAllChanges": "Alle {count} Änderungen anzeigen"
+  },
+  "common": {
+    "back": "",
+    "languages": "{count, plural, one {# Sprache} other {# Sprachen}}",
+    "loading": "Laden...",
+    "verified": "",
+    "remove": "",
+    "continue": "",
+    "pleaseWait": "",
+    "deleting": "",
+    "delete": "Löschen",
+    "saving": "",
+    "optional": "",
+    "branch": "",
+    "switching": "",
+    "create": "",
+    "active": "",
+    "keys": "",
+    "learnMore": "",
+    "viewAll": "Alle anzeigen",
+    "goBack": "",
+    "saveChanges": "",
+    "cancel": "Abbrechen",
+    "close": ""
+  },
+  "dialogs": {
+    "mergeBranch": {
+      "steps": {
+        "select": "",
+        "preview": "",
+        "resolve": ""
+      },
+      "targetBranch": "",
+      "successDescription": "",
+      "failed": "",
+      "sourceBranch": "",
+      "translationKeys": "",
+      "branchesInSync": "",
+      "noChanges": "",
+      "success": "",
+      "conflictsDetected": "",
+      "conflictsDescription": "",
+      "title": "",
+      "description": "",
+      "ready": "",
+      "deleted": "",
+      "conflicts": "",
+      "conflict": "",
+      "comparingBranches": "",
+      "howItWorksNote": "",
+      "previewChanges": "",
+      "failedToLoadDiff": "",
+      "modified": "",
+      "merging": "",
+      "selectTargetBranch": "",
+      "added": "",
+      "reviewConflicts": "",
+      "conflictsCount": "",
+      "chooseVersion": "",
+      "resolved": "",
+      "completeMerge": "",
+      "mergeChanges": "",
+      "howItWorks": "",
+      "pleaseTryAgain": ""
+    },
+    "createSpace": {
+      "slugLabel": "",
+      "slugPlaceholder": "",
+      "namePlaceholder": "",
+      "slugDescription": "",
+      "descriptionLabel": "",
+      "descriptionPlaceholder": "",
+      "autoCreatedBranch": "",
+      "success": "",
+      "creating": "",
+      "createButton": "",
+      "successDescription": "",
+      "failed": "",
+      "title": "",
+      "description": "",
+      "nameLabel": "",
+      "autoCreatedBranchNote": ""
+    },
+    "createBranch": {
+      "nameLabel": "",
+      "created": "",
+      "createFailed": "",
+      "createdDescription": "",
+      "title": "",
+      "description": "",
+      "copyFrom": "",
+      "copyNote": "",
+      "copyingKeys": "",
+      "isolationNote": "",
+      "selectSource": "",
+      "namePlaceholder": "",
+      "willBeCreatedAs": ""
+    },
+    "deleteConfirm": {
+      "deleteProject": "",
+      "removeIntegration": "",
+      "deleteEnvironment": "",
+      "removeIntegrationDescription": ""
+    }
+  },
+  "settings": {
+    "tips": {
+      "activeSessions": "",
+      "apiKeyRotation": "",
+      "title": "",
+      "strongPassword": "",
+      "strongPasswordDesc": "",
+      "apiKeyRotationDesc": "",
+      "activeSessionsDesc": ""
+    },
+    "resources": {
+      "apiDesc": "",
+      "title": "",
+      "docs": "",
+      "docsDesc": "",
+      "api": "",
+      "cliGuide": "",
+      "cliGuideDesc": ""
+    },
+    "title": "",
+    "quality": {
+      "saved": "",
+      "saveFailed": "",
+      "loading": "Qualitätseinstellungen werden geladen",
+      "aiProviderLink": {
+        "title": "AI-Anbieter-Einstellungen",
+        "description": "Konfigurieren Sie, welcher AI-Anbieter für die Qualitätsbewertung verwendet werden soll"
+      },
+      "triggers": {
+        "title": "",
+        "description": "When to automatically score translations",
+        "beforeMergeDescription": "Require quality check before merging branches",
+        "afterAI": "Score after AI translation",
+        "afterAIDescription": "Automatically score translations created by AI",
+        "beforeMerge": "Score before merge"
+      },
+      "thresholds": {
+        "description": "Score thresholds for automated workflows",
+        "autoApprove": "Auto-approve threshold",
+        "autoApproveDescription": "Automatically approve translations with score ≥ this value",
+        "flag": "Flag threshold",
+        "title": "Quality Thresholds",
+        "flagDescription": "Flag translations with score < this value for review"
+      }
+    },
+    "backToSettings": "",
+    "security": {
+      "description": "",
+      "title": ""
+    },
+    "profile": {
+      "title": "",
+      "description": ""
+    },
+    "joined": "",
+    "accountHealth": "",
+    "excellent": "",
+    "accountSettings": "",
+    "apiKeys": {
+      "description": "",
+      "title": ""
+    }
+  },
+  "apiKeys": {
+    "revokeFailed": "",
+    "copiedToClipboard": "In die Zwischenablage kopiert",
+    "revokeDialog": {
+      "cancel": "Abbrechen",
+      "title": "",
+      "revoking": "",
+      "confirm": ""
+    },
+    "securityTips": {
+      "title": "",
+      "keepSecret": "",
+      "keepSecretDesc": "",
+      "rotateRegularly": "",
+      "rotateRegularlyDesc": "",
+      "monitorUsage": "",
+      "monitorUsageDesc": ""
+    },
+    "newKeyCreated": "",
+    "lastUsed": "",
+    "never": "",
+    "revoked": "",
+    "copyWarning": "Kopieren Sie es jetzt – es wird nicht mehr angezeigt.",
+    "key": "",
+    "keys": "",
+    "noActiveKeys": "",
+    "generateFirst": "",
+    "revokedKeys": "",
+    "docs": {
+      "apiReferenceDesc": "",
+      "sdkIntegration": "",
+      "apiReference": "",
+      "sdkIntegrationDesc": "",
+      "title": "",
+      "cliSetup": "",
+      "cliSetupDesc": ""
+    },
+    "generating": "",
+    "generate": "",
+    "oneTimeDisplayHint": "",
+    "storeSecurely": "",
+    "stats": {
+      "total": "",
+      "active": ""
+    },
+    "suggestions": {
+      "cli": "",
+      "development": "",
+      "production": ""
+    },
+    "title": "",
+    "copyFailed": "Fehler beim Kopieren in die Zwischenablage",
+    "createdSuccess": "API-Schlüssel erfolgreich erstellt",
+    "createFailed": "API-Schlüssel konnte nicht erstellt werden",
+    "revokedSuccess": "",
+    "revokedDescription": "",
+    "loading": "",
+    "pageDescription": "",
+    "activeKeys": "Aktive Schlüssel",
+    "copyKeyNow": "Kopieren Sie diesen Schlüssel jetzt – er wird nicht erneut angezeigt",
+    "generateNew": "",
+    "pageTitle": "",
+    "description": "Erstellen Sie einen Schlüssel für CLI- oder SDK-Authentifizierung",
+    "quickStart": "",
+    "nameLabel": "",
+    "namePlaceholder": "",
+    "nameHint": "",
+    "oneTimeDisplay": ""
+  },
+  "environments": {
+    "switchBranchDialog": {
+      "selectBranch": "",
+      "description": "",
+      "quickUpdate": "",
+      "updateNote": ""
+    },
+    "form": {
+      "name": "",
+      "slug": "",
+      "sourceBranch": ""
+    },
+    "loading": "",
+    "deleteDialog": {
+      "description": ""
+    },
+    "toasts": {
+      "environmentDeletedDescription": "",
+      "environmentDeleteFailed": "",
+      "branchSwitchFailed": "",
+      "environmentDeleted": "",
+      "branchSwitched": "",
+      "branchSwitchedDescription": ""
+    },
+    "loadError": "",
+    "docsLink": {
+      "description": "",
+      "title": ""
+    },
+    "tips": {
+      "branches": "",
+      "updateTime": "",
+      "separate": "",
+      "title": ""
+    },
+    "empty": {
+      "createFirst": "",
+      "title": "",
+      "description": ""
+    },
+    "switchBranch": "",
+    "sdkIntegration": {
+      "title": "",
+      "description": ""
+    },
+    "title": "",
+    "subtitle": "",
+    "newEnvironment": ""
+  },
+  "verifyEmail": {
+    "expiredLink": "",
+    "verifying": "",
+    "pleaseWait": "",
+    "goToLogin": "",
+    "loading": "",
+    "loadingMessage": "",
+    "verified": "",
+    "successMessage": "",
+    "goToProfile": "",
+    "failed": "",
+    "invalidLink": ""
+  },
+  "translations": {
+    "bulkTranslate": {
+      "complete": "",
+      "completedMessage": "",
+      "translated": "",
+      "title": "",
+      "usingAI": "",
+      "usingMT": "",
+      "translating": "",
+      "skipped": "",
+      "failedLabel": "",
+      "errors": "",
+      "failed": ""
+    },
+    "toasts": {
+      "failedToTranslate": "",
+      "jobCancelled": "",
+      "noTranslationsToUpdate": "",
+      "failedToApproveTranslations": "",
+      "failedToSave": "",
+      "failedToApprove": "",
+      "failedToUpdateTranslations": "",
+      "invalidICUSyntax": "Invalid ICU syntax",
+      "icuValidationUnavailable": "",
+      "translationsUpdated": "",
+      "translationsApproved": "",
+      "translationsRejected": "",
+      "failedToDeleteKeys": "",
+      "noEmptyTranslations": "",
+      "translationsGenerated": "",
+      "failedToRejectTranslations": "",
+      "keysDeleted": ""
+    },
+    "dialogs": {
+      "bulkDeleteKeys": {
+        "title": "",
+        "description": "",
+        "confirm": ""
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "title": "Willkommen bei Lingx",
+      "description": "Professionelles Übersetzungsmanagement mit Git-ähnlicher Versionskontrolle für moderne Teams"
+    },
+    "quickActions": "Schnellaktionen",
+    "cli": {
+      "command": "",
+      "description": "Übersetzungen vom Terminal synchronisieren",
+      "title": "CLI verfügbar"
+    },
+    "onboarding": {
+      "cta": "",
+      "step1": {
+        "title": "Projekt erstellen",
+        "description": "Definieren Sie Ihre Quell- und Zielsprachen"
+      },
+      "step3": {
+        "title": "Mit Ihrer App synchronisieren",
+        "description": "CLI oder API zum Abrufen von Übersetzungen verwenden"
+      },
+      "step2": {
+        "description": "Vorhandene importieren oder neue erstellen",
+        "title": "Übersetzungsschlüssel hinzufügen"
+      }
+    },
+    "recentProjects": "Aktuelle Projekte",
+    "overview": "Hier ist Ihre Übersetzungsübersicht",
+    "greeting": {
+      "afternoon": "Guten Tag",
+      "evening": "Guten Abend",
+      "morning": "Guten Morgen"
+    },
+    "stats": {
+      "pending": "",
+      "projects": "Projekte",
+      "keys": "Schlüssel",
+      "complete": "Fertig",
+      "languages": "Sprachen"
+    },
+    "resources": {
+      "docs": "Dokumentation",
+      "title": "Ressourcen",
+      "guide": "Erste Schritte",
+      "bestPractices": "Best Practices für Sprachen"
+    },
+    "branches": {
+      "description": "Versionskontrolle",
+      "title": "Branches verwalten"
+    },
+    "team": {
+      "title": "Teammitglieder",
+      "description": "Zusammenarbeiten"
+    },
+    "createProject": {
+      "title": "Neues Projekt erstellen",
+      "description": "Starten Sie ein Lokalisierungsprojekt mit Versionskontrolle, Verzweigungen und Team-Zusammenarbeit",
+      "cta": "Loslegen"
+    },
+    "apiKeys": {
+      "description": "Zugriff verwalten",
+      "title": "API-Schlüssel"
+    },
+    "import": {
+      "title": "Übersetzungen importieren",
+      "formats": "JSON, YAML, XLIFF"
+    },
+    "progress": "Gesamtfortschritt der Übersetzungen"
+  },
+  "profile": {
+    "displayName": "",
+    "noName": "",
+    "memberSince": "",
+    "toasts": {
+      "profileUpdated": "",
+      "copiedToClipboard": "",
+      "invalidImageFile": "",
+      "verificationEmailSent": "",
+      "emailChangeCancelled": "",
+      "avatarRemoveFailed": "",
+      "avatarRemoved": "",
+      "avatarUpdated": "",
+      "preferencesSaved": "",
+      "fileTooLarge": "",
+      "preferencesSaveFailed": ""
+    },
+    "preferences": {
+      "inAppNotificationsDesc": "",
+      "activityDigest": "",
+      "language": "",
+      "spanish": "",
+      "french": "",
+      "daily": "",
+      "weekly": "",
+      "interfaceLanguage": "",
+      "colorScheme": "",
+      "english": "",
+      "ukrainian": "",
+      "russian": "",
+      "japanese": "",
+      "workflow": "",
+      "defaultProject": "",
+      "openOnLogin": "",
+      "notifications": "",
+      "never": "",
+      "appearance": "",
+      "theme": "",
+      "light": "",
+      "dark": "",
+      "system": "",
+      "inAppNotifications": "",
+      "summaryFrequency": "",
+      "german": "",
+      "emailNotifications": "",
+      "emailNotificationsDesc": "",
+      "description": "",
+      "title": ""
+    },
+    "emailChangePending": "",
+    "changeEmailDialog": {
+      "submit": "",
+      "newEmailPlaceholder": "",
+      "passwordHint": "",
+      "title": "",
+      "passwordPlaceholder": "",
+      "description": "",
+      "currentEmail": ""
+    },
+    "title": "",
+    "loading": "",
+    "loadingMessage": "",
+    "cancelEmailChange": "",
+    "avatarActions": {
+      "uploadPhoto": "",
+      "removePhoto": ""
+    },
+    "description": "",
+    "avatar": "",
+    "quickTips": {
+      "apiKeysDesc": "",
+      "security": "",
+      "securityDesc": "",
+      "title": "",
+      "keyboardShortcuts": "",
+      "keyboardShortcutsDesc": "",
+      "apiKeys": ""
+    },
+    "verificationSentTo": "",
+    "removeAvatar": "",
+    "accountDetails": {
+      "userId": "",
+      "role": "",
+      "title": "",
+      "created": ""
+    },
+    "personalInfo": "",
+    "personalInfoDescription": "",
+    "displayNamePlaceholder": "",
+    "displayNameHint": "",
+    "accountStatus": "",
+    "emailAddress": "",
+    "uploadNew": "",
+    "avatarDescription": "",
+    "uploadAvatar": "",
+    "avatarRequirements": "",
+    "changeEmail": "",
+    "emailChangeHint": "",
+    "discard": "",
+    "saveChanges": ""
+  },
+  "projects": {
+    "empty": {
+      "cta": "Erstellen Sie Ihr erstes Projekt",
+      "title": "Noch keine Projekte",
+      "description": "Erstellen Sie Ihr erstes Projekt, um mit Übersetzungen mit Versionskontrolle und Zusammenarbeit zu beginnen."
+    },
+    "card": {
+      "keys": "{count} Schlüssel",
+      "progress": "Fortschritt"
+    },
+    "failedToLoad": "",
+    "newProject": {
+      "details": {
+        "description": "",
+        "title": ""
+      },
+      "slug": {
+        "label": "",
+        "placeholder": "",
+        "description": ""
+      },
+      "title": "",
+      "description": {
+        "label": "",
+        "optional": "",
+        "placeholder": ""
+      },
+      "actions": {
+        "create": "",
+        "cancel": "",
+        "creating": ""
+      },
+      "name": {
+        "placeholder": "",
+        "label": ""
+      },
+      "languages": {
+        "title": "",
+        "description": "",
+        "defaultLabel": "",
+        "defaultPlaceholder": "",
+        "defaultDescription": ""
+      },
+      "success": "",
+      "successDescription": "",
+      "failed": "",
+      "backLabel": "",
+      "subtitle": ""
+    },
+    "search": {
+      "placeholder": "Projekte suchen...",
+      "noResults": "Keine Projekte gefunden",
+      "noResultsHint": "Versuchen Sie Ihre Suche anzupassen"
+    },
+    "stats": {
+      "totalKeys": "Schlüssel Gesamt"
+    },
+    "filters": "Filter",
+    "title": "Projekte",
+    "description": "Verwalten Sie Ihre Lokalisierungsprojekte"
+  },
+  "twoFactor": {
+    "lostAccess": "",
+    "useAuthenticatorApp": "",
+    "backupCode": "",
+    "backupCodeTitle": "",
+    "codesRemaining": "",
+    "backToLogin": "",
+    "backupCodePlaceholder": "",
+    "rememberDeviceDescription": "",
+    "enterAllDigits": "",
+    "verificationFailed": "",
+    "title": "",
+    "enterBackupCode": "",
+    "enterCode": "",
+    "verificationCode": "",
+    "rememberDevice": "",
+    "verifying": "",
+    "verifyAndSignIn": "",
+    "haveYourApp": "",
+    "useBackupCode": "",
+    "havingTrouble": "",
+    "getHelp": ""
+  },
+  "projectSettings": {
+    "languages": {
+      "title": "",
+      "subtitle": "",
+      "selectedCount": "",
+      "source": "",
+      "sourceLanguage": "",
+      "selectSourceLanguage": "",
+      "sourceLanguageDescription": ""
+    },
+    "details": {
+      "descriptionPlaceholder": "",
+      "identifierDescription": "",
+      "identifier": "",
+      "readOnly": "",
+      "description": "",
+      "title": "",
+      "subtitle": "",
+      "name": "",
+      "namePlaceholder": ""
+    },
+    "layout": {
+      "needHelp": "",
+      "nav": {
+        "general": "",
+        "integrationsDescription": "",
+        "integrations": "",
+        "glossary": "",
+        "glossaryDescription": "",
+        "securityDescription": "",
+        "generalDescription": "",
+        "team": "",
+        "teamDescription": "",
+        "security": ""
+      },
+      "configure": "",
+      "comingSoon": "",
+      "needHelpDescription": "",
+      "title": "",
+      "loadingSettings": "",
+      "subtitle": ""
+    },
+    "unsavedChanges": "",
+    "dangerZone": {
+      "deleteDialogDescription": "",
+      "subtitle": "",
+      "deleteButton": "",
+      "title": "",
+      "deleteTitle": "",
+      "deleteDescription": ""
+    },
+    "toasts": {
+      "projectUpdated": "",
+      "projectUpdatedDescription": "",
+      "projectUpdateFailed": "",
+      "projectDeleted": "",
+      "projectDeleteFailed": "",
+      "projectDeletedDescription": ""
+    },
+    "allChangesSaved": ""
+  },
+  "projectDetail": {
+    "translationCoverage": {
+      "title": "",
+      "default": "",
+      "subtitle": ""
+    },
+    "spacesAndBranches": {
+      "noSpacesYet": "",
+      "createFirstSpace": "",
+      "branchCount": "",
+      "keyCount": "",
+      "newSpace": "",
+      "mergeBranchAriaLabel": "",
+      "title": "",
+      "description": "",
+      "newBranch": ""
+    },
+    "quickActions": {
+      "apiKeys": "",
+      "title": "",
+      "environmentsSubtitle": "",
+      "apiKeysSubtitle": "",
+      "projectSettings": "",
+      "projectSettingsSubtitle": "",
+      "editTranslations": "",
+      "editTranslationsSubtitle": "",
+      "environments": ""
+    },
+    "notFound": "",
+    "openEditor": "",
+    "startTranslating": "",
+    "editOnBranch": ""
+  },
+  "integrations": {
+    "toasts": {
+      "configSaved": "",
+      "configSavedDescription": "",
+      "configSaveFailed": "",
+      "configRemoved": "",
+      "configRemoveFailed": "",
+      "configRemovedDescription": "",
+      "connectionSuccessful": "",
+      "connectionSuccessfulDescription": "",
+      "connectionFailed": "",
+      "connectionFailedDescription": "",
+      "testFailed": "",
+      "testFailedDescription": ""
+    },
+    "providers": {
+      "subtitle": "",
+      "title": ""
+    },
+    "usage": {
+      "subtitle": "",
+      "title": "",
+      "active": "",
+      "noData": "",
+      "cacheHits": "",
+      "estCost": "",
+      "characters": "",
+      "requests": ""
+    },
+    "getOneHere": "",
+    "enableProvider": "",
+    "howItWorks": {
+      "title": "",
+      "subtitle": "",
+      "caching": {
+        "description": "",
+        "title": ""
+      },
+      "priority": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "connected": "",
+    "apiKey": "",
+    "enterApiKey": "",
+    "enableProviderDescription": "",
+    "saveConfiguration": "",
+    "test": "",
+    "connectAccount": "",
+    "configure": "",
+    "update": "",
+    "apiKeyDescription": ""
+  },
+  "sidebar": {
+    "signOut": "",
+    "userFallback": "",
+    "apiKeys": "",
+    "projects": "",
+    "language": "",
+    "dashboard": "",
+    "settings": "",
+    "brand": "",
+    "tagline": ""
+  },
+  "time": {
+    "date": "",
+    "justNow": "",
+    "minutesAgo": "",
+    "hoursAgo": "",
+    "daysAgo": "",
+    "today": "",
+    "yesterday": ""
+  },
+  "auth": {
+    "and": "",
+    "termsAgreement": "",
+    "unexpectedError": "",
+    "termsOfService": "",
+    "password": "",
+    "registrationFailed": "",
+    "startManaging": "",
+    "fullName": "",
+    "fullNamePlaceholder": "",
+    "privacyPolicy": "",
+    "welcomeDescription": "",
+    "welcomeToast": "",
+    "accountCreated": "",
+    "accountCreatedDescription": "",
+    "emailAddress": "",
+    "createAccount": "",
+    "createAnAccount": "",
+    "creatingAccount": "",
+    "alreadyHaveAccount": "",
+    "signInInstead": "",
+    "passkeyAuthFailed": "",
+    "passkeySignInFailed": "",
+    "signInFailed": "",
+    "welcomeBack": "",
+    "enterCredentials": "",
+    "passkeySignInSuccess": "",
+    "authenticating": "",
+    "signInWithPasskey": "",
+    "signingIn": "",
+    "signIn": "",
+    "newToLingx": "",
+    "emailPlaceholder": "",
+    "createPassword": "",
+    "orContinueWithEmail": "",
+    "forgotPassword": "Passwort vergessen?",
+    "passwordPlaceholder": ""
+  },
+  "quality": {
+    "bulkEvaluation": {
+      "allCached": "",
+      "descriptionSelected": "Evaluate quality for {count} selected translations",
+      "queued": "Quality evaluation queued",
+      "failed": "Failed to queue quality evaluation",
+      "title": "Evaluate Translation Quality",
+      "descriptionAll": "Evaluate quality for all translations in this branch",
+      "infoAI": "AI evaluation for complex quality issues",
+      "infoProcessing": "Processing happens in the background",
+      "queuing": "Queuing...",
+      "evaluate": "Evaluate Quality",
+      "infoHeuristic": "Free heuristic checks (ICU, placeholders, length)"
+    }
+  },
+  "nav": {
+    "language": "",
+    "search": "",
+    "toggleNavigation": "",
+    "toggleTheme": "",
+    "toggleSidebar": ""
   }
 }

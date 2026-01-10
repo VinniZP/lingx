@@ -1,167 +1,167 @@
 {
   "common": {
     "cancel": "Cancel",
+    "name": "Name",
     "color": "Color",
-    "delete": "Delete",
-    "name": "Name"
+    "delete": "Delete"
   },
-  "deleteEntry": {
-    "description": "This will permanently delete \"{term}\" and all its translations. This action cannot be undone.",
-    "title": "Delete Entry"
+  "tagDialog": {
+    "createTag": "Create Tag",
+    "title": "Create Tag",
+    "description": "Add a new tag to organize your glossary",
+    "namePlaceholder": "e.g. Technical, Legal"
   },
-  "deleteTag": {
-    "description": "This will remove the tag \"{name}\" from all entries. The entries themselves will not be deleted.",
-    "title": "Delete Tag"
+  "toasts": {
+    "importFailed": "Failed to import glossary",
+    "exportSuccess": "Glossary exported",
+    "entryUpdated": "Entry updated",
+    "entryDeleted": "Entry deleted",
+    "deleteFailed": "Failed to delete entry",
+    "tagCreated": "Tag created",
+    "tagFailed": "Failed to create tag",
+    "syncSuccess": "Glossary synced to {provider}",
+    "syncFailed": "Failed to sync glossary",
+    "syncDeleted": "Synced glossary deleted from provider",
+    "entryCreated": "Entry created",
+    "tagDeleted": "Tag deleted",
+    "exportFailed": "Failed to export glossary",
+    "syncDeleteFailed": "Failed to delete synced glossary",
+    "entryFailed": "Failed to save entry",
+    "deleteTagFailed": "Failed to delete tag",
+    "importSuccess": "Glossary imported successfully"
+  },
+  "stats": {
+    "translationsAcross": "{count} translations across languages",
+    "pairs": "Pairs",
+    "description": "Glossary statistics and insights",
+    "active": "Active",
+    "totalTerms": "Total Terms",
+    "activeCombinations": "Active translation combinations",
+    "categories": "Categories",
+    "tagsDefined": "Tags Defined",
+    "title": "Overview",
+    "languagePairs": "Language Pairs",
+    "organizationalCategories": "Organizational categories"
+  },
+  "tags": {
+    "title": "Tags",
+    "description": "Organize terms by category",
+    "addTag": "Add Tag",
+    "noTagsYet": "No tags yet",
+    "createToOrganize": "Create tags to categorize and organize your terminology",
+    "createFirstTag": "Create First Tag"
   },
   "dialog": {
-    "addDescription": "Add a new term to your project glossary for consistent translations",
-    "addNewTerm": "Add New Term",
-    "addTerm": "Add Term",
-    "additionalDetails": "Additional Details",
-    "caseSensitive": "Case Sensitive Matching",
-    "caseSensitiveDescription": "Require exact letter casing when matching this term",
-    "changesApplyToAll": "Changes will apply to all translations",
-    "classification": "Classification",
-    "contextPlaceholder": "Provide an example sentence or describe where this term is used...",
-    "domain": "Domain",
-    "domainPlaceholder": "e.g. technical, legal, medical",
     "editDescription": "Update the glossary entry details and translations",
     "editTerm": "Edit Term",
-    "noneSpecified": "None specified",
-    "notesPlaceholder": "Add guidance or special instructions for translators...",
-    "partOfSpeech": "Part of Speech",
-    "saveChanges": "Save Changes",
-    "selectLanguage": "Select language",
-    "selectType": "Select type",
-    "sourceLanguage": "Source Language",
-    "sourceTerm": "Source Term",
-    "sourceTermPlaceholder": "e.g. API, Dashboard, Settings",
-    "tags": "Tags",
-    "tagsSelected": "{count} selected",
-    "termAvailableForMatching": "Term will be available for matching",
     "termInformation": "Term Information",
+    "addNewTerm": "Add New Term",
+    "caseSensitive": "Case Sensitive Matching",
+    "notesPlaceholder": "Add guidance or special instructions for translators...",
+    "caseSensitiveDescription": "Require exact letter casing when matching this term",
+    "tags": "Tags",
+    "changesApplyToAll": "Changes will apply to all translations",
+    "termAvailableForMatching": "Term will be available for matching",
+    "saveChanges": "Save Changes",
+    "addTerm": "Add Term",
+    "domainPlaceholder": "e.g. technical, legal, medical",
+    "sourceTerm": "Source Term",
+    "addDescription": "Add a new term to your project glossary for consistent translations",
+    "sourceTermPlaceholder": "e.g. API, Dashboard, Settings",
+    "sourceLanguage": "Source Language",
+    "selectLanguage": "Select language",
+    "classification": "Classification",
+    "partOfSpeech": "Part of Speech",
+    "selectType": "Select type",
+    "noneSpecified": "None specified",
+    "domain": "Domain",
+    "additionalDetails": "Additional Details",
+    "usageContext": "Usage Context",
+    "contextPlaceholder": "Provide an example sentence or describe where this term is used...",
     "translatorNotes": "Translator Notes",
-    "usageContext": "Usage Context"
+    "tagsSelected": "{count} selected"
+  },
+  "terminology": {
+    "title": "Terminology",
+    "description": "Manage your glossary entries",
+    "addTerm": "Add Term",
+    "exportAsCsv": "Export as CSV",
+    "exportAsTbx": "Export as TBX",
+    "import": "Import",
+    "export": "Export"
+  },
+  "providerSync": {
+    "syncToDeepL": "Sync to DeepL",
+    "termsSynced": "{count} terms synced",
+    "title": "Provider Sync",
+    "consistency": "Terminology Consistency",
+    "consistencyDescription": "Sync your glossary to machine translation providers to ensure consistent terminology. Your terms will be applied automatically during translations.",
+    "activeSyncs": "Active Syncs",
+    "connected": "{count} connected",
+    "noSyncs": "No syncs configured",
+    "description": "Sync glossary to translation providers",
+    "connectBelow": "Connect your glossary to a provider below",
+    "quickSync": "Quick Sync",
+    "syncToGoogle": "Sync to Google"
+  },
+  "import": {
+    "overwriteExisting": "Overwrite Existing Terms",
+    "overwriteDescription": "Update terms that already exist in your glossary",
+    "clickToSelect": "Click to select file",
+    "dragAndDrop": "or drag and drop your {format} file here",
+    "options": "Import Options",
+    "accepts": "Accepts {format} files",
+    "selectFile": "Select File",
+    "description": "Import terminology from industry-standard file formats",
+    "fileFormat": "File Format",
+    "tbxDescription": "TermBase eXchange (ISO)",
+    "csvDescription": "Comma-separated values",
+    "title": "Import Glossary"
+  },
+  "partOfSpeech": {
+    "pronoun": "Pronoun",
+    "verb": "Verb",
+    "adjective": "Adjective",
+    "preposition": "Preposition",
+    "conjunction": "Conjunction",
+    "interjection": "Interjection",
+    "adverb": "Adverb",
+    "other": "Other",
+    "determiner": "Determiner",
+    "noun": "Noun"
+  },
+  "list": {
+    "loading": "Loading entries...",
+    "noMatching": "No matching entries",
+    "startBuilding": "Start building your glossary",
+    "adjustFilters": "Try adjusting your filters to find what you're looking for",
+    "addTerminology": "Add terminology to ensure consistent translations across your project",
+    "addFirstTerm": "Add First Term"
   },
   "entry": {
     "moreTranslations": "+{count} more"
   },
+  "deleteEntry": {
+    "title": "Delete Entry",
+    "description": "This will permanently delete \"{term}\" and all its translations. This action cannot be undone."
+  },
   "filters": {
-    "allDomains": "All domains",
-    "allLanguages": "All languages",
-    "allTags": "All tags",
-    "domain": "Domain",
-    "entriesCount": "{count, plural, one {# entry} other {# entries}}",
     "language": "Language",
+    "allLanguages": "All languages",
+    "domain": "Domain",
+    "allDomains": "All domains",
+    "tag": "Tag",
+    "entriesCount": "{count, plural, one {# entry} other {# entries}}",
     "searchPlaceholder": "Search terms...",
-    "tag": "Tag"
-  },
-  "import": {
-    "accepts": "Accepts {format} files",
-    "clickToSelect": "Click to select file",
-    "csvDescription": "Comma-separated values",
-    "description": "Import terminology from industry-standard file formats",
-    "dragAndDrop": "or drag and drop your {format} file here",
-    "fileFormat": "File Format",
-    "options": "Import Options",
-    "overwriteDescription": "Update terms that already exist in your glossary",
-    "overwriteExisting": "Overwrite Existing Terms",
-    "selectFile": "Select File",
-    "tbxDescription": "TermBase eXchange (ISO)",
-    "title": "Import Glossary"
-  },
-  "list": {
-    "addFirstTerm": "Add First Term",
-    "addTerminology": "Add terminology to ensure consistent translations across your project",
-    "adjustFilters": "Try adjusting your filters to find what you're looking for",
-    "loading": "Loading entries...",
-    "noMatching": "No matching entries",
-    "startBuilding": "Start building your glossary"
+    "allTags": "All tags"
   },
   "pagination": {
-    "next": "Next",
     "pageOf": "Page {page} of {total}",
-    "previous": "Previous"
+    "previous": "Previous",
+    "next": "Next"
   },
-  "partOfSpeech": {
-    "adjective": "Adjective",
-    "adverb": "Adverb",
-    "conjunction": "Conjunction",
-    "determiner": "Determiner",
-    "interjection": "Interjection",
-    "noun": "Noun",
-    "other": "Other",
-    "preposition": "Preposition",
-    "pronoun": "Pronoun",
-    "verb": "Verb"
-  },
-  "providerSync": {
-    "activeSyncs": "Active Syncs",
-    "connectBelow": "Connect your glossary to a provider below",
-    "connected": "{count} connected",
-    "consistency": "Terminology Consistency",
-    "consistencyDescription": "Sync your glossary to machine translation providers to ensure consistent terminology. Your terms will be applied automatically during translations.",
-    "description": "Sync glossary to translation providers",
-    "noSyncs": "No syncs configured",
-    "quickSync": "Quick Sync",
-    "syncToDeepL": "Sync to DeepL",
-    "syncToGoogle": "Sync to Google",
-    "termsSynced": "{count} terms synced",
-    "title": "Provider Sync"
-  },
-  "stats": {
-    "active": "Active",
-    "activeCombinations": "Active translation combinations",
-    "categories": "Categories",
-    "description": "Glossary statistics and insights",
-    "languagePairs": "Language Pairs",
-    "organizationalCategories": "Organizational categories",
-    "pairs": "Pairs",
-    "tagsDefined": "Tags Defined",
-    "title": "Overview",
-    "totalTerms": "Total Terms",
-    "translationsAcross": "{count} translations across languages"
-  },
-  "tagDialog": {
-    "createTag": "Create Tag",
-    "description": "Add a new tag to organize your glossary",
-    "namePlaceholder": "e.g. Technical, Legal",
-    "title": "Create Tag"
-  },
-  "tags": {
-    "addTag": "Add Tag",
-    "createFirstTag": "Create First Tag",
-    "createToOrganize": "Create tags to categorize and organize your terminology",
-    "description": "Organize terms by category",
-    "noTagsYet": "No tags yet",
-    "title": "Tags"
-  },
-  "terminology": {
-    "addTerm": "Add Term",
-    "description": "Manage your glossary entries",
-    "export": "Export",
-    "exportAsCsv": "Export as CSV",
-    "exportAsTbx": "Export as TBX",
-    "import": "Import",
-    "title": "Terminology"
-  },
-  "toasts": {
-    "deleteFailed": "Failed to delete entry",
-    "deleteTagFailed": "Failed to delete tag",
-    "entryCreated": "Entry created",
-    "entryDeleted": "Entry deleted",
-    "entryFailed": "Failed to save entry",
-    "entryUpdated": "Entry updated",
-    "exportFailed": "Failed to export glossary",
-    "exportSuccess": "Glossary exported",
-    "importFailed": "Failed to import glossary",
-    "importSuccess": "Glossary imported successfully",
-    "syncDeleteFailed": "Failed to delete synced glossary",
-    "syncDeleted": "Synced glossary deleted from provider",
-    "syncFailed": "Failed to sync glossary",
-    "syncSuccess": "Glossary synced to {provider}",
-    "tagCreated": "Tag created",
-    "tagDeleted": "Tag deleted",
-    "tagFailed": "Failed to create tag"
+  "deleteTag": {
+    "title": "Delete Tag",
+    "description": "This will remove the tag \"{name}\" from all entries. The entries themselves will not be deleted."
   }
 }

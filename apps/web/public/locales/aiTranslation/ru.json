@@ -1,114 +1,109 @@
 {
   "quality": {
-    "title": "Оценка качества",
-    "saved": "Настройки качества сохранены",
-    "save": "Сохранить",
     "noProvidersWarning": "AI провайдеры не настроены. Включите хотя бы один провайдер выше.",
-    "provider": "AI провайдер",
+    "save": "Сохранить",
+    "saved": "Настройки качества сохранены",
     "saveFailed": "Не удалось сохранить настройки качества",
-    "description": "Настройте AI-оценку качества переводов",
     "enable": "Включить AI оценку качества",
-    "enableDescription": "Использовать AI для анализа точности и стиля перевода",
+    "description": "Настройте AI-оценку качества переводов",
     "selectProvider": "Выберите провайдера",
+    "provider": "AI провайдер",
+    "enableDescription": "Использовать AI для анализа точности и стиля перевода",
+    "title": "Оценка качества",
     "providerDescription": "Выберите включенный AI провайдер для оценки качества",
     "model": "Модель",
     "selectModel": "Выберите модель",
     "modelDescription": "Выберите модель для анализа качества",
     "configuredWith": "Настроено"
   },
-  "pageTitle": "AI Translation",
-  "toasts": {
-    "configSaved": "",
-    "configSavedDescription": "{provider} настроен.",
-    "configSaveFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} удалён.",
-    "configRemoveFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Успешно подключено к {provider}.",
-    "connectionFailed": ""
-  },
   "usage": {
     "stats": {
-      "totalTokens": "",
-      "requests": "",
-      "cacheHits": "",
-      "estCost": ""
+      "totalTokens": "Всего токенов",
+      "requests": "Запросы",
+      "cacheHits": "Попадания в кэш",
+      "estCost": "Оценочная стоимость"
     },
-    "title": "",
-    "byProvider": "",
-    "description": "",
-    "tokens": "",
-    "requests": ""
+    "title": "Статистика использования",
+    "description": "Использование ИИ-перевода в этом месяце",
+    "byProvider": "По провайдерам",
+    "tokens": "токены",
+    "requests": "запросы"
   },
   "sections": {
-    "providers": "",
-    "contextSettings": "",
-    "qualityEvaluation": "Оценка качества",
-    "usage": ""
+    "providers": "Провайдеры ИИ",
+    "contextSettings": "Настройки контекста",
+    "usage": "Использование",
+    "qualityEvaluation": "Оценка качества"
+  },
+  "toasts": {
+    "configSaved": "Конфигурация сохранена",
+    "configSavedDescription": "{provider} настроен.",
+    "configSaveFailed": "Не удалось сохранить конфигурацию",
+    "configRemoved": "Конфигурация удалена",
+    "configRemovedDescription": "{provider} удалён.",
+    "configRemoveFailed": "Не удалось удалить конфигурацию",
+    "connectionSuccess": "Подключение успешно",
+    "connectionSuccessDescription": "Успешно подключено к {provider}.",
+    "connectionFailed": "Сбой подключения",
+    "connectionTestFailed": "Тест соединения не выполнен",
+    "contextSaved": "Настройки контекста сохранены",
+    "contextSaveFailed": "Не удалось сохранить настройки контекста"
   },
   "provider": {
     "form": {
       "apiKeyPlaceholder": "Введите API ключ {provider}",
+      "model": "Модель",
+      "modelPlaceholder": "Выберите модель",
+      "enableProviderDescription": "Разрешить этому провайдеру использоваться для ИИ-переводов",
+      "modelDescription": "Выберите модель для ИИ-переводов",
+      "enableProvider": "Включить провайдера",
       "apiKeyHint": {
-        "openai": "",
-        "anthropic": "",
-        "googleAI": "",
-        "mistral": ""
+        "openai": "Получите свой API ключ на platform.openai.com",
+        "anthropic": "Получите свой API-ключ на console.anthropic.com",
+        "googleAI": "Получите свой API-ключ на aistudio.google.com",
+        "mistral": "Получите свой API-ключ на console.mistral.ai"
       },
-      "modelPlaceholder": "",
-      "modelDescription": "",
-      "enableProvider": "",
-      "enableProviderDescription": "",
-      "model": "",
-      "apiKey": "",
-      "apiKeyKeepCurrent": "",
-      "apiKeyUpdatePlaceholder": ""
+      "apiKey": "API ключ",
+      "apiKeyKeepCurrent": "Оставьте пустым, чтобы сохранить текущее значение",
+      "apiKeyUpdatePlaceholder": "Введите новый ключ для обновления"
     },
     "googleAI": {
-      "description": ""
+      "description": "Gemini 3 — модели для быстрых и экономичных переводов"
     },
     "mistral": {
-      "description": ""
-    },
-    "openai": {
-      "description": ""
-    },
-    "anthropic": {
-      "description": ""
+      "description": "Модели Mistral для эффективной поддержки европейских языков"
     },
     "actions": {
       "cancel": "Отмена",
-      "saving": "Сохранение...",
+      "edit": "Изменить",
       "save": "Сохранить",
       "remove": "Удалить",
-      "test": "Тест",
-      "edit": "Изменить"
+      "saving": "Сохранение...",
+      "test": "Тест"
+    },
+    "anthropic": {
+      "description": "Модели Claude 4.5 для тонких, контекстно-зависимых переводов"
     },
     "removeDialog": {
       "title": "Удалить {provider}",
       "description": "Это удалит API ключ и отключит AI‑переводы с использованием {provider}. Вы сможете добавить его снова позже."
     },
     "status": {
-      "active": "",
-      "inactive": ""
+      "active": "Активно",
+      "inactive": "Неактивно"
+    },
+    "openai": {
+      "description": "Модели GPT-5 и GPT-4.1 для высококачественных переводов"
     }
   },
   "context": {
-    "customInstructions": {
-      "placeholder": "например: «Используйте формальный стиль для переводов на немецкий» или «Делайте переводы лаконичными для мобильного интерфейса»",
-      "title": "Дополнительные инструкции",
-      "description": "Добавьте конкретные инструкции для ИИ"
-    },
+    "saveSettings": "Сохранить настройки",
     "title": "Настройка контекста",
     "description": "Настройте, какой контекст ИИ использует для более точных переводов",
-    "maxItems": "Максимум элементов",
-    "minSimilarity": "Минимальное сходство",
-    "saveNote": "Изменения будут применяться ко всем будущим переводам ИИ",
-    "saveSettings": "Сохранить настройки",
+    "relatedKeys": {
+      "label": "Связанные ключи",
+      "description": "Учитывать переводы из связанных ключей"
+    },
     "glossary": {
       "label": "Термины глоссария",
       "description": "Используйте глоссарий проекта для единообразной терминологии"
@@ -117,10 +112,14 @@
       "label": "Память переводов",
       "description": "Использовать похожие переводы из вашей Памяти переводов"
     },
-    "relatedKeys": {
-      "label": "Связанные ключи",
-      "description": "Учитывать переводы из связанных ключей"
-    }
+    "maxItems": "Максимум элементов",
+    "minSimilarity": "Минимальное сходство",
+    "customInstructions": {
+      "title": "Дополнительные инструкции",
+      "description": "Добавьте конкретные инструкции для ИИ",
+      "placeholder": "например: «Используйте формальный стиль для переводов на немецкий» или «Делайте переводы лаконичными для мобильного интерфейса»"
+    },
+    "saveNote": "Изменения будут применяться ко всем будущим переводам ИИ"
   },
   "pageDescription": "Настройка провайдеров ИИ для контекстных подсказок по переводу"
 }

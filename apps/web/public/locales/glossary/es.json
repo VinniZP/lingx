@@ -1,4 +1,48 @@
 {
+  "common": {
+    "cancel": "Cancelar",
+    "name": "",
+    "color": "",
+    "delete": ""
+  },
+  "tagDialog": {
+    "createTag": "",
+    "title": "",
+    "description": "",
+    "namePlaceholder": ""
+  },
+  "toasts": {
+    "importFailed": "",
+    "exportSuccess": "",
+    "entryUpdated": "",
+    "entryDeleted": "",
+    "deleteFailed": "",
+    "tagCreated": "",
+    "tagFailed": "",
+    "syncSuccess": "",
+    "syncFailed": "",
+    "syncDeleted": "",
+    "entryCreated": "",
+    "tagDeleted": "",
+    "exportFailed": "",
+    "syncDeleteFailed": "",
+    "entryFailed": "",
+    "deleteTagFailed": "",
+    "importSuccess": ""
+  },
+  "stats": {
+    "translationsAcross": "",
+    "pairs": "",
+    "description": "",
+    "active": "",
+    "totalTerms": "",
+    "activeCombinations": "",
+    "categories": "",
+    "tagsDefined": "",
+    "title": "",
+    "languagePairs": "",
+    "organizationalCategories": ""
+  },
   "tags": {
     "title": "",
     "description": "",
@@ -7,7 +51,117 @@
     "createToOrganize": "",
     "createFirstTag": ""
   },
-  "common": {
-    "cancel": "Cancelar"
+  "dialog": {
+    "editDescription": "",
+    "editTerm": "",
+    "termInformation": "",
+    "addNewTerm": "",
+    "caseSensitive": "",
+    "notesPlaceholder": "",
+    "caseSensitiveDescription": "",
+    "tags": "",
+    "changesApplyToAll": "",
+    "termAvailableForMatching": "",
+    "saveChanges": "",
+    "addTerm": "",
+    "domainPlaceholder": "",
+    "sourceTerm": "",
+    "addDescription": "",
+    "sourceTermPlaceholder": "",
+    "sourceLanguage": "",
+    "selectLanguage": "",
+    "classification": "",
+    "partOfSpeech": "",
+    "selectType": "",
+    "noneSpecified": "",
+    "domain": "",
+    "additionalDetails": "",
+    "usageContext": "",
+    "contextPlaceholder": "",
+    "translatorNotes": "",
+    "tagsSelected": ""
+  },
+  "terminology": {
+    "title": "",
+    "description": "",
+    "addTerm": "",
+    "exportAsCsv": "",
+    "exportAsTbx": "",
+    "import": "",
+    "export": ""
+  },
+  "providerSync": {
+    "syncToDeepL": "",
+    "termsSynced": "",
+    "title": "",
+    "consistency": "",
+    "consistencyDescription": "",
+    "activeSyncs": "",
+    "connected": "",
+    "noSyncs": "",
+    "description": "",
+    "connectBelow": "",
+    "quickSync": "",
+    "syncToGoogle": ""
+  },
+  "import": {
+    "overwriteExisting": "",
+    "overwriteDescription": "",
+    "clickToSelect": "",
+    "dragAndDrop": "",
+    "options": "",
+    "accepts": "",
+    "selectFile": "",
+    "description": "",
+    "fileFormat": "",
+    "tbxDescription": "",
+    "csvDescription": "",
+    "title": ""
+  },
+  "partOfSpeech": {
+    "pronoun": "",
+    "verb": "",
+    "adjective": "",
+    "preposition": "",
+    "conjunction": "",
+    "interjection": "",
+    "adverb": "",
+    "other": "",
+    "determiner": "",
+    "noun": ""
+  },
+  "list": {
+    "loading": "",
+    "noMatching": "",
+    "startBuilding": "",
+    "adjustFilters": "",
+    "addTerminology": "",
+    "addFirstTerm": ""
+  },
+  "entry": {
+    "moreTranslations": ""
+  },
+  "deleteEntry": {
+    "title": "",
+    "description": ""
+  },
+  "filters": {
+    "language": "",
+    "allLanguages": "",
+    "domain": "",
+    "allDomains": "",
+    "tag": "",
+    "entriesCount": "",
+    "searchPlaceholder": "",
+    "allTags": ""
+  },
+  "pagination": {
+    "pageOf": "",
+    "previous": "",
+    "next": ""
+  },
+  "deleteTag": {
+    "title": "",
+    "description": ""
   }
 }

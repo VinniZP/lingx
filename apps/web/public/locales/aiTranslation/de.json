@@ -1,35 +1,20 @@
 {
   "quality": {
-    "title": "Qualitätsbewertung",
-    "saved": "Qualitätseinstellungen gespeichert",
-    "save": "Speichern",
     "noProvidersWarning": "Keine AI-Anbieter konfiguriert. Aktivieren Sie mindestens einen Anbieter oben.",
-    "provider": "AI-Anbieter",
+    "save": "Speichern",
+    "saved": "Qualitätseinstellungen gespeichert",
     "saveFailed": "Qualitätseinstellungen konnten nicht gespeichert werden",
-    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
     "enable": "AI-Qualitätsbewertung aktivieren",
-    "enableDescription": "AI zur Analyse von Übersetzungsgenauigkeit und -stil verwenden",
+    "description": "Konfigurieren Sie die AI-Qualitätsbewertung für Übersetzungen",
     "selectProvider": "Anbieter auswählen",
+    "provider": "AI-Anbieter",
+    "enableDescription": "AI zur Analyse von Übersetzungsgenauigkeit und -stil verwenden",
+    "title": "Qualitätsbewertung",
     "providerDescription": "Wählen Sie den aktivierten AI-Anbieter für die Qualitätsbewertung",
     "model": "Modell",
     "selectModel": "Modell auswählen",
     "modelDescription": "Wählen Sie das Modell für die Qualitätsanalyse",
     "configuredWith": "Konfiguriert"
-  },
-  "pageTitle": "AI Translation",
-  "toasts": {
-    "configSaved": "",
-    "configSavedDescription": "{provider} wurde konfiguriert.",
-    "configSaveFailed": "",
-    "connectionTestFailed": "",
-    "contextSaved": "",
-    "contextSaveFailed": "",
-    "configRemoved": "",
-    "configRemovedDescription": "{provider} wurde entfernt.",
-    "configRemoveFailed": "",
-    "connectionSuccess": "",
-    "connectionSuccessDescription": "Erfolgreich mit {provider} verbunden.",
-    "connectionFailed": ""
   },
   "usage": {
     "stats": {
@@ -39,31 +24,45 @@
       "estCost": ""
     },
     "title": "",
-    "byProvider": "",
     "description": "",
+    "byProvider": "",
     "tokens": "",
     "requests": ""
   },
   "sections": {
     "providers": "",
     "contextSettings": "",
-    "qualityEvaluation": "Qualitätsbewertung",
-    "usage": ""
+    "usage": "",
+    "qualityEvaluation": "Qualitätsbewertung"
+  },
+  "toasts": {
+    "configSaved": "",
+    "configSavedDescription": "{provider} wurde konfiguriert.",
+    "configSaveFailed": "",
+    "configRemoved": "",
+    "configRemovedDescription": "{provider} wurde entfernt.",
+    "configRemoveFailed": "",
+    "connectionSuccess": "",
+    "connectionSuccessDescription": "Erfolgreich mit {provider} verbunden.",
+    "connectionFailed": "",
+    "connectionTestFailed": "",
+    "contextSaved": "",
+    "contextSaveFailed": ""
   },
   "provider": {
     "form": {
       "apiKeyPlaceholder": "{provider} API-Schlüssel eingeben",
+      "model": "",
+      "modelPlaceholder": "",
+      "enableProviderDescription": "",
+      "modelDescription": "",
+      "enableProvider": "",
       "apiKeyHint": {
         "openai": "",
         "anthropic": "",
         "googleAI": "",
         "mistral": ""
       },
-      "modelPlaceholder": "",
-      "modelDescription": "",
-      "enableProvider": "",
-      "enableProviderDescription": "",
-      "model": "",
       "apiKey": "",
       "apiKeyKeepCurrent": "",
       "apiKeyUpdatePlaceholder": ""
@@ -74,19 +73,16 @@
     "mistral": {
       "description": ""
     },
-    "openai": {
-      "description": ""
+    "actions": {
+      "cancel": "",
+      "edit": "",
+      "save": "",
+      "remove": "",
+      "saving": "",
+      "test": ""
     },
     "anthropic": {
       "description": ""
-    },
-    "actions": {
-      "cancel": "",
-      "saving": "",
-      "save": "",
-      "remove": "",
-      "test": "",
-      "edit": ""
     },
     "removeDialog": {
       "title": "{provider} entfernen",
@@ -95,20 +91,19 @@
     "status": {
       "active": "",
       "inactive": ""
+    },
+    "openai": {
+      "description": ""
     }
   },
   "context": {
-    "customInstructions": {
-      "placeholder": "",
-      "title": "",
-      "description": ""
-    },
+    "saveSettings": "",
     "title": "",
     "description": "",
-    "maxItems": "",
-    "minSimilarity": "",
-    "saveNote": "",
-    "saveSettings": "",
+    "relatedKeys": {
+      "label": "",
+      "description": ""
+    },
     "glossary": {
       "label": "",
       "description": ""
@@ -117,10 +112,14 @@
       "label": "",
       "description": ""
     },
-    "relatedKeys": {
-      "label": "",
-      "description": ""
-    }
+    "maxItems": "",
+    "minSimilarity": "",
+    "customInstructions": {
+      "title": "",
+      "description": "",
+      "placeholder": ""
+    },
+    "saveNote": ""
   },
   "pageDescription": ""
 }

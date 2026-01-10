@@ -1,28 +1,32 @@
 {
-  "tags": {
-    "title": "Теги",
-    "description": "Організуйте терміни за категоріями",
-    "addTag": "Додати тег",
-    "noTagsYet": "Ще немає тегів",
-    "createToOrganize": "Створіть теги для категоризації та організації вашої термінології",
-    "createFirstTag": "Створити перший тег"
+  "common": {
+    "cancel": "Скасувати",
+    "name": "Назва",
+    "color": "Колір",
+    "delete": "Видалити"
+  },
+  "tagDialog": {
+    "createTag": "Створити теґ",
+    "title": "Створити теґ",
+    "description": "Додайте новий теґ для організації вашого словника",
+    "namePlaceholder": "напр. Технічний, Юридичний"
   },
   "toasts": {
     "importFailed": "Не вдалося імпортувати глосарій",
     "exportSuccess": "Глосарій експортовано",
-    "exportFailed": "Не вдалося експортувати глосарій",
-    "syncSuccess": "Глосарій синхронізовано з {provider}",
-    "syncFailed": "Не вдалося синхронізувати глосарій",
-    "syncDeleted": "Синхронізований глосарій видалено від постачальника",
-    "syncDeleteFailed": "Не вдалося видалити синхронізований глосарій",
     "entryUpdated": "Запис оновлено",
-    "entryCreated": "Запис створено",
-    "entryFailed": "Не вдалося зберегти запис",
     "entryDeleted": "Запис видалено",
     "deleteFailed": "Не вдалося видалити запис",
     "tagCreated": "Тег створено",
     "tagFailed": "Не вдалося створити тег",
+    "syncSuccess": "Глосарій синхронізовано з {provider}",
+    "syncFailed": "Не вдалося синхронізувати глосарій",
+    "syncDeleted": "Синхронізований глосарій видалено від постачальника",
+    "entryCreated": "Запис створено",
     "tagDeleted": "Тег видалено",
+    "exportFailed": "Не вдалося експортувати глосарій",
+    "syncDeleteFailed": "Не вдалося видалити синхронізований глосарій",
+    "entryFailed": "Не вдалося зберегти запис",
     "deleteTagFailed": "Не вдалося видалити тег",
     "importSuccess": "Глосарій успішно імпортовано"
   },
@@ -32,91 +36,99 @@
     "description": "Статистика та аналітика глосарію",
     "active": "Активних",
     "totalTerms": "Всього термінів",
-    "languagePairs": "Мовні пари",
-    "title": "Огляд",
     "activeCombinations": "Активні комбінації перекладів",
     "categories": "Категорії",
     "tagsDefined": "Визначених тегів",
+    "title": "Огляд",
+    "languagePairs": "Мовні пари",
     "organizationalCategories": "Організаційні категорії"
+  },
+  "tags": {
+    "title": "Теги",
+    "description": "Організуйте терміни за категоріями",
+    "addTag": "Додати тег",
+    "noTagsYet": "Ще немає тегів",
+    "createToOrganize": "Створіть теги для категоризації та організації вашої термінології",
+    "createFirstTag": "Створити перший тег"
   },
   "dialog": {
     "editDescription": "Оновіть деталі запису глосарія та переклади",
-    "addDescription": "Додайте новий термін до глосарія вашого проєкту для узгоджених перекладів",
     "editTerm": "Редагувати термін",
-    "addNewTerm": "Додати новий термін",
     "termInformation": "Інформація про термін",
-    "sourceTerm": "Термін оригіналу",
-    "sourceTermPlaceholder": "напр. API, Панель керування, Параметри",
-    "tags": "Теги",
-    "tagsSelected": "{count} вибрано",
-    "notesPlaceholder": "Додайте вказівки або спеціальні інструкції для перекладачів...",
+    "addNewTerm": "Додати новий термін",
     "caseSensitive": "Чутливість до регістру під час порівняння",
+    "notesPlaceholder": "Додайте вказівки або спеціальні інструкції для перекладачів...",
     "caseSensitiveDescription": "Вимагати точного регістру літер під час пошуку збігів для цього терміна",
+    "tags": "Теги",
+    "changesApplyToAll": "Зміни будуть застосовані до всіх перекладів",
     "termAvailableForMatching": "Термін буде доступний для відповідності",
     "saveChanges": "Зберегти зміни",
     "addTerm": "Додати термін",
-    "changesApplyToAll": "Зміни будуть застосовані до всіх перекладів",
+    "domainPlaceholder": "напр. технічна, юридична, медична",
+    "sourceTerm": "Термін оригіналу",
+    "addDescription": "Додайте новий термін до глосарія вашого проєкту для узгоджених перекладів",
+    "sourceTermPlaceholder": "напр. API, Панель керування, Параметри",
     "sourceLanguage": "Мова оригіналу",
     "selectLanguage": "Виберіть мову",
     "classification": "Класифікація",
     "partOfSpeech": "Частина мови",
     "selectType": "Виберіть тип",
     "noneSpecified": "Не вказано",
-    "domainPlaceholder": "напр. технічна, юридична, медична",
     "domain": "Домен",
     "additionalDetails": "Додаткові деталі",
     "usageContext": "Контекст використання",
     "contextPlaceholder": "Наведіть приклад речення або опишіть, де використовується цей термін...",
-    "translatorNotes": "Примітки перекладача"
+    "translatorNotes": "Примітки перекладача",
+    "tagsSelected": "{count} вибрано"
   },
   "terminology": {
     "title": "Термінологія",
     "description": "Керуйте записами вашого глосарію",
-    "export": "Експорт",
+    "addTerm": "Додати термін",
     "exportAsCsv": "Експортувати як CSV",
     "exportAsTbx": "Експортувати як TBX",
     "import": "Імпорт",
-    "addTerm": "Додати термін"
-  },
-  "import": {
-    "options": "Параметри імпорту",
-    "description": "Імпортувати термінологію з файлів у форматах промислових стандартів",
-    "title": "Імпортувати глосарій",
-    "fileFormat": "Формат файлу",
-    "csvDescription": "Значення, розділені комами",
-    "tbxDescription": "TermBase eXchange (ISO)",
-    "overwriteDescription": "Оновити терміни, які вже існують у вашому глосарії",
-    "clickToSelect": "Натисніть, щоб вибрати файл",
-    "dragAndDrop": "або перетягніть ваш файл {format} сюди",
-    "overwriteExisting": "Перезаписати існуючі терміни",
-    "selectFile": "Виберіть файл",
-    "accepts": "Приймає файли {format}"
+    "export": "Експорт"
   },
   "providerSync": {
     "syncToDeepL": "Синхронізувати з DeepL",
-    "syncToGoogle": "Синхронізувати з Google",
     "termsSynced": "{count} термінів синхронізовано",
-    "noSyncs": "Немає налаштованих синхронізацій",
-    "connectBelow": "Підключіть свій глосарій до постачальника нижче",
-    "quickSync": "Швидка синхронізація",
     "title": "Синхронізація постачальника",
-    "description": "Синхронізувати глосарій з постачальниками перекладу",
     "consistency": "Узгодженість термінології",
     "consistencyDescription": "Синхронізуйте свій глосарій з постачальниками машинного перекладу, щоб забезпечити узгоджену термінологію. Ваші терміни будуть застосовані автоматично під час перекладів.",
     "activeSyncs": "Активні синхронізації",
-    "connected": "{count} підключено"
+    "connected": "{count} підключено",
+    "noSyncs": "Немає налаштованих синхронізацій",
+    "description": "Синхронізувати глосарій з постачальниками перекладу",
+    "connectBelow": "Підключіть свій глосарій до постачальника нижче",
+    "quickSync": "Швидка синхронізація",
+    "syncToGoogle": "Синхронізувати з Google"
+  },
+  "import": {
+    "overwriteExisting": "Перезаписати існуючі терміни",
+    "overwriteDescription": "Оновити терміни, які вже існують у вашому глосарії",
+    "clickToSelect": "Натисніть, щоб вибрати файл",
+    "dragAndDrop": "або перетягніть ваш файл {format} сюди",
+    "options": "Параметри імпорту",
+    "accepts": "Приймає файли {format}",
+    "selectFile": "Виберіть файл",
+    "description": "Імпортувати термінологію з файлів у форматах промислових стандартів",
+    "fileFormat": "Формат файлу",
+    "tbxDescription": "TermBase eXchange (ISO)",
+    "csvDescription": "Значення, розділені комами",
+    "title": "Імпортувати глосарій"
   },
   "partOfSpeech": {
     "pronoun": "Займенник",
-    "determiner": "Визначник",
-    "other": "Інше",
-    "noun": "Іменник",
     "verb": "Дієслово",
     "adjective": "Прикметник",
     "preposition": "Прийменник",
     "conjunction": "Сполучник",
     "interjection": "Вигук",
-    "adverb": "Прислівник"
+    "adverb": "Прислівник",
+    "other": "Інше",
+    "determiner": "Визначник",
+    "noun": "Іменник"
   },
   "list": {
     "loading": "Завантаження записів...",
@@ -129,39 +141,27 @@
   "entry": {
     "moreTranslations": "+{count} ще"
   },
+  "deleteEntry": {
+    "title": "Видалити запис",
+    "description": "Це назавжди видалить \"{term}\" та всі його переклади. Цю дію неможливо скасувати."
+  },
   "filters": {
-    "searchPlaceholder": "Пошукові терміни...",
     "language": "Мова",
     "allLanguages": "Усі мови",
     "domain": "Домен",
     "allDomains": "Усі домени",
     "tag": "Тег",
-    "allTags": "Усі теги",
-    "entriesCount": "{count, plural, one {# запис} other {# записи}}"
+    "entriesCount": "{count, plural, one {# запис} other {# записи}}",
+    "searchPlaceholder": "Пошукові терміни...",
+    "allTags": "Усі теги"
   },
   "pagination": {
     "pageOf": "Сторінка {page} з {total}",
     "previous": "Попередня",
     "next": "Далі"
   },
-  "deleteEntry": {
-    "title": "Видалити запис",
-    "description": "Це назавжди видалить \"{term}\" та всі його переклади. Цю дію неможливо скасувати."
-  },
-  "common": {
-    "delete": "Видалити",
-    "name": "Назва",
-    "color": "Колір",
-    "cancel": "Скасувати"
-  },
   "deleteTag": {
     "title": "Видалити тег",
     "description": "Це видалить тег \"{name}\" з усіх записів. Самі записи не будуть видалені."
-  },
-  "tagDialog": {
-    "title": "Створити теґ",
-    "description": "Додайте новий теґ для організації вашого словника",
-    "namePlaceholder": "напр. Технічний, Юридичний",
-    "createTag": "Створити теґ"
   }
 }
