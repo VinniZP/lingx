@@ -14,12 +14,12 @@ import {
 
 export class DeleteCredentialHandler implements ICommandHandler<DeleteCredentialCommand> {
   constructor(
-    private readonly repository: WebAuthnRepository,
+    private readonly webAuthnRepository: WebAuthnRepository,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: DeleteCredentialCommand): Promise<DeleteCredentialResult> {
-    const credential = await this.repository.findCredentialById(
+    const credential = await this.webAuthnRepository.findCredentialById(
       command.credentialId,
       command.userId
     );
@@ -29,8 +29,8 @@ export class DeleteCredentialHandler implements ICommandHandler<DeleteCredential
     }
 
     // Check if user is passwordless and this is their last passkey
-    const user = await this.repository.findUserForPasswordCheck(command.userId);
-    const credentialCount = await this.repository.countCredentials(command.userId);
+    const user = await this.webAuthnRepository.findUserForPasswordCheck(command.userId);
+    const credentialCount = await this.webAuthnRepository.countCredentials(command.userId);
 
     if (!user?.password && credentialCount <= 1) {
       throw new BadRequestError(
@@ -39,7 +39,7 @@ export class DeleteCredentialHandler implements ICommandHandler<DeleteCredential
     }
 
     // Delete the credential
-    await this.repository.deleteCredential(command.credentialId);
+    await this.webAuthnRepository.deleteCredential(command.credentialId);
 
     // Publish event
     await this.eventBus.publish(new PasskeyDeletedEvent(command.userId, command.credentialId));

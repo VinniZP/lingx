@@ -1,19 +1,30 @@
 /**
  * Machine Translation Batch Worker
  *
- * Processes batch translation jobs and pre-translation requests.
- * Rate-limited to respect provider API limits.
+ * Thin dispatcher that routes jobs to CQRS command handlers.
+ * All business logic lives in the command handlers, not here.
+ *
+ * Job types:
+ * - translate-batch: Batch translate specific keys to one target language
+ * - pre-translate: Pre-translate missing translations for a branch
+ * - cleanup-cache: Clean up expired MT cache entries
+ * - bulk-translate-ui: Bulk translate from UI (supports MT + AI)
+ * - quality-batch: Batch quality evaluation
  */
-import { calculateScore, runQualityChecks, type QualityIssue } from '@lingx/shared';
-import type { PrismaClient } from '@prisma/client';
+import type { AwilixContainer } from 'awilix';
 import { Job, Worker } from 'bullmq';
+import type { FastifyBaseLogger } from 'fastify';
 import { redis } from '../lib/redis.js';
-import type { TranslationRepository } from '../modules/translation/repositories/translation.repository.js';
-import { AITranslationService } from '../services/ai-translation.service.js';
-import { MTService } from '../services/mt.service.js';
+import {
+  BatchTranslateKeysCommand,
+  BulkTranslateSyncCommand,
+  CleanupMTCacheCommand,
+  PreTranslateCommand,
+  QualityBatchCommand,
+} from '../modules/translation/index.js';
 import type { MTProviderType } from '../services/providers/index.js';
-import type { QualityEstimationService } from '../services/quality-estimation.service.js';
-import { createQualityEstimationService } from '../services/quality/index.js';
+import type { Cradle } from '../shared/container/index.js';
+import type { CommandBus } from '../shared/cqrs/index.js';
 
 /**
  * Job types for MT batch processing
@@ -61,58 +72,115 @@ export interface BulkTranslateProgress {
   errors?: Array<{ keyId: string; keyName: string; language: string; error: string }>;
 }
 
-/** Batch size for processing translations */
-const BATCH_SIZE = 10;
-
-/** Delay between batches (ms) to avoid rate limiting */
-const BATCH_DELAY = 500;
-
 /**
  * Create the MT batch worker
+ *
+ * This worker is a thin dispatcher that routes job types to their
+ * corresponding CQRS command handlers. All business logic is in the handlers.
  */
-export function createMTBatchWorker(
-  prisma: PrismaClient,
-  translationRepository: TranslationRepository
-): Worker {
-  const mtService = new MTService(prisma);
-  const aiService = new AITranslationService(prisma);
-  const qualityService = createQualityEstimationService(prisma);
+export function createMTBatchWorker(container: AwilixContainer<Cradle>): Worker {
+  const commandBus = container.resolve<CommandBus>('commandBus');
+  const accessService = container.resolve('accessService');
+  const logger = container.resolve<FastifyBaseLogger>('logger').child({ worker: 'mt-batch' });
 
   const worker = new Worker<MTJobData>(
     'mt-batch',
     async (job: Job<MTJobData>) => {
-      const { type, projectId } = job.data;
+      const { type, projectId, userId } = job.data;
+      const progressReporter = {
+        updateProgress: (data: unknown) => job.updateProgress(data as object),
+      };
 
       switch (type) {
-        case 'translate-batch':
-          await handleBatchTranslate(prisma, mtService, translationRepository, job);
-          break;
-
-        case 'pre-translate':
-          await handlePreTranslate(prisma, mtService, translationRepository, job);
-          break;
-
-        case 'cleanup-cache':
-          await handleCacheCleanup(prisma, projectId);
-          break;
-
-        case 'bulk-translate-ui':
-          await handleBulkTranslateUI(
-            prisma,
-            mtService,
-            aiService,
-            translationRepository,
-            job,
-            qualityService
+        case 'translate-batch': {
+          const { keyIds, targetLanguage, provider, overwriteExisting } = job.data;
+          if (!keyIds || !targetLanguage) {
+            throw new Error('translate-batch job missing keyIds or targetLanguage');
+          }
+          return commandBus.execute(
+            new BatchTranslateKeysCommand(
+              projectId,
+              keyIds,
+              targetLanguage,
+              userId,
+              provider,
+              overwriteExisting,
+              progressReporter
+            )
           );
-          break;
+        }
 
-        case 'quality-batch':
-          await handleQualityBatch(prisma, qualityService, job);
-          break;
+        case 'pre-translate': {
+          const { branchId, targetLanguages, provider } = job.data;
+          if (!branchId || !targetLanguages || targetLanguages.length === 0) {
+            throw new Error('pre-translate job missing branchId or targetLanguages');
+          }
+          return commandBus.execute(
+            new PreTranslateCommand(
+              projectId,
+              branchId,
+              targetLanguages,
+              userId,
+              provider,
+              progressReporter
+            )
+          );
+        }
+
+        case 'cleanup-cache': {
+          return commandBus.execute(new CleanupMTCacheCommand(projectId));
+        }
+
+        case 'bulk-translate-ui': {
+          const { branchId, keyIds, targetLanguages, translationProvider } = job.data;
+          if (!branchId || !keyIds?.length || !targetLanguages?.length) {
+            throw new Error('bulk-translate-ui job missing branchId, keyIds, or targetLanguages');
+          }
+
+          // Get project info for source language
+          let projectInfo;
+          try {
+            projectInfo = await accessService.verifyBranchAccess(userId, branchId);
+          } catch (error) {
+            throw new Error(
+              `Authorization failed for branch ${branchId}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+          }
+          const sourceLanguage = projectInfo.defaultLanguage;
+
+          return commandBus.execute(
+            new BulkTranslateSyncCommand(
+              projectId,
+              branchId,
+              keyIds,
+              targetLanguages,
+              sourceLanguage,
+              translationProvider || 'MT',
+              userId,
+              progressReporter
+            )
+          );
+        }
+
+        case 'quality-batch': {
+          const { translationIds, branchId, forceAI } = job.data;
+          if (!translationIds || translationIds.length === 0) {
+            throw new Error('quality-batch job missing translationIds');
+          }
+          return commandBus.execute(
+            new QualityBatchCommand(
+              translationIds,
+              projectId,
+              branchId || '',
+              forceAI,
+              progressReporter
+            )
+          );
+        }
 
         default:
-          console.warn(`[MTWorker] Unknown job type: ${type}`);
+          logger.warn({ jobId: job.id, type }, 'Unknown job type');
+          return undefined;
       }
     },
     {
@@ -126,662 +194,16 @@ export function createMTBatchWorker(
   );
 
   worker.on('failed', (job, err) => {
-    console.error(`[MTWorker] Job ${job?.id} failed:`, err.message);
+    logger.error({ jobId: job?.id, error: err.message, stack: err.stack }, 'Job failed');
   });
 
   worker.on('error', (err) => {
-    console.error('[MTWorker] Worker error:', err.message);
+    logger.error({ error: err.message, stack: err.stack }, 'Worker error');
   });
 
   worker.on('completed', (job) => {
-    console.log(`[MTWorker] Job ${job?.id} completed`);
+    logger.info({ jobId: job?.id }, 'Job completed');
   });
 
   return worker;
-}
-
-/**
- * Handle batch translation of specific keys
- */
-async function handleBatchTranslate(
-  prisma: PrismaClient,
-  mtService: MTService,
-  translationRepository: TranslationRepository,
-  job: Job<MTJobData>
-): Promise<void> {
-  const { projectId, keyIds, targetLanguage, provider, overwriteExisting } = job.data;
-
-  if (!keyIds || !targetLanguage) {
-    console.warn('[MTWorker] translate-batch job missing keyIds or targetLanguage');
-    return;
-  }
-
-  // Get project default language
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-  });
-
-  if (!project) {
-    throw new Error(`Project ${projectId} not found`);
-  }
-
-  const sourceLanguage = project.defaultLanguage;
-
-  // Get keys with their source translations
-  const keys = await prisma.translationKey.findMany({
-    where: { id: { in: keyIds } },
-    include: {
-      translations: true,
-    },
-  });
-
-  let translated = 0;
-  let skipped = 0;
-  let failed = 0;
-
-  // Process in batches
-  for (let i = 0; i < keys.length; i += BATCH_SIZE) {
-    const batch = keys.slice(i, i + BATCH_SIZE);
-
-    for (const key of batch) {
-      try {
-        // Get source translation
-        const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
-
-        if (!sourceTranslation?.value) {
-          skipped++;
-          continue;
-        }
-
-        // Check if target translation exists
-        const existingTranslation = key.translations.find((t) => t.language === targetLanguage);
-
-        if (existingTranslation?.value && !overwriteExisting) {
-          skipped++;
-          continue;
-        }
-
-        // Translate
-        const result = await mtService.translate(
-          projectId,
-          sourceTranslation.value,
-          sourceLanguage,
-          targetLanguage,
-          provider
-        );
-
-        // Save translation
-        await translationRepository.setTranslation(key.id, targetLanguage, result.translatedText);
-
-        translated++;
-      } catch (error) {
-        console.error(
-          `[MTWorker] Failed to translate key ${key.id}:`,
-          error instanceof Error ? error.message : error
-        );
-        failed++;
-      }
-    }
-
-    // Update progress
-    await job.updateProgress({
-      processed: i + batch.length,
-      total: keys.length,
-      translated,
-      skipped,
-      failed,
-    });
-
-    // Delay between batches to avoid rate limiting
-    if (i + BATCH_SIZE < keys.length) {
-      await delay(BATCH_DELAY);
-    }
-  }
-
-  console.log(
-    `[MTWorker] Batch translate complete: ${translated} translated, ${skipped} skipped, ${failed} failed`
-  );
-}
-
-/**
- * Handle pre-translation of missing translations for a branch
- */
-async function handlePreTranslate(
-  prisma: PrismaClient,
-  mtService: MTService,
-  translationRepository: TranslationRepository,
-  job: Job<MTJobData>
-): Promise<void> {
-  const { projectId, branchId, targetLanguages, provider } = job.data;
-
-  if (!branchId || !targetLanguages || targetLanguages.length === 0) {
-    console.warn('[MTWorker] pre-translate job missing branchId or targetLanguages');
-    return;
-  }
-
-  // Get project default language
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-  });
-
-  if (!project) {
-    throw new Error(`Project ${projectId} not found`);
-  }
-
-  const sourceLanguage = project.defaultLanguage;
-
-  // Get all keys for the branch with translations
-  const keys = await prisma.translationKey.findMany({
-    where: { branchId },
-    include: {
-      translations: true,
-    },
-  });
-
-  let translated = 0;
-  let skipped = 0;
-  let failed = 0;
-  const totalOperations = keys.length * targetLanguages.length;
-  let processed = 0;
-
-  // Process each target language
-  for (const targetLang of targetLanguages) {
-    // Process keys in batches
-    for (let i = 0; i < keys.length; i += BATCH_SIZE) {
-      const batch = keys.slice(i, i + BATCH_SIZE);
-
-      for (const key of batch) {
-        try {
-          processed++;
-
-          // Get source translation
-          const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
-
-          if (!sourceTranslation?.value) {
-            skipped++;
-            continue;
-          }
-
-          // Check if target translation exists
-          const existingTranslation = key.translations.find((t) => t.language === targetLang);
-
-          if (existingTranslation?.value) {
-            skipped++;
-            continue;
-          }
-
-          // Translate
-          const result = await mtService.translate(
-            projectId,
-            sourceTranslation.value,
-            sourceLanguage,
-            targetLang,
-            provider
-          );
-
-          // Save translation
-          await translationRepository.setTranslation(key.id, targetLang, result.translatedText);
-
-          translated++;
-        } catch (error) {
-          console.error(
-            `[MTWorker] Failed to translate key ${key.id} to ${targetLang}:`,
-            error instanceof Error ? error.message : error
-          );
-          failed++;
-        }
-      }
-
-      // Update progress
-      await job.updateProgress({
-        processed,
-        total: totalOperations,
-        translated,
-        skipped,
-        failed,
-      });
-
-      // Delay between batches
-      if (i + BATCH_SIZE < keys.length) {
-        await delay(BATCH_DELAY);
-      }
-    }
-  }
-
-  console.log(
-    `[MTWorker] Pre-translate complete: ${translated} translated, ${skipped} skipped, ${failed} failed`
-  );
-}
-
-/**
- * Handle cache cleanup for expired entries
- */
-async function handleCacheCleanup(prisma: PrismaClient, projectId: string): Promise<void> {
-  const result = await prisma.machineTranslationCache.deleteMany({
-    where: {
-      projectId,
-      expiresAt: {
-        lt: new Date(),
-      },
-    },
-  });
-
-  console.log(`[MTWorker] Cleaned up ${result.count} expired cache entries`);
-}
-
-/**
- * Handle bulk translate from UI (supports both MT and AI)
- */
-async function handleBulkTranslateUI(
-  prisma: PrismaClient,
-  mtService: MTService,
-  aiService: AITranslationService,
-  translationRepository: TranslationRepository,
-  job: Job<MTJobData>,
-  qualityService?: QualityEstimationService
-): Promise<{
-  translated: number;
-  skipped: number;
-  failed: number;
-  errors: Array<{ keyId: string; keyName: string; language: string; error: string }>;
-}> {
-  const { projectId, branchId, keyIds, targetLanguages, translationProvider } = job.data;
-
-  if (
-    !branchId ||
-    !keyIds ||
-    keyIds.length === 0 ||
-    !targetLanguages ||
-    targetLanguages.length === 0
-  ) {
-    console.warn('[MTWorker] bulk-translate-ui job missing required data');
-    return { translated: 0, skipped: 0, failed: 0, errors: [] };
-  }
-
-  const provider = translationProvider || 'MT';
-
-  // Get project default language
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-  });
-
-  if (!project) {
-    throw new Error(`Project ${projectId} not found`);
-  }
-
-  const sourceLanguage = project.defaultLanguage;
-
-  // Get keys with their translations
-  const keys = await prisma.translationKey.findMany({
-    where: {
-      id: { in: keyIds },
-      branchId,
-    },
-    include: {
-      translations: true,
-    },
-  });
-
-  let translated = 0;
-  let skipped = 0;
-  let failed = 0;
-  const errors: Array<{ keyId: string; keyName: string; language: string; error: string }> = [];
-  const totalOperations = keys.length * targetLanguages.length;
-  let processed = 0;
-
-  // Process each key
-  for (const key of keys) {
-    // Get source translation
-    const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
-    const sourceText = sourceTranslation?.value;
-
-    if (!sourceText || sourceText.trim() === '') {
-      // No source text to translate from
-      skipped += targetLanguages.length;
-      processed += targetLanguages.length;
-      await job.updateProgress({
-        total: totalOperations,
-        processed,
-        translated,
-        skipped,
-        failed,
-        currentKey: key.name,
-      } as BulkTranslateProgress);
-      continue;
-    }
-
-    // Translate to each target language
-    for (const targetLang of targetLanguages) {
-      processed++;
-
-      // Check if translation already exists
-      const existingTranslation = key.translations.find((t) => t.language === targetLang);
-      if (existingTranslation?.value && existingTranslation.value.trim() !== '') {
-        // Already has a translation
-        skipped++;
-        await job.updateProgress({
-          total: totalOperations,
-          processed,
-          translated,
-          skipped,
-          failed,
-          currentKey: key.name,
-          currentLang: targetLang,
-        } as BulkTranslateProgress);
-        continue;
-      }
-
-      try {
-        let translatedText: string;
-
-        if (provider === 'AI') {
-          const result = await aiService.translate(projectId, {
-            text: sourceText,
-            sourceLanguage,
-            targetLanguage: targetLang,
-            keyId: key.id,
-            branchId,
-          });
-          translatedText = result.text;
-        } else {
-          const result = await mtService.translateWithContext(
-            projectId,
-            branchId,
-            key.id,
-            sourceText,
-            sourceLanguage,
-            targetLang
-          );
-          translatedText = result.translatedText;
-        }
-
-        // Save the translation
-        const savedTranslation = await translationRepository.setTranslation(
-          key.id,
-          targetLang,
-          translatedText
-        );
-        translated++;
-
-        // Auto-score after AI translation if enabled
-        if (provider === 'AI' && qualityService && savedTranslation) {
-          try {
-            // Check if quality scoring is enabled for this project
-            const qualityConfig = await qualityService.getConfig(projectId);
-
-            if (qualityConfig.scoreAfterAITranslation) {
-              // Queue quality evaluation (non-blocking)
-              qualityService.evaluate(savedTranslation.id).catch((err) => {
-                console.error(
-                  `[MTWorker] Quality evaluation failed for translation ${savedTranslation.id}:`,
-                  err.message
-                );
-              });
-            }
-          } catch (err) {
-            // Don't fail the translation if quality scoring fails
-            console.error(
-              `[MTWorker] Failed to queue quality evaluation:`,
-              err instanceof Error ? err.message : 'Unknown error'
-            );
-          }
-        }
-      } catch (error) {
-        failed++;
-        errors.push({
-          keyId: key.id,
-          keyName: key.name,
-          language: targetLang,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
-
-      // Update progress
-      await job.updateProgress({
-        total: totalOperations,
-        processed,
-        translated,
-        skipped,
-        failed,
-        currentKey: key.name,
-        currentLang: targetLang,
-        errors: errors.length > 0 ? errors : undefined,
-      } as BulkTranslateProgress);
-
-      // Small delay between translations to avoid rate limiting
-      await delay(100);
-    }
-  }
-
-  console.log(
-    `[MTWorker] Bulk translate UI complete: ${translated} translated, ${skipped} skipped, ${failed} failed`
-  );
-
-  return { translated, skipped, failed, errors };
-}
-
-/**
- * Handle quality batch evaluation job
- *
- * NEW: Uses multi-language batch evaluation for consistent scoring across languages.
- * Groups translations by key and evaluates ALL languages for each key in ONE AI call.
- *
- * Benefits:
- * - Consistent scoring (same issue = same severity across languages)
- * - 5x fewer API calls (for 5 languages)
- * - Better AI context with related keys in all languages
- */
-async function handleQualityBatch(
-  prisma: PrismaClient,
-  qualityService: QualityEstimationService,
-  job: Job<MTJobData>
-): Promise<void> {
-  const { translationIds, forceAI, branchId, projectId } = job.data;
-
-  if (!translationIds || translationIds.length === 0) {
-    console.log('[MTWorker] Quality batch: no translation IDs provided');
-    return;
-  }
-
-  console.log(`[MTWorker] ====== STARTING QUALITY BATCH JOB (MULTI-LANG) ======`);
-  console.log(`[MTWorker] Job ID: ${job.id}, Branch: ${branchId}`);
-  console.log(
-    `[MTWorker] Translations to evaluate: ${translationIds.length}, Force AI: ${forceAI ?? false}`
-  );
-
-  // 1. Fetch all translations with their key info
-  const translations = await prisma.translation.findMany({
-    where: { id: { in: translationIds } },
-    include: {
-      key: {
-        include: {
-          branch: {
-            include: {
-              space: {
-                include: { project: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (translations.length === 0) {
-    console.log('[MTWorker] No translations found');
-    return;
-  }
-
-  const project = translations[0].key.branch.space.project;
-  const sourceLanguage = project.defaultLanguage;
-
-  // 2. Group translations by key
-  const byKey = new Map<string, typeof translations>();
-  for (const t of translations) {
-    const keyId = t.keyId;
-    if (!byKey.has(keyId)) {
-      byKey.set(keyId, []);
-    }
-    byKey.get(keyId)!.push(t);
-  }
-
-  console.log(`[MTWorker] Grouped into ${byKey.size} keys`);
-
-  // 3. Fetch source translations for all keys
-  const keyIds = [...byKey.keys()];
-  const sourceTranslations = await prisma.translation.findMany({
-    where: {
-      keyId: { in: keyIds },
-      language: sourceLanguage,
-    },
-    select: { keyId: true, value: true },
-  });
-  const sourceMap = new Map(sourceTranslations.map((s) => [s.keyId, s.value]));
-
-  // 4. Process keys in parallel with concurrency limit
-  let processedTranslations = 0;
-  const totalTranslations = translationIds.length;
-  const CONCURRENCY = 3; // Process 3 keys in parallel
-
-  // Track failures for reporting
-  const failureTracking = {
-    perTranslation: 0, // Per-translation evaluation failures
-    perKey: 0, // Multi-language key evaluation failures
-    errors: [] as { keyName: string; error: string }[],
-  };
-
-  const keyEntries = [...byKey.entries()];
-
-  // Process in batches of CONCURRENCY
-  // Using Promise.allSettled to prevent worker crashes from unhandled rejections
-  for (let i = 0; i < keyEntries.length; i += CONCURRENCY) {
-    const batch = keyEntries.slice(i, i + CONCURRENCY);
-
-    const results = await Promise.allSettled(
-      batch.map(async ([keyId, keyTranslations]) => {
-        const keyName = keyTranslations[0].key.name;
-        const sourceText = sourceMap.get(keyId);
-
-        if (!sourceText) {
-          // No source - use per-translation format-only evaluation
-          console.log(`[MTWorker] Key ${keyName}: no source, using format-only evaluation`);
-          for (const t of keyTranslations) {
-            await qualityService.evaluate(t.id, { forceAI }).catch((err) => {
-              failureTracking.perTranslation++;
-              console.error(
-                `[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`
-              );
-            });
-          }
-          return { keyName, status: 'format-only' };
-        }
-
-        // 5. Run heuristics for all languages (free, fast)
-        const heuristicResults = new Map<string, { score: number; issues: QualityIssue[] }>();
-
-        for (const t of keyTranslations) {
-          const checkResult = runQualityChecks({
-            source: sourceText,
-            target: t.value,
-            sourceLanguage,
-            targetLanguage: t.language,
-          });
-          const scoreResult = calculateScore(checkResult);
-          heuristicResults.set(t.language, {
-            score: scoreResult.score,
-            issues: scoreResult.issues,
-          });
-        }
-
-        // 6. Call multi-language AI evaluation (if applicable)
-        const needsAI =
-          forceAI ||
-          [...heuristicResults.values()].some(
-            (h) => h.score < 80 || h.issues.some((i) => i.severity === 'error')
-          );
-
-        if (needsAI) {
-          console.log(
-            `[MTWorker] Key ${keyName}: evaluating ${keyTranslations.length} languages with AI`
-          );
-
-          await qualityService.evaluateKeyAllLanguages(
-            keyId,
-            keyName,
-            keyTranslations.map((t) => ({ id: t.id, language: t.language, value: t.value })),
-            sourceText,
-            sourceLanguage,
-            projectId,
-            heuristicResults
-          );
-          return { keyName, status: 'ai-evaluated' };
-        } else {
-          // All heuristics passed, save heuristic scores directly
-          console.log(`[MTWorker] Key ${keyName}: all heuristics passed, skipping AI`);
-          for (const t of keyTranslations) {
-            await qualityService.evaluate(t.id, { forceAI: false }).catch((err) => {
-              failureTracking.perTranslation++;
-              console.error(
-                `[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`
-              );
-            });
-          }
-          return { keyName, status: 'heuristic-only' };
-        }
-      })
-    );
-
-    // Process results from allSettled to track failures
-    for (let j = 0; j < results.length; j++) {
-      const result = results[j];
-      if (result.status === 'rejected') {
-        const [, batchKeyTranslations] = batch[j];
-        const failedKeyName = batchKeyTranslations[0].key.name;
-        const errorMessage =
-          result.reason instanceof Error ? result.reason.message : String(result.reason);
-
-        failureTracking.perKey++;
-        failureTracking.errors.push({ keyName: failedKeyName, error: errorMessage });
-        console.error(
-          `[MTWorker] Quality evaluation failed for key: key=${failedKeyName}, languages=${batchKeyTranslations.length}, error=${errorMessage}`
-        );
-      }
-    }
-
-    // Update progress after each parallel batch
-    processedTranslations += batch.reduce((sum, [, trans]) => sum + trans.length, 0);
-    await job.updateProgress({ processed: processedTranslations, total: totalTranslations });
-  }
-
-  console.log(`[MTWorker] ====== QUALITY BATCH JOB COMPLETE ======`);
-  console.log(
-    `[MTWorker] Evaluated: ${keyEntries.length} keys, ${processedTranslations} translations`
-  );
-
-  // Report failures summary if any occurred
-  const totalFailures = failureTracking.perTranslation + failureTracking.perKey;
-  if (totalFailures > 0) {
-    console.warn(`[MTWorker] Quality evaluation failures summary:`);
-    console.warn(`[MTWorker]   - Per-translation failures: ${failureTracking.perTranslation}`);
-    console.warn(`[MTWorker]   - Per-key failures: ${failureTracking.perKey}`);
-    if (failureTracking.errors.length > 0 && failureTracking.errors.length <= 10) {
-      console.warn(
-        `[MTWorker]   - Errors: ${failureTracking.errors.map((e) => `${e.keyName}: ${e.error}`).join(', ')}`
-      );
-    } else if (failureTracking.errors.length > 10) {
-      console.warn(
-        `[MTWorker]   - First 10 errors: ${failureTracking.errors
-          .slice(0, 10)
-          .map((e) => `${e.keyName}: ${e.error}`)
-          .join(', ')}`
-      );
-    }
-  }
-}
-
-/**
- * Delay helper
- */
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

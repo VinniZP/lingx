@@ -11,7 +11,7 @@ import { TrustDeviceCommand } from './trust-device.command.js';
 
 export class TrustDeviceHandler implements ICommandHandler<TrustDeviceCommand> {
   constructor(
-    private readonly repository: TotpRepository,
+    private readonly totpRepository: TotpRepository,
     private readonly eventBus: IEventBus
   ) {}
 
@@ -20,7 +20,7 @@ export class TrustDeviceHandler implements ICommandHandler<TrustDeviceCommand> {
     trustedUntil.setDate(trustedUntil.getDate() + DEVICE_TRUST_DAYS);
 
     try {
-      await this.repository.setSessionTrust(command.sessionId, trustedUntil);
+      await this.totpRepository.setSessionTrust(command.sessionId, trustedUntil);
     } catch (err) {
       // Session may have been revoked or not exist - gracefully handle
       // P2025 = Prisma "Record not found" error

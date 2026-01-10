@@ -5,12 +5,7 @@
  * Handles all database operations related to translations.
  */
 
-import {
-  UNIQUE_VIOLATION_CODES,
-  combineKey,
-  parseNamespacedKey,
-  runQualityChecks,
-} from '@lingx/shared';
+import { UNIQUE_VIOLATION_CODES, combineKey, parseNamespacedKey } from '@lingx/shared';
 import type {
   ApprovalStatus,
   Prisma,
@@ -72,6 +67,25 @@ export interface BranchInfo {
   languageCount: number;
   sourceLanguage: string;
   enabledLanguages: string[];
+}
+
+/**
+ * Translation with key info for quality batch processing
+ */
+export interface QualityBatchTranslation {
+  id: string;
+  keyId: string;
+  language: string;
+  value: string;
+  key: { name: string };
+}
+
+/**
+ * Result of findTranslationsForQualityBatch
+ */
+export interface QualityBatchResult {
+  translations: QualityBatchTranslation[];
+  sourceLanguage: string;
 }
 
 export type KeyFilter =
@@ -217,11 +231,6 @@ export class TranslationRepository {
       return this.findKeysByCompletionFilter(branchId, options, branchInfo.languageCount);
     }
 
-    // For 'warnings' filter, check quality issues
-    if (options.filter === 'warnings') {
-      return this.findKeysByQualityFilter(branchId, options, branchInfo.sourceLanguage);
-    }
-
     // For quality score filters, use dedicated method
     if (options.qualityFilter && options.qualityFilter !== 'all') {
       return this.findKeysByQualityScoreFilter(branchId, options, branchInfo.enabledLanguages);
@@ -257,6 +266,18 @@ export class TranslationRepository {
         some: {
           status: statusMap[options.filter],
           value: { not: '' },
+        },
+      };
+    }
+
+    // Filter by quality warnings (format issues)
+    if (options.filter === 'warnings') {
+      where.translations = {
+        some: {
+          value: { not: '' },
+          qualityScore: {
+            formatScore: { lt: 100 },
+          },
         },
       };
     }
@@ -385,73 +406,6 @@ export class TranslationRepository {
 
     return {
       keys: keys as KeyWithTranslations[],
-      total,
-      page,
-      limit,
-    };
-  }
-
-  /**
-   * Find keys by quality issues filter (warnings)
-   */
-  private async findKeysByQualityFilter(
-    branchId: string,
-    options: ListKeysOptions,
-    sourceLanguage: string
-  ): Promise<KeyListResult> {
-    const page = options.page || 1;
-    const limit = options.limit || 50;
-
-    const where: Prisma.TranslationKeyWhereInput = { branchId };
-
-    if (options.namespace !== undefined) {
-      where.namespace = options.namespace === '__root__' ? null : options.namespace;
-    }
-
-    if (options.search) {
-      where.OR = [
-        { name: { contains: options.search, mode: 'insensitive' } },
-        { description: { contains: options.search, mode: 'insensitive' } },
-      ];
-    }
-
-    const allKeys = await this.prisma.translationKey.findMany({
-      where,
-      include: {
-        translations: {
-          include: { qualityScore: true },
-          orderBy: { language: 'asc' },
-        },
-      },
-      orderBy: { name: 'asc' },
-    });
-
-    // Filter to keys with quality issues
-    const keysWithIssues = allKeys.filter((key) => {
-      const sourceText = key.translations.find((t) => t.language === sourceLanguage)?.value;
-      if (!sourceText) return false;
-
-      for (const translation of key.translations) {
-        if (translation.language === sourceLanguage) continue;
-        if (!translation.value) continue;
-
-        const result = runQualityChecks({
-          source: sourceText,
-          target: translation.value,
-          sourceLanguage,
-          targetLanguage: translation.language,
-        });
-
-        if (result.issues.length > 0) return true;
-      }
-      return false;
-    });
-
-    const total = keysWithIssues.length;
-    const paginatedKeys = keysWithIssues.slice((page - 1) * limit, page * limit);
-
-    return {
-      keys: paginatedKeys as KeyWithTranslations[],
       total,
       page,
       limit,
@@ -1018,5 +972,139 @@ export class TranslationRepository {
       },
     });
     return keys as KeyWithTranslations[];
+  }
+
+  /**
+   * Get keys by IDs with translations (without branchId constraint).
+   * Returns keys with branchId for event emission.
+   */
+  async getKeysByIds(keyIds: string[]): Promise<(KeyWithTranslations & { branchId: string })[]> {
+    const keys = await this.prisma.translationKey.findMany({
+      where: { id: { in: keyIds } },
+      include: {
+        translations: {
+          include: { qualityScore: true },
+        },
+      },
+    });
+    return keys as (KeyWithTranslations & { branchId: string })[];
+  }
+
+  /**
+   * Get all keys for a branch with translations (for pre-translate).
+   */
+  async getKeysByBranchId(branchId: string): Promise<KeyWithTranslations[]> {
+    const keys = await this.prisma.translationKey.findMany({
+      where: { branchId },
+      include: {
+        translations: {
+          include: { qualityScore: true },
+        },
+      },
+    });
+    return keys as KeyWithTranslations[];
+  }
+
+  /**
+   * Get project default language by project ID.
+   */
+  async getProjectSourceLanguage(projectId: string): Promise<string | null> {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { defaultLanguage: true },
+    });
+    return project?.defaultLanguage ?? null;
+  }
+
+  // ============================================
+  // Quality Batch Operations
+  // ============================================
+
+  /**
+   * Find translations for quality batch evaluation with project source language
+   */
+  async findTranslationsForQualityBatch(translationIds: string[]): Promise<QualityBatchResult> {
+    const translations = await this.prisma.translation.findMany({
+      where: { id: { in: translationIds } },
+      select: {
+        id: true,
+        keyId: true,
+        language: true,
+        value: true,
+        key: {
+          select: {
+            name: true,
+            branch: {
+              select: {
+                space: {
+                  select: {
+                    project: {
+                      select: { defaultLanguage: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (translations.length === 0) {
+      return { translations: [], sourceLanguage: 'en' };
+    }
+
+    const sourceLanguage = translations[0].key.branch.space.project.defaultLanguage || 'en';
+
+    return {
+      translations: translations.map((t) => ({
+        id: t.id,
+        keyId: t.keyId,
+        language: t.language,
+        value: t.value,
+        key: { name: t.key.name },
+      })),
+      sourceLanguage,
+    };
+  }
+
+  /**
+   * Find source translations for given keys
+   * @returns Map of keyId to source translation value
+   */
+  async findSourceTranslations(
+    keyIds: string[],
+    sourceLanguage: string
+  ): Promise<Map<string, string>> {
+    const sourceTranslations = await this.prisma.translation.findMany({
+      where: {
+        keyId: { in: keyIds },
+        language: sourceLanguage,
+      },
+      select: { keyId: true, value: true },
+    });
+
+    return new Map(sourceTranslations.map((s) => [s.keyId, s.value]));
+  }
+
+  // ============================================
+  // MT Cache Operations
+  // ============================================
+
+  /**
+   * Clean up expired machine translation cache entries for a project
+   * @returns Number of deleted cache entries
+   */
+  async cleanupExpiredMTCache(projectId: string): Promise<number> {
+    const result = await this.prisma.machineTranslationCache.deleteMany({
+      where: {
+        projectId,
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+
+    return result.count;
   }
 }

@@ -16,13 +16,13 @@ import { ConfirmTotpSetupCommand } from './confirm-totp-setup.command.js';
 
 export class ConfirmTotpSetupHandler implements ICommandHandler<ConfirmTotpSetupCommand> {
   constructor(
-    private readonly repository: TotpRepository,
-    private readonly cryptoService: TotpCryptoService,
+    private readonly totpRepository: TotpRepository,
+    private readonly totpCryptoService: TotpCryptoService,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: ConfirmTotpSetupCommand): Promise<void> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -37,8 +37,8 @@ export class ConfirmTotpSetupHandler implements ICommandHandler<ConfirmTotpSetup
     }
 
     // Decrypt and verify the token
-    const secret = this.cryptoService.decryptSecret(user.totpSecret, user.totpSecretIv);
-    const isValid = this.cryptoService.verifyToken(secret, command.token);
+    const secret = this.totpCryptoService.decryptSecret(user.totpSecret, user.totpSecretIv);
+    const isValid = this.totpCryptoService.verifyToken(secret, command.token);
 
     if (!isValid) {
       throw new FieldValidationError(
@@ -48,7 +48,7 @@ export class ConfirmTotpSetupHandler implements ICommandHandler<ConfirmTotpSetup
     }
 
     // Enable TOTP
-    await this.repository.enableTotp(command.userId);
+    await this.totpRepository.enableTotp(command.userId);
 
     // Publish event
     await this.eventBus.publish(new TotpEnabledEvent(command.userId));

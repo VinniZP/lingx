@@ -132,7 +132,6 @@ export function WorkbenchToolbar({
           <SelectItem value="pending">{t('workbench.toolbar.statusFilter.pending')}</SelectItem>
           <SelectItem value="approved">{t('workbench.toolbar.statusFilter.approved')}</SelectItem>
           <SelectItem value="rejected">{t('workbench.toolbar.statusFilter.rejected')}</SelectItem>
-          <SelectItem value="warnings">{t('workbench.toolbar.statusFilter.warnings')}</SelectItem>
         </SelectContent>
       </Select>
 

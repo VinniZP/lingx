@@ -20,13 +20,13 @@ import {
 
 export class RegenerateBackupCodesHandler implements ICommandHandler<RegenerateBackupCodesCommand> {
   constructor(
-    private readonly repository: TotpRepository,
-    private readonly cryptoService: TotpCryptoService,
+    private readonly totpRepository: TotpRepository,
+    private readonly totpCryptoService: TotpCryptoService,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: RegenerateBackupCodesCommand): Promise<RegenerateBackupCodesResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -44,7 +44,7 @@ export class RegenerateBackupCodesHandler implements ICommandHandler<RegenerateB
     }
 
     // Verify password
-    const isValidPassword = await this.cryptoService.verifyPassword(
+    const isValidPassword = await this.totpCryptoService.verifyPassword(
       command.password,
       user.password
     );
@@ -57,11 +57,11 @@ export class RegenerateBackupCodesHandler implements ICommandHandler<RegenerateB
     }
 
     // Generate new backup codes
-    const newCodes = this.cryptoService.generateBackupCodes();
-    const hashedCodes = await this.cryptoService.hashBackupCodes(newCodes);
+    const newCodes = this.totpCryptoService.generateBackupCodes();
+    const hashedCodes = await this.totpCryptoService.hashBackupCodes(newCodes);
 
     // Replace old codes with new ones
-    await this.repository.replaceBackupCodes(command.userId, hashedCodes);
+    await this.totpRepository.replaceBackupCodes(command.userId, hashedCodes);
 
     // Publish event
     await this.eventBus.publish(new BackupCodesRegeneratedEvent(command.userId));

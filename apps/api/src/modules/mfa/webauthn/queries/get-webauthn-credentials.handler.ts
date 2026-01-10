@@ -11,10 +11,10 @@ import {
 } from './get-webauthn-credentials.query.js';
 
 export class GetWebAuthnCredentialsHandler implements IQueryHandler<GetWebAuthnCredentialsQuery> {
-  constructor(private readonly repository: WebAuthnRepository) {}
+  constructor(private readonly webAuthnRepository: WebAuthnRepository) {}
 
   async execute(query: GetWebAuthnCredentialsQuery): Promise<GetWebAuthnCredentialsResult> {
-    const credentials = await this.repository.listCredentials(query.userId);
+    const credentials = await this.webAuthnRepository.listCredentials(query.userId);
 
     return {
       credentials: credentials.map((cred) => ({

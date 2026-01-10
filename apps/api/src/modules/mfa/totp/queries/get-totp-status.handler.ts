@@ -9,10 +9,10 @@ import type { TotpRepository } from '../totp.repository.js';
 import { GetTotpStatusQuery, type TotpStatus } from './get-totp-status.query.js';
 
 export class GetTotpStatusHandler implements IQueryHandler<GetTotpStatusQuery> {
-  constructor(private readonly repository: TotpRepository) {}
+  constructor(private readonly totpRepository: TotpRepository) {}
 
   async execute(query: GetTotpStatusQuery): Promise<TotpStatus> {
-    const user = await this.repository.findUserById(query.userId);
+    const user = await this.totpRepository.findUserById(query.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -29,8 +29,8 @@ export class GetTotpStatusHandler implements IQueryHandler<GetTotpStatusQuery> {
 
     // Get counts only when TOTP is enabled
     const [backupCodesRemaining, trustedDevicesCount] = await Promise.all([
-      this.repository.countUnusedBackupCodes(query.userId),
-      this.repository.countTrustedSessions(query.userId),
+      this.totpRepository.countUnusedBackupCodes(query.userId),
+      this.totpRepository.countTrustedSessions(query.userId),
     ]);
 
     return {

@@ -10,12 +10,12 @@ import { RevokeTrustCommand } from './revoke-trust.command.js';
 
 export class RevokeTrustHandler implements ICommandHandler<RevokeTrustCommand> {
   constructor(
-    private readonly repository: TotpRepository,
+    private readonly totpRepository: TotpRepository,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: RevokeTrustCommand): Promise<void> {
-    await this.repository.revokeSessionTrust(command.sessionId, command.userId);
+    await this.totpRepository.revokeSessionTrust(command.sessionId, command.userId);
 
     await this.eventBus.publish(new DeviceTrustRevokedEvent(command.userId, command.sessionId));
   }

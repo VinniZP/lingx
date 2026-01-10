@@ -18,8 +18,8 @@ import {
 
 export class VerifyAuthenticationHandler implements ICommandHandler<VerifyAuthenticationCommand> {
   constructor(
-    private readonly repository: WebAuthnRepository,
-    private readonly configService: WebAuthnConfigService,
+    private readonly webAuthnRepository: WebAuthnRepository,
+    private readonly webAuthnConfigService: WebAuthnConfigService,
     private readonly eventBus: IEventBus,
     private readonly challengeStore: ChallengeStore
   ) {}
@@ -37,7 +37,9 @@ export class VerifyAuthenticationHandler implements ICommandHandler<VerifyAuthen
     }
 
     // Find the credential by credentialId from the response
-    const credential = await this.repository.findCredentialByCredentialId(command.response.id);
+    const credential = await this.webAuthnRepository.findCredentialByCredentialId(
+      command.response.id
+    );
 
     if (!credential) {
       throw new UnauthorizedError('Passkey not found');
@@ -49,8 +51,8 @@ export class VerifyAuthenticationHandler implements ICommandHandler<VerifyAuthen
       verification = await verifyAuthenticationResponse({
         response: command.response,
         expectedChallenge: stored.challenge,
-        expectedOrigin: this.configService.origin,
-        expectedRPID: this.configService.rpId,
+        expectedOrigin: this.webAuthnConfigService.origin,
+        expectedRPID: this.webAuthnConfigService.rpId,
         credential: {
           id: credential.credentialId,
           publicKey: Buffer.from(credential.publicKey, 'base64'),
@@ -68,7 +70,7 @@ export class VerifyAuthenticationHandler implements ICommandHandler<VerifyAuthen
     }
 
     // Update the counter and last used timestamp
-    await this.repository.updateCredentialCounter(
+    await this.webAuthnRepository.updateCredentialCounter(
       credential.id,
       BigInt(verification.authenticationInfo.newCounter)
     );

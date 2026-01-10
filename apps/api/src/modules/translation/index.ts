@@ -28,11 +28,16 @@ import { ListNamespacesHandler } from './queries/list-namespaces.handler.js';
 
 // Command handlers
 import { BatchApprovalHandler } from './commands/batch-approval.handler.js';
+import { BatchTranslateKeysHandler } from './commands/batch-translate-keys.handler.js';
 import { BulkDeleteKeysHandler } from './commands/bulk-delete-keys.handler.js';
+import { BulkTranslateSyncHandler } from './commands/bulk-translate-sync.handler.js';
 import { BulkTranslateHandler } from './commands/bulk-translate.handler.js';
 import { BulkUpdateTranslationsHandler } from './commands/bulk-update-translations.handler.js';
+import { CleanupMTCacheHandler } from './commands/cleanup-mt-cache.handler.js';
 import { CreateKeyHandler } from './commands/create-key.handler.js';
 import { DeleteKeyHandler } from './commands/delete-key.handler.js';
+import { PreTranslateHandler } from './commands/pre-translate.handler.js';
+import { QualityBatchHandler } from './commands/quality-batch.handler.js';
 import { SetApprovalStatusHandler } from './commands/set-approval-status.handler.js';
 import { SetTranslationHandler } from './commands/set-translation.handler.js';
 import { UpdateKeyTranslationsHandler } from './commands/update-key-translations.handler.js';
@@ -46,11 +51,16 @@ import { ListNamespacesQuery } from './queries/list-namespaces.query.js';
 
 // Commands
 import { BatchApprovalCommand } from './commands/batch-approval.command.js';
+import { BatchTranslateKeysCommand } from './commands/batch-translate-keys.command.js';
 import { BulkDeleteKeysCommand } from './commands/bulk-delete-keys.command.js';
+import { BulkTranslateSyncCommand } from './commands/bulk-translate-sync.command.js';
 import { BulkTranslateCommand } from './commands/bulk-translate.command.js';
 import { BulkUpdateTranslationsCommand } from './commands/bulk-update-translations.command.js';
+import { CleanupMTCacheCommand } from './commands/cleanup-mt-cache.command.js';
 import { CreateKeyCommand } from './commands/create-key.command.js';
 import { DeleteKeyCommand } from './commands/delete-key.command.js';
+import { PreTranslateCommand } from './commands/pre-translate.command.js';
+import { QualityBatchCommand } from './commands/quality-batch.command.js';
 import { SetApprovalStatusCommand } from './commands/set-approval-status.command.js';
 import { SetTranslationCommand } from './commands/set-translation.command.js';
 import { UpdateKeyTranslationsCommand } from './commands/update-key-translations.command.js';
@@ -60,6 +70,7 @@ import { UpdateKeyCommand } from './commands/update-key.command.js';
 import { KeyCreatedEvent } from './events/key-created.event.js';
 import { KeyDeletedEvent, KeysDeletedEvent } from './events/key-deleted.event.js';
 import { KeyUpdatedEvent } from './events/key-updated.event.js';
+// QualityScoresUpdatedEvent is imported and re-exported below
 import {
   TranslationApprovedEvent,
   TranslationsBatchApprovedEvent,
@@ -81,11 +92,26 @@ export { ListKeysQuery } from './queries/list-keys.query.js';
 export { ListNamespacesQuery } from './queries/list-namespaces.query.js';
 
 export { BatchApprovalCommand } from './commands/batch-approval.command.js';
+export {
+  BatchTranslateKeysCommand,
+  type BatchTranslateKeysResult,
+} from './commands/batch-translate-keys.command.js';
 export { BulkDeleteKeysCommand } from './commands/bulk-delete-keys.command.js';
+export {
+  BulkTranslateSyncCommand,
+  type BulkTranslateProgress,
+  type BulkTranslateSyncResult,
+} from './commands/bulk-translate-sync.command.js';
 export { BulkTranslateCommand } from './commands/bulk-translate.command.js';
 export { BulkUpdateTranslationsCommand } from './commands/bulk-update-translations.command.js';
+export {
+  CleanupMTCacheCommand,
+  type CleanupMTCacheResult,
+} from './commands/cleanup-mt-cache.command.js';
 export { CreateKeyCommand } from './commands/create-key.command.js';
 export { DeleteKeyCommand } from './commands/delete-key.command.js';
+export { PreTranslateCommand, type PreTranslateResult } from './commands/pre-translate.command.js';
+export { QualityBatchCommand, type QualityBatchResult } from './commands/quality-batch.command.js';
 export { SetApprovalStatusCommand } from './commands/set-approval-status.command.js';
 export { SetTranslationCommand } from './commands/set-translation.command.js';
 export { UpdateKeyTranslationsCommand } from './commands/update-key-translations.command.js';
@@ -95,6 +121,7 @@ export { UpdateKeyCommand } from './commands/update-key.command.js';
 export { KeyCreatedEvent } from './events/key-created.event.js';
 export { KeyDeletedEvent, KeysDeletedEvent } from './events/key-deleted.event.js';
 export { KeyUpdatedEvent } from './events/key-updated.event.js';
+export { QualityScoresUpdatedEvent } from './events/quality-scores-updated.event.js';
 export {
   TranslationApprovedEvent,
   TranslationsBatchApprovedEvent,
@@ -152,6 +179,19 @@ const commandRegistrations = [
     'bulkUpdateTranslationsHandler'
   ),
   defineCommandHandler(BulkTranslateCommand, BulkTranslateHandler, 'bulkTranslateHandler'),
+  defineCommandHandler(
+    BulkTranslateSyncCommand,
+    BulkTranslateSyncHandler,
+    'bulkTranslateSyncHandler'
+  ),
+  defineCommandHandler(
+    BatchTranslateKeysCommand,
+    BatchTranslateKeysHandler,
+    'batchTranslateKeysHandler'
+  ),
+  defineCommandHandler(PreTranslateCommand, PreTranslateHandler, 'preTranslateHandler'),
+  defineCommandHandler(QualityBatchCommand, QualityBatchHandler, 'qualityBatchHandler'),
+  defineCommandHandler(CleanupMTCacheCommand, CleanupMTCacheHandler, 'cleanupMTCacheHandler'),
 ];
 
 const eventRegistrations = [
@@ -227,6 +267,11 @@ export function registerTranslationModule(container: AwilixContainer<Cradle>): v
     batchApprovalHandler: asClass(BatchApprovalHandler).singleton(),
     bulkUpdateTranslationsHandler: asClass(BulkUpdateTranslationsHandler).singleton(),
     bulkTranslateHandler: asClass(BulkTranslateHandler).singleton(),
+    bulkTranslateSyncHandler: asClass(BulkTranslateSyncHandler).singleton(),
+    batchTranslateKeysHandler: asClass(BatchTranslateKeysHandler).singleton(),
+    preTranslateHandler: asClass(PreTranslateHandler).singleton(),
+    qualityBatchHandler: asClass(QualityBatchHandler).singleton(),
+    cleanupMTCacheHandler: asClass(CleanupMTCacheHandler).singleton(),
   });
 
   // Register event handlers

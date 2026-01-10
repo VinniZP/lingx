@@ -13,6 +13,8 @@ export type {
   // Type inference helpers
   InferCommandResult,
   InferQueryResult,
+  // Progress reporting for worker commands
+  ProgressReporter,
 } from './interfaces.js';
 
 // Bus implementations

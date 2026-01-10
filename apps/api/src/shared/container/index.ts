@@ -6,7 +6,14 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer } from 'awilix';
+import {
+  asClass,
+  asFunction,
+  asValue,
+  createContainer,
+  InjectionMode,
+  type AwilixContainer,
+} from 'awilix';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { redis } from '../../lib/redis.js';
@@ -18,6 +25,8 @@ import { ApiKeyService } from '../../services/api-key.service.js';
 import { AuthService } from '../../services/auth.service.js';
 import { ChallengeStore } from '../../services/challenge-store.service.js';
 import { MTService } from '../../services/mt.service.js';
+import type { QualityEstimationService } from '../../services/quality-estimation.service.js';
+import { createQualityEstimationService } from '../../services/quality/index.js';
 import { SecurityService } from '../../services/security.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
@@ -38,6 +47,7 @@ export interface Cradle {
   authService: AuthService;
   apiKeyService: ApiKeyService;
   mtService: MTService;
+  qualityEstimationService: QualityEstimationService;
   securityService: SecurityService;
   challengeStore: ChallengeStore;
 
@@ -83,6 +93,9 @@ export function createAppContainer(
     authService: asClass(AuthService).singleton(),
     apiKeyService: asClass(ApiKeyService).singleton(),
     mtService: asClass(MTService).singleton(),
+    qualityEstimationService: asFunction(({ prisma }) =>
+      createQualityEstimationService(prisma)
+    ).singleton(),
     securityService: asClass(SecurityService).singleton(),
     challengeStore: asClass(ChallengeStore).singleton(),
   });

@@ -6,14 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { KEYS_PER_PAGE } from '../_constants';
 
-export type FilterType =
-  | 'all'
-  | 'missing'
-  | 'complete'
-  | 'pending'
-  | 'approved'
-  | 'rejected'
-  | 'warnings';
+export type FilterType = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
 export type QualityFilterType = 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
 
 interface UseTranslationsPageDataOptions {

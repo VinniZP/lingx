@@ -10,16 +10,16 @@ import type { WebAuthnRepository } from '../webauthn.repository.js';
 import { GetWebAuthnStatusQuery, type WebAuthnStatus } from './get-webauthn-status.query.js';
 
 export class GetWebAuthnStatusHandler implements IQueryHandler<GetWebAuthnStatusQuery> {
-  constructor(private readonly repository: WebAuthnRepository) {}
+  constructor(private readonly webAuthnRepository: WebAuthnRepository) {}
 
   async execute(query: GetWebAuthnStatusQuery): Promise<WebAuthnStatus> {
-    const user = await this.repository.findUserForPasswordCheck(query.userId);
+    const user = await this.webAuthnRepository.findUserForPasswordCheck(query.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
     }
 
-    const credentialsCount = await this.repository.countCredentials(query.userId);
+    const credentialsCount = await this.webAuthnRepository.countCredentials(query.userId);
 
     return {
       hasPasskeys: credentialsCount > 0,

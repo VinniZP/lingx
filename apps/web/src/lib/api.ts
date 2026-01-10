@@ -355,14 +355,7 @@ export const branchApi = {
 
 // Translation types
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type KeyFilter =
-  | 'all'
-  | 'missing'
-  | 'complete'
-  | 'pending'
-  | 'approved'
-  | 'rejected'
-  | 'warnings';
+export type KeyFilter = 'all' | 'missing' | 'complete' | 'pending' | 'approved' | 'rejected';
 export type QualityScoreFilter = 'all' | 'excellent' | 'good' | 'needsReview' | 'unscored';
 
 export interface EmbeddedQualityScore {

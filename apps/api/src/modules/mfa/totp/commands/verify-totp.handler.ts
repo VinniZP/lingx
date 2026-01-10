@@ -18,13 +18,13 @@ import { VerifyTotpCommand, type VerifyTotpResult } from './verify-totp.command.
 
 export class VerifyTotpHandler implements ICommandHandler<VerifyTotpCommand> {
   constructor(
-    private readonly repository: TotpRepository,
-    private readonly cryptoService: TotpCryptoService,
+    private readonly totpRepository: TotpRepository,
+    private readonly totpCryptoService: TotpCryptoService,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: VerifyTotpCommand): Promise<VerifyTotpResult> {
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.totpRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -38,8 +38,8 @@ export class VerifyTotpHandler implements ICommandHandler<VerifyTotpCommand> {
     checkTotpRateLimit(user);
 
     // Decrypt and verify
-    const secret = this.cryptoService.decryptSecret(user.totpSecret, user.totpSecretIv);
-    const isValid = this.cryptoService.verifyToken(secret, command.token);
+    const secret = this.totpCryptoService.decryptSecret(user.totpSecret, user.totpSecretIv);
+    const isValid = this.totpCryptoService.verifyToken(secret, command.token);
 
     if (!isValid) {
       await this.handleFailedAttempt(command.userId, user.totpFailedAttempts);
@@ -50,13 +50,13 @@ export class VerifyTotpHandler implements ICommandHandler<VerifyTotpCommand> {
     }
 
     // Reset failed attempts on success
-    await this.repository.resetFailedAttempts(command.userId);
+    await this.totpRepository.resetFailedAttempts(command.userId);
 
     // Trust device if requested
     if (command.trustDevice && command.sessionId) {
       const trustedUntil = new Date();
       trustedUntil.setDate(trustedUntil.getDate() + DEVICE_TRUST_DAYS);
-      await this.repository.setSessionTrust(command.sessionId, trustedUntil);
+      await this.totpRepository.setSessionTrust(command.sessionId, trustedUntil);
     }
 
     // Publish event
@@ -67,6 +67,6 @@ export class VerifyTotpHandler implements ICommandHandler<VerifyTotpCommand> {
 
   private async handleFailedAttempt(userId: string, currentAttempts: number): Promise<void> {
     const { newAttempts, lockUntil } = calculateFailedAttempt(currentAttempts);
-    await this.repository.incrementFailedAttempts(userId, newAttempts, lockUntil);
+    await this.totpRepository.incrementFailedAttempts(userId, newAttempts, lockUntil);
   }
 }

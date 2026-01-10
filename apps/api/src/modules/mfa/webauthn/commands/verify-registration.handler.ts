@@ -17,8 +17,8 @@ import {
 
 export class VerifyRegistrationHandler implements ICommandHandler<VerifyRegistrationCommand> {
   constructor(
-    private readonly repository: WebAuthnRepository,
-    private readonly configService: WebAuthnConfigService,
+    private readonly webAuthnRepository: WebAuthnRepository,
+    private readonly webAuthnConfigService: WebAuthnConfigService,
     private readonly eventBus: IEventBus,
     private readonly challengeStore: ChallengeStore
   ) {}
@@ -35,7 +35,7 @@ export class VerifyRegistrationHandler implements ICommandHandler<VerifyRegistra
       throw new BadRequestError('Invalid challenge token');
     }
 
-    const user = await this.repository.findUserById(command.userId);
+    const user = await this.webAuthnRepository.findUserById(command.userId);
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -47,8 +47,8 @@ export class VerifyRegistrationHandler implements ICommandHandler<VerifyRegistra
       verification = await verifyRegistrationResponse({
         response: command.response,
         expectedChallenge: stored.challenge,
-        expectedOrigin: this.configService.origin,
-        expectedRPID: this.configService.rpId,
+        expectedOrigin: this.webAuthnConfigService.origin,
+        expectedRPID: this.webAuthnConfigService.rpId,
       });
     } catch {
       // Don't expose internal WebAuthn library errors to users
@@ -62,7 +62,7 @@ export class VerifyRegistrationHandler implements ICommandHandler<VerifyRegistra
     const { registrationInfo } = verification;
 
     // Store the credential
-    const credential = await this.repository.createCredential({
+    const credential = await this.webAuthnRepository.createCredential({
       userId: command.userId,
       credentialId: registrationInfo.credential.id,
       publicKey: Buffer.from(registrationInfo.credential.publicKey).toString('base64'),
