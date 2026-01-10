@@ -1,11 +1,13 @@
 /**
- * Merge Service
+ * Merge Executor
  *
  * Handles branch merging with conflict detection and resolution.
  * Per Design Doc: AC-WEB-015 - Merge with conflicts and resolution
  */
-import { PrismaClient } from '@prisma/client';
-import { DiffService, TranslationMap, ConflictEntry } from './diff.service.js';
+import type { BranchRepository } from '../repositories/branch.repository.js';
+import type { TranslationKeyRepository } from '../repositories/translation-key.repository.js';
+import type { TranslationRepository } from '../repositories/translation.repository.js';
+import type { ConflictEntry, DiffCalculator, TranslationMap } from './diff-calculator.js';
 
 export interface Resolution {
   key: string;
@@ -23,12 +25,13 @@ export interface MergeResult {
   conflicts?: ConflictEntry[];
 }
 
-export class MergeService {
-  private diffService: DiffService;
-
-  constructor(private prisma: PrismaClient) {
-    this.diffService = new DiffService(prisma);
-  }
+export class MergeExecutor {
+  constructor(
+    private readonly branchRepository: BranchRepository,
+    private readonly translationKeyRepository: TranslationKeyRepository,
+    private readonly translationRepository: TranslationRepository,
+    private readonly diffCalculator: DiffCalculator
+  ) {}
 
   /**
    * Merge source branch into target branch
@@ -49,16 +52,14 @@ export class MergeService {
     const { targetBranchId, resolutions = [] } = request;
 
     // Compute diff
-    const diff = await this.diffService.computeDiff(sourceBranchId, targetBranchId);
+    const diff = await this.diffCalculator.computeDiff(sourceBranchId, targetBranchId);
 
     // Check for unresolved conflicts
     if (diff.conflicts.length > 0) {
       const resolutionMap = new Map(resolutions.map((r) => [r.key, r.resolution]));
 
       // Check if all conflicts have resolutions
-      const unresolvedConflicts = diff.conflicts.filter(
-        (c) => !resolutionMap.has(c.key)
-      );
+      const unresolvedConflicts = diff.conflicts.filter((c) => !resolutionMap.has(c.key));
 
       if (unresolvedConflicts.length > 0) {
         return {
@@ -72,50 +73,25 @@ export class MergeService {
     // Apply changes in a transaction
     let mergedCount = 0;
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.branchRepository.transaction(async (tx) => {
       // Apply added keys (copy from source to target)
       for (const added of diff.added) {
-        // Create key in target branch
-        const newKey = await tx.translationKey.create({
-          data: {
-            branchId: targetBranchId,
-            name: added.key,
-          },
-        });
-
-        // Create translations
-        for (const [language, value] of Object.entries(added.translations)) {
-          await tx.translation.create({
-            data: {
-              keyId: newKey.id,
-              language,
-              value,
-            },
-          });
-        }
+        const newKey = await this.translationKeyRepository.create(targetBranchId, added.key, tx);
+        await this.translationRepository.createMany(newKey.id, added.translations, tx);
         mergedCount++;
       }
 
       // Apply modified keys (update target with source values)
       for (const modified of diff.modified) {
-        const targetKey = await tx.translationKey.findFirst({
-          where: { branchId: targetBranchId, name: modified.key },
-        });
+        const targetKey = await this.translationKeyRepository.findByBranchIdAndName(
+          targetBranchId,
+          modified.key,
+          tx
+        );
 
         if (targetKey) {
-          // Update each language
           for (const [language, value] of Object.entries(modified.source)) {
-            await tx.translation.upsert({
-              where: {
-                keyId_language: { keyId: targetKey.id, language },
-              },
-              update: { value },
-              create: {
-                keyId: targetKey.id,
-                language,
-                value,
-              },
-            });
+            await this.translationRepository.upsert(targetKey.id, language, value, tx);
           }
           mergedCount++;
         }
@@ -126,9 +102,11 @@ export class MergeService {
         const resolutionEntry = resolutions.find((r) => r.key === conflict.key);
         if (!resolutionEntry) continue;
 
-        const targetKey = await tx.translationKey.findFirst({
-          where: { branchId: targetBranchId, name: conflict.key },
-        });
+        const targetKey = await this.translationKeyRepository.findByBranchIdAndName(
+          targetBranchId,
+          conflict.key,
+          tx
+        );
 
         if (!targetKey) continue;
 
@@ -146,17 +124,7 @@ export class MergeService {
 
         // Apply resolved values
         for (const [language, value] of Object.entries(valuesToApply)) {
-          await tx.translation.upsert({
-            where: {
-              keyId_language: { keyId: targetKey.id, language },
-            },
-            update: { value },
-            create: {
-              keyId: targetKey.id,
-              language,
-              value,
-            },
-          });
+          await this.translationRepository.upsert(targetKey.id, language, value, tx);
         }
         mergedCount++;
       }
@@ -177,6 +145,6 @@ export class MergeService {
    * Useful for UI to show what would happen
    */
   async previewMerge(sourceBranchId: string, targetBranchId: string) {
-    return this.diffService.computeDiff(sourceBranchId, targetBranchId);
+    return this.diffCalculator.computeDiff(sourceBranchId, targetBranchId);
   }
 }

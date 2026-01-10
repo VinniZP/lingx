@@ -12,8 +12,6 @@ Best practices for testing in the Lingx codebase using Vitest, Prisma, and Playw
 ```bash
 # Run tests
 pnpm --filter @lingx/api test              # All API tests
-pnpm --filter @lingx/api test:unit         # Unit tests only
-pnpm --filter @lingx/api test:integration  # Integration tests
 pnpm --filter @lingx/web test:e2e          # E2E tests
 ```
 

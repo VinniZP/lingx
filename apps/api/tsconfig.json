@@ -4,6 +4,7 @@
     "outDir": "dist",
     "rootDir": "."
   },
+  "references": [{ "path": "../../packages/shared" }],
   "include": ["src", "prisma", "prisma.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

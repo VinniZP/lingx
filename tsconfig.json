@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/cli" },
+    { "path": "apps/api" },
+    { "path": "apps/web" }
+  ]
+}

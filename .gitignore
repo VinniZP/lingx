@@ -13,9 +13,17 @@ build/
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
+
+# VS Code - allow shared settings, ignore personal
+!.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# TypeScript build info
+*.tsbuildinfo
 
 # OS
 .DS_Store
