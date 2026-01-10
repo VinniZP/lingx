@@ -10,6 +10,7 @@ import { asClass, asValue, createContainer, InjectionMode, type AwilixContainer 
 import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { redis } from '../../lib/redis.js';
+import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
 import { AITranslationService } from '../../services/ai-translation.service.js';
@@ -44,6 +45,9 @@ export interface Cradle {
   commandBus: CommandBus;
   queryBus: QueryBus;
   eventBus: EventBus;
+
+  // Repositories
+  translationRepository: TranslationRepository;
 
   // Allow dynamic handler registrations
   [key: string]: unknown;

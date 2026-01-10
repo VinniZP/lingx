@@ -9,10 +9,7 @@ import {
   UNIQUE_VIOLATION_CODES,
   combineKey,
   parseNamespacedKey,
-  runBatchQualityChecks,
   runQualityChecks,
-  type BatchQualityResult,
-  type QualityIssue,
 } from '@lingx/shared';
 import type {
   ApprovalStatus,
@@ -75,12 +72,6 @@ export interface BranchInfo {
   languageCount: number;
   sourceLanguage: string;
   enabledLanguages: string[];
-}
-
-export interface QualityCheckResults {
-  totalKeys: number;
-  keysWithIssues: number;
-  results: BatchQualityResult[];
 }
 
 export type KeyFilter =
@@ -967,84 +958,6 @@ export class TranslationRepository {
     }
 
     return [...projectIds][0];
-  }
-
-  // ============================================
-  // Quality Operations
-  // ============================================
-
-  /**
-   * Set translation with quality check
-   */
-  async setTranslationWithQuality(
-    keyId: string,
-    language: string,
-    value: string,
-    sourceLanguage: string
-  ): Promise<{ translation: Translation; qualityIssues: QualityIssue[] }> {
-    const key = await this.prisma.translationKey.findUnique({
-      where: { id: keyId },
-      include: { translations: true },
-    });
-
-    if (!key) {
-      throw new NotFoundError('Translation key');
-    }
-
-    let qualityIssues: QualityIssue[] = [];
-    if (language !== sourceLanguage && value.trim()) {
-      const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
-      const sourceText = sourceTranslation?.value || '';
-
-      if (sourceText.trim()) {
-        const result = runQualityChecks({
-          source: sourceText,
-          target: value,
-          sourceLanguage,
-          targetLanguage: language,
-        });
-        qualityIssues = result.issues;
-      }
-    }
-
-    const translation = await this.setTranslation(keyId, language, value);
-    return { translation, qualityIssues };
-  }
-
-  /**
-   * Run quality checks on all translations in a branch
-   */
-  async checkBranchQuality(
-    branchId: string,
-    sourceLanguage: string,
-    keyIds?: string[]
-  ): Promise<QualityCheckResults> {
-    const keys = await this.prisma.translationKey.findMany({
-      where: {
-        branchId,
-        ...(keyIds?.length ? { id: { in: keyIds } } : {}),
-      },
-      include: { translations: true },
-    });
-
-    const batchInput = keys.map((key) => {
-      const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
-      return {
-        keyName: key.name,
-        keyId: key.id,
-        sourceText: sourceTranslation?.value || '',
-        translations: Object.fromEntries(key.translations.map((t) => [t.language, t.value])),
-      };
-    });
-
-    const results = runBatchQualityChecks(batchInput, sourceLanguage);
-    const keysWithIssues = new Set(results.map((r) => r.keyId)).size;
-
-    return {
-      totalKeys: keys.length,
-      keysWithIssues,
-      results,
-    };
   }
 
   // ============================================

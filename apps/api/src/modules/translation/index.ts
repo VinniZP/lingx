@@ -21,7 +21,6 @@ import {
 import { TranslationRepository } from './repositories/translation.repository.js';
 
 // Query handlers
-import { CheckBranchQualityHandler } from './queries/check-branch-quality.handler.js';
 import { GetBranchTranslationsHandler } from './queries/get-branch-translations.handler.js';
 import { GetKeyHandler } from './queries/get-key.handler.js';
 import { ListKeysHandler } from './queries/list-keys.handler.js';
@@ -35,13 +34,11 @@ import { BulkUpdateTranslationsHandler } from './commands/bulk-update-translatio
 import { CreateKeyHandler } from './commands/create-key.handler.js';
 import { DeleteKeyHandler } from './commands/delete-key.handler.js';
 import { SetApprovalStatusHandler } from './commands/set-approval-status.handler.js';
-import { SetTranslationWithQualityHandler } from './commands/set-translation-with-quality.handler.js';
 import { SetTranslationHandler } from './commands/set-translation.handler.js';
 import { UpdateKeyTranslationsHandler } from './commands/update-key-translations.handler.js';
 import { UpdateKeyHandler } from './commands/update-key.handler.js';
 
 // Queries
-import { CheckBranchQualityQuery } from './queries/check-branch-quality.query.js';
 import { GetBranchTranslationsQuery } from './queries/get-branch-translations.query.js';
 import { GetKeyQuery } from './queries/get-key.query.js';
 import { ListKeysQuery } from './queries/list-keys.query.js';
@@ -55,7 +52,6 @@ import { BulkUpdateTranslationsCommand } from './commands/bulk-update-translatio
 import { CreateKeyCommand } from './commands/create-key.command.js';
 import { DeleteKeyCommand } from './commands/delete-key.command.js';
 import { SetApprovalStatusCommand } from './commands/set-approval-status.command.js';
-import { SetTranslationWithQualityCommand } from './commands/set-translation-with-quality.command.js';
 import { SetTranslationCommand } from './commands/set-translation.command.js';
 import { UpdateKeyTranslationsCommand } from './commands/update-key-translations.command.js';
 import { UpdateKeyCommand } from './commands/update-key.command.js';
@@ -79,7 +75,6 @@ import { TranslationActivityHandler } from './handlers/translation-activity.hand
 import { TranslationMemoryHandler } from './handlers/translation-memory.handler.js';
 
 // Re-export queries and commands for external use
-export { CheckBranchQualityQuery } from './queries/check-branch-quality.query.js';
 export { GetBranchTranslationsQuery } from './queries/get-branch-translations.query.js';
 export { GetKeyQuery } from './queries/get-key.query.js';
 export { ListKeysQuery } from './queries/list-keys.query.js';
@@ -92,7 +87,6 @@ export { BulkUpdateTranslationsCommand } from './commands/bulk-update-translatio
 export { CreateKeyCommand } from './commands/create-key.command.js';
 export { DeleteKeyCommand } from './commands/delete-key.command.js';
 export { SetApprovalStatusCommand } from './commands/set-approval-status.command.js';
-export { SetTranslationWithQualityCommand } from './commands/set-translation-with-quality.command.js';
 export { SetTranslationCommand } from './commands/set-translation.command.js';
 export { UpdateKeyTranslationsCommand } from './commands/update-key-translations.command.js';
 export { UpdateKeyCommand } from './commands/update-key.command.js';
@@ -120,7 +114,6 @@ export type {
   KeyWithTranslations,
   ListKeysOptions,
   NamespaceCount,
-  QualityCheckResults,
   QualityFilter,
 } from './repositories/translation.repository.js';
 
@@ -133,11 +126,6 @@ const queryRegistrations = [
     GetBranchTranslationsQuery,
     GetBranchTranslationsHandler,
     'getBranchTranslationsHandler'
-  ),
-  defineQueryHandler(
-    CheckBranchQualityQuery,
-    CheckBranchQualityHandler,
-    'checkBranchQualityHandler'
   ),
 ];
 
@@ -162,11 +150,6 @@ const commandRegistrations = [
     BulkUpdateTranslationsCommand,
     BulkUpdateTranslationsHandler,
     'bulkUpdateTranslationsHandler'
-  ),
-  defineCommandHandler(
-    SetTranslationWithQualityCommand,
-    SetTranslationWithQualityHandler,
-    'setTranslationWithQualityHandler'
   ),
   defineCommandHandler(BulkTranslateCommand, BulkTranslateHandler, 'bulkTranslateHandler'),
 ];
@@ -230,7 +213,6 @@ export function registerTranslationModule(container: AwilixContainer<Cradle>): v
     getKeyHandler: asClass(GetKeyHandler).singleton(),
     listNamespacesHandler: asClass(ListNamespacesHandler).singleton(),
     getBranchTranslationsHandler: asClass(GetBranchTranslationsHandler).singleton(),
-    checkBranchQualityHandler: asClass(CheckBranchQualityHandler).singleton(),
   });
 
   // Register command handlers
@@ -244,7 +226,6 @@ export function registerTranslationModule(container: AwilixContainer<Cradle>): v
     setApprovalStatusHandler: asClass(SetApprovalStatusHandler).singleton(),
     batchApprovalHandler: asClass(BatchApprovalHandler).singleton(),
     bulkUpdateTranslationsHandler: asClass(BulkUpdateTranslationsHandler).singleton(),
-    setTranslationWithQualityHandler: asClass(SetTranslationWithQualityHandler).singleton(),
     bulkTranslateHandler: asClass(BulkTranslateHandler).singleton(),
   });
 

@@ -4,21 +4,26 @@
  * Processes batch translation jobs and pre-translation requests.
  * Rate-limited to respect provider API limits.
  */
-import { Worker, Job } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
+import { calculateScore, runQualityChecks, type QualityIssue } from '@lingx/shared';
+import type { PrismaClient } from '@prisma/client';
+import { Job, Worker } from 'bullmq';
 import { redis } from '../lib/redis.js';
-import { MTService } from '../services/mt.service.js';
+import type { TranslationRepository } from '../modules/translation/repositories/translation.repository.js';
 import { AITranslationService } from '../services/ai-translation.service.js';
-import { TranslationService } from '../services/translation.service.js';
-import { createQualityEstimationService } from '../services/quality/index.js';
-import type { QualityEstimationService } from '../services/quality-estimation.service.js';
+import { MTService } from '../services/mt.service.js';
 import type { MTProviderType } from '../services/providers/index.js';
-import { runQualityChecks, calculateScore, type QualityIssue } from '@lingx/shared';
+import type { QualityEstimationService } from '../services/quality-estimation.service.js';
+import { createQualityEstimationService } from '../services/quality/index.js';
 
 /**
  * Job types for MT batch processing
  */
-export type MTJobType = 'translate-batch' | 'pre-translate' | 'cleanup-cache' | 'bulk-translate-ui' | 'quality-batch';
+export type MTJobType =
+  | 'translate-batch'
+  | 'pre-translate'
+  | 'cleanup-cache'
+  | 'bulk-translate-ui'
+  | 'quality-batch';
 
 /**
  * Job data for MT batch worker
@@ -65,10 +70,12 @@ const BATCH_DELAY = 500;
 /**
  * Create the MT batch worker
  */
-export function createMTBatchWorker(prisma: PrismaClient): Worker {
+export function createMTBatchWorker(
+  prisma: PrismaClient,
+  translationRepository: TranslationRepository
+): Worker {
   const mtService = new MTService(prisma);
   const aiService = new AITranslationService(prisma);
-  const translationService = new TranslationService(prisma);
   const qualityService = createQualityEstimationService(prisma);
 
   const worker = new Worker<MTJobData>(
@@ -78,11 +85,11 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
 
       switch (type) {
         case 'translate-batch':
-          await handleBatchTranslate(prisma, mtService, translationService, job);
+          await handleBatchTranslate(prisma, mtService, translationRepository, job);
           break;
 
         case 'pre-translate':
-          await handlePreTranslate(prisma, mtService, translationService, job);
+          await handlePreTranslate(prisma, mtService, translationRepository, job);
           break;
 
         case 'cleanup-cache':
@@ -90,7 +97,14 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
           break;
 
         case 'bulk-translate-ui':
-          await handleBulkTranslateUI(prisma, mtService, aiService, translationService, job, qualityService);
+          await handleBulkTranslateUI(
+            prisma,
+            mtService,
+            aiService,
+            translationRepository,
+            job,
+            qualityService
+          );
           break;
 
         case 'quality-batch':
@@ -132,7 +146,7 @@ export function createMTBatchWorker(prisma: PrismaClient): Worker {
 async function handleBatchTranslate(
   prisma: PrismaClient,
   mtService: MTService,
-  translationService: TranslationService,
+  translationRepository: TranslationRepository,
   job: Job<MTJobData>
 ): Promise<void> {
   const { projectId, keyIds, targetLanguage, provider, overwriteExisting } = job.data;
@@ -172,9 +186,7 @@ async function handleBatchTranslate(
     for (const key of batch) {
       try {
         // Get source translation
-        const sourceTranslation = key.translations.find(
-          (t) => t.language === sourceLanguage
-        );
+        const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
 
         if (!sourceTranslation?.value) {
           skipped++;
@@ -182,9 +194,7 @@ async function handleBatchTranslate(
         }
 
         // Check if target translation exists
-        const existingTranslation = key.translations.find(
-          (t) => t.language === targetLanguage
-        );
+        const existingTranslation = key.translations.find((t) => t.language === targetLanguage);
 
         if (existingTranslation?.value && !overwriteExisting) {
           skipped++;
@@ -201,11 +211,7 @@ async function handleBatchTranslate(
         );
 
         // Save translation
-        await translationService.setTranslation(
-          key.id,
-          targetLanguage,
-          result.translatedText
-        );
+        await translationRepository.setTranslation(key.id, targetLanguage, result.translatedText);
 
         translated++;
       } catch (error) {
@@ -243,7 +249,7 @@ async function handleBatchTranslate(
 async function handlePreTranslate(
   prisma: PrismaClient,
   mtService: MTService,
-  translationService: TranslationService,
+  translationRepository: TranslationRepository,
   job: Job<MTJobData>
 ): Promise<void> {
   const { projectId, branchId, targetLanguages, provider } = job.data;
@@ -289,9 +295,7 @@ async function handlePreTranslate(
           processed++;
 
           // Get source translation
-          const sourceTranslation = key.translations.find(
-            (t) => t.language === sourceLanguage
-          );
+          const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
 
           if (!sourceTranslation?.value) {
             skipped++;
@@ -299,9 +303,7 @@ async function handlePreTranslate(
           }
 
           // Check if target translation exists
-          const existingTranslation = key.translations.find(
-            (t) => t.language === targetLang
-          );
+          const existingTranslation = key.translations.find((t) => t.language === targetLang);
 
           if (existingTranslation?.value) {
             skipped++;
@@ -318,11 +320,7 @@ async function handlePreTranslate(
           );
 
           // Save translation
-          await translationService.setTranslation(
-            key.id,
-            targetLang,
-            result.translatedText
-          );
+          await translationRepository.setTranslation(key.id, targetLang, result.translatedText);
 
           translated++;
         } catch (error) {
@@ -358,10 +356,7 @@ async function handlePreTranslate(
 /**
  * Handle cache cleanup for expired entries
  */
-async function handleCacheCleanup(
-  prisma: PrismaClient,
-  projectId: string
-): Promise<void> {
+async function handleCacheCleanup(prisma: PrismaClient, projectId: string): Promise<void> {
   const result = await prisma.machineTranslationCache.deleteMany({
     where: {
       projectId,
@@ -381,13 +376,24 @@ async function handleBulkTranslateUI(
   prisma: PrismaClient,
   mtService: MTService,
   aiService: AITranslationService,
-  translationService: TranslationService,
+  translationRepository: TranslationRepository,
   job: Job<MTJobData>,
   qualityService?: QualityEstimationService
-): Promise<{ translated: number; skipped: number; failed: number; errors: Array<{ keyId: string; keyName: string; language: string; error: string }> }> {
+): Promise<{
+  translated: number;
+  skipped: number;
+  failed: number;
+  errors: Array<{ keyId: string; keyName: string; language: string; error: string }>;
+}> {
   const { projectId, branchId, keyIds, targetLanguages, translationProvider } = job.data;
 
-  if (!branchId || !keyIds || keyIds.length === 0 || !targetLanguages || targetLanguages.length === 0) {
+  if (
+    !branchId ||
+    !keyIds ||
+    keyIds.length === 0 ||
+    !targetLanguages ||
+    targetLanguages.length === 0
+  ) {
     console.warn('[MTWorker] bulk-translate-ui job missing required data');
     return { translated: 0, skipped: 0, failed: 0, errors: [] };
   }
@@ -426,9 +432,7 @@ async function handleBulkTranslateUI(
   // Process each key
   for (const key of keys) {
     // Get source translation
-    const sourceTranslation = key.translations.find(
-      (t) => t.language === sourceLanguage
-    );
+    const sourceTranslation = key.translations.find((t) => t.language === sourceLanguage);
     const sourceText = sourceTranslation?.value;
 
     if (!sourceText || sourceText.trim() === '') {
@@ -451,9 +455,7 @@ async function handleBulkTranslateUI(
       processed++;
 
       // Check if translation already exists
-      const existingTranslation = key.translations.find(
-        (t) => t.language === targetLang
-      );
+      const existingTranslation = key.translations.find((t) => t.language === targetLang);
       if (existingTranslation?.value && existingTranslation.value.trim() !== '') {
         // Already has a translation
         skipped++;
@@ -494,7 +496,11 @@ async function handleBulkTranslateUI(
         }
 
         // Save the translation
-        const savedTranslation = await translationService.setTranslation(key.id, targetLang, translatedText);
+        const savedTranslation = await translationRepository.setTranslation(
+          key.id,
+          targetLang,
+          translatedText
+        );
         translated++;
 
         // Auto-score after AI translation if enabled
@@ -505,13 +511,19 @@ async function handleBulkTranslateUI(
 
             if (qualityConfig.scoreAfterAITranslation) {
               // Queue quality evaluation (non-blocking)
-              qualityService.evaluate(savedTranslation.id).catch(err => {
-                console.error(`[MTWorker] Quality evaluation failed for translation ${savedTranslation.id}:`, err.message);
+              qualityService.evaluate(savedTranslation.id).catch((err) => {
+                console.error(
+                  `[MTWorker] Quality evaluation failed for translation ${savedTranslation.id}:`,
+                  err.message
+                );
               });
             }
           } catch (err) {
             // Don't fail the translation if quality scoring fails
-            console.error(`[MTWorker] Failed to queue quality evaluation:`, err instanceof Error ? err.message : 'Unknown error');
+            console.error(
+              `[MTWorker] Failed to queue quality evaluation:`,
+              err instanceof Error ? err.message : 'Unknown error'
+            );
           }
         }
       } catch (error) {
@@ -573,7 +585,9 @@ async function handleQualityBatch(
 
   console.log(`[MTWorker] ====== STARTING QUALITY BATCH JOB (MULTI-LANG) ======`);
   console.log(`[MTWorker] Job ID: ${job.id}, Branch: ${branchId}`);
-  console.log(`[MTWorker] Translations to evaluate: ${translationIds.length}, Force AI: ${forceAI ?? false}`);
+  console.log(
+    `[MTWorker] Translations to evaluate: ${translationIds.length}, Force AI: ${forceAI ?? false}`
+  );
 
   // 1. Fetch all translations with their key info
   const translations = await prisma.translation.findMany({
@@ -654,7 +668,9 @@ async function handleQualityBatch(
           for (const t of keyTranslations) {
             await qualityService.evaluate(t.id, { forceAI }).catch((err) => {
               failureTracking.perTranslation++;
-              console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
+              console.error(
+                `[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`
+              );
             });
           }
           return { keyName, status: 'format-only' };
@@ -678,12 +694,16 @@ async function handleQualityBatch(
         }
 
         // 6. Call multi-language AI evaluation (if applicable)
-        const needsAI = forceAI || [...heuristicResults.values()].some(
-          (h) => h.score < 80 || h.issues.some((i) => i.severity === 'error')
-        );
+        const needsAI =
+          forceAI ||
+          [...heuristicResults.values()].some(
+            (h) => h.score < 80 || h.issues.some((i) => i.severity === 'error')
+          );
 
         if (needsAI) {
-          console.log(`[MTWorker] Key ${keyName}: evaluating ${keyTranslations.length} languages with AI`);
+          console.log(
+            `[MTWorker] Key ${keyName}: evaluating ${keyTranslations.length} languages with AI`
+          );
 
           await qualityService.evaluateKeyAllLanguages(
             keyId,
@@ -701,7 +721,9 @@ async function handleQualityBatch(
           for (const t of keyTranslations) {
             await qualityService.evaluate(t.id, { forceAI: false }).catch((err) => {
               failureTracking.perTranslation++;
-              console.error(`[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`);
+              console.error(
+                `[MTWorker] Quality evaluation failed: translationId=${t.id}, key=${keyName}, error=${err.message}`
+              );
             });
           }
           return { keyName, status: 'heuristic-only' };
@@ -715,7 +737,8 @@ async function handleQualityBatch(
       if (result.status === 'rejected') {
         const [, batchKeyTranslations] = batch[j];
         const failedKeyName = batchKeyTranslations[0].key.name;
-        const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
+        const errorMessage =
+          result.reason instanceof Error ? result.reason.message : String(result.reason);
 
         failureTracking.perKey++;
         failureTracking.errors.push({ keyName: failedKeyName, error: errorMessage });
@@ -731,7 +754,9 @@ async function handleQualityBatch(
   }
 
   console.log(`[MTWorker] ====== QUALITY BATCH JOB COMPLETE ======`);
-  console.log(`[MTWorker] Evaluated: ${keyEntries.length} keys, ${processedTranslations} translations`);
+  console.log(
+    `[MTWorker] Evaluated: ${keyEntries.length} keys, ${processedTranslations} translations`
+  );
 
   // Report failures summary if any occurred
   const totalFailures = failureTracking.perTranslation + failureTracking.perKey;
@@ -740,9 +765,16 @@ async function handleQualityBatch(
     console.warn(`[MTWorker]   - Per-translation failures: ${failureTracking.perTranslation}`);
     console.warn(`[MTWorker]   - Per-key failures: ${failureTracking.perKey}`);
     if (failureTracking.errors.length > 0 && failureTracking.errors.length <= 10) {
-      console.warn(`[MTWorker]   - Errors: ${failureTracking.errors.map(e => `${e.keyName}: ${e.error}`).join(', ')}`);
+      console.warn(
+        `[MTWorker]   - Errors: ${failureTracking.errors.map((e) => `${e.keyName}: ${e.error}`).join(', ')}`
+      );
     } else if (failureTracking.errors.length > 10) {
-      console.warn(`[MTWorker]   - First 10 errors: ${failureTracking.errors.slice(0, 10).map(e => `${e.keyName}: ${e.error}`).join(', ')}`);
+      console.warn(
+        `[MTWorker]   - First 10 errors: ${failureTracking.errors
+          .slice(0, 10)
+          .map((e) => `${e.keyName}: ${e.error}`)
+          .join(', ')}`
+      );
     }
   }
 }

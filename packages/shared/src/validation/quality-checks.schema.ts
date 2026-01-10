@@ -83,15 +83,6 @@ export const batchQualityResultSchema = z.object({
 });
 
 /**
- * Response for batch quality check endpoint
- */
-export const batchQualityCheckResponseSchema = z.object({
-  totalKeys: z.number(),
-  keysWithIssues: z.number(),
-  results: z.array(batchQualityResultSchema),
-});
-
-/**
  * Maximum batch size for translation IDs
  */
 export const MAX_BATCH_TRANSLATION_IDS = 1000;
@@ -240,25 +231,3 @@ export const icuValidationResultSchema = z.object({
 export const keyQualityIssuesResponseSchema = z.object({
   issues: z.record(z.string(), z.array(qualityIssueSchema)),
 });
-
-export type QualityIssueSeverityDto = z.infer<typeof qualityIssueSeveritySchema>;
-export type QualityCheckTypeDto = z.infer<typeof qualityCheckTypeSchema>;
-export type QualityIssueDto = z.infer<typeof qualityIssueSchema>;
-export type QualityCheckResultDto = z.infer<typeof qualityCheckResultSchema>;
-export type BatchQualityResultDto = z.infer<typeof batchQualityResultSchema>;
-export type BatchQualityCheckResponseDto = z.infer<typeof batchQualityCheckResponseSchema>;
-export type EvaluationTypeDto = z.infer<typeof evaluationTypeSchema>;
-export type QualityScoreResponseDto = z.infer<typeof qualityScoreResponseSchema>;
-export type BatchQualityJobResponseDto = z.infer<typeof batchQualityJobResponseSchema>;
-export type BranchQualitySummaryResponseDto = z.infer<typeof branchQualitySummaryResponseSchema>;
-export type QualityScoringConfigDto = z.infer<typeof qualityScoringConfigSchema>;
-export type ICUValidationResultDto = z.infer<typeof icuValidationResultSchema>;
-
-export type TranslationIdParams = z.infer<typeof translationIdParamsSchema>;
-export type BranchIdParams = z.infer<typeof branchIdParamsSchema>;
-export type ProjectIdParams = z.infer<typeof projectIdParamsSchema>;
-export type KeyIdParams = z.infer<typeof keyIdParamsSchema>;
-export type EvaluateQualityBody = z.infer<typeof evaluateQualityBodySchema>;
-export type BatchQualityBody = z.infer<typeof batchQualityBodySchema>;
-export type ValidateIcuBody = z.infer<typeof validateIcuBodySchema>;
-export type KeyQualityIssuesResponseDto = z.infer<typeof keyQualityIssuesResponseSchema>;
