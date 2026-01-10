@@ -150,6 +150,18 @@ export interface IEventBus {
 }
 
 // ============================================================================
+// Progress Reporting
+// ============================================================================
+
+/**
+ * Interface for reporting progress during long-running commands.
+ * Used by worker jobs to report progress back to BullMQ.
+ */
+export interface ProgressReporter {
+  updateProgress(data: unknown): Promise<void>;
+}
+
+// ============================================================================
 // Metadata Types
 // ============================================================================
 

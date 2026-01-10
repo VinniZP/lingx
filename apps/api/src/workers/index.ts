@@ -29,7 +29,6 @@ export async function startWorkers(container: AwilixContainer<Cradle>): Promise<
 
   // Resolve dependencies from container
   const prisma = container.resolve('prisma');
-  const translationRepository = container.resolve('translationRepository');
 
   // Create activity worker
   const activityWorker = createActivityWorker(prisma);
@@ -46,8 +45,8 @@ export async function startWorkers(container: AwilixContainer<Cradle>): Promise<
   workers.push(tmWorker);
   console.log('[Workers] Translation memory worker started');
 
-  // Create MT batch worker (uses repository from CQRS module)
-  const mtBatchWorker = createMTBatchWorker(prisma, translationRepository);
+  // Create MT batch worker (uses CQRS CommandBus)
+  const mtBatchWorker = createMTBatchWorker(container);
   workers.push(mtBatchWorker);
   console.log('[Workers] MT batch worker started');
 
