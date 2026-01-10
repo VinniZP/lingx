@@ -1,16 +1,17 @@
+import { combineKey, parseNamespacedKey } from '@lingx/shared';
+import chalk from 'chalk';
 import { Command } from 'commander';
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import { join, relative, dirname } from 'path';
 import { existsSync } from 'fs';
+import { mkdir, readdir, readFile, stat, writeFile } from 'fs/promises';
 import { glob } from 'glob';
+import { dirname, extname, join, relative } from 'path';
 import { loadConfig } from '../lib/config.js';
-import { parseNamespacedKey } from '@lingx/shared';
 import { createExtractor, type ExtractedKey } from '../lib/extractor/index.js';
 import { createFormatter } from '../lib/formatter/index.js';
-import { regenerateTypesIfEnabled } from './types.js';
+import { extractLanguageFromFilename } from '../lib/translation-io.js';
 import { logger } from '../utils/logger.js';
 import { createSpinner } from '../utils/spinner.js';
-import chalk from 'chalk';
+import { regenerateTypesIfEnabled } from './types.js';
 
 interface ExtractOptions {
   source?: string;
@@ -18,7 +19,6 @@ interface ExtractOptions {
   output?: string;
   detectIcu?: boolean;
   clean?: boolean;
-  locale?: string;
   sync?: boolean;
 }
 
@@ -36,9 +36,8 @@ export function createExtractCommand(): Command {
     .option('-f, --format <type>', 'Framework format: nextjs or angular')
     .option('-o, --output <file>', 'Output file for extracted keys (JSON)')
     .option('--detect-icu', 'Detect ICU MessageFormat variables in code')
-    .option('--clean', 'Remove unused keys from locale file')
-    .option('-l, --locale <file>', 'Locale file to clean (default: uses config)')
-    .option('--sync', 'Sync extracted keys to locale files (creates missing keys with empty values)')
+    .option('--clean', 'Remove unused keys from all locale files')
+    .option('--sync', 'Sync keys to all locale files (adds missing, removes unused)')
     .action(async (options: ExtractOptions) => {
       try {
         await extract(options);
@@ -63,7 +62,7 @@ async function extract(options: ExtractOptions): Promise<void> {
 
   try {
     // Find files matching patterns
-    const patterns = config.extract.patterns.map(p => {
+    const patterns = config.extract.patterns.map((p) => {
       // Handle patterns that start with src/ when sourceDir is already ./src
       const patternPath = p.replace(/^src\//, '');
       return join(cwd, sourceDir, patternPath);
@@ -113,7 +112,8 @@ async function extract(options: ExtractOptions): Promise<void> {
           );
           if (paramsMatch) {
             const paramsStr = paramsMatch[1];
-            const varNames = paramsStr.match(/(\w+)\s*:/g)?.map(v => v.replace(':', '').trim()) ?? [];
+            const varNames =
+              paramsStr.match(/(\w+)\s*:/g)?.map((v) => v.replace(':', '').trim()) ?? [];
             if (varNames.length > 0) {
               keyWithIcu.icu = {
                 variables: varNames,
@@ -128,7 +128,7 @@ async function extract(options: ExtractOptions): Promise<void> {
     }
 
     // Deduplicate keys by key value
-    const uniqueKeys = [...new Map(allKeys.map(k => [k.key, k])).values()];
+    const uniqueKeys = [...new Map(allKeys.map((k) => [k.key, k])).values()];
 
     spinner.succeed(`Found ${uniqueKeys.length} unique key(s) in ${files.length} file(s)`);
 
@@ -174,12 +174,10 @@ async function extract(options: ExtractOptions): Promise<void> {
         framework,
         sourceDir,
         totalKeys: uniqueKeys.length,
-        keys: uniqueKeys.map(k => ({
+        keys: uniqueKeys.map((k) => ({
           key: k.key,
           namespace: k.namespace,
-          location: k.location
-            ? `${relative(cwd, k.location.file)}:${k.location.line}`
-            : undefined,
+          location: k.location ? `${relative(cwd, k.location.file)}:${k.location.line}` : undefined,
           ...(detectIcu && k.icu ? { icu: k.icu } : {}),
         })),
       };
@@ -187,9 +185,9 @@ async function extract(options: ExtractOptions): Promise<void> {
       logger.info(`Results written to ${options.output}`);
     }
 
-    // Clean unused keys from locale file if requested
+    // Clean unused keys from all locale files if requested
     if (options.clean) {
-      await cleanUnusedKeys(cwd, config, uniqueKeys, options.locale);
+      await cleanUnusedKeys(cwd, config, uniqueKeys);
     }
 
     // Sync extracted keys to locale files if requested
@@ -213,25 +211,22 @@ function escapeRegex(string: string): string {
 }
 
 /**
- * Clean unused keys from locale file.
+ * Clean unused keys from all locale files.
+ * Removes keys that exist in translation files but are not used in source code.
  */
 async function cleanUnusedKeys(
   cwd: string,
   config: Awaited<ReturnType<typeof loadConfig>>,
-  extractedKeys: ExtractedKeyWithIcu[],
-  localeFile?: string
+  extractedKeys: ExtractedKeyWithIcu[]
 ): Promise<void> {
-  const spinner = createSpinner('Cleaning unused keys...');
+  const spinner = createSpinner('Cleaning unused keys from all locale files...');
   spinner.start();
 
   try {
-    // Determine locale file path
-    const localePath = localeFile
-      ? join(cwd, localeFile)
-      : join(cwd, config.paths.translations, config.pull.filePattern.replace('{lang}', 'en'));
+    const localesDir = join(cwd, config.paths.translations);
 
-    if (!existsSync(localePath)) {
-      spinner.warn(`Locale file not found: ${localePath}`);
+    if (!existsSync(localesDir)) {
+      spinner.warn(`Translations directory not found: ${localesDir}`);
       return;
     }
 
@@ -241,57 +236,167 @@ async function cleanUnusedKeys(
       indentation: config.format.indentation,
     });
 
-    // Read existing locale file
-    const content = await readFile(localePath, 'utf-8');
-    const existingTranslations = formatter.parse(content);
-    const existingKeys = new Set(Object.keys(existingTranslations));
+    // Get extracted keys as a set (with namespace delimiter format)
+    const usedKeys = new Set(extractedKeys.map((k) => k.key));
 
-    // Get extracted keys as a set
-    const usedKeys = new Set(extractedKeys.map(k => k.key));
+    // Track all removed keys by language
+    const removedByLang: Record<string, string[]> = {};
+    let totalRemoved = 0;
+    let filesModified = 0;
 
-    // Find unused keys
-    const unusedKeys: string[] = [];
-    for (const key of existingKeys) {
-      if (!usedKeys.has(key)) {
-        unusedKeys.push(key);
+    // Helper to clean a single file
+    async function cleanFile(filePath: string, namespace: string | null): Promise<void> {
+      if (!existsSync(filePath)) return;
+
+      const relPath = relative(cwd, filePath);
+      let content: string;
+      let translations: Record<string, string>;
+
+      try {
+        content = await readFile(filePath, 'utf-8');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to read ${relPath}: ${message}`);
+      }
+
+      try {
+        translations = formatter.parse(content);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to parse ${relPath}: ${message}`);
+      }
+
+      const lang = extractLanguageFromFilename(filePath, config.pull.filePattern);
+      if (!lang) {
+        logger.warn(`Could not determine language from file: ${relPath}`);
+        return;
+      }
+
+      const cleanedTranslations: Record<string, string> = {};
+      const removedKeys: string[] = [];
+
+      for (const [key, value] of Object.entries(translations)) {
+        // Construct the full key with namespace to match against extracted keys
+        const fullKey = combineKey(namespace, key);
+
+        if (usedKeys.has(fullKey)) {
+          cleanedTranslations[key] = value;
+        } else {
+          removedKeys.push(namespace ? `${namespace}:${key}` : key);
+        }
+      }
+
+      if (removedKeys.length > 0) {
+        // Sort keys alphabetically for consistent output
+        const sortedTranslations: Record<string, string> = {};
+        for (const k of Object.keys(cleanedTranslations).sort()) {
+          sortedTranslations[k] = cleanedTranslations[k];
+        }
+
+        const newContent = formatter.format(sortedTranslations);
+        try {
+          await writeFile(filePath, newContent + '\n', 'utf-8');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+          throw new Error(`Failed to write ${relPath}: ${message}`);
+        }
+
+        if (!removedByLang[lang]) {
+          removedByLang[lang] = [];
+        }
+        removedByLang[lang].push(...removedKeys);
+        totalRemoved += removedKeys.length;
+        filesModified++;
       }
     }
 
-    if (unusedKeys.length === 0) {
+    // Helper to process a directory (root or namespace subdirectory)
+    async function processDirectory(dir: string, namespace: string | null): Promise<void> {
+      if (!existsSync(dir)) return;
+
+      const relDir = relative(cwd, dir) || '.';
+      let files: string[];
+
+      try {
+        files = await readdir(dir);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to read directory ${relDir}: ${message}`);
+      }
+
+      for (const file of files) {
+        const filePath = join(dir, file);
+        let fileStat;
+
+        try {
+          fileStat = await stat(filePath);
+        } catch (error) {
+          // File may have been deleted between readdir and stat, skip it
+          continue;
+        }
+
+        // Skip directories
+        if (fileStat.isDirectory()) continue;
+
+        const ext = extname(file).toLowerCase();
+        const isJsonFile = config.format.type === 'json' && ext === '.json';
+        const isYamlFile = config.format.type === 'yaml' && (ext === '.yaml' || ext === '.yml');
+
+        if (isJsonFile || isYamlFile) {
+          await cleanFile(filePath, namespace);
+        }
+      }
+    }
+
+    // Process root directory (non-namespaced keys)
+    await processDirectory(localesDir, null);
+
+    // Process namespace subdirectories
+    const entries = await readdir(localesDir);
+    for (const entry of entries) {
+      const entryPath = join(localesDir, entry);
+      let entryStat;
+
+      try {
+        entryStat = await stat(entryPath);
+      } catch {
+        // Entry may have been deleted, skip it
+        continue;
+      }
+
+      // Process subdirectories as namespaces (exclude hidden directories)
+      if (entryStat.isDirectory() && !entry.startsWith('.')) {
+        await processDirectory(entryPath, entry);
+      }
+    }
+
+    if (totalRemoved === 0) {
       spinner.succeed('No unused keys found');
       return;
     }
 
-    // Remove unused keys
-    const cleanedTranslations: Record<string, string> = {};
-    for (const [key, value] of Object.entries(existingTranslations)) {
-      if (usedKeys.has(key)) {
-        cleanedTranslations[key] = value;
+    spinner.succeed(`Removed ${totalRemoved} unused key(s) from ${filesModified} file(s)`);
+
+    // Display removed keys grouped by language
+    console.log();
+    console.log(chalk.bold('Removed Keys by Language:'));
+    for (const lang of Object.keys(removedByLang).sort()) {
+      console.log(chalk.cyan(`  [${lang}]`));
+      for (const key of removedByLang[lang].sort()) {
+        console.log(chalk.red(`    - ${key}`));
       }
     }
-
-    // Write back
-    const newContent = formatter.format(cleanedTranslations);
-    await writeFile(localePath, newContent + '\n', 'utf-8');
-
-    spinner.succeed(`Removed ${unusedKeys.length} unused key(s) from ${relative(cwd, localePath)}`);
-
-    // Display removed keys
-    console.log();
-    console.log(chalk.bold('Removed Keys:'));
-    for (const key of unusedKeys.sort()) {
-      console.log(chalk.red(`  - ${key}`));
-    }
   } catch (error) {
-    spinner.fail('Failed to clean unused keys');
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    spinner.fail(`Failed to clean unused keys: ${message}`);
     throw error;
   }
 }
 
 /**
- * Sync extracted keys to locale files.
- * - Creates missing keys with empty values in appropriate namespace folders.
- * - Removes unused keys that exist in files but not in code.
+ * Sync extracted keys to all locale files.
+ * - Adds missing keys with empty values to all locales.
+ * - Removes unused keys from all locales.
  *
  * File structure:
  * - locales/[lang].json - root keys (no namespace)
@@ -302,17 +407,20 @@ async function syncExtractedKeys(
   config: Awaited<ReturnType<typeof loadConfig>>,
   extractedKeys: ExtractedKeyWithIcu[]
 ): Promise<void> {
-  const spinner = createSpinner('Syncing extracted keys to locale files...');
+  const spinner = createSpinner('Syncing extracted keys to all locale files...');
   spinner.start();
 
   try {
     const localesDir = join(cwd, config.paths.translations);
-    const sourceLocale = config.types?.sourceLocale ?? 'en';
+
+    if (!existsSync(localesDir)) {
+      spinner.warn(`Translations directory not found: ${localesDir}`);
+      return;
+    }
 
     // Group keys by namespace, extracting just the key part (without namespace prefix)
     const byNamespace = new Map<string | null, Set<string>>();
     for (const key of extractedKeys) {
-      // Parse the combined key to get namespace and key name
       const { namespace, key: keyName } = parseNamespacedKey(key.key);
       const ns = namespace ?? null;
 
@@ -328,105 +436,218 @@ async function syncExtractedKeys(
       indentation: config.format.indentation,
     });
 
-    let createdFiles = 0;
-    let addedKeys = 0;
-    let removedKeys = 0;
-    const removedKeysList: string[] = [];
+    // Track statistics
+    let filesModified = 0;
+    let filesCreated = 0;
+    const addedByLang: Record<string, number> = {};
+    const removedByLang: Record<string, string[]> = {};
 
-    // Process each namespace
-    for (const [namespace, keyNames] of byNamespace) {
-      // Determine file path
-      const filePath = namespace
-        ? join(localesDir, namespace, `${sourceLocale}.json`)
-        : join(localesDir, `${sourceLocale}.json`);
+    // Helper to sync a single file
+    async function syncFile(
+      filePath: string,
+      namespace: string | null,
+      expectedKeys: Set<string>
+    ): Promise<void> {
+      const relPath = relative(cwd, filePath);
+      const lang = extractLanguageFromFilename(filePath, config.pull.filePattern);
+      if (!lang) {
+        logger.warn(`Could not determine language from file: ${relPath}`);
+        return;
+      }
+
+      const fileExists = existsSync(filePath);
+
+      // Read existing translations or start empty
+      let existingTranslations: Record<string, string> = {};
+      if (fileExists) {
+        let content: string;
+        try {
+          content = await readFile(filePath, 'utf-8');
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+          throw new Error(`Failed to read ${relPath}: ${message}`);
+        }
+
+        try {
+          existingTranslations = formatter.parse(content);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error';
+          throw new Error(`Failed to parse ${relPath}: ${message}`);
+        }
+      }
+
+      // Build synced translations
+      const syncedTranslations: Record<string, string> = {};
+      let added = 0;
+      const removed: string[] = [];
+
+      // Add all expected keys (with existing value or empty string for new)
+      for (const keyName of expectedKeys) {
+        syncedTranslations[keyName] = existingTranslations[keyName] ?? '';
+        if (!(keyName in existingTranslations)) {
+          added++;
+        }
+      }
+
+      // Track removed keys
+      for (const existingKey of Object.keys(existingTranslations)) {
+        if (!expectedKeys.has(existingKey)) {
+          const displayKey = namespace ? `${namespace}:${existingKey}` : existingKey;
+          removed.push(displayKey);
+        }
+      }
+
+      // Check if there are changes
+      const hasChanges = added > 0 || removed.length > 0;
+      if (!hasChanges && fileExists) {
+        return; // No changes needed
+      }
+
+      // Sort keys alphabetically
+      const sortedTranslations: Record<string, string> = {};
+      for (const k of Object.keys(syncedTranslations).sort()) {
+        sortedTranslations[k] = syncedTranslations[k];
+      }
 
       // Ensure directory exists
-      const dir = dirname(filePath);
-      if (!existsSync(dir)) {
-        await mkdir(dir, { recursive: true });
+      try {
+        await mkdir(dirname(filePath), { recursive: true });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to create directory for ${relPath}: ${message}`);
       }
 
-      // Read existing translations or create empty object
-      let existingTranslations: Record<string, string> = {};
-      const fileExists = existsSync(filePath);
-      if (fileExists) {
-        try {
-          const content = await readFile(filePath, 'utf-8');
-          existingTranslations = formatter.parse(content);
-        } catch {
-          // If parse fails, start with empty object
-          existingTranslations = {};
-        }
-      } else {
-        createdFiles++;
-      }
-
-      // Build new translations: add missing, skip unused
-      const newTranslations: Record<string, string> = {};
-
-      // Add all extracted keys (with existing values or empty string for new)
-      for (const keyName of keyNames) {
-        newTranslations[keyName] = existingTranslations[keyName] ?? '';
-        if (!(keyName in existingTranslations)) {
-          addedKeys++;
-        }
-      }
-
-      // Track removed keys (exist in file but not in extracted)
-      for (const existingKey of Object.keys(existingTranslations)) {
-        if (!keyNames.has(existingKey)) {
-          removedKeys++;
-          const displayKey = namespace ? `${namespace}:${existingKey}` : existingKey;
-          removedKeysList.push(displayKey);
-        }
-      }
-
-      // Sort keys alphabetically for consistent output
-      const sortedTranslations: Record<string, string> = {};
-      for (const k of Object.keys(newTranslations).sort()) {
-        sortedTranslations[k] = newTranslations[k];
-      }
-
-      // Write file if there were changes
-      const hasChanges = addedKeys > 0 || removedKeys > 0 || !fileExists;
-      if (hasChanges) {
+      // Write file
+      try {
         const content = formatter.format(sortedTranslations);
         await writeFile(filePath, content + '\n', 'utf-8');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to write ${relPath}: ${message}`);
+      }
+
+      // Update statistics
+      if (!fileExists) {
+        filesCreated++;
+      } else if (hasChanges) {
+        filesModified++;
+      }
+
+      if (added > 0) {
+        addedByLang[lang] = (addedByLang[lang] ?? 0) + added;
+      }
+      if (removed.length > 0) {
+        if (!removedByLang[lang]) {
+          removedByLang[lang] = [];
+        }
+        removedByLang[lang].push(...removed);
       }
     }
 
-    // Build summary message
+    // Helper to process a directory for all locale files
+    async function processDirectory(dir: string, namespace: string | null): Promise<void> {
+      if (!existsSync(dir)) return;
+
+      const expectedKeys = byNamespace.get(namespace) ?? new Set();
+      if (expectedKeys.size === 0 && namespace !== null) {
+        // No keys for this namespace, skip
+        return;
+      }
+
+      const relDir = relative(cwd, dir) || '.';
+      let files: string[];
+
+      try {
+        files = await readdir(dir);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to read directory ${relDir}: ${message}`);
+      }
+
+      for (const file of files) {
+        const filePath = join(dir, file);
+        let fileStat;
+
+        try {
+          fileStat = await stat(filePath);
+        } catch {
+          // File may have been deleted between readdir and stat, skip it
+          continue;
+        }
+
+        // Skip directories
+        if (fileStat.isDirectory()) continue;
+
+        const ext = extname(file).toLowerCase();
+        const isJsonFile = config.format.type === 'json' && ext === '.json';
+        const isYamlFile = config.format.type === 'yaml' && (ext === '.yaml' || ext === '.yml');
+
+        if (isJsonFile || isYamlFile) {
+          await syncFile(filePath, namespace, expectedKeys);
+        }
+      }
+    }
+
+    // Process root directory (non-namespaced keys)
+    await processDirectory(localesDir, null);
+
+    // Process namespace subdirectories
+    const entries = await readdir(localesDir);
+    for (const entry of entries) {
+      const entryPath = join(localesDir, entry);
+      let entryStat;
+
+      try {
+        entryStat = await stat(entryPath);
+      } catch {
+        // Entry may have been deleted, skip it
+        continue;
+      }
+
+      if (entryStat.isDirectory() && !entry.startsWith('.')) {
+        await processDirectory(entryPath, entry);
+      }
+    }
+
+    // Build summary
+    const totalAdded = Object.values(addedByLang).reduce((a, b) => a + b, 0);
+    const totalRemoved = Object.values(removedByLang).reduce((a, b) => a + b.length, 0);
+
     const parts: string[] = [];
-    if (addedKeys > 0) parts.push(`${addedKeys} added`);
-    if (removedKeys > 0) parts.push(`${removedKeys} removed`);
-    if (createdFiles > 0) parts.push(`${createdFiles} file(s) created`);
+    if (totalAdded > 0) parts.push(`${totalAdded} added`);
+    if (totalRemoved > 0) parts.push(`${totalRemoved} removed`);
+    if (filesCreated > 0) parts.push(`${filesCreated} file(s) created`);
+    if (filesModified > 0) parts.push(`${filesModified} file(s) modified`);
 
     if (parts.length > 0) {
       spinner.succeed(`Synced: ${parts.join(', ')}`);
 
-      // Display removed keys if any
-      if (removedKeysList.length > 0) {
+      // Display added keys by language
+      if (totalAdded > 0) {
         console.log();
-        console.log(chalk.bold('Removed Keys:'));
-        for (const key of removedKeysList.sort()) {
-          console.log(chalk.red(`  - ${key}`));
+        console.log(chalk.bold('Added Keys by Language:'));
+        for (const lang of Object.keys(addedByLang).sort()) {
+          console.log(chalk.green(`  [${lang}] ${addedByLang[lang]} key(s)`));
         }
       }
 
-      // Display summary by namespace
-      console.log();
-      console.log(chalk.bold('Synced Files:'));
-      for (const [namespace, keyNames] of byNamespace) {
-        const filePath = namespace
-          ? join(config.paths.translations, namespace, `${sourceLocale}.json`)
-          : join(config.paths.translations, `${sourceLocale}.json`);
-        console.log(chalk.green(`  ${filePath}`), chalk.gray(`(${keyNames.size} keys)`));
+      // Display removed keys by language
+      if (totalRemoved > 0) {
+        console.log();
+        console.log(chalk.bold('Removed Keys by Language:'));
+        for (const lang of Object.keys(removedByLang).sort()) {
+          console.log(chalk.cyan(`  [${lang}]`));
+          for (const key of removedByLang[lang].sort()) {
+            console.log(chalk.red(`    - ${key}`));
+          }
+        }
       }
     } else {
       spinner.succeed('All keys already synced');
     }
   } catch (error) {
-    spinner.fail('Failed to sync extracted keys');
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    spinner.fail(`Failed to sync extracted keys: ${message}`);
     throw error;
   }
 }
