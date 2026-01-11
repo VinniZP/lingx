@@ -147,6 +147,23 @@ describe('TranslateHandler', () => {
     await expect(handler.execute(query)).rejects.toThrow('Text to translate cannot be empty');
   });
 
+  it('should throw when text exceeds maximum length', async () => {
+    const handler = createHandler();
+
+    mockAccessService.verifyProjectAccess.mockResolvedValue(undefined);
+
+    // Create text longer than 10,000 characters
+    const longText = 'a'.repeat(10_001);
+
+    const query = new TranslateQuery('project-1', 'user-1', {
+      text: longText,
+      sourceLanguage: 'en',
+      targetLanguage: 'fr',
+    });
+
+    await expect(handler.execute(query)).rejects.toThrow('Text exceeds maximum length');
+  });
+
   it('should throw when provider config is not found', async () => {
     const handler = createHandler();
 

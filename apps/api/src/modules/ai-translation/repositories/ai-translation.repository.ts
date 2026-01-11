@@ -480,67 +480,74 @@ export class AITranslationRepository {
 
   /**
    * Get usage statistics for a project
+   *
+   * Uses batch queries to avoid N+1 query problem:
+   * - 1 query for configs
+   * - 1 query for current month usage (all providers)
+   * - 1 query for all-time usage aggregates (all providers)
    */
   async getUsage(projectId: string): Promise<AIUsageStats[]> {
+    const currentYearMonth = this.getCurrentYearMonth();
+
+    // Batch query 1: Get all configs
     const configs = await this.prisma.aITranslationConfig.findMany({
       where: { projectId },
     });
 
-    const currentYearMonth = this.getCurrentYearMonth();
+    if (configs.length === 0) {
+      return [];
+    }
 
-    const stats: AIUsageStats[] = [];
+    // Batch query 2: Get current month usage for all providers in one query
+    const currentMonthUsages = await this.prisma.aITranslationUsage.findMany({
+      where: {
+        projectId,
+        yearMonth: currentYearMonth,
+      },
+    });
 
-    for (const config of configs) {
-      // Get current month usage
-      const currentMonthUsage = await this.prisma.aITranslationUsage.findUnique({
-        where: {
-          projectId_provider_model_yearMonth: {
-            projectId,
-            provider: config.provider,
-            model: config.model,
-            yearMonth: currentYearMonth,
-          },
-        },
-      });
+    // Batch query 3: Get all-time aggregates grouped by provider/model
+    const allTimeAggregates = await this.prisma.aITranslationUsage.groupBy({
+      by: ['provider', 'model'],
+      where: { projectId },
+      _sum: {
+        inputTokens: true,
+        outputTokens: true,
+        requestCount: true,
+      },
+    });
 
-      // Get all-time usage
-      const allTimeUsage = await this.prisma.aITranslationUsage.aggregate({
-        where: {
-          projectId,
-          provider: config.provider,
-          model: config.model,
-        },
-        _sum: {
-          inputTokens: true,
-          outputTokens: true,
-          requestCount: true,
-        },
-      });
+    // Create lookup maps for O(1) access
+    const currentMonthMap = new Map(currentMonthUsages.map((u) => [`${u.provider}:${u.model}`, u]));
+    const allTimeMap = new Map(allTimeAggregates.map((a) => [`${a.provider}:${a.model}`, a._sum]));
 
-      // Calculate cost
-      const inputTokens = Number(currentMonthUsage?.inputTokens || 0n);
-      const outputTokens = Number(currentMonthUsage?.outputTokens || 0n);
+    // Build stats from configs with looked-up usage data
+    return configs.map((config) => {
+      const key = `${config.provider}:${config.model}`;
+      const currentMonth = currentMonthMap.get(key);
+      const allTime = allTimeMap.get(key);
+
+      const inputTokens = Number(currentMonth?.inputTokens || 0n);
+      const outputTokens = Number(currentMonth?.outputTokens || 0n);
       const cost = this.aiProviderService.estimateCost(config.model, inputTokens, outputTokens);
 
-      stats.push({
+      return {
         provider: config.provider as AIProviderType,
         model: config.model,
         currentMonth: {
           inputTokens,
           outputTokens,
-          requestCount: currentMonthUsage?.requestCount || 0,
-          cacheHits: currentMonthUsage?.cacheHits || 0,
+          requestCount: currentMonth?.requestCount || 0,
+          cacheHits: currentMonth?.cacheHits || 0,
           estimatedCost: cost,
         },
         allTime: {
-          inputTokens: Number(allTimeUsage._sum.inputTokens || 0n),
-          outputTokens: Number(allTimeUsage._sum.outputTokens || 0n),
-          requestCount: allTimeUsage._sum.requestCount || 0,
+          inputTokens: Number(allTime?.inputTokens || 0n),
+          outputTokens: Number(allTime?.outputTokens || 0n),
+          requestCount: allTime?.requestCount || 0,
         },
-      });
-    }
-
-    return stats;
+      };
+    });
   }
 
   // ============================================

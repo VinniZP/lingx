@@ -7,6 +7,13 @@ import type { AITranslationRepository } from '../repositories/ai-translation.rep
 import type { AIProviderService } from '../services/ai-provider.service.js';
 import type { TranslateQuery } from './translate.query.js';
 
+/**
+ * Maximum text length for AI translation (characters).
+ * Prevents abuse and excessive token usage.
+ * 10,000 characters ≈ 2,500 tokens for most languages.
+ */
+const MAX_TEXT_LENGTH = 10_000;
+
 interface AITranslationContext {
   sourceLanguage: string;
   targetLanguage: string;
@@ -37,6 +44,12 @@ export class TranslateHandler implements IQueryHandler<TranslateQuery> {
     // Validate input
     if (!text || text.trim().length === 0) {
       throw new BadRequestError('Text to translate cannot be empty');
+    }
+
+    if (text.length > MAX_TEXT_LENGTH) {
+      throw new BadRequestError(
+        `Text exceeds maximum length of ${MAX_TEXT_LENGTH} characters (received ${text.length})`
+      );
     }
 
     // Select provider
@@ -226,10 +239,19 @@ export class TranslateHandler implements IQueryHandler<TranslateQuery> {
       context.customInstructions = contextConfig.customInstructions;
     }
 
-    // Note: Glossary, TM, and related keys would be fetched here using
-    // GlossaryRepository, TranslationMemoryService, and KeyContextService
-    // For now, we leave them empty as the original logic was quite complex
-    // and we want to keep the handler focused.
+    // TODO: Implement context enrichment features
+    //
+    // The following context features are configured but not yet implemented:
+    // - Glossary terms (contextConfig.includeGlossary, contextConfig.glossaryLimit)
+    //   Requires: GlossaryRepository to fetch matching terms for source text
+    // - Translation memory matches (contextConfig.includeTM, contextConfig.tmLimit, contextConfig.tmMinSimilarity)
+    //   Requires: TranslationMemoryService to find similar translations
+    // - Related keys (contextConfig.includeRelatedKeys, contextConfig.relatedKeysLimit)
+    //   Requires: KeyContextService to find semantically related translation keys
+    //
+    // These features improve translation quality by providing context to the AI model.
+    // Implementation was deferred to keep the initial CQRS migration focused.
+    // See: https://github.com/VinniZP/lingx/issues/53
 
     return context;
   }
