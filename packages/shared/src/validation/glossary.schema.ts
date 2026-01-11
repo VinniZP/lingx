@@ -318,7 +318,7 @@ export const glossarySyncStatusSchema = z.object({
   provider: z.enum(['DEEPL', 'GOOGLE_TRANSLATE']),
   sourceLanguage: z.string(),
   targetLanguage: z.string(),
-  externalGlossaryId: z.string(),
+  externalGlossaryId: z.string().nullable(),
   entriesCount: z.number(),
   lastSyncedAt: z.string(),
   syncStatus: z.enum(['synced', 'pending', 'error']),

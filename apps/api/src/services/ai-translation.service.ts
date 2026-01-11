@@ -4,25 +4,27 @@
  * Provider-agnostic AI translation using Vercel AI SDK.
  * Supports OpenAI, Anthropic with configurable context per project.
  */
-import {
-  PrismaClient,
-  AIProvider as AIProviderEnum,
-  AIContextConfig,
-} from '@prisma/client';
-import { createHash, createCipheriv, createDecipheriv, randomBytes } from 'crypto';
-import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
+import { AIContextConfig, AIProvider as AIProviderEnum, PrismaClient } from '@prisma/client';
 import { generateText, type LanguageModel } from 'ai';
-import { KeyContextService, type AIContextResult } from './key-context.service.js';
-import { GlossaryService, type GlossaryMatch } from './glossary.service.js';
-import { TranslationMemoryService, type TMMatch } from './translation-memory.service.js';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import {
+  GlossaryRepository,
+  type GlossaryMatch,
+} from '../modules/glossary/repositories/glossary.repository.js';
 import { BadRequestError, NotFoundError } from '../plugins/error-handler.js';
+import { KeyContextService, type AIContextResult } from './key-context.service.js';
+import { TranslationMemoryService, type TMMatch } from './translation-memory.service.js';
 
 /** Cache TTL in days */
 const CACHE_TTL_DAYS = 30;
 
 /** Default context configuration */
-const DEFAULT_CONTEXT_CONFIG: Omit<AIContextConfig, 'id' | 'projectId' | 'createdAt' | 'updatedAt'> = {
+const DEFAULT_CONTEXT_CONFIG: Omit<
+  AIContextConfig,
+  'id' | 'projectId' | 'createdAt' | 'updatedAt'
+> = {
   includeGlossary: true,
   glossaryLimit: 10,
   includeTM: true,
@@ -48,25 +50,25 @@ const PROVIDER_MODELS: Record<AIProviderEnum, string[]> = {
 /** Pricing per 1M tokens (input, output) in USD - January 2026 */
 const PRICING: Record<string, { input: number; output: number }> = {
   // OpenAI GPT-5.x series (2025-2026)
-  'gpt-5.2': { input: 1.75, output: 14.00 },
-  'gpt-5.1': { input: 1.25, output: 10.00 },
-  'gpt-5-mini': { input: 0.25, output: 2.00 },
-  'gpt-5-nano': { input: 0.05, output: 0.40 },
+  'gpt-5.2': { input: 1.75, output: 14.0 },
+  'gpt-5.1': { input: 1.25, output: 10.0 },
+  'gpt-5-mini': { input: 0.25, output: 2.0 },
+  'gpt-5-nano': { input: 0.05, output: 0.4 },
   // OpenAI GPT-4.1 + o4 series
-  'gpt-4.1': { input: 2.00, output: 8.00 },
-  'gpt-4.1-mini': { input: 0.40, output: 1.60 },
-  'o4-mini': { input: 1.10, output: 4.40 },
+  'gpt-4.1': { input: 2.0, output: 8.0 },
+  'gpt-4.1-mini': { input: 0.4, output: 1.6 },
+  'o4-mini': { input: 1.1, output: 4.4 },
   // Anthropic Claude 4.5 series (2025)
-  'claude-sonnet-4-5': { input: 3.00, output: 15.00 },
-  'claude-haiku-4-5': { input: 1.00, output: 5.00 },
-  'claude-opus-4-5': { input: 15.00, output: 75.00 },
+  'claude-sonnet-4-5': { input: 3.0, output: 15.0 },
+  'claude-haiku-4-5': { input: 1.0, output: 5.0 },
+  'claude-opus-4-5': { input: 15.0, output: 75.0 },
   // Google AI Gemini 3 (Nov 2025)
-  'gemini-3-flash': { input: 0.15, output: 0.60 },
-  'gemini-3-pro': { input: 1.25, output: 5.00 },
-  'gemini-2.0-flash': { input: 0.10, output: 0.40 },
+  'gemini-3-flash': { input: 0.15, output: 0.6 },
+  'gemini-3-pro': { input: 1.25, output: 5.0 },
+  'gemini-2.0-flash': { input: 0.1, output: 0.4 },
   // Mistral
-  'mistral-large-latest': { input: 2.00, output: 6.00 },
-  'mistral-small-latest': { input: 0.20, output: 0.60 },
+  'mistral-large-latest': { input: 2.0, output: 6.0 },
+  'mistral-small-latest': { input: 0.2, output: 0.6 },
 };
 
 export type AIProviderType = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE_AI' | 'MISTRAL';
@@ -385,10 +387,7 @@ export class AITranslationService {
   /**
    * Translate text using AI with context
    */
-  async translate(
-    projectId: string,
-    input: AITranslateInput
-  ): Promise<AITranslateResult> {
+  async translate(projectId: string, input: AITranslateInput): Promise<AITranslateResult> {
     const { text, sourceLanguage, targetLanguage, keyId, branchId, provider } = input;
 
     // Validate input
@@ -597,11 +596,7 @@ export class AITranslationService {
   /**
    * Get language model instance for provider
    */
-  private getLanguageModel(
-    provider: AIProviderType,
-    model: string,
-    apiKey: string
-  ): LanguageModel {
+  private getLanguageModel(provider: AIProviderType, model: string, apiKey: string): LanguageModel {
     switch (provider) {
       case 'OPENAI': {
         const openai = createOpenAI({ apiKey });
@@ -645,8 +640,8 @@ export class AITranslationService {
     // Get glossary terms
     if (config.includeGlossary) {
       try {
-        const glossaryService = new GlossaryService(this.prisma);
-        const matches = await glossaryService.searchInText({
+        const glossaryRepository = new GlossaryRepository(this.prisma);
+        const matches = await glossaryRepository.searchInText({
           projectId,
           sourceText: text,
           sourceLanguage,
@@ -775,7 +770,9 @@ export class AITranslationService {
     if (context.glossaryTerms.length > 0) {
       parts.push('<glossary>');
       context.glossaryTerms.forEach((t) => {
-        parts.push(`  <term source="${this.escapeXml(t.source)}" target="${this.escapeXml(t.target)}"${t.context ? ` context="${this.escapeXml(t.context)}"` : ''}/>`);
+        parts.push(
+          `  <term source="${this.escapeXml(t.source)}" target="${this.escapeXml(t.target)}"${t.context ? ` context="${this.escapeXml(t.context)}"` : ''}/>`
+        );
       });
       parts.push('</glossary>');
       parts.push('');
@@ -784,7 +781,9 @@ export class AITranslationService {
     if (context.tmMatches.length > 0) {
       parts.push('<reference_translations>');
       context.tmMatches.forEach((m) => {
-        parts.push(`  <example source="${this.escapeXml(m.source)}" target="${this.escapeXml(m.target)}"/>`);
+        parts.push(
+          `  <example source="${this.escapeXml(m.source)}" target="${this.escapeXml(m.target)}"/>`
+        );
       });
       parts.push('</reference_translations>');
       parts.push('');
@@ -793,7 +792,9 @@ export class AITranslationService {
     if (context.relatedTranslations.length > 0) {
       parts.push('<related_keys>');
       context.relatedTranslations.forEach((r) => {
-        parts.push(`  <key name="${this.escapeXml(r.key)}" source="${this.escapeXml(r.source)}" target="${this.escapeXml(r.target)}"/>`);
+        parts.push(
+          `  <key name="${this.escapeXml(r.key)}" source="${this.escapeXml(r.source)}" target="${this.escapeXml(r.target)}"/>`
+        );
       });
       parts.push('</related_keys>');
       parts.push('');
@@ -834,7 +835,7 @@ export class AITranslationService {
     // Fallback: remove common prefixes that models sometimes add
     const prefixes = [
       /^(Translation|Translated|Result|Output|Here is the translation|The translation is|Перевод|Переклад|Übersetzung|Traduction):\s*/i,
-      /^["'`«„"']+/,  // Leading quotes
+      /^["'`«„"']+/, // Leading quotes
     ];
 
     for (const prefix of prefixes) {
@@ -848,8 +849,8 @@ export class AITranslationService {
       ['`', '`'],
       ['«', '»'],
       ['„', '"'],
-      ['\u201C', '\u201D'],  // " "
-      ['\u2018', '\u2019'],  // ' '
+      ['\u201C', '\u201D'], // " "
+      ['\u2018', '\u2019'], // ' '
     ];
 
     for (const [open, close] of quotePairs) {
@@ -1118,7 +1119,7 @@ export class AITranslationService {
     if (!keyHex || keyHex.length !== 64) {
       throw new Error(
         'AI_ENCRYPTION_KEY (or MT_ENCRYPTION_KEY) must be a 64-character hex string (32 bytes). ' +
-        'Generate with: openssl rand -hex 32'
+          'Generate with: openssl rand -hex 32'
       );
     }
     return Buffer.from(keyHex, 'hex');
