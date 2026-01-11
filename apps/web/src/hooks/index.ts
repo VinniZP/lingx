@@ -70,9 +70,4 @@ export {
   type RelationshipType,
 } from './use-related-keys';
 export { useKeySuggestions, type UnifiedSuggestion } from './use-suggestions';
-export {
-  useRecordTMUsage,
-  useTranslationMemorySearch,
-  type TMMatch,
-  type TMSearchParams,
-} from './use-translation-memory';
+export { useRecordTMUsage, type TMMatch, type TMSearchParams } from './use-translation-memory';
