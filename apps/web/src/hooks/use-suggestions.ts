@@ -14,212 +14,9 @@ import {
   useMTTranslate,
   useMTTranslateWithContext,
 } from './use-machine-translation';
-import { useTranslationMemorySearch, type TMMatch } from './use-translation-memory';
 
 // Re-export for convenience
 export type { UnifiedSuggestion } from '@/types';
-
-/**
- * Suggestions state for a single key across all target languages.
- */
-interface KeySuggestionsState {
-  suggestions: Map<string, UnifiedSuggestion[]>; // lang -> suggestions
-  isLoading: Map<string, boolean>; // lang -> is loading
-  mtFetched: Set<string>; // languages that have had MT fetched
-}
-
-interface UseSuggestionsOptions {
-  projectId: string;
-  sourceLanguage: string;
-  targetLanguages: string[];
-  sourceText: string;
-  enabled?: boolean;
-}
-
-/**
- * Hook that provides unified TM + MT suggestions for a translation key.
- *
- * - TM suggestions are fetched automatically when enabled
- * - MT suggestions are fetched on-demand via fetchMT()
- * - Results are unified into a single suggestions map by language
- */
-function useSuggestions({
-  projectId,
-  sourceLanguage,
-  targetLanguages,
-  sourceText,
-  enabled = true,
-}: UseSuggestionsOptions) {
-  const [mtResults, setMtResults] = useState<Map<string, UnifiedSuggestion>>(new Map());
-  const [fetchingMT, setFetchingMT] = useState<Set<string>>(new Set());
-
-  // Check if MT is configured
-  const { data: mtConfigsData } = useMTConfigs(projectId);
-  const hasMT = useMemo(() => {
-    const configs = mtConfigsData?.configs || [];
-    return configs.some((c) => c.isActive);
-  }, [mtConfigsData?.configs]);
-
-  // MT translate mutation
-  const mtTranslate = useMTTranslate(projectId);
-
-  // TM search params (for future TM integration)
-  // Currently unused but keeping structure for when TM API is implemented
-
-  // Fetch TM for each target language
-  const tmQueries = targetLanguages.map((lang) => {
-    const params =
-      enabled && sourceText && sourceText.length >= 3
-        ? {
-            sourceText,
-            sourceLanguage,
-            targetLanguage: lang,
-            minSimilarity: 0.6,
-            limit: 5,
-          }
-        : null;
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    return useTranslationMemorySearch(projectId, params, { enabled: enabled && !!params });
-  });
-
-  // Convert TM matches to unified suggestions
-  const tmSuggestionsByLang = useMemo(() => {
-    const result = new Map<string, UnifiedSuggestion[]>();
-
-    targetLanguages.forEach((lang, index) => {
-      const query = tmQueries[index];
-      const matches = query?.data?.matches || [];
-
-      const suggestions: UnifiedSuggestion[] = matches.map((match: TMMatch) => ({
-        id: match.id,
-        type: 'tm' as const,
-        text: match.targetText,
-        confidence: Math.round(match.similarity * 100),
-        source: match.sourceText.substring(0, 30) + (match.sourceText.length > 30 ? '...' : ''),
-      }));
-
-      if (suggestions.length > 0) {
-        result.set(lang, suggestions);
-      }
-    });
-
-    return result;
-  }, [targetLanguages, tmQueries]);
-
-  // Merge TM and MT suggestions by language
-  const allSuggestions = useMemo(() => {
-    const result = new Map<string, UnifiedSuggestion[]>();
-
-    targetLanguages.forEach((lang) => {
-      const tmSuggestions = tmSuggestionsByLang.get(lang) || [];
-      const mtSuggestion = mtResults.get(lang);
-
-      const combined: UnifiedSuggestion[] = [];
-
-      // Add TM suggestions first (sorted by confidence)
-      combined.push(...tmSuggestions.sort((a, b) => b.confidence - a.confidence));
-
-      // Add MT suggestion if available (at the end or interleaved based on confidence)
-      if (mtSuggestion) {
-        // Insert MT after high-confidence TM but before low-confidence
-        const insertIndex = combined.findIndex((s) => s.confidence < 90);
-        if (insertIndex === -1) {
-          combined.push(mtSuggestion);
-        } else {
-          combined.splice(insertIndex, 0, mtSuggestion);
-        }
-      }
-
-      if (combined.length > 0) {
-        result.set(lang, combined);
-      }
-    });
-
-    return result;
-  }, [targetLanguages, tmSuggestionsByLang, mtResults]);
-
-  // Fetch MT for a specific language
-  const fetchMT = useCallback(
-    async (targetLanguage: string) => {
-      if (!sourceText || !hasMT) return;
-
-      setFetchingMT((prev) => new Set(prev).add(targetLanguage));
-
-      try {
-        const result = await mtTranslate.mutateAsync({
-          text: sourceText,
-          sourceLanguage,
-          targetLanguage,
-        });
-
-        const suggestion: UnifiedSuggestion = {
-          id: `mt-${targetLanguage}-${Date.now()}`,
-          type: 'mt',
-          text: result.translatedText,
-          confidence: 100, // MT is always "100% confident"
-          provider: getProviderDisplayName(result.provider),
-          cached: result.cached,
-        };
-
-        setMtResults((prev) => new Map(prev).set(targetLanguage, suggestion));
-      } catch (error) {
-        console.error('[useSuggestions] MT fetch failed:', error);
-      } finally {
-        setFetchingMT((prev) => {
-          const next = new Set(prev);
-          next.delete(targetLanguage);
-          return next;
-        });
-      }
-    },
-    [sourceText, sourceLanguage, hasMT, mtTranslate]
-  );
-
-  // Fetch MT for all target languages
-  const fetchMTAll = useCallback(async () => {
-    if (!sourceText || !hasMT) return;
-
-    // Fetch for all languages that don't already have MT
-    const toFetch = targetLanguages.filter((lang) => !mtResults.has(lang));
-
-    await Promise.all(toFetch.map((lang) => fetchMT(lang)));
-  }, [sourceText, hasMT, targetLanguages, mtResults, fetchMT]);
-
-  // Clear MT results (useful when source text changes)
-  const clearMT = useCallback(() => {
-    setMtResults(new Map());
-  }, []);
-
-  // Loading state per language
-  const isLoading = useMemo(() => {
-    const result = new Map<string, boolean>();
-
-    targetLanguages.forEach((lang, index) => {
-      const tmLoading = tmQueries[index]?.isLoading || false;
-      const mtLoading = fetchingMT.has(lang);
-      result.set(lang, tmLoading || mtLoading);
-    });
-
-    return result;
-  }, [targetLanguages, tmQueries, fetchingMT]);
-
-  return {
-    /** Unified suggestions map: language -> suggestions array */
-    suggestions: allSuggestions,
-    /** Loading state per language */
-    isLoading,
-    /** Whether MT is configured and available */
-    hasMT,
-    /** Set of languages currently fetching MT */
-    fetchingMT,
-    /** Fetch MT for a specific language */
-    fetchMT,
-    /** Fetch MT for all target languages */
-    fetchMTAll,
-    /** Clear all MT results */
-    clearMT,
-  };
-}
 
 /**
  * Maximum number of keys to cache suggestions for (LRU eviction).
@@ -399,7 +196,7 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
   );
 
   // Check if MT is being fetched for a key/language
-  const isFetchingMT = useCallback(
+  useCallback(
     (keyId: string, lang: string): boolean => {
       return fetchingMT.get(keyId)?.has(lang) || false;
     },
@@ -415,7 +212,7 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
   );
 
   // Clear suggestions for a key (also removes from LRU order)
-  const clearKeySuggestions = useCallback((keyId: string) => {
+  useCallback((keyId: string) => {
     setCacheOrder((prev) => prev.filter((k) => k !== keyId));
     setSuggestionsCache((prev) => {
       const next = new Map(prev);
@@ -496,7 +293,7 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
   );
 
   // Check if AI is being fetched for a key/language
-  const isFetchingAI = useCallback(
+  useCallback(
     (keyId: string, lang: string): boolean => {
       return fetchingAI.get(keyId)?.has(lang) || false;
     },
@@ -516,11 +313,8 @@ export function useKeySuggestions(projectId: string, branchId?: string) {
     setSuggestion,
     fetchMT,
     fetchAI,
-    isFetchingMT,
-    isFetchingAI,
     getFetchingMTSet,
     getFetchingAISet,
-    clearKeySuggestions,
     hasMT,
     hasAI,
   };

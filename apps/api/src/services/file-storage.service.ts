@@ -4,11 +4,11 @@
  * Handles file uploads for avatars and other user content.
  * Uses local filesystem storage (can be migrated to S3 later).
  */
+import type { MultipartFile } from '@fastify/multipart';
+import { createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { createWriteStream } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
-import type { MultipartFile } from '@fastify/multipart';
 import { ValidationError } from '../plugins/error-handler.js';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -68,22 +68,24 @@ export class FileStorageService {
     try {
       const fileStream = file.file;
 
-      // Check size as we stream
+      // Check size as we stream - use destroy(error) to properly propagate
       fileStream.on('data', (chunk: Buffer) => {
         bytesWritten += chunk.length;
         if (bytesWritten > MAX_FILE_SIZE) {
-          fileStream.destroy();
-          writeStream.destroy();
-          throw new ValidationError(
+          const error = new ValidationError(
             `File too large. Maximum size is ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB`
           );
+          fileStream.destroy(error);
         }
       });
 
       await pipeline(fileStream, writeStream);
     } catch (error) {
-      // Clean up partial file on error
-      await fs.unlink(fullPath).catch(() => {});
+      // Clean up partial file on error (best-effort, log if cleanup fails)
+      await fs.unlink(fullPath).catch((cleanupError) => {
+        // Cleanup failure is less important than the original error
+        console.warn('Failed to cleanup partial file:', { fullPath, cleanupError });
+      });
       throw error;
     }
 
@@ -124,7 +126,7 @@ export class FileStorageService {
     // Extract relative path from URL (handles both full URL and relative path)
     const relativePath = avatarUrl
       .replace(/^https?:\/\/[^/]+/, '') // Remove domain
-      .replace(/^\/uploads\//, '');      // Remove /uploads/ prefix
+      .replace(/^\/uploads\//, ''); // Remove /uploads/ prefix
     await this.deleteFile(relativePath);
   }
 

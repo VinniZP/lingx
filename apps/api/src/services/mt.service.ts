@@ -10,7 +10,6 @@ import { BadRequestError, NotFoundError } from '../plugins/error-handler.js';
 import { KeyContextService, type AIContextResult } from './key-context.service.js';
 import {
   createMTProvider,
-  type MTCostEstimate,
   type MTProvider,
   type MTProviderType,
   type MTTranslateOptions,
@@ -18,10 +17,6 @@ import {
 
 /** Cache TTL in days */
 const CACHE_TTL_DAYS = 30;
-
-/** Maximum batch size for translations */
-const MAX_BATCH_SIZE = 50;
-
 export interface MTConfigInput {
   provider: MTProviderType;
   apiKey: string;
@@ -400,113 +395,6 @@ export class MTService {
           : undefined,
     };
   }
-
-  /**
-   * Batch translate multiple texts
-   */
-  async translateBatch(
-    projectId: string,
-    texts: string[],
-    sourceLanguage: string,
-    targetLanguage: string,
-    provider?: MTProviderType,
-    options?: MTTranslateOptions
-  ): Promise<TranslateResult[]> {
-    if (texts.length === 0) {
-      return [];
-    }
-
-    if (texts.length > MAX_BATCH_SIZE) {
-      throw new BadRequestError(`Batch size cannot exceed ${MAX_BATCH_SIZE}`);
-    }
-
-    // Select provider
-    const selectedProvider = provider || (await this.selectProvider(projectId));
-    if (!selectedProvider) {
-      throw new BadRequestError('No MT provider configured for this project');
-    }
-
-    // Check cache for each text
-    const results: TranslateResult[] = [];
-    const uncachedTexts: { index: number; text: string }[] = [];
-
-    for (let i = 0; i < texts.length; i++) {
-      const text = texts[i];
-      const cached = await this.getCachedTranslation(
-        projectId,
-        selectedProvider,
-        sourceLanguage,
-        targetLanguage,
-        text
-      );
-
-      if (cached) {
-        results[i] = {
-          translatedText: cached.translatedText,
-          provider: selectedProvider,
-          cached: true,
-          characterCount: cached.characterCount,
-        };
-      } else {
-        uncachedTexts.push({ index: i, text });
-      }
-    }
-
-    // Translate uncached texts
-    if (uncachedTexts.length > 0) {
-      const mtProvider = await this.getInitializedProvider(projectId, selectedProvider);
-
-      const translations = await mtProvider.translateBatch(
-        uncachedTexts.map((t) => t.text),
-        sourceLanguage,
-        targetLanguage,
-        options
-      );
-
-      let totalCharacters = 0;
-
-      // Process results and cache
-      for (let i = 0; i < uncachedTexts.length; i++) {
-        const { index, text } = uncachedTexts[i];
-        const translation = translations[i];
-        const characterCount = text.length;
-        totalCharacters += characterCount;
-
-        // Cache the result
-        await this.cacheTranslation(
-          projectId,
-          selectedProvider,
-          sourceLanguage,
-          targetLanguage,
-          text,
-          translation.text,
-          characterCount
-        );
-
-        results[index] = {
-          translatedText: translation.text,
-          provider: selectedProvider,
-          cached: false,
-          characterCount,
-        };
-      }
-
-      // Update usage stats
-      await this.updateUsage(
-        projectId,
-        selectedProvider,
-        totalCharacters,
-        uncachedTexts.length,
-        results.length - uncachedTexts.length
-      );
-    } else {
-      // All from cache
-      await this.updateUsage(projectId, selectedProvider, 0, 0, results.length);
-    }
-
-    return results;
-  }
-
   // ============================================
   // USAGE STATISTICS
   // ============================================
@@ -568,15 +456,6 @@ export class MTService {
 
     return stats;
   }
-
-  /**
-   * Get cost estimate for character count
-   */
-  getCostEstimate(provider: MTProviderType, characterCount: number): MTCostEstimate {
-    const mtProvider = createMTProvider(provider);
-    return mtProvider.estimateCost(characterCount);
-  }
-
   // ============================================
   // PRIVATE HELPERS
   // ============================================
@@ -905,32 +784,5 @@ export class MTService {
     }
 
     await mtProvider.deleteGlossary(glossaryId);
-  }
-
-  /**
-   * List glossaries from the MT provider
-   *
-   * @param projectId - Project ID
-   * @param provider - MT provider type
-   */
-  async listGlossaries(
-    projectId: string,
-    provider: MTProviderType
-  ): Promise<
-    Array<{
-      id: string;
-      name: string;
-      sourceLanguage: string;
-      targetLanguage: string;
-      entryCount: number;
-    }>
-  > {
-    const mtProvider = await this.getInitializedProvider(projectId, provider);
-
-    if (!mtProvider.listGlossaries) {
-      throw new BadRequestError(`Provider ${provider} does not support glossaries`);
-    }
-
-    return mtProvider.listGlossaries();
   }
 }

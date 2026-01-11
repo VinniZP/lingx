@@ -4,8 +4,8 @@
  * Handles email sending using nodemailer.
  * Uses maildev for local development.
  */
-import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import nodemailer from 'nodemailer';
 
 export interface EmailOptions {
   to: string;
@@ -39,25 +39,32 @@ export class EmailService {
 
   /**
    * Send an email
+   * @throws Error with user-friendly message if sending fails
    */
   async send(options: EmailOptions): Promise<void> {
-    await this.transporter.sendMail({
-      from: this.fromAddress,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text || this.stripHtml(options.html),
-    });
+    try {
+      await this.transporter.sendMail({
+        from: this.fromAddress,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text || this.stripHtml(options.html),
+      });
+    } catch (error) {
+      // Log the actual error for debugging (avoid exposing SMTP details to users)
+      console.error('Email send failed:', {
+        to: options.to,
+        subject: options.subject,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw new Error('Failed to send email. Please try again later.');
+    }
   }
 
   /**
    * Send email verification link
    */
-  async sendEmailVerification(
-    to: string,
-    token: string,
-    userName?: string
-  ): Promise<void> {
+  async sendEmailVerification(to: string, token: string, userName?: string): Promise<void> {
     const verifyUrl = `${this.appUrl}/verify-email?token=${token}`;
     const greeting = userName ? `Hi ${userName}` : 'Hi';
 

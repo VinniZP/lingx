@@ -5,19 +5,31 @@
  * - Profile management (name, avatar)
  * - User preferences
  * - Email change with verification
+ *
+ * Routes are thin - they validate input, dispatch to CommandBus/QueryBus, and format responses.
  */
+import {
+  avatarResponseSchema,
+  changeEmailSchema,
+  messageResponseSchema,
+  updatePreferencesSchema,
+  updateProfileSchema,
+  userPreferencesSchema,
+  userProfileResponseSchema,
+  verifyEmailSchema,
+} from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
-  updateProfileSchema,
-  updatePreferencesSchema,
-  changeEmailSchema,
-  verifyEmailSchema,
-  userProfileResponseSchema,
-  userPreferencesSchema,
-  avatarResponseSchema,
-  messageResponseSchema,
-} from '@lingx/shared';
+  CancelEmailChangeCommand,
+  DeleteAvatarCommand,
+  GetProfileQuery,
+  InitiateEmailChangeCommand,
+  UpdateAvatarCommand,
+  UpdatePreferencesCommand,
+  UpdateProfileCommand,
+  VerifyEmailChangeCommand,
+} from '../modules/profile/index.js';
 import { ValidationError } from '../plugins/error-handler.js';
 
 const profileRoutes: FastifyPluginAsync = async (fastify) => {
@@ -46,7 +58,7 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const profile = await fastify.profileService.getProfile(request.user.userId);
+      const profile = await fastify.queryBus.execute(new GetProfileQuery(request.user.userId));
 
       return reply.send({
         ...profile,
@@ -75,9 +87,8 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const profile = await fastify.profileService.updateProfile(
-        request.user.userId,
-        request.body
+      const profile = await fastify.commandBus.execute(
+        new UpdateProfileCommand(request.user.userId, request.body)
       );
 
       return reply.send({
@@ -117,9 +128,8 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
         throw new ValidationError('No file uploaded');
       }
 
-      const result = await fastify.profileService.updateAvatar(
-        request.user.userId,
-        data
+      const result = await fastify.commandBus.execute(
+        new UpdateAvatarCommand(request.user.userId, data)
       );
 
       return reply.send(result);
@@ -145,7 +155,7 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      await fastify.profileService.deleteAvatar(request.user.userId);
+      await fastify.commandBus.execute(new DeleteAvatarCommand(request.user.userId));
       return reply.send({ message: 'Avatar removed successfully' });
     }
   );
@@ -174,9 +184,8 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const preferences = await fastify.profileService.updatePreferences(
-        request.user.userId,
-        request.body
+      const preferences = await fastify.commandBus.execute(
+        new UpdatePreferencesCommand(request.user.userId, request.body)
       );
 
       return reply.send(preferences);
@@ -207,9 +216,8 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      await fastify.profileService.initiateEmailChange(
-        request.user.userId,
-        request.body
+      await fastify.commandBus.execute(
+        new InitiateEmailChangeCommand(request.user.userId, request.body)
       );
 
       return reply.send({
@@ -236,8 +244,8 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      const profile = await fastify.profileService.verifyEmailChange(
-        request.body.token
+      const profile = await fastify.commandBus.execute(
+        new VerifyEmailChangeCommand(request.body.token)
       );
 
       return reply.send({
@@ -266,7 +274,7 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      await fastify.profileService.cancelEmailChange(request.user.userId);
+      await fastify.commandBus.execute(new CancelEmailChangeCommand(request.user.userId));
       return reply.send({ message: 'Email change cancelled' });
     }
   );

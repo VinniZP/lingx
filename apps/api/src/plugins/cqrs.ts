@@ -17,6 +17,7 @@ import { registerBranchModule } from '../modules/branch/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
 import { registerMfaModule } from '../modules/mfa/index.js';
+import { registerProfileModule } from '../modules/profile/index.js';
 import { registerProjectModule } from '../modules/project/index.js';
 import { registerSecurityModule } from '../modules/security/index.js';
 import { registerTranslationModule } from '../modules/translation/index.js';
@@ -32,6 +33,7 @@ const domainModules: ModuleRegistrar[] = [
   registerActivityModule,
   registerSecurityModule,
   registerMfaModule,
+  registerProfileModule,
   registerProjectModule,
   registerBranchModule,
   registerTranslationModule,
