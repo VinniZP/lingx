@@ -5,11 +5,8 @@
  * Provides CRUD operations and aggregation queries.
  */
 
-import type {
-  PrismaClient,
-  TranslationQualityScore as PrismaQualityScore,
-} from '@prisma/client';
-import type { QualityScore, BranchQualitySummary, QualityIssue } from '@lingx/shared';
+import type { BranchQualitySummary, QualityIssue, QualityScore } from '@lingx/shared';
+import type { PrismaClient, TranslationQualityScore as PrismaQualityScore } from '@prisma/client';
 
 // ============================================
 // Types
@@ -43,6 +40,8 @@ export interface SaveScoreData {
   outputTokens?: number;
   /** Content hash for cache validation */
   contentHash?: string;
+  /** True if AI evaluation failed and fell back to heuristics */
+  aiFallback?: boolean;
 }
 
 /**
@@ -136,6 +135,7 @@ export class ScoreRepository {
       issues: data.issues,
       evaluationType: data.evaluationType,
       cached: false,
+      aiFallback: data.aiFallback,
     };
   }
 
@@ -206,9 +206,7 @@ export class ScoreRepository {
 
     return {
       averageScore:
-        scores.length > 0
-          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-          : 0,
+        scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0,
       distribution,
       byLanguage: byLanguageAvg,
       totalScored: scored.length,

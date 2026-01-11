@@ -5,8 +5,8 @@
  * Per refactoring plan: eliminate type duplication.
  */
 
-import type { QualityIssue } from '../validation/quality-checks/types.js';
 import type { QualityScoreResult } from '../validation/quality-checks/score-calculator.js';
+import type { QualityIssue } from '../validation/quality-checks/types.js';
 
 // Re-export base types for convenience
 export type { QualityIssue, QualityScoreResult };
@@ -61,6 +61,8 @@ export interface QualityScore extends QualityScoreResult {
   evaluationType: EvaluationType;
   /** Whether this score was served from cache */
   cached: boolean;
+  /** True if AI evaluation failed and fell back to heuristics */
+  aiFallback?: boolean;
 }
 
 /**
@@ -107,13 +109,23 @@ export interface QualityScoringConfig {
 }
 
 /**
+ * Failure information for a single translation evaluation
+ */
+export interface BatchEvaluationFailure {
+  /** Translation ID that failed */
+  translationId: string;
+  /** Error message */
+  error: string;
+}
+
+/**
  * Result of batch quality evaluation job request
  *
  * Note: Named differently from BatchQualityResult in runner.ts
  * which is for the batch check runner results.
  */
 export interface BatchQualityJobResult {
-  /** Job ID for tracking progress */
+  /** Job ID for tracking progress (empty string if all cached) */
   jobId: string;
   /** Statistics about the batch */
   stats: {
@@ -123,7 +135,11 @@ export interface BatchQualityJobResult {
     cached: number;
     /** Translations queued for evaluation */
     queued: number;
+    /** Translations that failed evaluation (synchronous batch only) */
+    failed?: number;
   };
+  /** Failures during synchronous batch evaluation (not applicable for queued jobs) */
+  failures?: BatchEvaluationFailure[];
 }
 
 /**

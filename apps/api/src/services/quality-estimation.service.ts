@@ -13,6 +13,7 @@ import {
   calculateScore,
   runQualityChecks,
   validateICUSyntaxAsync,
+  type BatchEvaluationFailure,
   type BranchQualitySummary,
   type EvaluateOptions,
   type QualityIssue,
@@ -20,6 +21,7 @@ import {
   type QualityScoringConfig,
 } from '@lingx/shared';
 import { AIProvider as AIProviderEnum, PrismaClient } from '@prisma/client';
+import type { FastifyBaseLogger } from 'fastify';
 import { NotFoundError, ValidationError } from '../plugins/error-handler.js';
 import { KeyContextService } from './key-context.service.js';
 
@@ -45,6 +47,16 @@ export type { BranchQualitySummary, EvaluateOptions, QualityScore };
 const EVALUATION_BATCH_SIZE = 10;
 
 /**
+ * Result of batch evaluation with failures tracked
+ */
+export interface BatchEvaluationResult {
+  /** Successfully evaluated scores */
+  results: Map<string, QualityScore>;
+  /** Translations that failed evaluation */
+  failures: BatchEvaluationFailure[];
+}
+
+/**
  * Quality Estimation Service
  */
 export class QualityEstimationService {
@@ -53,7 +65,8 @@ export class QualityEstimationService {
     private scoreRepository: ScoreRepository,
     private aiEvaluator: AIEvaluator,
     private glossaryEvaluator: GlossaryEvaluator,
-    private keyContextService: KeyContextService
+    private keyContextService: KeyContextService,
+    private logger: FastifyBaseLogger
   ) {}
 
   /**
@@ -144,20 +157,21 @@ export class QualityEstimationService {
     if (translation.qualityScore && sourceTranslation?.value) {
       const currentHash = generateContentHash(sourceTranslation.value, translation.value);
       if (translation.qualityScore.contentHash === currentHash) {
-        console.log(
-          `[Quality] CACHE HIT: ${keyName}/${lang} score=${translation.qualityScore.score}`
+        this.logger.debug(
+          { keyName, language: lang, score: translation.qualityScore.score },
+          'Quality cache hit'
         );
         return this.scoreRepository.formatStoredScore(translation.qualityScore);
       }
       // Content changed, fall through to re-evaluate
-      console.log(`[Quality] CACHE MISS (content changed): ${keyName}/${lang}`);
+      this.logger.debug({ keyName, language: lang }, 'Quality cache miss - content changed');
     } else if (!translation.qualityScore) {
-      console.log(`[Quality] NO CACHE: ${keyName}/${lang} (first evaluation)`);
+      this.logger.debug({ keyName, language: lang }, 'Quality cache miss - first evaluation');
     }
 
     if (!sourceTranslation?.value) {
       // No source to compare - score based on ICU syntax only
-      console.log(`[Quality] FORMAT ONLY: ${keyName}/${lang} (no source text)`);
+      this.logger.debug({ keyName, language: lang }, 'Format-only evaluation - no source text');
       return this.scoreFormatOnly(translationId, translation.value);
     }
 
@@ -200,8 +214,9 @@ export class QualityEstimationService {
     // If heuristics pass and AI not forced/needed, return heuristic score
     // forceAI=true means "always use AI" (but still respect cache)
     if (scoreResult.passed && !options?.forceAI && !needsAI) {
-      console.log(
-        `[Quality] HEURISTIC PASS: ${keyName}/${lang} score=${Math.round(finalScore)} (skipping AI)`
+      this.logger.debug(
+        { keyName, language: lang, score: Math.round(finalScore) },
+        'Heuristic pass - skipping AI'
       );
       return this.scoreRepository.save(translationId, {
         score: Math.round(finalScore),
@@ -218,8 +233,15 @@ export class QualityEstimationService {
         : needsAI
           ? 'heuristics flagged issues'
           : 'heuristics failed';
-      console.log(
-        `[Quality] AI EVAL START: ${keyName}/${lang} (${reason}) provider=${config.aiEvaluationProvider} model=${config.aiEvaluationModel}`
+      this.logger.debug(
+        {
+          keyName,
+          language: lang,
+          reason,
+          provider: config.aiEvaluationProvider,
+          model: config.aiEvaluationModel,
+        },
+        'Starting AI evaluation'
       );
       return this.evaluateWithAI(
         translationId,
@@ -235,8 +257,9 @@ export class QualityEstimationService {
       );
     }
 
-    console.log(
-      `[Quality] HEURISTIC ONLY: ${keyName}/${lang} score=${Math.round(finalScore)} (AI not configured)`
+    this.logger.debug(
+      { keyName, language: lang, score: Math.round(finalScore) },
+      'Heuristic-only evaluation - AI not configured'
     );
     return this.scoreRepository.save(translationId, {
       score: Math.round(finalScore),
@@ -250,13 +273,15 @@ export class QualityEstimationService {
   /**
    * Batch evaluate multiple translations
    *
-   * Processes in parallel batches of 10 to avoid overwhelming database
+   * Processes in parallel batches of 10 to avoid overwhelming database.
+   * Returns both successful results and failures for caller visibility.
    */
   async evaluateBatch(
     translationIds: string[],
     options?: EvaluateOptions
-  ): Promise<Map<string, QualityScore>> {
+  ): Promise<BatchEvaluationResult> {
     const results = new Map<string, QualityScore>();
+    const failures: BatchEvaluationFailure[] = [];
 
     for (let i = 0; i < translationIds.length; i += EVALUATION_BATCH_SIZE) {
       const batch = translationIds.slice(i, i + EVALUATION_BATCH_SIZE);
@@ -264,13 +289,25 @@ export class QualityEstimationService {
         this.evaluate(id, options)
           .then((score) => results.set(id, score))
           .catch((err) => {
-            console.error(`[Quality] Failed to evaluate ${id}:`, err.message);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            this.logger.error(
+              { translationId: id, error: errorMessage },
+              'Failed to evaluate translation quality'
+            );
+            failures.push({ translationId: id, error: errorMessage });
           })
       );
       await Promise.all(promises);
     }
 
-    return results;
+    if (failures.length > 0) {
+      this.logger.warn(
+        { successCount: results.size, failureCount: failures.length },
+        'Batch evaluation completed with failures'
+      );
+    }
+
+    return { results, failures };
   }
 
   /**
@@ -350,7 +387,7 @@ export class QualityEstimationService {
       config.aiEvaluationEnabled && config.aiEvaluationProvider && config.aiEvaluationModel;
 
     if (!aiAvailable) {
-      console.log(`[Quality] AI not configured, using heuristics for key ${keyName}`);
+      this.logger.debug({ keyName }, 'AI not configured - using heuristics');
       return this.saveHeuristicResults(translations, sourceText, heuristicResults);
     }
 
@@ -388,7 +425,7 @@ export class QualityEstimationService {
 
       relatedKeys = relatedKeys.filter((rk) => rk.source);
     } catch (error) {
-      console.warn('[Quality] Failed to fetch related keys:', error);
+      this.logger.warn({ error, keyName }, 'Failed to fetch related keys for AI context');
     }
 
     const aiConfig = await this.prisma.aITranslationConfig.findUnique({
@@ -401,7 +438,7 @@ export class QualityEstimationService {
     });
 
     if (!aiConfig?.isActive) {
-      console.log('[Quality] AI provider not active, using heuristics for all languages');
+      this.logger.debug({ keyName }, 'AI provider not active - using heuristics');
       return this.saveHeuristicResults(translations, sourceText, heuristicResults);
     }
 
@@ -414,7 +451,7 @@ export class QualityEstimationService {
       });
       const isAnthropic = config.aiEvaluationProvider === 'ANTHROPIC';
 
-      console.log(`[Quality] AI MULTI-LANG START: ${keyName} (${languages.join(', ')})`);
+      this.logger.debug({ keyName, languages }, 'Starting multi-language AI evaluation');
       const aiResults = await this.aiEvaluator.evaluateMultiLanguage(
         keyName,
         sourceText,
@@ -432,7 +469,10 @@ export class QualityEstimationService {
         const heuristic = heuristicResults.get(t.language) || { score: 100, issues: [] };
 
         if (!langResult) {
-          console.warn(`[Quality] No AI result for ${t.language}, using heuristic`);
+          this.logger.warn(
+            { keyName, language: t.language },
+            'No AI result for language - using heuristic fallback'
+          );
           const contentHash = generateContentHash(sourceText, t.value);
           const score = await this.scoreRepository.save(t.id, {
             score: heuristic.score,
@@ -440,6 +480,7 @@ export class QualityEstimationService {
             issues: heuristic.issues,
             evaluationType: 'heuristic',
             contentHash,
+            aiFallback: true, // Mark as AI fallback
           });
           results.set(t.language, score);
           continue;
@@ -449,8 +490,13 @@ export class QualityEstimationService {
         totalOutputTokens += langResult.usage.outputTokens;
 
         if (langResult.cacheMetrics.cacheRead > 0 || langResult.cacheMetrics.cacheCreation > 0) {
-          console.log(
-            `[Quality] CACHE (${t.language}): ${langResult.cacheMetrics.cacheRead} tokens read, ${langResult.cacheMetrics.cacheCreation} tokens created`
+          this.logger.debug(
+            {
+              language: t.language,
+              cacheRead: langResult.cacheMetrics.cacheRead,
+              cacheCreation: langResult.cacheMetrics.cacheCreation,
+            },
+            'AI prompt cache metrics'
           );
         }
 
@@ -485,27 +531,36 @@ export class QualityEstimationService {
         results.set(t.language, score);
       }
 
-      console.log(
-        `[Quality] AI MULTI-LANG DONE: ${keyName} (${languages.length} langs, ${totalInputTokens}in/${totalOutputTokens}out)`
+      this.logger.debug(
+        {
+          keyName,
+          languageCount: languages.length,
+          inputTokens: totalInputTokens,
+          outputTokens: totalOutputTokens,
+        },
+        'Multi-language AI evaluation complete'
       );
 
       return results;
     } catch (error) {
-      console.error(
-        '[Quality] Multi-language AI evaluation failed, falling back to heuristics:',
-        error
+      this.logger.error(
+        { error, keyName, languages },
+        'Multi-language AI evaluation failed - falling back to heuristics'
       );
-      return this.saveHeuristicResults(translations, sourceText, heuristicResults);
+      // Mark all results as AI fallback
+      return this.saveHeuristicResults(translations, sourceText, heuristicResults, true);
     }
   }
 
   /**
    * Save heuristic results for translations (helper to reduce duplication)
+   * @param aiFallback - If true, marks results as AI fallback (AI was requested but failed)
    */
   private async saveHeuristicResults(
     translations: Array<{ id: string; language: string; value: string }>,
     sourceText: string,
-    heuristicResults: Map<string, { score: number; issues: QualityIssue[] }>
+    heuristicResults: Map<string, { score: number; issues: QualityIssue[] }>,
+    aiFallback = false
   ): Promise<Map<string, QualityScore>> {
     const results = new Map<string, QualityScore>();
     for (const t of translations) {
@@ -517,6 +572,7 @@ export class QualityEstimationService {
         issues: heuristic.issues,
         evaluationType: 'heuristic',
         contentHash,
+        aiFallback,
       });
       results.set(t.language, score);
     }
@@ -575,7 +631,7 @@ export class QualityEstimationService {
         }))
         .filter((r) => r.source && r.target);
     } catch (error) {
-      console.warn('[Quality] Failed to fetch related keys:', error);
+      this.logger.warn({ error, keyName }, 'Failed to fetch related keys for AI context');
     }
 
     const aiConfig = await this.prisma.aITranslationConfig.findUnique({
@@ -588,7 +644,7 @@ export class QualityEstimationService {
     });
 
     if (!aiConfig?.isActive) {
-      console.log('[Quality] AI provider not active, falling back to heuristic');
+      this.logger.debug({ keyName, targetLocale }, 'AI provider not active - using heuristic');
       return this.scoreRepository.save(translationId, {
         score: heuristicResult.score,
         format: heuristicResult.score,
@@ -618,8 +674,12 @@ export class QualityEstimationService {
       );
 
       if (aiResult.cacheMetrics.cacheRead > 0 || aiResult.cacheMetrics.cacheCreation > 0) {
-        console.log(
-          `[Quality] CACHE: ${aiResult.cacheMetrics.cacheRead} tokens read (90% cheaper), ${aiResult.cacheMetrics.cacheCreation} tokens created`
+        this.logger.debug(
+          {
+            cacheRead: aiResult.cacheMetrics.cacheRead,
+            cacheCreation: aiResult.cacheMetrics.cacheCreation,
+          },
+          'AI prompt cache metrics'
         );
       }
 
@@ -635,8 +695,19 @@ export class QualityEstimationService {
       const aiIssues = mapAIIssuesToQualityIssues(aiResult.issues);
       const allIssues = [...heuristicResult.issues, ...aiIssues];
 
-      console.log(
-        `[Quality] AI EVAL DONE: ${keyName}/${targetLocale} accuracy=${aiResult.accuracy} fluency=${aiResult.fluency} terminology=${aiResult.terminology} format=${heuristicResult.score} → combined=${combinedScore} (tokens: ${aiResult.usage.inputTokens}in/${aiResult.usage.outputTokens}out)`
+      this.logger.debug(
+        {
+          keyName,
+          targetLocale,
+          accuracy: aiResult.accuracy,
+          fluency: aiResult.fluency,
+          terminology: aiResult.terminology,
+          format: heuristicResult.score,
+          combined: combinedScore,
+          inputTokens: aiResult.usage.inputTokens,
+          outputTokens: aiResult.usage.outputTokens,
+        },
+        'AI evaluation complete'
       );
 
       return this.scoreRepository.save(translationId, {
@@ -654,13 +725,17 @@ export class QualityEstimationService {
         contentHash,
       });
     } catch (error) {
-      console.error('[Quality] AI evaluation failed, falling back to heuristic:', error);
+      this.logger.error(
+        { error, keyName, targetLocale },
+        'AI evaluation failed - falling back to heuristics'
+      );
       return this.scoreRepository.save(translationId, {
         score: heuristicResult.score,
         format: heuristicResult.score,
         issues: heuristicResult.issues,
         evaluationType: 'heuristic',
         contentHash,
+        aiFallback: true, // Mark as AI fallback
       });
     }
   }
@@ -674,9 +749,9 @@ export class QualityEstimationService {
       const key = getEncryptionKey();
       return decryptApiKey(encrypted, ivHex, key);
     } catch (error) {
-      console.error(
-        '[Quality] Failed to decrypt API key:',
-        error instanceof Error ? error.message : 'Unknown error'
+      this.logger.error(
+        { error: error instanceof Error ? error.message : 'Unknown error' },
+        'Failed to decrypt API key'
       );
       throw new Error('Invalid or corrupted API key configuration');
     }
