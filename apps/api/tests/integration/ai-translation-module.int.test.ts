@@ -45,6 +45,9 @@ describe('AI Translation Module Integration', () => {
   let testProjectId: string;
 
   beforeAll(async () => {
+    // Set encryption key for API key encryption tests
+    process.env.AI_ENCRYPTION_KEY = 'a'.repeat(64);
+
     app = await buildApp({ logger: false });
     await app.ready();
     container = app.container;
