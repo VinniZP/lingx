@@ -18,6 +18,7 @@ import { registerBranchModule } from '../modules/branch/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerGlossaryModule } from '../modules/glossary/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
+import { registerKeyContextModule } from '../modules/key-context/index.js';
 import { registerMachineTranslationModule } from '../modules/machine-translation/index.js';
 import { registerMfaModule } from '../modules/mfa/index.js';
 import { registerProfileModule } from '../modules/profile/index.js';
@@ -49,6 +50,7 @@ const domainModules: ModuleRegistrar[] = [
   registerMachineTranslationModule,
   registerAITranslationModule,
   registerQualityEstimationModule,
+  registerKeyContextModule,
 ];
 
 export interface CqrsPluginOptions {

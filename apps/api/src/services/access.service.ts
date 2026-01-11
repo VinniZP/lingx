@@ -14,6 +14,12 @@ export interface ProjectInfo {
   languages: string[];
 }
 
+export interface KeyInfo {
+  id: string;
+  name: string;
+  namespace: string | null;
+}
+
 export class AccessService {
   constructor(private prisma: PrismaClient) {}
 
@@ -93,6 +99,54 @@ export class AccessService {
     if (key.branch.space.project.members.length === 0) {
       throw new ForbiddenError('Not authorized to access this key');
     }
+  }
+
+  /**
+   * Verify user has access to a key AND that the key belongs to the specified branch
+   * @returns Key info (id, name, namespace)
+   * @throws NotFoundError if key doesn't exist or doesn't belong to the branch
+   * @throws ForbiddenError if user has no access
+   */
+  async verifyKeyInBranch(userId: string, keyId: string, branchId: string): Promise<KeyInfo> {
+    const key = await this.prisma.translationKey.findUnique({
+      where: { id: keyId },
+      select: {
+        id: true,
+        name: true,
+        namespace: true,
+        branchId: true,
+        branch: {
+          select: {
+            space: {
+              select: {
+                project: {
+                  select: {
+                    members: {
+                      where: { userId },
+                      select: { userId: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!key || key.branchId !== branchId) {
+      throw new NotFoundError('Key');
+    }
+
+    if (key.branch.space.project.members.length === 0) {
+      throw new ForbiddenError('Not authorized to access this key');
+    }
+
+    return {
+      id: key.id,
+      name: key.name,
+      namespace: key.namespace,
+    };
   }
 
   /**
