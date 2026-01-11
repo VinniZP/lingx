@@ -3,34 +3,39 @@
  *
  * Provides endpoints for configuring and using machine translation providers.
  */
+import {
+  batchTranslateRequestSchema,
+  batchTranslateResponseSchema,
+  mtConfigsListResponseSchema,
+  mtProviderSchema,
+  mtUsageResponseSchema,
+  multiTranslateRequestSchema,
+  multiTranslateResponseSchema,
+  preTranslateRequestSchema,
+  preTranslateResponseSchema,
+  saveMTConfigSchema,
+  testConnectionResponseSchema,
+  translateRequestSchema,
+  translateResponseSchema,
+} from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
-  saveMTConfigSchema,
-  mtConfigsListResponseSchema,
-  translateRequestSchema,
-  translateResponseSchema,
-  multiTranslateRequestSchema,
-  multiTranslateResponseSchema,
-  batchTranslateRequestSchema,
-  batchTranslateResponseSchema,
-  preTranslateRequestSchema,
-  preTranslateResponseSchema,
-  mtUsageResponseSchema,
-  testConnectionResponseSchema,
-  mtProviderSchema,
-} from '@lingx/shared';
-import { MTService } from '../services/mt.service.js';
-import { ProjectService } from '../services/project.service.js';
-import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
-import { mtBatchQueue } from '../lib/queues.js';
-import type { MTJobData } from '../workers/mt-batch.worker.js';
+  DeleteConfigCommand,
+  GetConfigsQuery,
+  GetUsageQuery,
+  QueueBatchTranslateCommand,
+  QueuePreTranslateCommand,
+  SaveConfigCommand,
+  TestConnectionCommand,
+  TranslateMultiQuery,
+  TranslateTextQuery,
+  TranslateWithContextQuery,
+} from '../modules/machine-translation/index.js';
 
 const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const mtService = new MTService(fastify.prisma);
-  const projectService = new ProjectService(fastify.prisma);
 
   // ============================================
   // CONFIGURATION ENDPOINTS
@@ -55,22 +60,15 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
+      const result = await fastify.queryBus.execute(
+        new GetConfigsQuery(projectId, request.user.userId)
       );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      const configs = await mtService.getConfigs(projectId);
 
       return {
-        configs: configs.map((c) => ({
+        configs: result.configs.map((c) => ({
           ...c,
           createdAt: c.createdAt.toISOString(),
           updatedAt: c.updatedAt.toISOString(),
@@ -107,27 +105,18 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { provider, apiKey, isActive, priority } = request.body;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      const config = await fastify.commandBus.execute(
+        new SaveConfigCommand(projectId, request.user.userId, {
+          provider,
+          apiKey,
+          isActive,
+          priority,
+        })
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can configure machine translation'
-        );
-      }
-
-      const config = await mtService.saveConfig(projectId, {
-        provider,
-        apiKey,
-        isActive,
-        priority,
-      });
 
       return {
         ...config,
@@ -157,28 +146,17 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId, provider } = request.params;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new DeleteConfigCommand(projectId, request.user.userId, provider)
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can configure machine translation'
-        );
-      }
-
-      await mtService.deleteConfig(projectId, provider);
-
-      return { success: true };
     }
   );
 
   /**
-   * POST /api/projects/:projectId/mt/test - Test MT connection
+   * POST /api/projects/:projectId/mt/test/:provider - Test MT connection
    */
   app.post(
     '/api/projects/:projectId/mt/test/:provider',
@@ -197,21 +175,12 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId, provider } = request.params;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new TestConnectionCommand(projectId, request.user.userId, provider)
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can test machine translation'
-        );
-      }
-
-      return await mtService.testConnection(projectId, provider);
     }
   );
 
@@ -239,34 +208,23 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { text, sourceLanguage, targetLanguage, provider } = request.body;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
-      );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      return await mtService.translate(
-        projectId,
-        text,
-        sourceLanguage,
-        targetLanguage,
-        provider
+      return await fastify.queryBus.execute(
+        new TranslateTextQuery(projectId, request.user.userId, {
+          text,
+          sourceLanguage,
+          targetLanguage,
+          provider,
+        })
       );
     }
   );
 
   /**
    * POST /api/projects/:projectId/mt/translate/context - Translate with AI context
-   *
-   * Translates text using context from related translations and glossary terms.
-   * Provides higher quality translations by leveraging surrounding context.
    */
   app.post(
     '/api/projects/:projectId/mt/translate/context',
@@ -293,44 +251,35 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
             provider: mtProviderSchema,
             cached: z.boolean(),
             characterCount: z.number(),
-            context: z.object({
-              relatedTranslations: z.number(),
-              glossaryTerms: z.number(),
-            }).optional(),
+            context: z
+              .object({
+                relatedTranslations: z.number(),
+                glossaryTerms: z.number(),
+              })
+              .optional(),
           }),
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { branchId, keyId, text, sourceLanguage, targetLanguage, provider } = request.body;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
-      );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      return await mtService.translateWithContext(
-        projectId,
-        branchId,
-        keyId,
-        text,
-        sourceLanguage,
-        targetLanguage,
-        provider
+      return await fastify.queryBus.execute(
+        new TranslateWithContextQuery(projectId, request.user.userId, {
+          branchId,
+          keyId,
+          text,
+          sourceLanguage,
+          targetLanguage,
+          provider,
+        })
       );
     }
   );
 
   /**
    * POST /api/projects/:projectId/mt/translate/multi - Translate to multiple languages
-   *
-   * Translates a single text to multiple target languages in one request.
-   * More efficient than making separate requests for each language.
    */
   app.post(
     '/api/projects/:projectId/mt/translate/multi',
@@ -349,47 +298,18 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { text, sourceLanguage, targetLanguages, provider } = request.body;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
+      return await fastify.queryBus.execute(
+        new TranslateMultiQuery(projectId, request.user.userId, {
+          text,
+          sourceLanguage,
+          targetLanguages,
+          provider,
+        })
       );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      // Translate to each target language
-      const translations: Record<string, {
-        translatedText: string;
-        provider: 'DEEPL' | 'GOOGLE_TRANSLATE';
-        cached: boolean;
-        characterCount: number;
-      }> = {};
-      let totalCharacters = 0;
-
-      // Process sequentially to avoid rate limits on external APIs
-      for (const targetLang of targetLanguages) {
-        try {
-          const result = await mtService.translate(
-            projectId,
-            text,
-            sourceLanguage,
-            targetLang,
-            provider
-          );
-          translations[targetLang] = result;
-          totalCharacters += result.characterCount;
-        } catch (error) {
-          // Log error but continue with other languages
-          console.error(`[MT] Failed to translate to ${targetLang}:`, error);
-        }
-      }
-
-      return { translations, totalCharacters };
     }
   );
 
@@ -413,59 +333,18 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { keyIds, targetLanguage, provider, overwriteExisting } = request.body;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new QueueBatchTranslateCommand(projectId, request.user.userId, {
+          keyIds,
+          targetLanguage,
+          provider,
+          overwriteExisting,
+        })
       );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      // Get project default language for source
-      const project = await fastify.prisma.project.findUnique({
-        where: { id: projectId },
-      });
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Estimate character count
-      const keys = await fastify.prisma.translationKey.findMany({
-        where: { id: { in: keyIds } },
-        include: {
-          translations: {
-            where: { language: project.defaultLanguage },
-          },
-        },
-      });
-
-      const estimatedCharacters = keys.reduce((sum, key) => {
-        const sourceTranslation = key.translations[0];
-        return sum + (sourceTranslation?.value?.length || 0);
-      }, 0);
-
-      // Queue the job
-      const job = await mtBatchQueue.add('translate-batch', {
-        type: 'translate-batch',
-        projectId,
-        keyIds,
-        targetLanguage,
-        provider,
-        overwriteExisting,
-        userId: request.user.userId,
-      } as MTJobData);
-
-      return {
-        message: 'Batch translation queued',
-        jobId: job.id,
-        totalKeys: keyIds.length,
-        estimatedCharacters,
-      };
     }
   );
 
@@ -489,61 +368,17 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { branchId, targetLanguages, provider } = request.body;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new QueuePreTranslateCommand(projectId, request.user.userId, {
+          branchId,
+          targetLanguages,
+          provider,
+        })
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can pre-translate'
-        );
-      }
-
-      // Get project default language for source
-      const project = await fastify.prisma.project.findUnique({
-        where: { id: projectId },
-      });
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Count keys and estimate characters
-      const keys = await fastify.prisma.translationKey.findMany({
-        where: { branchId },
-        include: {
-          translations: {
-            where: { language: project.defaultLanguage },
-          },
-        },
-      });
-
-      const estimatedCharacters = keys.reduce((sum, key) => {
-        const sourceTranslation = key.translations[0];
-        return sum + (sourceTranslation?.value?.length || 0) * targetLanguages.length;
-      }, 0);
-
-      // Queue the job
-      const job = await mtBatchQueue.add('pre-translate', {
-        type: 'pre-translate',
-        projectId,
-        branchId,
-        targetLanguages,
-        provider,
-        userId: request.user.userId,
-      } as MTJobData);
-
-      return {
-        message: 'Pre-translation queued',
-        jobId: job.id!,
-        totalKeys: keys.length,
-        targetLanguages,
-        estimatedCharacters,
-      };
     }
   );
 
@@ -570,21 +405,10 @@ const machineTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
-      );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      const providers = await mtService.getUsage(projectId);
-
-      return { providers };
+      return await fastify.queryBus.execute(new GetUsageQuery(projectId, request.user.userId));
     }
   );
 };

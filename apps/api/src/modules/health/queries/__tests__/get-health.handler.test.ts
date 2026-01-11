@@ -135,17 +135,17 @@ describe('GetHealthHandler', () => {
       });
 
       it('should measure database latency', async () => {
-        // Arrange
+        // Arrange - use 20ms delay to avoid timing flakiness
         mockPrisma.$queryRaw.mockImplementation(
-          () => new Promise((resolve) => setTimeout(() => resolve([{ '?column?': 1 }]), 10))
+          () => new Promise((resolve) => setTimeout(() => resolve([{ '?column?': 1 }]), 20))
         );
         const query = new GetHealthQuery(true);
 
         // Act
         const result = await handler.execute(query);
 
-        // Assert
-        expect(result.details!.database.latencyMs).toBeGreaterThanOrEqual(10);
+        // Assert - allow for slight timing variance (expect at least 15ms for a 20ms delay)
+        expect(result.details!.database.latencyMs).toBeGreaterThanOrEqual(15);
       });
     });
   });

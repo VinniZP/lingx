@@ -17,6 +17,7 @@ import { registerBranchModule } from '../modules/branch/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerGlossaryModule } from '../modules/glossary/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
+import { registerMachineTranslationModule } from '../modules/machine-translation/index.js';
 import { registerMfaModule } from '../modules/mfa/index.js';
 import { registerProfileModule } from '../modules/profile/index.js';
 import { registerProjectModule } from '../modules/project/index.js';
@@ -43,6 +44,7 @@ const domainModules: ModuleRegistrar[] = [
   registerTranslationModule,
   registerTranslationMemoryModule,
   registerGlossaryModule,
+  registerMachineTranslationModule,
 ];
 
 export interface CqrsPluginOptions {
