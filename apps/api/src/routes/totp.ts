@@ -31,6 +31,8 @@ import {
   VerifyBackupCodeCommand,
   VerifyTotpCommand,
 } from '../modules/mfa/index.js';
+import { CreateSessionCommand } from '../modules/security/commands/create-session.command.js';
+import { extractRequestMetadata } from '../modules/security/utils.js';
 
 const totpRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -164,7 +166,10 @@ const totpRoutes: FastifyPluginAsync = async (fastify) => {
       const { userId } = payload;
 
       // Create session (HTTP concern - stays in route)
-      const session = await fastify.securityService.createSession(userId, request);
+      const { userAgent, ipAddress } = extractRequestMetadata(request);
+      const session = await fastify.commandBus.execute(
+        new CreateSessionCommand(userId, userAgent, ipAddress)
+      );
 
       // Verify TOTP (business logic - dispatch to command)
       await fastify.commandBus.execute(
@@ -238,7 +243,10 @@ const totpRoutes: FastifyPluginAsync = async (fastify) => {
       const { userId } = payload;
 
       // Create session (HTTP concern)
-      const session = await fastify.securityService.createSession(userId, request);
+      const { userAgent, ipAddress } = extractRequestMetadata(request);
+      const session = await fastify.commandBus.execute(
+        new CreateSessionCommand(userId, userAgent, ipAddress)
+      );
 
       // Verify backup code (business logic - dispatch to command)
       const result = await fastify.commandBus.execute(

@@ -7,8 +7,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UnauthorizedError } from '../../../plugins/error-handler.js';
 import type { AuthService } from '../../../services/auth.service.js';
-import type { SecurityService } from '../../../services/security.service.js';
-import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { ICommandBus, IEventBus } from '../../../shared/cqrs/index.js';
+import { CreateSessionCommand } from '../../security/commands/create-session.command.js';
 import { LoginUserCommand } from '../commands/login-user.command.js';
 import { LoginUserHandler } from '../commands/login-user.handler.js';
 import { UserLoggedInEvent } from '../events/user-logged-in.event.js';
@@ -50,19 +50,19 @@ describe('LoginUserHandler', () => {
   };
 
   let mockAuthService: { login: ReturnType<typeof vi.fn> };
-  let mockSecurityService: { createSession: ReturnType<typeof vi.fn> };
+  let mockCommandBus: { execute: ReturnType<typeof vi.fn> };
   let mockEventBus: { publish: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     mockAuthService = { login: vi.fn() };
-    mockSecurityService = { createSession: vi.fn() };
+    mockCommandBus = { execute: vi.fn() };
     mockEventBus = { publish: vi.fn() };
   });
 
   const createHandler = () =>
     new LoginUserHandler(
       mockAuthService as unknown as AuthService,
-      mockSecurityService as unknown as SecurityService,
+      mockCommandBus as unknown as ICommandBus,
       mockEventBus as unknown as IEventBus
     );
 
@@ -77,7 +77,7 @@ describe('LoginUserHandler', () => {
   it('should login user without 2FA and publish UserLoggedInEvent', async () => {
     // Arrange
     mockAuthService.login.mockResolvedValue(mockUser);
-    mockSecurityService.createSession.mockResolvedValue(mockSession);
+    mockCommandBus.execute.mockResolvedValue(mockSession);
 
     const handler = createHandler();
 
@@ -89,7 +89,13 @@ describe('LoginUserHandler', () => {
       email: 'test@example.com',
       password: 'Password123!',
     });
-    expect(mockSecurityService.createSession).toHaveBeenCalledWith(mockUser.id, mockRequest);
+    expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+    const executedCommand = mockCommandBus.execute.mock.calls[0][0] as CreateSessionCommand;
+    expect(executedCommand).toBeInstanceOf(CreateSessionCommand);
+    expect(executedCommand.userId).toBe(mockUser.id);
+    expect(executedCommand.userAgent).toBe('test-agent');
+    expect(executedCommand.ipAddress).toBe('127.0.0.1');
+
     expect(mockEventBus.publish).toHaveBeenCalledTimes(1);
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(UserLoggedInEvent));
 
@@ -116,7 +122,7 @@ describe('LoginUserHandler', () => {
     const result = await handler.execute(createCommand('test@example.com', 'Password123!', false));
 
     // Assert - should NOT create session or publish event
-    expect(mockSecurityService.createSession).not.toHaveBeenCalled();
+    expect(mockCommandBus.execute).not.toHaveBeenCalled();
     expect(mockEventBus.publish).not.toHaveBeenCalled();
 
     // Result should indicate 2FA required with userId (route generates tempToken)
@@ -129,7 +135,7 @@ describe('LoginUserHandler', () => {
   it('should login user with 2FA when device is trusted', async () => {
     // Arrange
     mockAuthService.login.mockResolvedValue(mockUserWith2FA);
-    mockSecurityService.createSession.mockResolvedValue(mockSession);
+    mockCommandBus.execute.mockResolvedValue(mockSession);
 
     const handler = createHandler();
 
@@ -137,7 +143,9 @@ describe('LoginUserHandler', () => {
     const result = await handler.execute(createCommand('test@example.com', 'Password123!', true));
 
     // Assert - should proceed with normal login
-    expect(mockSecurityService.createSession).toHaveBeenCalledWith(mockUserWith2FA.id, mockRequest);
+    expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+    const executedCommand = mockCommandBus.execute.mock.calls[0][0] as CreateSessionCommand;
+    expect(executedCommand.userId).toBe(mockUserWith2FA.id);
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(UserLoggedInEvent));
 
     expect(result).toEqual({
@@ -161,14 +169,14 @@ describe('LoginUserHandler', () => {
     });
 
     // Session and event should NOT be created
-    expect(mockSecurityService.createSession).not.toHaveBeenCalled();
+    expect(mockCommandBus.execute).not.toHaveBeenCalled();
     expect(mockEventBus.publish).not.toHaveBeenCalled();
   });
 
   it('should propagate errors when session creation fails', async () => {
     // Arrange
     mockAuthService.login.mockResolvedValue(mockUser);
-    mockSecurityService.createSession.mockRejectedValue(new Error('Database error'));
+    mockCommandBus.execute.mockRejectedValue(new Error('Database error'));
 
     const handler = createHandler();
 

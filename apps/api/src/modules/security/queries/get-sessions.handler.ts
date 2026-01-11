@@ -1,17 +1,25 @@
-import type { SecurityService, SessionInfo } from '../../../services/security.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { SessionRepository } from '../session.repository.js';
+import { maskIpAddress } from '../utils.js';
 import type { GetSessionsQuery } from './get-sessions.query.js';
 
 /**
  * Handler for GetSessionsQuery.
- * Returns all active sessions for a user.
+ * Returns all active sessions for a user with masked IP addresses.
  */
 export class GetSessionsHandler implements IQueryHandler<GetSessionsQuery> {
-  constructor(private readonly securityService: SecurityService) {}
+  constructor(private readonly sessionRepository: SessionRepository) {}
 
   async execute(query: GetSessionsQuery): Promise<InferQueryResult<GetSessionsQuery>> {
-    return this.securityService.getSessions(query.userId, query.currentSessionId);
+    const sessions = await this.sessionRepository.findByUserId(query.userId);
+
+    return sessions.map((session) => ({
+      id: session.id,
+      deviceInfo: session.deviceInfo,
+      ipAddress: maskIpAddress(session.ipAddress),
+      lastActive: session.lastActive.toISOString(),
+      createdAt: session.createdAt.toISOString(),
+      isCurrent: session.id === query.currentSessionId,
+    }));
   }
 }
-
-export type { SessionInfo };

@@ -158,7 +158,9 @@ describe('Auth Module Integration', () => {
 
       if ('sessionId' in loginResult) {
         // Execute logout
-        await app.commandBus.execute(new LogoutUserCommand(loginResult.sessionId));
+        await app.commandBus.execute(
+          new LogoutUserCommand(loginResult.userId, loginResult.sessionId)
+        );
 
         // Verify session was deleted
         const dbSession = await app.prisma.session.findUnique({

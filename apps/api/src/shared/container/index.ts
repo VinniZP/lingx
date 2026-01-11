@@ -18,6 +18,9 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
+import { SessionCacheService } from '../../modules/security/session-cache.service.js';
+import { SessionRepository } from '../../modules/security/session.repository.js';
+import { UserRepository } from '../../modules/security/user.repository.js';
 import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
@@ -37,7 +40,6 @@ import {
   GlossaryEvaluator,
   ScoreRepository,
 } from '../../services/quality/index.js';
-import { SecurityService } from '../../services/security.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
 /**
@@ -61,8 +63,12 @@ export interface Cradle {
   keyContextService: KeyContextService;
   mtService: MTService;
   qualityEstimationService: QualityEstimationService;
-  securityService: SecurityService;
   challengeStore: ChallengeStore;
+
+  // Security module dependencies
+  sessionRepository: SessionRepository;
+  sessionCacheService: SessionCacheService;
+  userRepository: UserRepository;
 
   // Quality estimation dependencies
   scoreRepository: ScoreRepository;
@@ -117,6 +123,11 @@ export function createAppContainer(
     keyContextService: asClass(KeyContextService).singleton(),
     mtService: asClass(MTService).singleton(),
 
+    // Security module dependencies
+    sessionRepository: asClass(SessionRepository).singleton(),
+    sessionCacheService: asClass(SessionCacheService).singleton(),
+    userRepository: asClass(UserRepository).singleton(),
+
     // Quality estimation dependencies
     scoreRepository: asClass(ScoreRepository).singleton(),
     aiEvaluator: asFunction(
@@ -130,7 +141,6 @@ export function createAppContainer(
     // Batch evaluation
     mtBatchQueue: asValue(mtBatchQueue),
     batchEvaluationService: asClass(BatchEvaluationService).singleton(),
-    securityService: asClass(SecurityService).singleton(),
     challengeStore: asClass(ChallengeStore).singleton(),
   });
 

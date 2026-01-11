@@ -33,6 +33,8 @@ import {
   VerifyAuthenticationCommand,
   VerifyRegistrationCommand,
 } from '../modules/mfa/index.js';
+import { CreateSessionCommand } from '../modules/security/commands/create-session.command.js';
+import { extractRequestMetadata } from '../modules/security/utils.js';
 
 const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -174,7 +176,10 @@ const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
       );
 
       // Create session (HTTP concern - stays in route)
-      const session = await fastify.securityService.createSession(result.userId, request);
+      const { userAgent, ipAddress } = extractRequestMetadata(request);
+      const session = await fastify.commandBus.execute(
+        new CreateSessionCommand(result.userId, userAgent, ipAddress)
+      );
 
       // Issue JWT
       const jwtToken = fastify.jwt.sign({ userId: result.userId, sessionId: session.id });

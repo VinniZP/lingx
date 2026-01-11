@@ -8,6 +8,8 @@ export class LogoutUserCommand implements ICommand<void> {
   declare readonly __resultType: void;
 
   constructor(
+    /** User ID for audit trail */
+    public readonly userId: string,
     /** Session ID to delete (may be undefined if no valid session) */
     public readonly sessionId?: string
   ) {}
