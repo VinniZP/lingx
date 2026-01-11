@@ -4,11 +4,12 @@
  * Handles batch quality evaluation operations with cache pre-filtering.
  */
 
+import { MAX_BATCH_TRANSLATION_IDS } from '@lingx/shared';
 import { PrismaClient } from '@prisma/client';
 import type { Queue } from 'bullmq';
-import { MAX_BATCH_TRANSLATION_IDS } from '@lingx/shared';
-import { generateContentHash } from './quality/index.js';
+import type { FastifyBaseLogger } from 'fastify';
 import type { MTJobData } from '../workers/mt-batch.worker.js';
+import { generateContentHash } from './quality/index.js';
 
 export interface BatchEvaluationResult {
   jobId: string;
@@ -28,6 +29,7 @@ export class BatchEvaluationService {
   constructor(
     private prisma: PrismaClient,
     private mtBatchQueue: Queue,
+    private logger: FastifyBaseLogger
   ) {}
 
   /**
@@ -50,6 +52,7 @@ export class BatchEvaluationService {
   ): Promise<BatchEvaluationResult> {
     const { translationIds, forceAI } = options || {};
 
+    // Defensive check - primary validation is in QueueBatchEvaluationHandler
     if (translationIds && translationIds.length > MAX_BATCH_TRANSLATION_IDS) {
       throw new Error(
         `Batch size exceeds maximum allowed (${MAX_BATCH_TRANSLATION_IDS}). Received: ${translationIds.length}`
@@ -108,8 +111,14 @@ export class BatchEvaluationService {
       }
     }
 
-    console.log(
-      `[Quality Batch] Pre-filter: ${translations.length} total, ${cacheHits} cached, ${needsEvaluation.length} need evaluation`
+    this.logger.info(
+      {
+        total: translations.length,
+        cached: cacheHits,
+        needsEvaluation: needsEvaluation.length,
+        branchId,
+      },
+      'Batch evaluation pre-filter complete'
     );
 
     if (needsEvaluation.length === 0) {
@@ -128,8 +137,18 @@ export class BatchEvaluationService {
       forceAI: forceAI ?? false,
     } as MTJobData);
 
+    if (!job.id) {
+      this.logger.error(
+        { branchId, translationCount: needsEvaluation.length },
+        'BullMQ job created without ID - this should not happen'
+      );
+      throw new Error('Failed to create batch evaluation job: job ID not assigned');
+    }
+
+    this.logger.debug({ jobId: job.id, branchId }, 'Batch evaluation job queued');
+
     return {
-      jobId: job.id || '',
+      jobId: job.id,
       stats: { total: translations.length, cached: cacheHits, queued: needsEvaluation.length },
     };
   }

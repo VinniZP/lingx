@@ -4,13 +4,14 @@
  * Tests the main quality estimation service with mocked dependencies.
  */
 
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { QualityEstimationService } from '../../src/services/quality-estimation.service.js';
 import type { PrismaClient } from '@prisma/client';
-import type { ScoreRepository } from '../../src/services/quality/persistence/score-repository.js';
+import type { FastifyBaseLogger } from 'fastify';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import type { KeyContextService } from '../../src/services/key-context.service.js';
+import { QualityEstimationService } from '../../src/services/quality-estimation.service.js';
 import type { AIEvaluator } from '../../src/services/quality/evaluators/ai-evaluator.js';
 import type { GlossaryEvaluator } from '../../src/services/quality/evaluators/glossary-evaluator.js';
-import type { KeyContextService } from '../../src/services/key-context.service.js';
+import type { ScoreRepository } from '../../src/services/quality/persistence/score-repository.js';
 
 // Mock factories
 function createMockPrisma(): PrismaClient {
@@ -61,6 +62,18 @@ function createMockKeyContextService(): KeyContextService {
   } as unknown as KeyContextService;
 }
 
+function createMockLogger(): FastifyBaseLogger {
+  return {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    fatal: vi.fn(),
+    trace: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  } as unknown as FastifyBaseLogger;
+}
+
 describe('QualityEstimationService', () => {
   let service: QualityEstimationService;
   let mockPrisma: PrismaClient;
@@ -68,6 +81,7 @@ describe('QualityEstimationService', () => {
   let mockAIEvaluator: AIEvaluator;
   let mockGlossaryEvaluator: GlossaryEvaluator;
   let mockKeyContextService: KeyContextService;
+  let mockLogger: FastifyBaseLogger;
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();
@@ -75,13 +89,15 @@ describe('QualityEstimationService', () => {
     mockAIEvaluator = createMockAIEvaluator();
     mockGlossaryEvaluator = createMockGlossaryEvaluator();
     mockKeyContextService = createMockKeyContextService();
+    mockLogger = createMockLogger();
 
     service = new QualityEstimationService(
       mockPrisma,
       mockScoreRepository,
       mockAIEvaluator,
       mockGlossaryEvaluator,
-      mockKeyContextService
+      mockKeyContextService,
+      mockLogger
     );
   });
 
@@ -108,9 +124,7 @@ describe('QualityEstimationService', () => {
     it('should throw when translation not found', async () => {
       (mockPrisma.translation.findUnique as Mock).mockResolvedValue(null);
 
-      await expect(service.evaluate('non-existent')).rejects.toThrow(
-        'Translation'
-      );
+      await expect(service.evaluate('non-existent')).rejects.toThrow('Translation');
     });
 
     it('should throw when translation value is empty', async () => {
@@ -119,9 +133,7 @@ describe('QualityEstimationService', () => {
         value: null,
       });
 
-      await expect(service.evaluate('trans-1')).rejects.toThrow(
-        'Translation value is empty'
-      );
+      await expect(service.evaluate('trans-1')).rejects.toThrow('Translation value is empty');
     });
 
     it('should use formatStoredScore when cache matches', async () => {
@@ -274,7 +286,8 @@ describe('QualityEstimationService', () => {
     it('should process empty array', async () => {
       const result = await service.evaluateBatch([]);
 
-      expect(result.size).toBe(0);
+      expect(result.results.size).toBe(0);
+      expect(result.failures).toEqual([]);
     });
 
     it('should continue processing after individual failures', async () => {
@@ -302,8 +315,11 @@ describe('QualityEstimationService', () => {
       const result = await service.evaluateBatch(['trans-1', 'trans-2']);
 
       // Should have one result (the one that succeeded)
-      expect(result.size).toBe(1);
-      expect(result.has('trans-2')).toBe(true);
+      expect(result.results.size).toBe(1);
+      expect(result.results.has('trans-2')).toBe(true);
+      // Should track the failure
+      expect(result.failures).toHaveLength(1);
+      expect(result.failures[0].translationId).toBe('trans-1');
     });
   });
 

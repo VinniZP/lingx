@@ -4,10 +4,11 @@
  * Tests batch quality evaluation operations with cache pre-filtering.
  */
 
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { BatchEvaluationService } from '../../src/services/batch-evaluation.service.js';
 import type { PrismaClient } from '@prisma/client';
-import type { Queue, Job } from 'bullmq';
+import type { Job, Queue } from 'bullmq';
+import type { FastifyBaseLogger } from 'fastify';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { BatchEvaluationService } from '../../src/services/batch-evaluation.service.js';
 
 function createMockPrisma(): PrismaClient {
   return {
@@ -23,15 +24,29 @@ function createMockQueue(): Queue {
   } as unknown as Queue;
 }
 
+function createMockLogger(): FastifyBaseLogger {
+  return {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    fatal: vi.fn(),
+    trace: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  } as unknown as FastifyBaseLogger;
+}
+
 describe('BatchEvaluationService', () => {
   let service: BatchEvaluationService;
   let mockPrisma: PrismaClient;
   let mockQueue: Queue;
+  let mockLogger: FastifyBaseLogger;
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();
     mockQueue = createMockQueue();
-    service = new BatchEvaluationService(mockPrisma, mockQueue);
+    mockLogger = createMockLogger();
+    service = new BatchEvaluationService(mockPrisma, mockQueue, mockLogger);
   });
 
   describe('evaluateBranch', () => {
@@ -43,15 +58,9 @@ describe('BatchEvaluationService', () => {
 
     it('should return early when no translations found', async () => {
       // No translations in branch, plus empty source translations query
-      (mockPrisma.translation.findMany as Mock)
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      (mockPrisma.translation.findMany as Mock).mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
-      const result = await service.evaluateBranch(
-        'branch-1',
-        'user-1',
-        projectInfo
-      );
+      const result = await service.evaluateBranch('branch-1', 'user-1', projectInfo);
 
       expect(result.jobId).toBe('');
       expect(result.stats.total).toBe(0);
@@ -82,11 +91,7 @@ describe('BatchEvaluationService', () => {
 
       (mockQueue.add as Mock).mockResolvedValue({ id: 'job-123' } as Job);
 
-      const result = await service.evaluateBranch(
-        'branch-1',
-        'user-1',
-        projectInfo
-      );
+      const result = await service.evaluateBranch('branch-1', 'user-1', projectInfo);
 
       expect(result.jobId).toBe('job-123');
       expect(result.stats.total).toBe(2);
@@ -183,11 +188,7 @@ describe('BatchEvaluationService', () => {
 
       (mockQueue.add as Mock).mockResolvedValue({ id: 'job-stale' } as Job);
 
-      const result = await service.evaluateBranch(
-        'branch-1',
-        'user-1',
-        projectInfo
-      );
+      const result = await service.evaluateBranch('branch-1', 'user-1', projectInfo);
 
       expect(result.stats.queued).toBe(1);
       expect(result.stats.cached).toBe(0);
@@ -210,11 +211,7 @@ describe('BatchEvaluationService', () => {
 
       (mockQueue.add as Mock).mockResolvedValue({ id: 'job-nosrc' } as Job);
 
-      const result = await service.evaluateBranch(
-        'branch-1',
-        'user-1',
-        projectInfo
-      );
+      const result = await service.evaluateBranch('branch-1', 'user-1', projectInfo);
 
       expect(result.stats.queued).toBe(1);
       expect(mockQueue.add).toHaveBeenCalled();

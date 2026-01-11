@@ -58,13 +58,13 @@ describe('BulkTranslateSyncHandler', () => {
 
   let handler: BulkTranslateSyncHandler;
 
-  const createHandler = (qualityService?: QualityEstimationService) =>
+  const createHandler = (qualityEstimationService?: QualityEstimationService) =>
     new BulkTranslateSyncHandler(
       mockRepository as unknown as TranslationRepository,
       mockEventBus as unknown as IEventBus,
       mockMtService as unknown as MTService,
       mockQueryBus as unknown as IQueryBus,
-      qualityService,
+      qualityEstimationService,
       mockLogger as unknown as FastifyBaseLogger
     );
 

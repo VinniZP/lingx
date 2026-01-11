@@ -16,19 +16,27 @@ import {
 } from 'awilix';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
+import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
 import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
 import { ApiKeyService } from '../../services/api-key.service.js';
 import { AuthService } from '../../services/auth.service.js';
+import { BatchEvaluationService } from '../../services/batch-evaluation.service.js';
 import { ChallengeStore } from '../../services/challenge-store.service.js';
 import { EmailService } from '../../services/email.service.js';
 import { FileStorageService } from '../../services/file-storage.service.js';
 import { KeyContextService } from '../../services/key-context.service.js';
 import { MTService } from '../../services/mt.service.js';
-import type { QualityEstimationService } from '../../services/quality-estimation.service.js';
-import { createQualityEstimationService } from '../../services/quality/index.js';
+import { QualityEstimationService } from '../../services/quality-estimation.service.js';
+import {
+  AIEvaluator,
+  CircuitBreaker,
+  DEFAULT_CIRCUIT_BREAKER_CONFIG,
+  GlossaryEvaluator,
+  ScoreRepository,
+} from '../../services/quality/index.js';
 import { SecurityService } from '../../services/security.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
@@ -47,6 +55,7 @@ export interface Cradle {
   activityService: ActivityService;
   authService: AuthService;
   apiKeyService: ApiKeyService;
+  batchEvaluationService: BatchEvaluationService;
   emailService: EmailService;
   fileStorage: FileStorageService;
   keyContextService: KeyContextService;
@@ -54,6 +63,14 @@ export interface Cradle {
   qualityEstimationService: QualityEstimationService;
   securityService: SecurityService;
   challengeStore: ChallengeStore;
+
+  // Quality estimation dependencies
+  scoreRepository: ScoreRepository;
+  aiEvaluator: AIEvaluator;
+  glossaryEvaluator: GlossaryEvaluator;
+
+  // Queues
+  mtBatchQueue: typeof mtBatchQueue;
 
   // CQRS Buses
   commandBus: CommandBus;
@@ -99,9 +116,20 @@ export function createAppContainer(
     fileStorage: asClass(FileStorageService).singleton(),
     keyContextService: asClass(KeyContextService).singleton(),
     mtService: asClass(MTService).singleton(),
-    qualityEstimationService: asFunction(({ prisma }) =>
-      createQualityEstimationService(prisma)
+
+    // Quality estimation dependencies
+    scoreRepository: asClass(ScoreRepository).singleton(),
+    aiEvaluator: asFunction(
+      () => new AIEvaluator(new CircuitBreaker(DEFAULT_CIRCUIT_BREAKER_CONFIG))
     ).singleton(),
+    glossaryEvaluator: asClass(GlossaryEvaluator).singleton(),
+
+    // Quality estimation service
+    qualityEstimationService: asClass(QualityEstimationService).singleton(),
+
+    // Batch evaluation
+    mtBatchQueue: asValue(mtBatchQueue),
+    batchEvaluationService: asClass(BatchEvaluationService).singleton(),
     securityService: asClass(SecurityService).singleton(),
     challengeStore: asClass(ChallengeStore).singleton(),
   });

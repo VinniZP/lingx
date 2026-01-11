@@ -1,7 +1,7 @@
 /**
  * Quality Estimation Routes
  *
- * Thin route handlers that delegate to services.
+ * Thin route handlers that delegate to CQRS handlers.
  * Rate limited to prevent AI API cost abuse.
  */
 import rateLimit from '@fastify/rate-limit';
@@ -23,18 +23,19 @@ import {
 } from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { mtBatchQueue } from '../lib/queues.js';
-import { createAccessService } from '../services/access.service.js';
 import {
-  createBatchEvaluationService,
-  createQualityEstimationService,
-} from '../services/quality/index.js';
+  EvaluateQualityCommand,
+  GetBranchSummaryQuery,
+  GetCachedScoreQuery,
+  GetKeyIssuesQuery,
+  GetQualityConfigQuery,
+  QueueBatchEvaluationCommand,
+  UpdateQualityConfigCommand,
+  ValidateICUQuery,
+} from '../modules/quality-estimation/index.js';
 
 const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const qualityService = createQualityEstimationService(fastify.prisma);
-  const batchService = createBatchEvaluationService(fastify.prisma, mtBatchQueue);
-  const accessService = createAccessService(fastify.prisma);
 
   // Rate limit AI evaluation endpoints to prevent cost abuse
   // Single evaluations: 30/min per user (allows rapid key navigation)
@@ -79,8 +80,9 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const { translationId } = request.params;
       const { forceAI } = request.body || {};
 
-      await accessService.verifyTranslationAccess(request.user!.userId, translationId);
-      return qualityService.evaluate(translationId, { forceAI });
+      return await fastify.commandBus.execute(
+        new EvaluateQualityCommand(translationId, request.user!.userId, { forceAI })
+      );
     }
   );
 
@@ -106,8 +108,9 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { translationId } = request.params;
 
-      await accessService.verifyTranslationAccess(request.user!.userId, translationId);
-      return qualityService.getCachedScore(translationId);
+      return await fastify.queryBus.execute(
+        new GetCachedScoreQuery(translationId, request.user!.userId)
+      );
     }
   );
 
@@ -133,12 +136,12 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
       const { branchId } = request.params;
       const { translationIds, forceAI } = request.body || {};
 
-      const projectInfo = await accessService.verifyBranchAccess(request.user!.userId, branchId);
-
-      return batchService.evaluateBranch(branchId, request.user!.userId, projectInfo, {
-        translationIds,
-        forceAI,
-      });
+      return await fastify.commandBus.execute(
+        new QueueBatchEvaluationCommand(branchId, request.user!.userId, {
+          translationIds,
+          forceAI,
+        })
+      );
     }
   );
 
@@ -162,8 +165,9 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { branchId } = request.params;
 
-      await accessService.verifyBranchAccess(request.user!.userId, branchId);
-      return qualityService.getBranchSummary(branchId);
+      return await fastify.queryBus.execute(
+        new GetBranchSummaryQuery(branchId, request.user!.userId)
+      );
     }
   );
 
@@ -187,8 +191,9 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { projectId } = request.params;
 
-      await accessService.verifyProjectAccess(request.user!.userId, projectId);
-      return qualityService.getConfig(projectId);
+      return await fastify.queryBus.execute(
+        new GetQualityConfigQuery(projectId, request.user!.userId)
+      );
     }
   );
 
@@ -213,13 +218,9 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { projectId } = request.params;
 
-      await accessService.verifyProjectAccess(request.user!.userId, projectId, [
-        'OWNER',
-        'MANAGER',
-      ]);
-
-      await qualityService.updateConfig(projectId, request.body);
-      return qualityService.getConfig(projectId);
+      return await fastify.commandBus.execute(
+        new UpdateQualityConfigCommand(projectId, request.user!.userId, request.body)
+      );
     }
   );
 
@@ -242,7 +243,8 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request) => {
       const { text } = request.body;
-      return qualityService.validateICUSyntax(text);
+
+      return await fastify.queryBus.execute(new ValidateICUQuery(text));
     }
   );
 
@@ -266,9 +268,7 @@ const qualityEstimationRoutes: FastifyPluginAsync = async (fastify) => {
     async (request) => {
       const { keyId } = request.params;
 
-      await accessService.verifyKeyAccess(request.user!.userId, keyId);
-      const issues = await qualityService.getKeyQualityIssues(keyId);
-      return { issues };
+      return await fastify.queryBus.execute(new GetKeyIssuesQuery(keyId, request.user!.userId));
     }
   );
 };
