@@ -12,6 +12,7 @@ import type { CommandBus, EventBus, QueryBus } from '../shared/cqrs/index.js';
 
 // Import module registrars
 import { registerActivityModule } from '../modules/activity/index.js';
+import { registerAITranslationModule } from '../modules/ai-translation/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerBranchModule } from '../modules/branch/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
@@ -45,6 +46,7 @@ const domainModules: ModuleRegistrar[] = [
   registerTranslationMemoryModule,
   registerGlossaryModule,
   registerMachineTranslationModule,
+  registerAITranslationModule,
 ];
 
 export interface CqrsPluginOptions {

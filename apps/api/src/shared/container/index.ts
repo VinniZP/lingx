@@ -20,7 +20,6 @@ import { redis } from '../../lib/redis.js';
 import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
-import { AITranslationService } from '../../services/ai-translation.service.js';
 import { ApiKeyService } from '../../services/api-key.service.js';
 import { AuthService } from '../../services/auth.service.js';
 import { ChallengeStore } from '../../services/challenge-store.service.js';
@@ -46,7 +45,6 @@ export interface Cradle {
   // Services
   accessService: AccessService;
   activityService: ActivityService;
-  aiService: AITranslationService;
   authService: AuthService;
   apiKeyService: ApiKeyService;
   emailService: EmailService;
@@ -95,7 +93,6 @@ export function createAppContainer(
   container.register({
     accessService: asClass(AccessService).singleton(),
     activityService: asClass(ActivityService).singleton(),
-    aiService: asClass(AITranslationService).singleton(),
     authService: asClass(AuthService).singleton(),
     apiKeyService: asClass(ApiKeyService).singleton(),
     emailService: asClass(EmailService).singleton(),

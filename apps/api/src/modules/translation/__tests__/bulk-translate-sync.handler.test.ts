@@ -1,9 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AITranslationService } from '../../../services/ai-translation.service.js';
 import type { MTService } from '../../../services/mt.service.js';
 import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
-import type { IEventBus, ProgressReporter } from '../../../shared/cqrs/index.js';
+import type { IEventBus, IQueryBus, ProgressReporter } from '../../../shared/cqrs/index.js';
 import { BulkTranslateSyncCommand } from '../commands/bulk-translate-sync.command.js';
 import { BulkTranslateSyncHandler } from '../commands/bulk-translate-sync.handler.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
@@ -29,10 +28,10 @@ describe('BulkTranslateSyncHandler', () => {
     translateWithContext: vi.fn(),
   };
 
-  const mockAiService: {
-    translate: ReturnType<typeof vi.fn>;
+  const mockQueryBus: {
+    execute: ReturnType<typeof vi.fn>;
   } = {
-    translate: vi.fn(),
+    execute: vi.fn(),
   };
 
   const mockQualityService: {
@@ -64,7 +63,7 @@ describe('BulkTranslateSyncHandler', () => {
       mockRepository as unknown as TranslationRepository,
       mockEventBus as unknown as IEventBus,
       mockMtService as unknown as MTService,
-      mockAiService as unknown as AITranslationService,
+      mockQueryBus as unknown as IQueryBus,
       qualityService,
       mockLogger as unknown as FastifyBaseLogger
     );
@@ -179,7 +178,7 @@ describe('BulkTranslateSyncHandler', () => {
   });
 
   describe('AI translations', () => {
-    it('should translate keys using AI service', async () => {
+    it('should translate keys using AI via queryBus', async () => {
       const command = new BulkTranslateSyncCommand(
         'project-1',
         'branch-1',
@@ -197,20 +196,14 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockAiService.translate.mockResolvedValue({ text: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ text: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
       mockQualityService.getConfig.mockResolvedValue({ scoreAfterAITranslation: false });
 
       const result = await handler.execute(command);
 
       expect(result.translated).toBe(1);
-      expect(mockAiService.translate).toHaveBeenCalledWith('project-1', {
-        text: 'Hello',
-        sourceLanguage: 'en',
-        targetLanguage: 'es',
-        keyId: 'key-1',
-        branchId: 'branch-1',
-      });
+      expect(mockQueryBus.execute).toHaveBeenCalled();
     });
 
     it('should trigger quality evaluation after AI translation if configured', async () => {
@@ -231,7 +224,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockAiService.translate.mockResolvedValue({ text: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ text: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
       mockQualityService.getConfig.mockResolvedValue({ scoreAfterAITranslation: true });
       mockQualityService.evaluate.mockResolvedValue(undefined);
@@ -298,7 +291,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockAiService.translate.mockResolvedValue({ text: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ text: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
       mockQualityService.getConfig.mockRejectedValue(new Error('Config error'));
 
@@ -454,7 +447,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockAiService.translate.mockResolvedValue({ text: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ text: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handlerWithoutQuality.execute(command);

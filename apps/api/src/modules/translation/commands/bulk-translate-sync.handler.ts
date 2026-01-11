@@ -1,8 +1,13 @@
 import type { FastifyBaseLogger } from 'fastify';
-import type { AITranslationService } from '../../../services/ai-translation.service.js';
+import { TranslateQuery } from '../../../modules/ai-translation/index.js';
 import type { MTService } from '../../../services/mt.service.js';
 import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
-import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type {
+  ICommandHandler,
+  IEventBus,
+  IQueryBus,
+  InferCommandResult,
+} from '../../../shared/cqrs/index.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type {
@@ -29,7 +34,7 @@ export class BulkTranslateSyncHandler implements ICommandHandler<BulkTranslateSy
     private readonly translationRepository: TranslationRepository,
     private readonly eventBus: IEventBus,
     private readonly mtService: MTService,
-    private readonly aiService: AITranslationService,
+    private readonly queryBus: IQueryBus,
     private readonly qualityEstimationService: QualityEstimationService | undefined,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -105,13 +110,15 @@ export class BulkTranslateSyncHandler implements ICommandHandler<BulkTranslateSy
           let translatedText: string;
 
           if (provider === 'AI') {
-            const result = await this.aiService.translate(projectId, {
-              text: sourceText,
-              sourceLanguage,
-              targetLanguage: targetLang,
-              keyId: key.id,
-              branchId,
-            });
+            const result = await this.queryBus.execute(
+              new TranslateQuery(projectId, userId, {
+                text: sourceText,
+                sourceLanguage,
+                targetLanguage: targetLang,
+                keyId: key.id,
+                branchId,
+              })
+            );
             translatedText = result.text;
           } else {
             const result = await this.mtService.translateWithContext(
