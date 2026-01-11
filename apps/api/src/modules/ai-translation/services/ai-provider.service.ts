@@ -175,18 +175,20 @@ export class AIProviderService {
   /**
    * Get encryption key from environment.
    *
-   * Uses MT_ENCRYPTION_KEY for consistency with machine translation module.
-   * Both AI and MT features share the same encryption key to simplify deployment
-   * and avoid key management issues where data encrypted with one key cannot be
-   * decrypted after switching to another.
+   * Uses AI_ENCRYPTION_KEY with fallback to MT_ENCRYPTION_KEY for consistency
+   * with the machine translation module and other parts of the codebase.
    *
-   * @throws Error if MT_ENCRYPTION_KEY is not set or invalid
+   * IMPORTANT: Once you choose a key, stick with it. Data encrypted with one key
+   * cannot be decrypted with another. Both AI and MT features should use the same
+   * key to simplify deployment.
+   *
+   * @throws Error if neither key is set or key is invalid
    */
   private getEncryptionKey(): Buffer {
-    const keyHex = process.env.MT_ENCRYPTION_KEY;
+    const keyHex = process.env.AI_ENCRYPTION_KEY || process.env.MT_ENCRYPTION_KEY;
     if (!keyHex || keyHex.length !== 64) {
       throw new Error(
-        'MT_ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
+        'AI_ENCRYPTION_KEY (or MT_ENCRYPTION_KEY) must be a 64-character hex string (32 bytes). ' +
           'Generate with: openssl rand -hex 32'
       );
     }
