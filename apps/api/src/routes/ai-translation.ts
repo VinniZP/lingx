@@ -3,29 +3,36 @@
  *
  * Provides endpoints for configuring and using AI-powered translation.
  */
+import {
+  aiConfigResponseSchema,
+  aiConfigsListResponseSchema,
+  aiContextConfigSchema,
+  aiProviderSchema,
+  aiSupportedModelsResponseSchema,
+  aiTestConnectionResponseSchema,
+  aiTranslateRequestSchema,
+  aiTranslateResponseSchema,
+  aiUsageResponseSchema,
+  saveAIConfigSchema,
+} from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
-  saveAIConfigSchema,
-  aiConfigsListResponseSchema,
-  aiContextConfigSchema,
-  aiTranslateRequestSchema,
-  aiTranslateResponseSchema,
-  aiUsageResponseSchema,
-  aiTestConnectionResponseSchema,
-  aiSupportedModelsResponseSchema,
-  aiProviderSchema,
-  aiConfigResponseSchema,
-} from '@lingx/shared';
-import { AITranslationService, type AIProviderType } from '../services/ai-translation.service.js';
-import { ProjectService } from '../services/project.service.js';
-import { ForbiddenError } from '../plugins/error-handler.js';
+  DeleteConfigCommand,
+  GetConfigsQuery,
+  GetContextConfigQuery,
+  GetSupportedModelsQuery,
+  GetUsageQuery,
+  SaveConfigCommand,
+  TestConnectionCommand,
+  TranslateQuery,
+  UpdateContextConfigCommand,
+  type AIProviderType,
+} from '../modules/ai-translation/index.js';
 
 const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const aiService = new AITranslationService(fastify.prisma);
-  const projectService = new ProjectService(fastify.prisma);
 
   // ============================================
   // CONFIGURATION ENDPOINTS
@@ -50,22 +57,15 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
+      const result = await fastify.queryBus.execute(
+        new GetConfigsQuery(projectId, request.user.userId)
       );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      const configs = await aiService.getConfigs(projectId);
 
       return {
-        configs: configs.map((c) => ({
+        configs: result.configs.map((c) => ({
           ...c,
           createdAt: c.createdAt.toISOString(),
           updatedAt: c.updatedAt.toISOString(),
@@ -94,28 +94,19 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { provider, apiKey, model, isActive, priority } = request.body;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      const config = await fastify.commandBus.execute(
+        new SaveConfigCommand(projectId, request.user.userId, {
+          provider: provider as AIProviderType,
+          apiKey,
+          model,
+          isActive,
+          priority,
+        })
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can configure AI translation'
-        );
-      }
-
-      const config = await aiService.saveConfig(projectId, {
-        provider,
-        apiKey,
-        model,
-        isActive,
-        priority,
-      });
 
       return {
         ...config,
@@ -145,23 +136,12 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId, provider } = request.params;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new DeleteConfigCommand(projectId, request.user.userId, provider as AIProviderType)
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can configure AI translation'
-        );
-      }
-
-      await aiService.deleteConfig(projectId, provider as AIProviderType);
-
-      return { success: true };
     }
   );
 
@@ -184,19 +164,12 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
+      return await fastify.queryBus.execute(
+        new GetContextConfigQuery(projectId, request.user.userId)
       );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      return aiService.getContextConfig(projectId);
     }
   );
 
@@ -220,21 +193,12 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new UpdateContextConfigCommand(projectId, request.user.userId, request.body)
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can configure AI translation'
-        );
-      }
-
-      return aiService.updateContextConfig(projectId, request.body);
     }
   );
 
@@ -258,21 +222,12 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId, provider } = request.params;
 
-      // Verify MANAGER/OWNER access
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      return await fastify.commandBus.execute(
+        new TestConnectionCommand(projectId, request.user.userId, provider as AIProviderType)
       );
-      if (!role || !['MANAGER', 'OWNER'].includes(role)) {
-        throw new ForbiddenError(
-          'Only managers and owners can test AI connections'
-        );
-      }
-
-      return aiService.testConnection(projectId, provider as AIProviderType);
     }
   );
 
@@ -295,12 +250,12 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { provider } = request.params;
 
-      const models = aiService.getSupportedModels(provider as AIProviderType);
-
-      return { models };
+      return await fastify.queryBus.execute(
+        new GetSupportedModelsQuery(provider as AIProviderType)
+      );
     }
   );
 
@@ -328,29 +283,20 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
       const { text, sourceLanguage, targetLanguage, keyId, branchId, provider } = request.body;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
+      return await fastify.queryBus.execute(
+        new TranslateQuery(projectId, request.user.userId, {
+          text,
+          sourceLanguage,
+          targetLanguage,
+          keyId,
+          branchId,
+          provider: provider as AIProviderType | undefined,
+        })
       );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      const result = await aiService.translate(projectId, {
-        text,
-        sourceLanguage,
-        targetLanguage,
-        keyId,
-        branchId,
-        provider: provider as AIProviderType | undefined,
-      });
-
-      return result;
     }
   );
 
@@ -377,21 +323,10 @@ const aiTranslationRoutes: FastifyPluginAsync = async (fastify) => {
         },
       },
     },
-    async (request, _reply) => {
+    async (request) => {
       const { projectId } = request.params;
 
-      // Verify project access
-      const hasAccess = await projectService.checkMembership(
-        projectId,
-        request.user.userId
-      );
-      if (!hasAccess) {
-        throw new ForbiddenError('Access to this project is not allowed');
-      }
-
-      const stats = await aiService.getUsage(projectId);
-
-      return { providers: stats };
+      return await fastify.queryBus.execute(new GetUsageQuery(projectId, request.user.userId));
     }
   );
 };

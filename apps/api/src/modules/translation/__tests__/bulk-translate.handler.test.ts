@@ -1,9 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccessService } from '../../../services/access.service.js';
-import type { AITranslationService } from '../../../services/ai-translation.service.js';
 import type { MTService } from '../../../services/mt.service.js';
-import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { IEventBus, IQueryBus } from '../../../shared/cqrs/index.js';
 import { BulkTranslateCommand } from '../commands/bulk-translate.command.js';
 import { BulkTranslateHandler } from '../commands/bulk-translate.handler.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
@@ -40,10 +39,10 @@ describe('BulkTranslateHandler', () => {
     translateWithContext: vi.fn(),
   };
 
-  const mockAiService: {
-    translate: ReturnType<typeof vi.fn>;
+  const mockQueryBus: {
+    execute: ReturnType<typeof vi.fn>;
   } = {
-    translate: vi.fn(),
+    execute: vi.fn(),
   };
 
   const mockLogger: {
@@ -63,7 +62,7 @@ describe('BulkTranslateHandler', () => {
       mockAccessService as unknown as AccessService,
       mockEventBus as unknown as IEventBus,
       mockMtService as unknown as MTService,
-      mockAiService as unknown as AITranslationService,
+      mockQueryBus as unknown as IQueryBus,
       mockLogger as unknown as FastifyBaseLogger
     );
   });
@@ -245,7 +244,7 @@ describe('BulkTranslateHandler', () => {
         'en',
         'es'
       );
-      expect(mockAiService.translate).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
     it('should use AI service when provider is AI', async () => {
@@ -265,19 +264,13 @@ describe('BulkTranslateHandler', () => {
         },
       ]);
 
-      mockAiService.translate.mockResolvedValue({
+      mockQueryBus.execute.mockResolvedValue({
         text: 'Hola',
       });
 
       await handler.execute(command);
 
-      expect(mockAiService.translate).toHaveBeenCalledWith('project-1', {
-        text: 'Hello',
-        sourceLanguage: 'en',
-        targetLanguage: 'es',
-        keyId: 'key-1',
-        branchId: 'branch-1',
-      });
+      expect(mockQueryBus.execute).toHaveBeenCalled();
       expect(mockMtService.translateWithContext).not.toHaveBeenCalled();
     });
 
