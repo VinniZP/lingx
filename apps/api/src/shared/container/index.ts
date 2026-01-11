@@ -26,6 +26,7 @@ import { AuthService } from '../../services/auth.service.js';
 import { ChallengeStore } from '../../services/challenge-store.service.js';
 import { EmailService } from '../../services/email.service.js';
 import { FileStorageService } from '../../services/file-storage.service.js';
+import { KeyContextService } from '../../services/key-context.service.js';
 import { MTService } from '../../services/mt.service.js';
 import type { QualityEstimationService } from '../../services/quality-estimation.service.js';
 import { createQualityEstimationService } from '../../services/quality/index.js';
@@ -50,6 +51,7 @@ export interface Cradle {
   apiKeyService: ApiKeyService;
   emailService: EmailService;
   fileStorage: FileStorageService;
+  keyContextService: KeyContextService;
   mtService: MTService;
   qualityEstimationService: QualityEstimationService;
   securityService: SecurityService;
@@ -98,6 +100,7 @@ export function createAppContainer(
     apiKeyService: asClass(ApiKeyService).singleton(),
     emailService: asClass(EmailService).singleton(),
     fileStorage: asClass(FileStorageService).singleton(),
+    keyContextService: asClass(KeyContextService).singleton(),
     mtService: asClass(MTService).singleton(),
     qualityEstimationService: asFunction(({ prisma }) =>
       createQualityEstimationService(prisma)

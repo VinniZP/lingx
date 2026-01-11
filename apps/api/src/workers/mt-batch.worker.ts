@@ -179,8 +179,8 @@ export function createMTBatchWorker(container: AwilixContainer<Cradle>): Worker 
         }
 
         default:
-          logger.warn({ jobId: job.id, type }, 'Unknown job type');
-          return undefined;
+          logger.error({ jobId: job.id, type }, 'Unknown MT job type received');
+          throw new Error(`Unknown MT job type: ${type}`);
       }
     },
     {
