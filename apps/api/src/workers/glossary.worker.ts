@@ -6,10 +6,10 @@
  * - Import processing (CSV/TBX)
  * - MT provider sync (DeepL/Google glossary API)
  */
-import { Worker, Job } from 'bullmq';
-import { PrismaClient, MTProvider } from '@prisma/client';
+import { MTProvider, PrismaClient } from '@prisma/client';
+import { Job, Worker } from 'bullmq';
 import { redis } from '../lib/redis.js';
-import { GlossaryService } from '../services/glossary.service.js';
+import { GlossaryRepository } from '../modules/glossary/repositories/glossary.repository.js';
 import { MTService } from '../services/mt.service.js';
 
 export type GlossaryJobType =
@@ -38,7 +38,7 @@ export interface GlossaryJobData {
 }
 
 export function createGlossaryWorker(prisma: PrismaClient): Worker {
-  const glossaryService = new GlossaryService(prisma);
+  const glossaryRepository = new GlossaryRepository(prisma);
 
   const worker = new Worker<GlossaryJobData>(
     'glossary',
@@ -49,19 +49,19 @@ export function createGlossaryWorker(prisma: PrismaClient): Worker {
 
       switch (type) {
         case 'record-usage':
-          return handleRecordUsage(glossaryService, job.data);
+          return handleRecordUsage(glossaryRepository, job.data);
 
         case 'import':
-          return handleImport(glossaryService, job.data);
+          return handleImport(glossaryRepository, job.data);
 
         case 'sync-provider':
-          return handleProviderSync(prisma, glossaryService, job.data);
+          return handleProviderSync(prisma, glossaryRepository, job.data);
 
         case 'delete-provider-glossary':
           return handleDeleteProviderGlossary(prisma, job.data);
 
         default:
-          console.warn(`[GlossaryWorker] Unknown job type: ${type}`);
+          throw new Error(`[GlossaryWorker] Unknown job type: ${type}`);
       }
     },
     {
@@ -85,7 +85,7 @@ export function createGlossaryWorker(prisma: PrismaClient): Worker {
  * Record usage when a glossary term is applied
  */
 async function handleRecordUsage(
-  service: GlossaryService,
+  repository: GlossaryRepository,
   data: GlossaryJobData
 ): Promise<void> {
   const { entryId } = data;
@@ -96,7 +96,7 @@ async function handleRecordUsage(
   }
 
   try {
-    await service.recordUsage(entryId);
+    await repository.recordUsage(entryId);
   } catch (error) {
     console.error('[GlossaryWorker] record-usage failed:', error);
     // Don't throw - usage tracking is non-critical
@@ -107,7 +107,7 @@ async function handleRecordUsage(
  * Process bulk import from CSV or TBX
  */
 async function handleImport(
-  service: GlossaryService,
+  repository: GlossaryRepository,
   data: GlossaryJobData
 ): Promise<{ imported: number; skipped: number; errors: string[] }> {
   const { projectId, format, content, overwrite, userId } = data;
@@ -117,9 +117,9 @@ async function handleImport(
   }
 
   if (format === 'csv') {
-    return service.importFromCSV(projectId, content, overwrite ?? false, userId);
+    return repository.importFromCSV(projectId, content, overwrite ?? false, userId);
   } else {
-    return service.importFromTBX(projectId, content, overwrite ?? false, userId);
+    return repository.importFromTBX(projectId, content, overwrite ?? false, userId);
   }
 }
 
@@ -128,14 +128,15 @@ async function handleImport(
  */
 async function handleProviderSync(
   prisma: PrismaClient,
-  glossaryService: GlossaryService,
+  glossaryRepository: GlossaryRepository,
   data: GlossaryJobData
 ): Promise<void> {
   const { projectId, provider, sourceLanguage, targetLanguage } = data;
 
   if (!provider || !sourceLanguage || !targetLanguage) {
-    console.warn('[GlossaryWorker] sync-provider: Missing required parameters');
-    return;
+    throw new Error(
+      `[GlossaryWorker] sync-provider: Missing required parameters (provider=${provider}, sourceLanguage=${sourceLanguage}, targetLanguage=${targetLanguage})`
+    );
   }
 
   try {
@@ -165,7 +166,7 @@ async function handleProviderSync(
     });
 
     // Get entries for this language pair
-    const entries = await glossaryService.prepareForProviderSync(
+    const entries = await glossaryRepository.prepareForProviderSync(
       projectId,
       sourceLanguage,
       targetLanguage
@@ -307,8 +308,9 @@ async function handleDeleteProviderGlossary(
   const { projectId, provider, sourceLanguage, targetLanguage } = data;
 
   if (!provider || !sourceLanguage || !targetLanguage) {
-    console.warn('[GlossaryWorker] delete-provider-glossary: Missing required parameters');
-    return;
+    throw new Error(
+      `[GlossaryWorker] delete-provider-glossary: Missing required parameters (provider=${provider}, sourceLanguage=${sourceLanguage}, targetLanguage=${targetLanguage})`
+    );
   }
 
   try {
@@ -345,9 +347,7 @@ async function handleDeleteProviderGlossary(
       },
     });
 
-    console.log(
-      `[GlossaryWorker] Deleted ${provider} glossary ${sync.externalGlossaryId}`
-    );
+    console.log(`[GlossaryWorker] Deleted ${provider} glossary ${sync.externalGlossaryId}`);
   } catch (error) {
     console.error('[GlossaryWorker] delete-provider-glossary failed:', error);
     throw error;

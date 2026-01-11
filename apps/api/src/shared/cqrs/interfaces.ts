@@ -80,9 +80,13 @@ export type InferQueryResult<T extends IQuery<unknown>> = T extends IQuery<infer
 /**
  * Base interface for domain events.
  * Events represent something that has happened in the system.
+ *
+ * @property occurredAt - When the event occurred
+ * @property eventId - Optional unique identifier for idempotency checking
  */
 export interface IEvent {
   readonly occurredAt: Date;
+  readonly eventId?: string;
 }
 
 // ============================================================================
