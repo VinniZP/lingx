@@ -221,7 +221,3 @@ export class AccessService {
     return { role: membership.role };
   }
 }
-
-export function createAccessService(prisma: PrismaClient): AccessService {
-  return new AccessService(prisma);
-}

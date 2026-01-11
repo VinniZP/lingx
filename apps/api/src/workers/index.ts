@@ -40,8 +40,8 @@ export async function startWorkers(container: AwilixContainer<Cradle>): Promise<
   workers.push(retentionWorker);
   console.log('[Workers] Retention worker started');
 
-  // Create translation memory worker
-  const tmWorker = createTranslationMemoryWorker(prisma);
+  // Create translation memory worker (uses CQRS CommandBus)
+  const tmWorker = createTranslationMemoryWorker(container);
   workers.push(tmWorker);
   console.log('[Workers] Translation memory worker started');
 
