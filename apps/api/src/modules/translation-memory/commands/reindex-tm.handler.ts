@@ -25,7 +25,7 @@ export class ReindexTMHandler implements ICommandHandler<ReindexTMCommand> {
 
     return {
       message: 'Reindex job queued',
-      jobId: job.id as string,
+      jobId: job.id ?? 'unknown',
     };
   }
 }

@@ -116,10 +116,10 @@ describe('ReindexTMHandler', () => {
 
     const result = await handler.execute(command);
 
-    // job.id as string results in undefined when job.id is undefined
+    // Falls back to 'unknown' when job.id is undefined
     expect(result).toEqual({
       message: 'Reindex job queued',
-      jobId: undefined,
+      jobId: 'unknown',
     });
   });
 });

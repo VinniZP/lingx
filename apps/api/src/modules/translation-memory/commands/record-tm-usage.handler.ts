@@ -25,7 +25,7 @@ export class RecordTMUsageHandler implements ICommandHandler<RecordTMUsageComman
       command.projectId
     );
     if (!belongsToProject) {
-      throw new NotFoundError('Translation memory entry');
+      throw new NotFoundError('Translation memory entry not found');
     }
 
     await translationMemoryQueue.add('update-usage', {
