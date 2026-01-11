@@ -21,6 +21,7 @@ import { registerProfileModule } from '../modules/profile/index.js';
 import { registerProjectModule } from '../modules/project/index.js';
 import { registerSecurityModule } from '../modules/security/index.js';
 import { registerSpaceModule } from '../modules/space/index.js';
+import { registerTranslationMemoryModule } from '../modules/translation-memory/index.js';
 import { registerTranslationModule } from '../modules/translation/index.js';
 
 /**
@@ -39,6 +40,7 @@ const domainModules: ModuleRegistrar[] = [
   registerSpaceModule,
   registerBranchModule,
   registerTranslationModule,
+  registerTranslationMemoryModule,
 ];
 
 export interface CqrsPluginOptions {

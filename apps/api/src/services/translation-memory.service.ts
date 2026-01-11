@@ -1,9 +1,16 @@
 /**
  * Translation Memory Service
  *
- * Handles translation memory operations including fuzzy search,
- * indexing approved translations, and tracking usage.
- * Uses PostgreSQL pg_trgm extension for similarity matching.
+ * @deprecated This service is deprecated. Use CQRS handlers instead:
+ * - SearchTMQuery / SearchTMHandler for fuzzy search
+ * - GetTMStatsQuery / GetTMStatsHandler for statistics
+ * - RecordTMUsageCommand / RecordTMUsageHandler for usage tracking
+ * - ReindexTMCommand / ReindexTMHandler for reindexing
+ *
+ * The service is kept for worker compatibility and will be refactored
+ * to use TranslationMemoryRepository in a future PR.
+ *
+ * @see modules/translation-memory/
  */
 import { PrismaClient, TranslationMemory } from '@prisma/client';
 
@@ -54,6 +61,10 @@ interface TMMatchRow {
   lastUsedAt: Date;
 }
 
+/**
+ * @deprecated Use CQRS handlers from modules/translation-memory/ instead.
+ * Kept for worker compatibility - will be refactored in future PR.
+ */
 export class TranslationMemoryService {
   constructor(private prisma: PrismaClient) {}
 
@@ -233,14 +244,17 @@ export class TranslationMemoryService {
    * @param entryId - Translation memory entry ID
    */
   async recordUsage(entryId: string): Promise<void> {
-    // Use updateMany to gracefully handle missing entries (won't throw if not found)
-    await this.prisma.translationMemory.updateMany({
+    const result = await this.prisma.translationMemory.updateMany({
       where: { id: entryId },
       data: {
         usageCount: { increment: 1 },
         lastUsedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      console.warn(`[TMService] recordUsage: entry ${entryId} not found`);
+    }
   }
 
   /**
