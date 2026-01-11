@@ -45,6 +45,12 @@ describe('Profile Module Integration', () => {
   });
 
   beforeEach(async () => {
+    // Mock email service to avoid SMTP connection errors in tests
+    const emailService = container.resolve('emailService');
+    vi.spyOn(emailService, 'send').mockResolvedValue(undefined);
+    vi.spyOn(emailService, 'sendEmailVerification').mockResolvedValue(undefined);
+    vi.spyOn(emailService, 'sendEmailChangeNotification').mockResolvedValue(undefined);
+
     // Clean up test data
     await app.prisma.emailVerification.deleteMany({});
     await app.prisma.session.deleteMany({});
