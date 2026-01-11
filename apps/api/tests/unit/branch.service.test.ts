@@ -4,15 +4,13 @@
  * Tests for branch CRUD operations with copy-on-write functionality.
  * Per Design Doc: AC-WEB-012, AC-WEB-013
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { prisma } from '../../src/lib/prisma.js';
 import { BranchService } from '../../src/services/branch.service.js';
 import { ProjectService } from '../../src/services/project.service.js';
-import { SpaceService } from '../../src/services/space.service.js';
 
 describe('BranchService', () => {
   let branchService: BranchService;
-  let spaceService: SpaceService;
   let projectService: ProjectService;
   let testUserId: string;
   let testProjectId: string;
@@ -21,7 +19,6 @@ describe('BranchService', () => {
 
   beforeAll(async () => {
     branchService = new BranchService(prisma);
-    spaceService = new SpaceService(prisma);
     projectService = new ProjectService(prisma);
   });
 
@@ -97,11 +94,20 @@ describe('BranchService', () => {
     });
     testProjectId = project.id;
 
-    // Create test space (auto-creates main branch)
-    const space = await spaceService.create({
-      name: 'Test Space',
-      slug: `branch-unit-${Date.now()}`,
-      projectId: testProjectId,
+    // Create test space with main branch using Prisma directly
+    const space = await prisma.space.create({
+      data: {
+        name: 'Test Space',
+        slug: `branch-unit-${Date.now()}`,
+        projectId: testProjectId,
+        branches: {
+          create: {
+            name: 'main',
+            slug: 'main',
+            isDefault: true,
+          },
+        },
+      },
     });
     testSpaceId = space.id;
 
@@ -216,11 +222,20 @@ describe('BranchService', () => {
     });
 
     it('should reject source branch from different space', async () => {
-      // Create another space
-      const otherSpace = await spaceService.create({
-        name: 'Other Space',
-        slug: `branch-unit-other-${Date.now()}`,
-        projectId: testProjectId,
+      // Create another space with main branch using Prisma directly
+      const otherSpace = await prisma.space.create({
+        data: {
+          name: 'Other Space',
+          slug: `branch-unit-other-${Date.now()}`,
+          projectId: testProjectId,
+          branches: {
+            create: {
+              name: 'main',
+              slug: 'main',
+              isDefault: true,
+            },
+          },
+        },
       });
 
       const otherBranches = await prisma.branch.findMany({
@@ -354,9 +369,7 @@ describe('BranchService', () => {
     });
 
     it('should throw NotFoundError for non-existent branch', async () => {
-      await expect(branchService.delete('non-existent-id')).rejects.toThrow(
-        'Branch not found'
-      );
+      await expect(branchService.delete('non-existent-id')).rejects.toThrow('Branch not found');
     });
   });
 

@@ -1,33 +1,34 @@
 /**
  * Space Routes
  *
- * Handles space CRUD operations.
+ * Thin HTTP layer for space operations.
+ * Routes validate input, dispatch to CQRS buses, and return DTOs.
  * Per Design Doc: AC-WEB-004, AC-WEB-005, AC-WEB-006
  */
+import {
+  createSpaceSchema,
+  spaceListResponseSchema,
+  spaceResponseSchema,
+  spaceStatsResponseSchema,
+  spaceWithBranchesSchema,
+  updateSpaceSchema,
+} from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { toSpaceDto, toSpaceDtoList, toSpaceWithBranchesDto } from '../dto/index.js';
+import { GetProjectQuery } from '../modules/project/index.js';
 import {
-  createSpaceSchema,
-  updateSpaceSchema,
-  spaceListResponseSchema,
-  spaceResponseSchema,
-  spaceWithBranchesSchema,
-  spaceStatsResponseSchema,
-} from '@lingx/shared';
-import { SpaceService } from '../services/space.service.js';
-import { ProjectService } from '../services/project.service.js';
-import {
-  toSpaceDto,
-  toSpaceDtoList,
-  toSpaceWithBranchesDto,
-} from '../dto/index.js';
-import { ForbiddenError, NotFoundError } from '../plugins/error-handler.js';
+  CreateSpaceCommand,
+  DeleteSpaceCommand,
+  GetSpaceQuery,
+  GetSpaceStatsQuery,
+  ListSpacesQuery,
+  UpdateSpaceCommand,
+} from '../modules/space/index.js';
 
 const spaceRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const spaceService = new SpaceService(fastify.prisma);
-  const projectService = new ProjectService(fastify.prisma);
 
   /**
    * GET /api/projects/:projectId/spaces - List spaces for a project
@@ -51,22 +52,15 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { projectId } = request.params;
 
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(projectId);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check membership using internal ID
-      const isMember = await projectService.checkMembership(
-        project.id,
-        request.user.userId
+      // Use GetProjectQuery to resolve project by ID or slug and verify access
+      const { project } = await fastify.queryBus.execute(
+        new GetProjectQuery(projectId, request.user.userId)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
 
-      const spaces = await spaceService.findByProjectId(project.id);
+      const spaces = await fastify.queryBus.execute(
+        new ListSpacesQuery(project.id, request.user.userId)
+      );
+
       return { spaces: toSpaceDtoList(spaces) };
     }
   );
@@ -95,27 +89,14 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       const { projectId } = request.params;
       const { name, slug, description } = request.body;
 
-      // Look up project by ID or slug (flexible lookup)
-      const project = await projectService.findByIdOrSlug(projectId);
-      if (!project) {
-        throw new NotFoundError('Project');
-      }
-
-      // Check membership using internal ID
-      const isMember = await projectService.checkMembership(
-        project.id,
-        request.user.userId
+      // Use GetProjectQuery to resolve project by ID or slug and verify access
+      const { project } = await fastify.queryBus.execute(
+        new GetProjectQuery(projectId, request.user.userId)
       );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
 
-      const space = await spaceService.create({
-        name,
-        slug,
-        description,
-        projectId: project.id,
-      });
+      const space = await fastify.commandBus.execute(
+        new CreateSpaceCommand(project.id, name, slug, description, request.user.userId)
+      );
 
       return reply.status(201).send(toSpaceDto(space));
     }
@@ -143,19 +124,7 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { id } = request.params;
 
-      const space = await spaceService.findById(id);
-      if (!space) {
-        throw new NotFoundError('Space');
-      }
-
-      // Check membership via project
-      const isMember = await projectService.checkMembership(
-        space.projectId,
-        request.user.userId
-      );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
+      const space = await fastify.queryBus.execute(new GetSpaceQuery(id, request.user.userId));
 
       return toSpaceWithBranchesDto(space);
     }
@@ -185,21 +154,10 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
       const { id } = request.params;
       const input = request.body;
 
-      const projectId = await spaceService.getProjectIdBySpaceId(id);
-      if (!projectId) {
-        throw new NotFoundError('Space');
-      }
-
-      // Check membership and role
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
+      const space = await fastify.commandBus.execute(
+        new UpdateSpaceCommand(id, request.user.userId, input)
       );
-      if (!role) {
-        throw new ForbiddenError('Not a member of this project');
-      }
 
-      const space = await spaceService.update(id, input);
       return toSpaceDto(space);
     }
   );
@@ -223,21 +181,8 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { id } = request.params;
 
-      const projectId = await spaceService.getProjectIdBySpaceId(id);
-      if (!projectId) {
-        throw new NotFoundError('Space');
-      }
+      await fastify.commandBus.execute(new DeleteSpaceCommand(id, request.user.userId));
 
-      // Check manager role
-      const role = await projectService.getMemberRole(
-        projectId,
-        request.user.userId
-      );
-      if (!role || role === 'DEVELOPER') {
-        throw new ForbiddenError('Requires manager or owner role');
-      }
-
-      await spaceService.delete(id);
       return reply.status(204).send();
     }
   );
@@ -264,21 +209,8 @@ const spaceRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, _reply) => {
       const { id } = request.params;
 
-      const projectId = await spaceService.getProjectIdBySpaceId(id);
-      if (!projectId) {
-        throw new NotFoundError('Space');
-      }
+      const stats = await fastify.queryBus.execute(new GetSpaceStatsQuery(id, request.user.userId));
 
-      // Check membership
-      const isMember = await projectService.checkMembership(
-        projectId,
-        request.user.userId
-      );
-      if (!isMember) {
-        throw new ForbiddenError('Not a member of this project');
-      }
-
-      const stats = await spaceService.getStats(id);
       return stats;
     }
   );

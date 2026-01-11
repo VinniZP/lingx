@@ -4,16 +4,14 @@
  * Tests for environment CRUD operations with branch pointer management.
  * Per Design Doc: AC-WEB-017, AC-WEB-018, AC-WEB-019
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { prisma } from '../../src/lib/prisma.js';
 import { EnvironmentService } from '../../src/services/environment.service.js';
 import { ProjectService } from '../../src/services/project.service.js';
-import { SpaceService } from '../../src/services/space.service.js';
 
 describe('EnvironmentService', () => {
   let environmentService: EnvironmentService;
   let projectService: ProjectService;
-  let spaceService: SpaceService;
   let testUserId: string;
   let testProjectId: string;
   let testSpaceId: string;
@@ -22,7 +20,6 @@ describe('EnvironmentService', () => {
   beforeAll(async () => {
     environmentService = new EnvironmentService(prisma);
     projectService = new ProjectService(prisma);
-    spaceService = new SpaceService(prisma);
   });
 
   afterAll(async () => {
@@ -100,11 +97,20 @@ describe('EnvironmentService', () => {
     });
     testProjectId = project.id;
 
-    // Create test space (auto-creates main branch)
-    const space = await spaceService.create({
-      name: 'Test Space',
-      slug: `env-unit-${Date.now()}`,
-      projectId: testProjectId,
+    // Create test space with main branch using Prisma directly
+    const space = await prisma.space.create({
+      data: {
+        name: 'Test Space',
+        slug: `env-unit-${Date.now()}`,
+        projectId: testProjectId,
+        branches: {
+          create: {
+            name: 'main',
+            slug: 'main',
+            isDefault: true,
+          },
+        },
+      },
     });
     testSpaceId = space.id;
 
@@ -184,10 +190,19 @@ describe('EnvironmentService', () => {
         userId: testUserId,
       });
 
-      const otherSpace = await spaceService.create({
-        name: 'Other Space',
-        slug: `env-unit-other-${Date.now()}`,
-        projectId: otherProject.id,
+      const otherSpace = await prisma.space.create({
+        data: {
+          name: 'Other Space',
+          slug: `env-unit-other-${Date.now()}`,
+          projectId: otherProject.id,
+          branches: {
+            create: {
+              name: 'main',
+              slug: 'main',
+              isDefault: true,
+            },
+          },
+        },
       });
 
       const otherBranches = await prisma.branch.findMany({
@@ -246,7 +261,7 @@ describe('EnvironmentService', () => {
       const envs = await environmentService.findByProjectId(testProjectId);
 
       // Filter to only our test environments
-      const testEnvs = envs.filter(e => e.slug.startsWith('env-unit-'));
+      const testEnvs = envs.filter((e) => e.slug.startsWith('env-unit-'));
       expect(testEnvs.length).toBeGreaterThanOrEqual(2);
     });
 
@@ -265,7 +280,7 @@ describe('EnvironmentService', () => {
       });
 
       const envs = await environmentService.findByProjectId(testProjectId);
-      const testEnvs = envs.filter(e => e.slug.startsWith('env-unit-'));
+      const testEnvs = envs.filter((e) => e.slug.startsWith('env-unit-'));
 
       expect(testEnvs[0].name).toBe('Alpha');
       expect(testEnvs[1].name).toBe('Zebra');
@@ -304,9 +319,9 @@ describe('EnvironmentService', () => {
     });
 
     it('should throw NotFoundError for non-existent environment', async () => {
-      await expect(
-        environmentService.update('non-existent-id', { name: 'Test' })
-      ).rejects.toThrow('Environment not found');
+      await expect(environmentService.update('non-existent-id', { name: 'Test' })).rejects.toThrow(
+        'Environment not found'
+      );
     });
   });
 
@@ -330,10 +345,7 @@ describe('EnvironmentService', () => {
       });
 
       // Switch environment to feature branch
-      const updated = await environmentService.switchBranch(
-        env.id,
-        featureBranch.id
-      );
+      const updated = await environmentService.switchBranch(env.id, featureBranch.id);
 
       expect(updated.branchId).toBe(featureBranch.id);
       expect(updated.branch.id).toBe(featureBranch.id);
@@ -353,9 +365,9 @@ describe('EnvironmentService', () => {
         branchId: mainBranchId,
       });
 
-      await expect(
-        environmentService.switchBranch(env.id, 'non-existent-id')
-      ).rejects.toThrow('Branch not found');
+      await expect(environmentService.switchBranch(env.id, 'non-existent-id')).rejects.toThrow(
+        'Branch not found'
+      );
     });
 
     it('should reject switching to branch from different project', async () => {
@@ -375,19 +387,28 @@ describe('EnvironmentService', () => {
         userId: testUserId,
       });
 
-      const otherSpace = await spaceService.create({
-        name: 'Other Space',
-        slug: `env-unit-switch-other-${Date.now()}`,
-        projectId: otherProject.id,
+      const otherSpace = await prisma.space.create({
+        data: {
+          name: 'Other Space',
+          slug: `env-unit-switch-other-${Date.now()}`,
+          projectId: otherProject.id,
+          branches: {
+            create: {
+              name: 'main',
+              slug: 'main',
+              isDefault: true,
+            },
+          },
+        },
       });
 
       const otherBranches = await prisma.branch.findMany({
         where: { spaceId: otherSpace.id },
       });
 
-      await expect(
-        environmentService.switchBranch(env.id, otherBranches[0].id)
-      ).rejects.toThrow('Branch must belong to this project');
+      await expect(environmentService.switchBranch(env.id, otherBranches[0].id)).rejects.toThrow(
+        'Branch must belong to this project'
+      );
     });
   });
 
@@ -407,9 +428,9 @@ describe('EnvironmentService', () => {
     });
 
     it('should throw NotFoundError for non-existent environment', async () => {
-      await expect(
-        environmentService.delete('non-existent-id')
-      ).rejects.toThrow('Environment not found');
+      await expect(environmentService.delete('non-existent-id')).rejects.toThrow(
+        'Environment not found'
+      );
     });
   });
 });
