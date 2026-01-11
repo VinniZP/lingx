@@ -5,8 +5,8 @@
  * Jobs are created when translations are approved, triggering
  * their addition to the translation memory for future suggestions.
  */
-import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
+import { Job, Worker } from 'bullmq';
 import { redis } from '../lib/redis.js';
 import { TranslationMemoryService } from '../services/translation-memory.service.js';
 
@@ -47,15 +47,19 @@ export function createTranslationMemoryWorker(prisma: PrismaClient): Worker {
           break;
 
         case 'update-usage':
-          if (entryId) {
-            await tmService.recordUsage(entryId);
+          if (!entryId) {
+            console.warn('[TMWorker] update-usage job missing entryId');
+            return;
           }
+          await tmService.recordUsage(entryId);
           break;
 
         case 'remove-entry':
-          if (keyId) {
-            await tmService.removeBySourceKey(keyId);
+          if (!keyId) {
+            console.warn('[TMWorker] remove-entry job missing keyId');
+            return;
           }
+          await tmService.removeBySourceKey(keyId);
           break;
 
         default:
@@ -69,14 +73,11 @@ export function createTranslationMemoryWorker(prisma: PrismaClient): Worker {
   );
 
   worker.on('failed', (job, err) => {
-    console.error(
-      `[TMWorker] Job ${job?.id} failed:`,
-      err.message
-    );
+    console.error(`[TMWorker] Job ${job?.id} failed:`, err);
   });
 
   worker.on('error', (err) => {
-    console.error('[TMWorker] Worker error:', err.message);
+    console.error('[TMWorker] Worker error:', err);
   });
 
   return worker;
