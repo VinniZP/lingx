@@ -57,38 +57,5 @@ export function useRecordTMUsage(projectId: string) {
   });
 }
 
-/**
- * Get TM statistics for a project.
- *
- * @param projectId - Project ID
- * @returns React Query result with TM stats
- */
-function useTMStats(projectId: string) {
-  return useQuery({
-    queryKey: ['tm-stats', projectId],
-    queryFn: () => translationMemoryApi.getStats(projectId),
-    enabled: !!projectId,
-    staleTime: 60 * 1000, // 1 minute
-  });
-}
-
-/**
- * Trigger TM reindex for a project.
- *
- * @param projectId - Project ID
- * @returns Mutation to trigger reindex
- */
-function useTMReindex(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => translationMemoryApi.reindex(projectId),
-    onSuccess: () => {
-      // Invalidate stats after reindex
-      queryClient.invalidateQueries({ queryKey: ['tm-stats', projectId] });
-    },
-  });
-}
-
 // Re-export types for convenience
 export type { TMMatch, TMSearchParams };

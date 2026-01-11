@@ -11,7 +11,7 @@ import {
   type RelatedKeysResponse,
   type RelationshipType,
 } from '@/lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Get related keys for a translation key.
@@ -47,98 +47,6 @@ export function useRelatedKeys(
     refetchOnWindowFocus: false,
   });
 }
-
-/**
- * Get all related keys as a flat array (convenience helper).
- * Ordered by priority: NEARBY > KEY_PATTERN > SAME_COMPONENT > SAME_FILE > SEMANTIC
- */
-function useAllRelatedKeys(
-  branchId: string,
-  keyId: string | null,
-  options?: {
-    enabled?: boolean;
-    limit?: number;
-  }
-) {
-  const query = useRelatedKeys(branchId, keyId, options);
-
-  const allRelatedKeys: RelatedKey[] = query.data
-    ? [
-        ...query.data.relationships.nearby,
-        ...query.data.relationships.keyPattern,
-        ...query.data.relationships.sameComponent,
-        ...query.data.relationships.sameFile,
-        ...query.data.relationships.semantic,
-      ]
-    : [];
-
-  return {
-    ...query,
-    allRelatedKeys,
-    totalCount: allRelatedKeys.length,
-  };
-}
-
-/**
- * Get AI context for translation assistance.
- * Includes related translations and suggested terms for better AI translation quality.
- *
- * @param branchId - Branch ID
- * @param keyId - Translation key ID
- * @param targetLanguage - Target language code
- * @param options - Query options
- * @returns React Query result with AI context
- */
-function useAIContext(
-  branchId: string,
-  keyId: string | null,
-  targetLanguage: string | null,
-  options?: { enabled?: boolean }
-) {
-  return useQuery({
-    queryKey: ['ai-context', branchId, keyId, targetLanguage],
-    queryFn: () => keyContextApi.getAIContext(branchId, keyId!, targetLanguage!),
-    enabled: options?.enabled !== false && !!branchId && !!keyId && !!targetLanguage,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-}
-
-/**
- * Get key context statistics for a branch.
- *
- * @param branchId - Branch ID
- * @returns React Query result with context stats
- */
-function useKeyContextStats(branchId: string) {
-  return useQuery({
-    queryKey: ['key-context-stats', branchId],
-    queryFn: () => keyContextApi.getStats(branchId),
-    enabled: !!branchId,
-    staleTime: 60 * 1000, // 1 minute
-  });
-}
-
-/**
- * Trigger semantic relationship analysis.
- *
- * @param branchId - Branch ID
- * @returns Mutation to trigger analysis
- */
-function useAnalyzeRelationships(branchId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (options?: { types?: RelationshipType[]; minSimilarity?: number }) =>
-      keyContextApi.analyzeRelationships(branchId, options),
-    onSuccess: () => {
-      // Invalidate related queries after analysis
-      queryClient.invalidateQueries({ queryKey: ['related-keys', branchId] });
-      queryClient.invalidateQueries({ queryKey: ['key-context-stats', branchId] });
-    },
-  });
-}
-
 // Re-export types for convenience
 export type {
   AIContextResponse,

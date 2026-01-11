@@ -5,8 +5,6 @@ import { z } from 'zod';
  */
 export const mtProviderSchema = z.enum(['DEEPL', 'GOOGLE_TRANSLATE']);
 
-export type MTProviderType = z.infer<typeof mtProviderSchema>;
-
 /**
  * Save MT Configuration Input
  */
@@ -73,7 +71,10 @@ export type TranslateResponse = z.infer<typeof translateResponseSchema>;
 export const multiTranslateRequestSchema = z.object({
   text: z.string().min(1, 'Text is required').max(10000, 'Text too long (max 10,000 characters)'),
   sourceLanguage: z.string().min(2).max(10),
-  targetLanguages: z.array(z.string().min(2).max(10)).min(1, 'At least one target language').max(20, 'Max 20 languages'),
+  targetLanguages: z
+    .array(z.string().min(2).max(10))
+    .min(1, 'At least one target language')
+    .max(20, 'Max 20 languages'),
   provider: mtProviderSchema.optional(),
 });
 
@@ -83,12 +84,15 @@ export type MultiTranslateRequest = z.infer<typeof multiTranslateRequestSchema>;
  * Multi-language Translate Response
  */
 export const multiTranslateResponseSchema = z.object({
-  translations: z.record(z.string(), z.object({
-    translatedText: z.string(),
-    provider: mtProviderSchema,
-    cached: z.boolean(),
-    characterCount: z.number(),
-  })),
+  translations: z.record(
+    z.string(),
+    z.object({
+      translatedText: z.string(),
+      provider: mtProviderSchema,
+      cached: z.boolean(),
+      characterCount: z.number(),
+    })
+  ),
   totalCharacters: z.number(),
 });
 
@@ -98,7 +102,10 @@ export type MultiTranslateResponse = z.infer<typeof multiTranslateResponseSchema
  * Batch Translate Request
  */
 export const batchTranslateRequestSchema = z.object({
-  keyIds: z.array(z.string()).min(1, 'At least one key required').max(500, 'Max 500 keys per batch'),
+  keyIds: z
+    .array(z.string())
+    .min(1, 'At least one key required')
+    .max(500, 'Max 500 keys per batch'),
   targetLanguage: z.string().min(2).max(10),
   provider: mtProviderSchema.optional(),
   overwriteExisting: z.boolean().default(false),
