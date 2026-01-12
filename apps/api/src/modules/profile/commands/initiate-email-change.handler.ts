@@ -7,8 +7,8 @@ import {
   UnauthorizedError,
   ValidationError,
 } from '../../../plugins/error-handler.js';
-import type { EmailService } from '../../../services/email.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { EmailService } from '../../../shared/infrastructure/email.service.js';
 import { EmailChangeInitiatedEvent } from '../events/email-change-initiated.event.js';
 import type { ProfileRepository } from '../repositories/profile.repository.js';
 import { TOKEN_EXPIRY_HOURS } from '../types.js';

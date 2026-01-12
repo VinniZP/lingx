@@ -6,18 +6,15 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CircuitBreaker } from '../../../src/modules/quality-estimation/quality/ai/circuit-breaker.js';
-import {
-  AIEvaluator,
-  type AIModelConfig,
-} from '../../../src/modules/quality-estimation/quality/evaluators/ai-evaluator.js';
 import {
   MOCK_MQM_RESPONSE,
   MOCK_MQM_RESPONSE_WITH_ISSUES,
   createCacheHitMetrics,
   createMockMultiLanguageResponse,
   wrapInMarkdown,
-} from '../../mocks/ai-providers.js';
+} from '../../../../../tests/mocks/ai-providers.js';
+import { CircuitBreaker } from '../../quality/ai/circuit-breaker.js';
+import { AIEvaluator, type AIModelConfig } from '../../quality/evaluators/ai-evaluator.js';
 
 // Mock the 'ai' module
 vi.mock('ai', () => ({

@@ -20,6 +20,7 @@ import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
 import { KeyContextService } from '../../modules/key-context/key-context.service.js';
 import { KeyContextRepository } from '../../modules/key-context/repositories/key-context.repository.js';
+import { ChallengeStore } from '../../modules/mfa/webauthn/challenge-store.service.js';
 import { QualityEstimationService } from '../../modules/quality-estimation/quality-estimation.service.js';
 import {
   AIEvaluator,
@@ -39,10 +40,9 @@ import { ActivityService } from '../../services/activity.service.js';
 import { ApiKeyService } from '../../services/api-key.service.js';
 import { AuthService } from '../../services/auth.service.js';
 import { BatchEvaluationService } from '../../services/batch-evaluation.service.js';
-import { ChallengeStore } from '../../services/challenge-store.service.js';
-import { EmailService } from '../../services/email.service.js';
-import { FileStorageService } from '../../services/file-storage.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
+import { EmailService } from '../infrastructure/email.service.js';
+import { FileStorageService } from '../infrastructure/file-storage.service.js';
 
 /**
  * Cradle interface defines all registered dependencies.

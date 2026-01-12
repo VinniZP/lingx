@@ -11,7 +11,7 @@ import {
   requiresExplicitCacheControl,
   supportsCaching,
   type AIProvider,
-} from '../../../src/modules/quality-estimation/quality/ai/model-factory.js';
+} from '../../quality/ai/model-factory.js';
 
 // ============================================
 // createLanguageModel

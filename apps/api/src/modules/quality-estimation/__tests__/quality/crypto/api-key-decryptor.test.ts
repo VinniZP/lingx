@@ -6,10 +6,7 @@
 
 import { createCipheriv, randomBytes } from 'crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  decryptApiKey,
-  getEncryptionKey,
-} from '../../../../src/modules/quality-estimation/quality/crypto/api-key-decryptor.js';
+import { decryptApiKey, getEncryptionKey } from '../../../quality/crypto/api-key-decryptor.js';
 
 /**
  * Helper to encrypt a value for testing decryption

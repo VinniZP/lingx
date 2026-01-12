@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { FileStorageService } from '../../../services/file-storage.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { FileStorageService } from '../../../shared/infrastructure/file-storage.service.js';
 import { AvatarUpdatedEvent } from '../events/avatar-updated.event.js';
 import type { ProfileRepository } from '../repositories/profile.repository.js';
 import type { UpdateAvatarCommand } from './update-avatar.command.js';

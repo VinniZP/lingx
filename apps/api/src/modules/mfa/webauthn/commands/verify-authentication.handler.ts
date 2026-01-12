@@ -6,10 +6,10 @@
 import type { AuthenticatorTransportFuture } from '@simplewebauthn/server';
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { BadRequestError, UnauthorizedError } from '../../../../plugins/error-handler.js';
-import type { ChallengeStore } from '../../../../services/challenge-store.service.js';
 import type { ICommandHandler, IEventBus } from '../../../../shared/cqrs/index.js';
 import { PasskeyAuthenticatedEvent } from '../../events/passkey-authenticated.event.js';
 import type { WebAuthnConfigService } from '../../shared/webauthn-config.service.js';
+import type { ChallengeStore } from '../challenge-store.service.js';
 import type { WebAuthnRepository } from '../webauthn.repository.js';
 import {
   VerifyAuthenticationCommand,

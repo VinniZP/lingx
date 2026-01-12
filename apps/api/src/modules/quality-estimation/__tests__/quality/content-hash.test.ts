@@ -9,7 +9,7 @@ import {
   generateContentHash,
   HASH_CONFIG,
   isContentHashValid,
-} from '../../../src/modules/quality-estimation/quality/cache/content-hash.js';
+} from '../../quality/cache/content-hash.js';
 
 describe('generateContentHash', () => {
   it('should return a hex string', () => {

@@ -6,12 +6,12 @@
 
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { KeyContextService } from '../../src/modules/key-context/key-context.service.js';
-import { QualityEstimationService } from '../../src/modules/quality-estimation/quality-estimation.service.js';
-import type { AIEvaluator } from '../../src/modules/quality-estimation/quality/evaluators/ai-evaluator.js';
-import type { GlossaryEvaluator } from '../../src/modules/quality-estimation/quality/evaluators/glossary-evaluator.js';
-import type { ScoreRepository } from '../../src/modules/quality-estimation/quality/persistence/score-repository.js';
-import type { QualityEstimationRepository } from '../../src/modules/quality-estimation/repositories/quality-estimation.repository.js';
+import type { KeyContextService } from '../../key-context/key-context.service.js';
+import { QualityEstimationService } from '../quality-estimation.service.js';
+import type { AIEvaluator } from '../quality/evaluators/ai-evaluator.js';
+import type { GlossaryEvaluator } from '../quality/evaluators/glossary-evaluator.js';
+import type { ScoreRepository } from '../quality/persistence/score-repository.js';
+import type { QualityEstimationRepository } from '../repositories/quality-estimation.repository.js';
 
 // Mock factories
 function createMockQualityEstimationRepository(): QualityEstimationRepository {

@@ -5,10 +5,10 @@
  */
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import { BadRequestError, UnauthorizedError } from '../../../../plugins/error-handler.js';
-import type { ChallengeStore } from '../../../../services/challenge-store.service.js';
 import type { ICommandHandler, IEventBus } from '../../../../shared/cqrs/index.js';
 import { PasskeyRegisteredEvent } from '../../events/passkey-registered.event.js';
 import type { WebAuthnConfigService } from '../../shared/webauthn-config.service.js';
+import type { ChallengeStore } from '../challenge-store.service.js';
 import type { WebAuthnRepository } from '../webauthn.repository.js';
 import {
   VerifyRegistrationCommand,

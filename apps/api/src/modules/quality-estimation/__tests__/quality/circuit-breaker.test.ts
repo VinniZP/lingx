@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CircuitBreaker,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
-} from '../../../src/modules/quality-estimation/quality/ai/circuit-breaker.js';
+} from '../../quality/ai/circuit-breaker.js';
 
 describe('CircuitBreaker', () => {
   let breaker: CircuitBreaker;

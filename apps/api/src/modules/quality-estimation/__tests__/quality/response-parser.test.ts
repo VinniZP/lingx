@@ -16,7 +16,7 @@ import {
   parseMQMResponse,
   parseWithZodSchema,
   validateMQMResponse,
-} from '../../../src/modules/quality-estimation/quality/ai/response-parser.js';
+} from '../../quality/ai/response-parser.js';
 
 // ============================================
 // extractJsonFromText
