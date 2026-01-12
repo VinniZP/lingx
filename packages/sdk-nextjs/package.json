@@ -26,7 +26,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "intl-messageformat": "^11.0.8"
+    "intl-messageformat": "^11.0.9"
   },
   "peerDependencies": {
     "next": ">=15.0.0",
@@ -36,10 +36,10 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.0.0",
-    "@types/node": "^25.0.3",
-    "@types/react": "^19.0.0",
+    "@types/node": "^25.0.6",
+    "@types/react": "^19.2.8",
     "@types/react-dom": "^19.0.0",
-    "happy-dom": "^20.0.11",
+    "happy-dom": "^20.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^8.0.0",
