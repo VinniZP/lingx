@@ -161,7 +161,7 @@ describe('QualityEstimationService', () => {
       (mockRepository.findSourceTranslation as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock).mockResolvedValue(formatOnlyScore);
 
-      const result = await service.evaluate('trans-1');
+      await service.evaluate('trans-1');
 
       expect(mockScoreRepository.save).toHaveBeenCalledWith(
         'trans-1',

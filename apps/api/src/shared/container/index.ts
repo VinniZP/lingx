@@ -18,6 +18,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
+import type { DashboardRepository } from '../../modules/dashboard/dashboard.repository.js';
 import { KeyContextService } from '../../modules/key-context/key-context.service.js';
 import { KeyContextRepository } from '../../modules/key-context/repositories/key-context.repository.js';
 import { ChallengeStore } from '../../modules/mfa/webauthn/challenge-store.service.js';
@@ -91,6 +92,7 @@ export interface Cradle {
 
   // Repositories
   translationRepository: TranslationRepository;
+  dashboardRepository: DashboardRepository;
 
   // Allow dynamic handler registrations
   [key: string]: unknown;
