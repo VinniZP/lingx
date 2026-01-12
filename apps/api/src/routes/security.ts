@@ -15,12 +15,12 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
   ChangePasswordCommand,
+  extractRequestMetadata,
   GetSessionsQuery,
   RevokeAllSessionsCommand,
   RevokeSessionCommand,
 } from '../modules/security/index.js';
 import { UnauthorizedError } from '../plugins/error-handler.js';
-import { extractRequestMetadata } from '../services/security.service.js';
 
 const securityRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();

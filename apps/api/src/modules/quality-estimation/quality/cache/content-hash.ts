@@ -53,7 +53,11 @@ export function generateContentHash(source: string, target: string): string {
  * @param target - Current target text
  * @returns true if cache is valid (content unchanged)
  */
-export function isContentHashValid(cachedHash: string | null, source: string, target: string): boolean {
+export function isContentHashValid(
+  cachedHash: string | null,
+  source: string,
+  target: string
+): boolean {
   if (!cachedHash) return false;
   return cachedHash === generateContentHash(source, target);
 }

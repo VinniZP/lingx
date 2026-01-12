@@ -5,8 +5,8 @@
  * Centralizes provider configuration and validation.
  */
 
-import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
 
 // ============================================

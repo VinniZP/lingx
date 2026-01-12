@@ -5,9 +5,9 @@
  */
 
 export {
-  GlossaryEvaluator,
-  GLOSSARY_MISSING_TERM_PENALTY,
   GLOSSARY_MAX_PENALTY,
+  GLOSSARY_MISSING_TERM_PENALTY,
+  GlossaryEvaluator,
   type GlossaryResult,
   type GlossaryTerm,
 } from './glossary-evaluator.js';

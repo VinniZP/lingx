@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccessService } from '../../../services/access.service.js';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
+import type { QualityEstimationService } from '../quality-estimation.service.js';
 import { GetKeyIssuesHandler } from '../queries/get-key-issues.handler.js';
 import { GetKeyIssuesQuery } from '../queries/get-key-issues.query.js';
 

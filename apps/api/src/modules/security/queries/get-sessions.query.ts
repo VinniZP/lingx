@@ -1,5 +1,5 @@
-import type { SessionInfo } from '../../../services/security.service.js';
 import type { IQuery } from '../../../shared/cqrs/index.js';
+import type { SessionInfo } from '../session.repository.js';
 
 /**
  * Query to get all active sessions for a user.

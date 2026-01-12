@@ -8,7 +8,8 @@
  * - Retrieving related keys for translation UI
  * - Building AI context for translation assistance
  */
-import { ApprovalStatus, Prisma, PrismaClient, RelationshipType } from '@prisma/client';
+import { ApprovalStatus, Prisma, RelationshipType } from '@prisma/client';
+import type { KeyContextRepository } from './repositories/key-context.repository.js';
 
 // ============================================
 // CONSTANTS
@@ -169,7 +170,7 @@ export interface AIContextResult {
 // ============================================
 
 export class KeyContextService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private keyContextRepository: KeyContextRepository) {}
 
   /**
    * Bulk update source location metadata for keys.
@@ -178,38 +179,12 @@ export class KeyContextService {
     branchId: string,
     contexts: KeyContextInput[]
   ): Promise<{ updated: number; notFound: number }> {
-    let updated = 0;
-    let notFound = 0;
-
-    // Process in batches for performance
-    const batchSize = 100;
-    for (let i = 0; i < contexts.length; i += batchSize) {
-      const batch = contexts.slice(i, i + batchSize);
-
-      await this.prisma.$transaction(async (tx) => {
-        for (const ctx of batch) {
-          const result = await tx.translationKey.updateMany({
-            where: {
-              branchId,
-              name: ctx.name,
-              namespace: ctx.namespace ?? null,
-            },
-            data: {
-              sourceFile: ctx.sourceFile ?? null,
-              sourceLine: ctx.sourceLine ?? null,
-              sourceComponent: ctx.sourceComponent ?? null,
-            },
-          });
-          if (result.count > 0) updated++;
-          else notFound++;
-        }
-      });
-    }
+    const result = await this.keyContextRepository.updateKeySourceInfo(branchId, contexts);
 
     // Rebuild source-based relationships after update
     await this.buildSourceRelationships(branchId);
 
-    return { updated, notFound };
+    return result;
   }
 
   /**
@@ -236,26 +211,10 @@ export class KeyContextService {
     nearbyRelationships: number;
   }> {
     // Get all keys for this branch with source info
-    const keys = await this.prisma.translationKey.findMany({
-      where: {
-        branchId,
-        OR: [{ sourceFile: { not: null } }, { sourceComponent: { not: null } }],
-      },
-      select: {
-        id: true,
-        sourceFile: true,
-        sourceLine: true,
-        sourceComponent: true,
-      },
-    });
+    const keys = await this.keyContextRepository.findKeysWithSourceInfo(branchId);
 
     // Clear existing source-based relationships for this branch
-    await this.prisma.keyRelationship.deleteMany({
-      where: {
-        fromKey: { branchId },
-        type: { in: ['SAME_FILE', 'SAME_COMPONENT', 'NEARBY'] },
-      },
-    });
+    await this.keyContextRepository.deleteSourceBasedRelationships(branchId);
 
     // Group keys by file (with line info)
     const fileGroups = new Map<
@@ -347,12 +306,7 @@ export class KeyContextService {
     }
 
     // Batch insert relationships (skip duplicates)
-    if (relationships.length > 0) {
-      await this.prisma.keyRelationship.createMany({
-        data: relationships,
-        skipDuplicates: true,
-      });
-    }
+    await this.keyContextRepository.createRelationships(relationships);
 
     const fileRels = relationships.filter((r) => r.type === 'SAME_FILE').length;
     const componentRels = relationships.filter((r) => r.type === 'SAME_COMPONENT').length;
@@ -387,18 +341,10 @@ export class KeyContextService {
    */
   async computeKeyPatternRelationships(branchId: string): Promise<{ relationships: number }> {
     // Get all keys in the branch
-    const keys = await this.prisma.translationKey.findMany({
-      where: { branchId },
-      select: { id: true, name: true },
-    });
+    const keys = await this.keyContextRepository.findBranchKeys(branchId);
 
     // Clear existing KEY_PATTERN relationships
-    await this.prisma.keyRelationship.deleteMany({
-      where: {
-        fromKey: { branchId },
-        type: 'KEY_PATTERN',
-      },
-    });
+    await this.keyContextRepository.deleteKeyPatternRelationships(branchId);
 
     // For performance, only process keys that have structured names (contain '.')
     const structuredKeys = keys.filter((k) => k.name.includes('.'));
@@ -433,10 +379,7 @@ export class KeyContextService {
     const batchSize = 5000;
     for (let i = 0; i < relationships.length; i += batchSize) {
       const batch = relationships.slice(i, i + batchSize);
-      await this.prisma.keyRelationship.createMany({
-        data: batch,
-        skipDuplicates: true,
-      });
+      await this.keyContextRepository.createRelationships(batch);
     }
 
     return { relationships: relationships.length };
@@ -451,43 +394,25 @@ export class KeyContextService {
     minSimilarity: number = 0.7
   ): Promise<{ relationships: number }> {
     // Clear existing semantic relationships
-    await this.prisma.keyRelationship.deleteMany({
-      where: {
-        fromKey: { branchId },
-        type: 'SEMANTIC',
-      },
-    });
+    await this.keyContextRepository.deleteSemanticRelationships(branchId);
 
     // Find similar translations using pg_trgm
-    const similar = await this.prisma.$queryRaw<
-      Array<{ fromKeyId: string; toKeyId: string; similarity: number }>
-    >`
-      SELECT DISTINCT ON (tk1.id, tk2.id)
-        tk1.id as "fromKeyId",
-        tk2.id as "toKeyId",
-        similarity(t1.value, t2.value) as similarity
-      FROM "TranslationKey" tk1
-      JOIN "Translation" t1 ON t1."keyId" = tk1.id AND t1.language = ${sourceLanguage}
-      JOIN "TranslationKey" tk2 ON tk2."branchId" = tk1."branchId" AND tk2.id > tk1.id
-      JOIN "Translation" t2 ON t2."keyId" = tk2.id AND t2.language = ${sourceLanguage}
-      WHERE tk1."branchId" = ${branchId}
-        AND LENGTH(t1.value) > 10
-        AND similarity(t1.value, t2.value) >= ${minSimilarity}
-      ORDER BY tk1.id, tk2.id, similarity DESC
-      LIMIT 1000
-    `;
+    const similar = await this.keyContextRepository.findSemanticMatches(
+      branchId,
+      sourceLanguage,
+      minSimilarity
+    );
 
     // Create relationships
     if (similar.length > 0) {
-      await this.prisma.keyRelationship.createMany({
-        data: similar.map((match) => ({
+      await this.keyContextRepository.createRelationships(
+        similar.map((match) => ({
           fromKeyId: match.fromKeyId,
           toKeyId: match.toKeyId,
           type: 'SEMANTIC' as RelationshipType,
           confidence: match.similarity,
-        })),
-        skipDuplicates: true,
-      });
+        }))
+      );
     }
 
     return { relationships: similar.length };
@@ -513,28 +438,11 @@ export class KeyContextService {
       'KEY_PATTERN',
     ];
 
-    // Build include based on options
-    const keyInclude = options.includeTranslations
-      ? { translations: { select: { language: true, value: true, status: true } } }
-      : {};
-
-    const relationships = await this.prisma.keyRelationship.findMany({
-      where: {
-        OR: [
-          { fromKeyId: keyId, type: { in: types } },
-          { toKeyId: keyId, type: { in: types } },
-        ],
-      },
-      include: {
-        fromKey: {
-          include: keyInclude,
-        },
-        toKey: {
-          include: keyInclude,
-        },
-      },
-      orderBy: { confidence: 'desc' },
-    });
+    const relationships = await this.keyContextRepository.findKeyRelationships(
+      keyId,
+      types,
+      options.includeTranslations ?? false
+    );
 
     const result: RelatedKeysResult = {
       sameFile: [],
@@ -777,31 +685,6 @@ export class KeyContextService {
     keyPattern: number;
     keysWithSource: number;
   }> {
-    const [sameFile, sameComponent, semantic, nearby, keyPattern, keysWithSource] =
-      await Promise.all([
-        this.prisma.keyRelationship.count({
-          where: { fromKey: { branchId }, type: 'SAME_FILE' },
-        }),
-        this.prisma.keyRelationship.count({
-          where: { fromKey: { branchId }, type: 'SAME_COMPONENT' },
-        }),
-        this.prisma.keyRelationship.count({
-          where: { fromKey: { branchId }, type: 'SEMANTIC' },
-        }),
-        this.prisma.keyRelationship.count({
-          where: { fromKey: { branchId }, type: 'NEARBY' },
-        }),
-        this.prisma.keyRelationship.count({
-          where: { fromKey: { branchId }, type: 'KEY_PATTERN' },
-        }),
-        this.prisma.translationKey.count({
-          where: {
-            branchId,
-            OR: [{ sourceFile: { not: null } }, { sourceComponent: { not: null } }],
-          },
-        }),
-      ]);
-
-    return { sameFile, sameComponent, semantic, nearby, keyPattern, keysWithSource };
+    return this.keyContextRepository.getRelationshipCounts(branchId);
   }
 }

@@ -1,8 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { BadRequestError } from '../../../plugins/error-handler.js';
 import type { AccessService } from '../../../services/access.service.js';
-import type { AIContextResult, KeyContextService } from '../../../services/key-context.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AIContextResult, KeyContextService } from '../../key-context/key-context.service.js';
 import type { MachineTranslationRepository } from '../repositories/machine-translation.repository.js';
 import type { TranslateWithContextQuery } from './translate-with-context.query.js';
 

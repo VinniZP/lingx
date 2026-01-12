@@ -165,16 +165,21 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request, reply) => {
-      // Get sessionId from JWT if available (HTTP-specific)
+      // Get sessionId and userId from JWT if available (HTTP-specific)
       let sessionId: string | undefined;
+      let userId: string | undefined;
       try {
         await request.jwtVerify();
         sessionId = request.user?.sessionId;
+        userId = request.user?.userId;
       } catch {
-        // JWT invalid or expired
+        // JWT invalid or expired - no session to delete
       }
 
-      await fastify.commandBus.execute(new LogoutUserCommand(sessionId));
+      // userId is required for audit trail, but if JWT is invalid we can't delete session anyway
+      if (userId) {
+        await fastify.commandBus.execute(new LogoutUserCommand(userId, sessionId));
+      }
 
       // Clear cookie regardless of session deletion result (HTTP-specific)
       reply.setCookie('token', '', {

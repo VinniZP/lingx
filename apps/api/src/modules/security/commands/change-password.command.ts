@@ -1,5 +1,5 @@
-import type { RequestMetadata } from '../../../services/security.service.js';
 import type { ICommand } from '../../../shared/cqrs/index.js';
+import type { RequestMetadata } from '../utils.js';
 
 export interface ChangePasswordResult {
   newSessionId: string;

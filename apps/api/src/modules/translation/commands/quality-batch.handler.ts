@@ -1,7 +1,7 @@
 import { calculateScore, runQualityChecks, type QualityIssue } from '@lingx/shared';
 import type { FastifyBaseLogger } from 'fastify';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { QualityEstimationService } from '../../quality-estimation/quality-estimation.service.js';
 import { QualityScoresUpdatedEvent } from '../events/quality-scores-updated.event.js';
 import type {
   QualityBatchTranslation,

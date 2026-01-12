@@ -20,10 +20,11 @@ import {
   type QualityScore,
   type QualityScoringConfig,
 } from '@lingx/shared';
-import { AIProvider as AIProviderEnum, PrismaClient } from '@prisma/client';
+import { AIProvider as AIProviderEnum } from '@prisma/client';
 import type { FastifyBaseLogger } from 'fastify';
-import { NotFoundError, ValidationError } from '../plugins/error-handler.js';
-import { KeyContextService } from './key-context.service.js';
+import { NotFoundError, ValidationError } from '../../plugins/error-handler.js';
+import { KeyContextService } from '../key-context/key-context.service.js';
+import type { QualityEstimationRepository } from './repositories/quality-estimation.repository.js';
 
 import {
   AIEvaluator,
@@ -61,7 +62,7 @@ export interface BatchEvaluationResult {
  */
 export class QualityEstimationService {
   constructor(
-    private prisma: PrismaClient,
+    private qualityEstimationRepository: QualityEstimationRepository,
     private scoreRepository: ScoreRepository,
     private aiEvaluator: AIEvaluator,
     private glossaryEvaluator: GlossaryEvaluator,
@@ -83,10 +84,8 @@ export class QualityEstimationService {
    * Returns empty object if no issues exist
    */
   async getKeyQualityIssues(keyId: string): Promise<Record<string, QualityIssue[]>> {
-    const translations = await this.prisma.translation.findMany({
-      where: { keyId },
-      include: { qualityScore: true },
-    });
+    const translations =
+      await this.qualityEstimationRepository.findTranslationsWithQualityScores(keyId);
 
     const issuesByLanguage: Record<string, QualityIssue[]> = {};
     for (const t of translations) {
@@ -115,23 +114,8 @@ export class QualityEstimationService {
    * 8. Save and return
    */
   async evaluate(translationId: string, options?: EvaluateOptions): Promise<QualityScore> {
-    const translation = await this.prisma.translation.findUnique({
-      where: { id: translationId },
-      include: {
-        key: {
-          include: {
-            branch: {
-              include: {
-                space: {
-                  include: { project: true },
-                },
-              },
-            },
-          },
-        },
-        qualityScore: true,
-      },
-    });
+    const translation =
+      await this.qualityEstimationRepository.findTranslationWithContext(translationId);
 
     if (!translation) {
       throw new NotFoundError('Translation');
@@ -143,12 +127,10 @@ export class QualityEstimationService {
     const project = translation.key.branch.space.project;
     const sourceLanguage = project.defaultLanguage;
 
-    const sourceTranslation = await this.prisma.translation.findFirst({
-      where: {
-        keyId: translation.keyId,
-        language: sourceLanguage,
-      },
-    });
+    const sourceTranslation = await this.qualityEstimationRepository.findSourceTranslation(
+      translation.keyId,
+      sourceLanguage
+    );
 
     const keyName = translation.key.name;
     const lang = translation.language;
@@ -323,9 +305,7 @@ export class QualityEstimationService {
    * Get or create quality scoring config for project
    */
   async getConfig(projectId: string): Promise<QualityScoringConfig> {
-    const config = await this.prisma.qualityScoringConfig.findUnique({
-      where: { projectId },
-    });
+    const config = await this.qualityEstimationRepository.findQualityConfig(projectId);
     return config || DEFAULT_QUALITY_CONFIG;
   }
 
@@ -333,14 +313,7 @@ export class QualityEstimationService {
    * Update quality scoring config
    */
   async updateConfig(projectId: string, input: Partial<QualityScoringConfig>): Promise<void> {
-    await this.prisma.qualityScoringConfig.upsert({
-      where: { projectId },
-      update: input,
-      create: {
-        projectId,
-        ...input,
-      },
-    });
+    await this.qualityEstimationRepository.upsertQualityConfig(projectId, input);
   }
 
   /**
@@ -428,14 +401,10 @@ export class QualityEstimationService {
       this.logger.warn({ error, keyName }, 'Failed to fetch related keys for AI context');
     }
 
-    const aiConfig = await this.prisma.aITranslationConfig.findUnique({
-      where: {
-        projectId_provider: {
-          projectId,
-          provider: config.aiEvaluationProvider as AIProviderEnum,
-        },
-      },
-    });
+    const aiConfig = await this.qualityEstimationRepository.findAITranslationConfig(
+      projectId,
+      config.aiEvaluationProvider as AIProviderEnum
+    );
 
     if (!aiConfig?.isActive) {
       this.logger.debug({ keyName }, 'AI provider not active - using heuristics');
@@ -634,14 +603,10 @@ export class QualityEstimationService {
       this.logger.warn({ error, keyName }, 'Failed to fetch related keys for AI context');
     }
 
-    const aiConfig = await this.prisma.aITranslationConfig.findUnique({
-      where: {
-        projectId_provider: {
-          projectId,
-          provider: config.aiEvaluationProvider as AIProviderEnum,
-        },
-      },
-    });
+    const aiConfig = await this.qualityEstimationRepository.findAITranslationConfig(
+      projectId,
+      config.aiEvaluationProvider as AIProviderEnum
+    );
 
     if (!aiConfig?.isActive) {
       this.logger.debug({ keyName, targetLocale }, 'AI provider not active - using heuristic');

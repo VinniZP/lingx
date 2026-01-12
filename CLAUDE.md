@@ -51,6 +51,12 @@ modules/[domain]/
 └── repository.ts       # Data access
 ```
 
+**CQRS Rules:**
+
+- **Handlers NEVER call Prisma directly** - always use repositories for data access
+- Repositories encapsulate all database queries for their domain
+- Handlers orchestrate business logic using repositories, services, and event bus
+
 ### Target Frontend Architecture (Progressive FSD)
 
 - **Layer Hierarchy**: app → widgets → features → entities → shared

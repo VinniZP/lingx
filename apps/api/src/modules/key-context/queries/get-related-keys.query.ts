@@ -1,6 +1,6 @@
 import type { RelationshipType } from '@prisma/client';
-import type { RelatedKeysResult } from '../../../services/key-context.service.js';
 import type { IQuery } from '../../../shared/cqrs/index.js';
+import type { RelatedKeysResult } from '../key-context.service.js';
 
 /**
  * Result includes the key info and its relationships.

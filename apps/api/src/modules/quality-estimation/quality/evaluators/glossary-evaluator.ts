@@ -5,8 +5,8 @@
  * Checks if source glossary terms are correctly translated.
  */
 
-import type { PrismaClient } from '@prisma/client';
 import type { QualityIssue } from '@lingx/shared';
+import type { QualityGlossaryRepository } from '../../repositories/glossary.repository.js';
 
 // ============================================
 // Configuration
@@ -62,7 +62,7 @@ export interface GlossaryTerm {
  * 2. Whether corresponding target terms appear in the translation
  *
  * @example
- * const evaluator = new GlossaryEvaluator(prisma);
+ * const evaluator = new GlossaryEvaluator(repository);
  * const result = await evaluator.evaluate(
  *   'project-123',
  *   'Save the document',
@@ -72,7 +72,7 @@ export interface GlossaryTerm {
  * // { passed: true, score: 100 }
  */
 export class GlossaryEvaluator {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private qualityGlossaryRepository: QualityGlossaryRepository) {}
 
   /**
    * Evaluate translation against project glossary.
@@ -89,15 +89,11 @@ export class GlossaryEvaluator {
     target: string,
     targetLocale: string
   ): Promise<GlossaryResult | null> {
-    // Get glossary terms for this project
-    const glossaryTerms = await this.prisma.glossaryEntry.findMany({
-      where: { projectId },
-      include: {
-        translations: {
-          where: { targetLanguage: targetLocale },
-        },
-      },
-    });
+    // Get glossary terms for this project via repository
+    const glossaryTerms = await this.qualityGlossaryRepository.findTermsWithTranslations(
+      projectId,
+      targetLocale
+    );
 
     return this.evaluateWithTerms(glossaryTerms, source, target);
   }

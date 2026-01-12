@@ -1,6 +1,12 @@
 import type { AuthService } from '../../../services/auth.service.js';
-import type { SecurityService } from '../../../services/security.service.js';
-import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type {
+  ICommandBus,
+  ICommandHandler,
+  IEventBus,
+  InferCommandResult,
+} from '../../../shared/cqrs/index.js';
+import { CreateSessionCommand } from '../../security/commands/create-session.command.js';
+import { extractRequestMetadata } from '../../security/utils.js';
 import { UserLoggedInEvent } from '../events/user-logged-in.event.js';
 import type { LoginUserCommand, TwoFactorRequiredResult } from './login-user.command.js';
 
@@ -13,7 +19,7 @@ import type { LoginUserCommand, TwoFactorRequiredResult } from './login-user.com
 export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
   constructor(
     private readonly authService: AuthService,
-    private readonly securityService: SecurityService,
+    private readonly commandBus: ICommandBus,
     private readonly eventBus: IEventBus
   ) {}
 
@@ -34,7 +40,10 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
     }
 
     // No 2FA or device is trusted - create session
-    const session = await this.securityService.createSession(user.id, command.request);
+    const { userAgent, ipAddress } = extractRequestMetadata(command.request);
+    const session = await this.commandBus.execute(
+      new CreateSessionCommand(user.id, userAgent, ipAddress)
+    );
 
     // Publish event for side effects (audit log, notifications, etc.)
     await this.eventBus.publish(new UserLoggedInEvent(user.id, session.id));

@@ -4,14 +4,14 @@
  * Tests AI model creation and provider utilities.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   createLanguageModel,
   isSupportedProvider,
-  supportsCaching,
   requiresExplicitCacheControl,
+  supportsCaching,
   type AIProvider,
-} from '../../../src/services/quality/ai/model-factory.js';
+} from '../../../src/modules/quality-estimation/quality/ai/model-factory.js';
 
 // ============================================
 // createLanguageModel

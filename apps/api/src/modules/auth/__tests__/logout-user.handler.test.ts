@@ -2,38 +2,43 @@
  * LogoutUserHandler Unit Tests
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SecurityService } from '../../../services/security.service.js';
-import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { ICommandBus, IEventBus } from '../../../shared/cqrs/index.js';
+import { DeleteSessionCommand } from '../../security/commands/delete-session.command.js';
 import { LogoutUserCommand } from '../commands/logout-user.command.js';
 import { LogoutUserHandler } from '../commands/logout-user.handler.js';
 import { UserLoggedOutEvent } from '../events/user-logged-out.event.js';
 
 describe('LogoutUserHandler', () => {
-  let mockSecurityService: { deleteSession: ReturnType<typeof vi.fn> };
+  let mockCommandBus: { execute: ReturnType<typeof vi.fn> };
   let mockEventBus: { publish: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    mockSecurityService = { deleteSession: vi.fn() };
+    mockCommandBus = { execute: vi.fn() };
     mockEventBus = { publish: vi.fn() };
   });
 
   const createHandler = () =>
     new LogoutUserHandler(
-      mockSecurityService as unknown as SecurityService,
+      mockCommandBus as unknown as ICommandBus,
       mockEventBus as unknown as IEventBus
     );
 
   it('should delete session and publish UserLoggedOutEvent when sessionId provided', async () => {
     // Arrange
-    mockSecurityService.deleteSession.mockResolvedValue(undefined);
+    mockCommandBus.execute.mockResolvedValue(undefined);
 
     const handler = createHandler();
 
     // Act
-    await handler.execute(new LogoutUserCommand('session-123'));
+    await handler.execute(new LogoutUserCommand('user-456', 'session-123'));
 
     // Assert
-    expect(mockSecurityService.deleteSession).toHaveBeenCalledWith('session-123');
+    expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+    const executedCommand = mockCommandBus.execute.mock.calls[0][0] as DeleteSessionCommand;
+    expect(executedCommand).toBeInstanceOf(DeleteSessionCommand);
+    expect(executedCommand.sessionId).toBe('session-123');
+    expect(executedCommand.userId).toBe('user-456');
+
     expect(mockEventBus.publish).toHaveBeenCalledTimes(1);
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(UserLoggedOutEvent));
 
@@ -46,10 +51,10 @@ describe('LogoutUserHandler', () => {
     const handler = createHandler();
 
     // Act
-    await handler.execute(new LogoutUserCommand(undefined));
+    await handler.execute(new LogoutUserCommand('user-456', undefined));
 
     // Assert
-    expect(mockSecurityService.deleteSession).not.toHaveBeenCalled();
+    expect(mockCommandBus.execute).not.toHaveBeenCalled();
     expect(mockEventBus.publish).toHaveBeenCalledTimes(1);
 
     // Verify event data contains undefined sessionId
@@ -59,12 +64,12 @@ describe('LogoutUserHandler', () => {
 
   it('should propagate unexpected errors from deleteSession', async () => {
     // Arrange - unexpected database error (not P2025)
-    mockSecurityService.deleteSession.mockRejectedValue(new Error('Database connection failed'));
+    mockCommandBus.execute.mockRejectedValue(new Error('Database connection failed'));
 
     const handler = createHandler();
 
     // Act & Assert - should propagate the error
-    await expect(handler.execute(new LogoutUserCommand('session-123'))).rejects.toThrow(
+    await expect(handler.execute(new LogoutUserCommand('user-456', 'session-123'))).rejects.toThrow(
       'Database connection failed'
     );
 

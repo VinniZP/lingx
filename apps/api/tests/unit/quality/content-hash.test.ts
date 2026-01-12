@@ -4,12 +4,12 @@
  * Tests deterministic hash generation for cache invalidation.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   generateContentHash,
-  isContentHashValid,
   HASH_CONFIG,
-} from '../../../src/services/quality/cache/content-hash.js';
+  isContentHashValid,
+} from '../../../src/modules/quality-estimation/quality/cache/content-hash.js';
 
 describe('generateContentHash', () => {
   it('should return a hex string', () => {

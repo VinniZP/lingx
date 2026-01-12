@@ -130,7 +130,7 @@ export class CircuitBreaker {
       this.state.openedAt = now;
       console.warn(
         `[CircuitBreaker] OPEN: ${this.state.failureCount} failures in window. ` +
-        `Blocking AI calls for ${this.config.openDurationMs / 1000}s`
+          `Blocking AI calls for ${this.config.openDurationMs / 1000}s`
       );
     }
   }

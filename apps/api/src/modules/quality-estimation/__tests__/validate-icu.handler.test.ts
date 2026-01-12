@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
+import type { QualityEstimationService } from '../quality-estimation.service.js';
 import { ValidateICUHandler } from '../queries/validate-icu.handler.js';
 import { ValidateICUQuery } from '../queries/validate-icu.query.js';
 
