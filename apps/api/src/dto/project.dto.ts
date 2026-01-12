@@ -8,10 +8,18 @@ import type {
   ProjectTreeResponse,
   ProjectWithStats,
 } from '@lingx/shared';
-import type {
-  ProjectWithLanguages,
-  ProjectWithLanguagesAndStats,
-} from '../services/project.service.js';
+import type { ProjectWithLanguages } from '../modules/project/index.js';
+
+/**
+ * Project with embedded statistics for list view.
+ */
+export type ProjectWithLanguagesAndStats = ProjectWithLanguages & {
+  stats: {
+    totalKeys: number;
+    translatedKeys: number;
+    completionRate: number;
+  };
+};
 
 /**
  * Transform language to ProjectLanguage

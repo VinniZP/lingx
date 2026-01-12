@@ -5,7 +5,7 @@
  * Supports DeepL and Google Translate with per-project configuration.
  */
 import { MTProvider as MTProviderEnum, PrismaClient } from '@prisma/client';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import { createDecipheriv, createHash } from 'crypto';
 import {
   KeyContextService,
   type AIContextResult,
@@ -74,104 +74,6 @@ export class MTService {
   // ============================================
   // CONFIGURATION MANAGEMENT
   // ============================================
-
-  /**
-   * Save or update MT provider configuration
-   */
-  async saveConfig(projectId: string, input: MTConfigInput): Promise<MTConfigResponse> {
-    // Encrypt the API key
-    const { encrypted, iv } = this.encryptApiKey(input.apiKey);
-
-    const config = await this.prisma.machineTranslationConfig.upsert({
-      where: {
-        projectId_provider: {
-          projectId,
-          provider: input.provider as MTProviderEnum,
-        },
-      },
-      update: {
-        apiKey: encrypted,
-        apiKeyIv: iv,
-        isActive: input.isActive ?? true,
-        priority: input.priority ?? 0,
-      },
-      create: {
-        projectId,
-        provider: input.provider as MTProviderEnum,
-        apiKey: encrypted,
-        apiKeyIv: iv,
-        isActive: input.isActive ?? true,
-        priority: input.priority ?? 0,
-      },
-    });
-
-    return this.formatConfigResponse(config, input.apiKey);
-  }
-
-  /**
-   * Get all MT configurations for a project (with masked keys)
-   */
-  async getConfigs(projectId: string): Promise<MTConfigResponse[]> {
-    const configs = await this.prisma.machineTranslationConfig.findMany({
-      where: { projectId },
-      orderBy: { priority: 'asc' },
-    });
-
-    return configs.map((config) => ({
-      id: config.id,
-      provider: config.provider as MTProviderType,
-      keyPrefix: this.getKeyPrefix(this.decryptApiKey(config.apiKey, config.apiKeyIv)),
-      isActive: config.isActive,
-      priority: config.priority,
-      createdAt: config.createdAt,
-      updatedAt: config.updatedAt,
-    }));
-  }
-
-  /**
-   * Delete MT provider configuration
-   */
-  async deleteConfig(projectId: string, provider: MTProviderType): Promise<void> {
-    const config = await this.prisma.machineTranslationConfig.findUnique({
-      where: {
-        projectId_provider: {
-          projectId,
-          provider: provider as MTProviderEnum,
-        },
-      },
-    });
-
-    if (!config) {
-      throw new NotFoundError(`MT configuration for ${provider} not found`);
-    }
-
-    await this.prisma.machineTranslationConfig.delete({
-      where: { id: config.id },
-    });
-  }
-
-  /**
-   * Test MT provider connection
-   */
-  async testConnection(
-    projectId: string,
-    provider: MTProviderType
-  ): Promise<{ success: boolean; error?: string }> {
-    try {
-      const mtProvider = await this.getInitializedProvider(projectId, provider);
-
-      // Try a simple translation
-      await mtProvider.translate('Hello', 'en', 'es');
-
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }
-
   // ============================================
   // TRANSLATION
   // ============================================
@@ -649,63 +551,9 @@ export class MTService {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
-
-  /**
-   * Format config response with masked key
-   */
-  private formatConfigResponse(
-    config: {
-      id: string;
-      provider: MTProviderEnum;
-      apiKey: string;
-      apiKeyIv: string;
-      isActive: boolean;
-      priority: number;
-      createdAt: Date;
-      updatedAt: Date;
-    },
-    originalKey: string
-  ): MTConfigResponse {
-    return {
-      id: config.id,
-      provider: config.provider as MTProviderType,
-      keyPrefix: this.getKeyPrefix(originalKey),
-      isActive: config.isActive,
-      priority: config.priority,
-      createdAt: config.createdAt,
-      updatedAt: config.updatedAt,
-    };
-  }
-
-  /**
-   * Get first 8 characters of API key for identification
-   */
-  private getKeyPrefix(apiKey: string): string {
-    return apiKey.substring(0, 8) + '...';
-  }
-
   // ============================================
   // ENCRYPTION (same pattern as TOTP service)
   // ============================================
-
-  /**
-   * Encrypt API key using AES-256-GCM
-   */
-  private encryptApiKey(apiKey: string): { encrypted: string; iv: string } {
-    const key = this.getEncryptionKey();
-    const iv = randomBytes(16);
-    const cipher = createCipheriv('aes-256-gcm', key, iv);
-
-    let encrypted = cipher.update(apiKey, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    const authTag = cipher.getAuthTag();
-
-    return {
-      encrypted: encrypted + authTag.toString('hex'),
-      iv: iv.toString('hex'),
-    };
-  }
-
   /**
    * Decrypt API key
    */

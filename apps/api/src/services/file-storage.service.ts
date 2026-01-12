@@ -142,11 +142,4 @@ export class FileStorageService {
     };
     return mimeToExt[mimeType] || 'jpg';
   }
-
-  /**
-   * Get the base upload directory
-   */
-  getUploadDir(): string {
-    return this.uploadDir;
-  }
 }
