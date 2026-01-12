@@ -8,8 +8,8 @@ import { MAX_BATCH_TRANSLATION_IDS } from '@lingx/shared';
 import { PrismaClient } from '@prisma/client';
 import type { Queue } from 'bullmq';
 import type { FastifyBaseLogger } from 'fastify';
+import { generateContentHash } from '../modules/quality-estimation/quality/index.js';
 import type { MTJobData } from '../workers/mt-batch.worker.js';
-import { generateContentHash } from './quality/index.js';
 
 export interface BatchEvaluationResult {
   jobId: string;

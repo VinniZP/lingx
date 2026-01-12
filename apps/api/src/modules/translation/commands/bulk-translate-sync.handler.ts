@@ -1,13 +1,13 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { TranslateQuery } from '../../../modules/ai-translation/index.js';
 import type { MTService } from '../../../services/mt.service.js';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type {
   ICommandHandler,
   IEventBus,
   IQueryBus,
   InferCommandResult,
 } from '../../../shared/cqrs/index.js';
+import type { QualityEstimationService } from '../../quality-estimation/quality-estimation.service.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type {

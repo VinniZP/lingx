@@ -11,7 +11,7 @@ import {
   computeSameFileConfidence,
   KeyContextService,
   type AIContextTranslation,
-} from '../../src/services/key-context.service';
+} from '../../src/modules/key-context/key-context.service';
 
 describe('KeyContextService', () => {
   describe('computeNearbyConfidence', () => {

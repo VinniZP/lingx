@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
 import type { AccessService } from '../../../services/access.service.js';
-import type { KeyContextService } from '../../../services/key-context.service.js';
+import type { KeyContextService } from '../key-context.service.js';
 import { GetContextStatsHandler } from '../queries/get-context-stats.handler.js';
 import { GetContextStatsQuery } from '../queries/get-context-stats.query.js';
 

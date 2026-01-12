@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError, NotFoundError } from '../../../plugins/error-handler.js';
 import type { AccessService } from '../../../services/access.service.js';
-import type { AIContextResult, KeyContextService } from '../../../services/key-context.service.js';
+import type { AIContextResult, KeyContextService } from '../key-context.service.js';
 import { GetAIContextHandler } from '../queries/get-ai-context.handler.js';
 import { GetAIContextQuery } from '../queries/get-ai-context.query.js';
 

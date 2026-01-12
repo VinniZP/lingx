@@ -4,12 +4,12 @@
  * Tests weighted score calculation.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   SCORE_WEIGHTS,
   calculateCombinedScore,
   type AIScores,
-} from '../../../../src/services/quality/scoring/combine-scores.js';
+} from '../../../../src/modules/quality-estimation/quality/scoring/combine-scores.js';
 
 describe('SCORE_WEIGHTS', () => {
   it('should have weights that sum to 1.0', () => {

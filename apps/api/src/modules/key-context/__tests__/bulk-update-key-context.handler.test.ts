@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
 import type { AccessService } from '../../../services/access.service.js';
-import type { KeyContextService } from '../../../services/key-context.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { BulkUpdateKeyContextCommand } from '../commands/bulk-update-key-context.command.js';
 import { BulkUpdateKeyContextHandler } from '../commands/bulk-update-key-context.handler.js';
 import { KeyContextUpdatedEvent } from '../events/key-context-updated.event.js';
+import type { KeyContextService } from '../key-context.service.js';
 
 describe('BulkUpdateKeyContextHandler', () => {
   const mockKeyContextService: { updateKeyContext: ReturnType<typeof vi.fn> } = {

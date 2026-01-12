@@ -2,11 +2,11 @@
  * AI Issue Mapping Unit Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   mapAIIssuesToQualityIssues,
   type AIIssue,
-} from '../../../../src/services/quality/scoring/map-ai-issues.js';
+} from '../../../../src/modules/quality-estimation/quality/scoring/map-ai-issues.js';
 
 describe('mapAIIssuesToQualityIssues', () => {
   describe('empty input', () => {
@@ -29,9 +29,7 @@ describe('mapAIIssuesToQualityIssues', () => {
     });
 
     it('should map major to warning', () => {
-      const aiIssues: AIIssue[] = [
-        { type: 'fluency', severity: 'major', message: 'Major issue' },
-      ];
+      const aiIssues: AIIssue[] = [{ type: 'fluency', severity: 'major', message: 'Major issue' }];
 
       const result = mapAIIssuesToQualityIssues(aiIssues);
 
@@ -51,9 +49,7 @@ describe('mapAIIssuesToQualityIssues', () => {
 
   describe('type prefixing', () => {
     it('should prefix type with ai_', () => {
-      const aiIssues: AIIssue[] = [
-        { type: 'accuracy', severity: 'major', message: 'Test' },
-      ];
+      const aiIssues: AIIssue[] = [{ type: 'accuracy', severity: 'major', message: 'Test' }];
 
       const result = mapAIIssuesToQualityIssues(aiIssues);
 
@@ -74,9 +70,7 @@ describe('mapAIIssuesToQualityIssues', () => {
   describe('message preservation', () => {
     it('should preserve message as-is', () => {
       const message = 'The translation loses nuance from the original';
-      const aiIssues: AIIssue[] = [
-        { type: 'accuracy', severity: 'major', message },
-      ];
+      const aiIssues: AIIssue[] = [{ type: 'accuracy', severity: 'major', message }];
 
       const result = mapAIIssuesToQualityIssues(aiIssues);
 
@@ -84,9 +78,7 @@ describe('mapAIIssuesToQualityIssues', () => {
     });
 
     it('should preserve empty message', () => {
-      const aiIssues: AIIssue[] = [
-        { type: 'style', severity: 'minor', message: '' },
-      ];
+      const aiIssues: AIIssue[] = [{ type: 'style', severity: 'minor', message: '' }];
 
       const result = mapAIIssuesToQualityIssues(aiIssues);
 
@@ -95,9 +87,7 @@ describe('mapAIIssuesToQualityIssues', () => {
 
     it('should preserve special characters in message', () => {
       const message = 'Missing placeholder {name} → should be {nombre}';
-      const aiIssues: AIIssue[] = [
-        { type: 'accuracy', severity: 'critical', message },
-      ];
+      const aiIssues: AIIssue[] = [{ type: 'accuracy', severity: 'critical', message }];
 
       const result = mapAIIssuesToQualityIssues(aiIssues);
 

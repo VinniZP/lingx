@@ -4,16 +4,16 @@
  * Tests backoff calculations and retry logic.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   calculateBackoff,
+  DEFAULT_RETRY_CONFIG,
+  isTransientError,
   shouldRetry,
   sleep,
   withRetry,
-  isTransientError,
-  DEFAULT_RETRY_CONFIG,
   type RetryConfig,
-} from '../../../src/services/quality/ai/retry-strategy.js';
+} from '../../../src/modules/quality-estimation/quality/ai/retry-strategy.js';
 
 describe('calculateBackoff', () => {
   it('should return initial delay for first attempt', () => {
@@ -162,9 +162,7 @@ describe('withRetry', () => {
   });
 
   it('should retry on failure and succeed', async () => {
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValue('success');
+    const fn = vi.fn().mockRejectedValueOnce(new Error('fail')).mockResolvedValue('success');
 
     const promise = withRetry(fn);
     await vi.runAllTimersAsync();
@@ -210,7 +208,8 @@ describe('withRetry', () => {
       multiplier: 2,
     };
 
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error('fail 1'))
       .mockRejectedValueOnce(new Error('fail 2'))
       .mockResolvedValue('success');

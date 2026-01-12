@@ -2,11 +2,11 @@ import type { RelationshipType } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
 import type { AccessService } from '../../../services/access.service.js';
-import type { KeyContextService } from '../../../services/key-context.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { AnalyzeRelationshipsCommand } from '../commands/analyze-relationships.command.js';
 import { AnalyzeRelationshipsHandler } from '../commands/analyze-relationships.handler.js';
 import { RelationshipsAnalyzedEvent } from '../events/relationships-analyzed.event.js';
+import type { KeyContextService } from '../key-context.service.js';
 
 describe('AnalyzeRelationshipsHandler', () => {
   const mockKeyContextService: { computeSemanticRelationships: ReturnType<typeof vi.fn> } = {

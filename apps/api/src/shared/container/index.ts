@@ -18,6 +18,18 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
+import { KeyContextService } from '../../modules/key-context/key-context.service.js';
+import { KeyContextRepository } from '../../modules/key-context/repositories/key-context.repository.js';
+import { QualityEstimationService } from '../../modules/quality-estimation/quality-estimation.service.js';
+import {
+  AIEvaluator,
+  CircuitBreaker,
+  DEFAULT_CIRCUIT_BREAKER_CONFIG,
+  GlossaryEvaluator,
+  ScoreRepository,
+} from '../../modules/quality-estimation/quality/index.js';
+import { QualityGlossaryRepository } from '../../modules/quality-estimation/repositories/glossary.repository.js';
+import { QualityEstimationRepository } from '../../modules/quality-estimation/repositories/quality-estimation.repository.js';
 import { SessionCacheService } from '../../modules/security/session-cache.service.js';
 import { SessionRepository } from '../../modules/security/session.repository.js';
 import { UserRepository } from '../../modules/security/user.repository.js';
@@ -30,16 +42,7 @@ import { BatchEvaluationService } from '../../services/batch-evaluation.service.
 import { ChallengeStore } from '../../services/challenge-store.service.js';
 import { EmailService } from '../../services/email.service.js';
 import { FileStorageService } from '../../services/file-storage.service.js';
-import { KeyContextService } from '../../services/key-context.service.js';
 import { MTService } from '../../services/mt.service.js';
-import { QualityEstimationService } from '../../services/quality-estimation.service.js';
-import {
-  AIEvaluator,
-  CircuitBreaker,
-  DEFAULT_CIRCUIT_BREAKER_CONFIG,
-  GlossaryEvaluator,
-  ScoreRepository,
-} from '../../services/quality/index.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
 /**
@@ -71,9 +74,14 @@ export interface Cradle {
   userRepository: UserRepository;
 
   // Quality estimation dependencies
+  qualityEstimationRepository: QualityEstimationRepository;
   scoreRepository: ScoreRepository;
+  qualityGlossaryRepository: QualityGlossaryRepository;
   aiEvaluator: AIEvaluator;
   glossaryEvaluator: GlossaryEvaluator;
+
+  // Key context dependencies
+  keyContextRepository: KeyContextRepository;
 
   // Queues
   mtBatchQueue: typeof mtBatchQueue;
@@ -129,11 +137,16 @@ export function createAppContainer(
     userRepository: asClass(UserRepository).singleton(),
 
     // Quality estimation dependencies
+    qualityEstimationRepository: asClass(QualityEstimationRepository).singleton(),
     scoreRepository: asClass(ScoreRepository).singleton(),
+    qualityGlossaryRepository: asClass(QualityGlossaryRepository).singleton(),
     aiEvaluator: asFunction(
       () => new AIEvaluator(new CircuitBreaker(DEFAULT_CIRCUIT_BREAKER_CONFIG))
     ).singleton(),
     glossaryEvaluator: asClass(GlossaryEvaluator).singleton(),
+
+    // Key context dependencies
+    keyContextRepository: asClass(KeyContextRepository).singleton(),
 
     // Quality estimation service
     qualityEstimationService: asClass(QualityEstimationService).singleton(),

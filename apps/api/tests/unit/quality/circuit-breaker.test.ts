@@ -4,12 +4,11 @@
  * Tests the state machine transitions and timing behavior.
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CircuitBreaker,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
-  type CircuitBreakerConfig,
-} from '../../../src/services/quality/ai/circuit-breaker.js';
+} from '../../../src/modules/quality-estimation/quality/ai/circuit-breaker.js';
 
 describe('CircuitBreaker', () => {
   let breaker: CircuitBreaker;

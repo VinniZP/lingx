@@ -4,9 +4,12 @@
  * Tests pure functions for AES-256-GCM decryption.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createCipheriv, randomBytes } from 'crypto';
-import { getEncryptionKey, decryptApiKey } from '../../../../src/services/quality/crypto/api-key-decryptor.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  decryptApiKey,
+  getEncryptionKey,
+} from '../../../../src/modules/quality-estimation/quality/crypto/api-key-decryptor.js';
 
 /**
  * Helper to encrypt a value for testing decryption
@@ -118,13 +121,15 @@ describe('decryptApiKey', () => {
     });
 
     it('should throw for IV too long', () => {
-      expect(() => decryptApiKey('a'.repeat(64), 'a'.repeat(64), testKey)).toThrow('Invalid IV format');
+      expect(() => decryptApiKey('a'.repeat(64), 'a'.repeat(64), testKey)).toThrow(
+        'Invalid IV format'
+      );
     });
 
     it('should throw for non-hex IV', () => {
-      expect(() => decryptApiKey('a'.repeat(64), 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz', testKey)).toThrow(
-        'Invalid IV format'
-      );
+      expect(() =>
+        decryptApiKey('a'.repeat(64), 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz', testKey)
+      ).toThrow('Invalid IV format');
     });
 
     it('should accept uppercase hex IV', () => {

@@ -4,20 +4,19 @@
  * Tests JSON extraction, MQM validation, Zod parsing, and error formatting.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import {
+  createMultiLanguageSchema,
   extractJsonFromText,
-  parseMQMResponse,
-  validateMQMResponse,
-  parseWithZodSchema,
   formatParseError,
   isJsonSyntaxError,
   isZodError,
   languageEvaluationSchema,
-  createMultiLanguageSchema,
-  type MQMResult,
-} from '../../../src/services/quality/ai/response-parser.js';
+  parseMQMResponse,
+  parseWithZodSchema,
+  validateMQMResponse,
+} from '../../../src/modules/quality-estimation/quality/ai/response-parser.js';
 
 // ============================================
 // extractJsonFromText
@@ -144,9 +143,9 @@ describe('validateMQMResponse', () => {
   });
 
   it('should throw for invalid accuracy', () => {
-    expect(() => validateMQMResponse({ accuracy: 'not a number', fluency: 90, terminology: 85 })).toThrow(
-      'Invalid accuracy score'
-    );
+    expect(() =>
+      validateMQMResponse({ accuracy: 'not a number', fluency: 90, terminology: 85 })
+    ).toThrow('Invalid accuracy score');
     expect(() => validateMQMResponse({ accuracy: -1, fluency: 90, terminology: 85 })).toThrow(
       'Invalid accuracy score'
     );
@@ -156,9 +155,9 @@ describe('validateMQMResponse', () => {
   });
 
   it('should throw for invalid fluency', () => {
-    expect(() => validateMQMResponse({ accuracy: 90, fluency: 'not a number', terminology: 85 })).toThrow(
-      'Invalid fluency score'
-    );
+    expect(() =>
+      validateMQMResponse({ accuracy: 90, fluency: 'not a number', terminology: 85 })
+    ).toThrow('Invalid fluency score');
     expect(() => validateMQMResponse({ accuracy: 90, fluency: -5, terminology: 85 })).toThrow(
       'Invalid fluency score'
     );

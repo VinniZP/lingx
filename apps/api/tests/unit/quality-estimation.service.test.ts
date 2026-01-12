@@ -4,30 +4,25 @@
  * Tests the main quality estimation service with mocked dependencies.
  */
 
-import type { PrismaClient } from '@prisma/client';
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { KeyContextService } from '../../src/services/key-context.service.js';
-import { QualityEstimationService } from '../../src/services/quality-estimation.service.js';
-import type { AIEvaluator } from '../../src/services/quality/evaluators/ai-evaluator.js';
-import type { GlossaryEvaluator } from '../../src/services/quality/evaluators/glossary-evaluator.js';
-import type { ScoreRepository } from '../../src/services/quality/persistence/score-repository.js';
+import type { KeyContextService } from '../../src/modules/key-context/key-context.service.js';
+import { QualityEstimationService } from '../../src/modules/quality-estimation/quality-estimation.service.js';
+import type { AIEvaluator } from '../../src/modules/quality-estimation/quality/evaluators/ai-evaluator.js';
+import type { GlossaryEvaluator } from '../../src/modules/quality-estimation/quality/evaluators/glossary-evaluator.js';
+import type { ScoreRepository } from '../../src/modules/quality-estimation/quality/persistence/score-repository.js';
+import type { QualityEstimationRepository } from '../../src/modules/quality-estimation/repositories/quality-estimation.repository.js';
 
 // Mock factories
-function createMockPrisma(): PrismaClient {
+function createMockQualityEstimationRepository(): QualityEstimationRepository {
   return {
-    translation: {
-      findUnique: vi.fn(),
-      findFirst: vi.fn(),
-    },
-    qualityScoringConfig: {
-      findUnique: vi.fn(),
-      upsert: vi.fn(),
-    },
-    aITranslationConfig: {
-      findUnique: vi.fn(),
-    },
-  } as unknown as PrismaClient;
+    findTranslationWithContext: vi.fn(),
+    findSourceTranslation: vi.fn(),
+    findTranslationsWithQualityScores: vi.fn(),
+    findQualityConfig: vi.fn(),
+    upsertQualityConfig: vi.fn(),
+    findAITranslationConfig: vi.fn(),
+  } as unknown as QualityEstimationRepository;
 }
 
 function createMockScoreRepository(): ScoreRepository {
@@ -76,7 +71,7 @@ function createMockLogger(): FastifyBaseLogger {
 
 describe('QualityEstimationService', () => {
   let service: QualityEstimationService;
-  let mockPrisma: PrismaClient;
+  let mockRepository: QualityEstimationRepository;
   let mockScoreRepository: ScoreRepository;
   let mockAIEvaluator: AIEvaluator;
   let mockGlossaryEvaluator: GlossaryEvaluator;
@@ -84,7 +79,7 @@ describe('QualityEstimationService', () => {
   let mockLogger: FastifyBaseLogger;
 
   beforeEach(() => {
-    mockPrisma = createMockPrisma();
+    mockRepository = createMockQualityEstimationRepository();
     mockScoreRepository = createMockScoreRepository();
     mockAIEvaluator = createMockAIEvaluator();
     mockGlossaryEvaluator = createMockGlossaryEvaluator();
@@ -92,7 +87,7 @@ describe('QualityEstimationService', () => {
     mockLogger = createMockLogger();
 
     service = new QualityEstimationService(
-      mockPrisma,
+      mockRepository,
       mockScoreRepository,
       mockAIEvaluator,
       mockGlossaryEvaluator,
@@ -122,13 +117,13 @@ describe('QualityEstimationService', () => {
     };
 
     it('should throw when translation not found', async () => {
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue(null);
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue(null);
 
       await expect(service.evaluate('non-existent')).rejects.toThrow('Translation');
     });
 
     it('should throw when translation value is empty', async () => {
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue({
         ...translationWithContext,
         value: null,
       });
@@ -162,8 +157,8 @@ describe('QualityEstimationService', () => {
         evaluationType: 'heuristic',
       };
 
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue(translationWithContext);
-      (mockPrisma.translation.findFirst as Mock).mockResolvedValue(null);
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue(translationWithContext);
+      (mockRepository.findSourceTranslation as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock).mockResolvedValue(formatOnlyScore);
 
       const result = await service.evaluate('trans-1');
@@ -184,12 +179,12 @@ describe('QualityEstimationService', () => {
         passed: true,
       };
 
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue(translationWithContext);
-      (mockPrisma.translation.findFirst as Mock).mockResolvedValue({
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue(translationWithContext);
+      (mockRepository.findSourceTranslation as Mock).mockResolvedValue({
         value: 'Hello World',
       });
       (mockGlossaryEvaluator.evaluate as Mock).mockResolvedValue(null);
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(null);
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock).mockResolvedValue(heuristicScore);
 
       const result = await service.evaluate('trans-1');
@@ -200,8 +195,8 @@ describe('QualityEstimationService', () => {
     });
 
     it('should reduce score when glossary issues found', async () => {
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue(translationWithContext);
-      (mockPrisma.translation.findFirst as Mock).mockResolvedValue({
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue(translationWithContext);
+      (mockRepository.findSourceTranslation as Mock).mockResolvedValue({
         value: 'Hello World',
       });
       (mockGlossaryEvaluator.evaluate as Mock).mockResolvedValue({
@@ -209,7 +204,7 @@ describe('QualityEstimationService', () => {
         score: 80,
         issue: { type: 'glossary_missing', severity: 'warning', message: 'Missing term' },
       });
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(null);
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock).mockResolvedValue({
         score: 85,
         issues: [{ type: 'glossary_missing', severity: 'warning', message: 'Missing term' }],
@@ -228,17 +223,17 @@ describe('QualityEstimationService', () => {
         evaluationType: 'heuristic',
       };
 
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue(translationWithContext);
-      (mockPrisma.translation.findFirst as Mock).mockResolvedValue({
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue(translationWithContext);
+      (mockRepository.findSourceTranslation as Mock).mockResolvedValue({
         value: 'Hello World',
       });
       (mockGlossaryEvaluator.evaluate as Mock).mockResolvedValue(null);
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue({
         aiEvaluationEnabled: true,
         aiEvaluationProvider: 'ANTHROPIC',
         aiEvaluationModel: 'claude-3-5-sonnet',
       });
-      (mockPrisma.aITranslationConfig.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findAITranslationConfig as Mock).mockResolvedValue({
         isActive: true,
         apiKey: 'encrypted',
         apiKeyIv: 'invalid-iv', // Invalid IV will cause decryption to fail
@@ -257,20 +252,20 @@ describe('QualityEstimationService', () => {
         evaluationType: 'heuristic',
       };
 
-      (mockPrisma.translation.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findTranslationWithContext as Mock).mockResolvedValue({
         ...translationWithContext,
         value: 'Missing {placeholder}', // Will trigger AI escalation
       });
-      (mockPrisma.translation.findFirst as Mock).mockResolvedValue({
+      (mockRepository.findSourceTranslation as Mock).mockResolvedValue({
         value: 'Hello {name}',
       });
       (mockGlossaryEvaluator.evaluate as Mock).mockResolvedValue(null);
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue({
         aiEvaluationEnabled: true,
         aiEvaluationProvider: 'ANTHROPIC',
         aiEvaluationModel: 'claude-3-5-sonnet',
       });
-      (mockPrisma.aITranslationConfig.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findAITranslationConfig as Mock).mockResolvedValue({
         isActive: false, // Not active
       });
       (mockScoreRepository.save as Mock).mockResolvedValue(heuristicScore);
@@ -294,7 +289,7 @@ describe('QualityEstimationService', () => {
       const successScore = { score: 90, evaluationType: 'heuristic' };
 
       // First call fails, second succeeds
-      (mockPrisma.translation.findUnique as Mock)
+      (mockRepository.findTranslationWithContext as Mock)
         .mockResolvedValueOnce(null) // First fails
         .mockResolvedValueOnce({
           id: 'trans-2',
@@ -307,9 +302,9 @@ describe('QualityEstimationService', () => {
           },
           qualityScore: null,
         });
-      (mockPrisma.translation.findFirst as Mock).mockResolvedValue({ value: 'Test' });
+      (mockRepository.findSourceTranslation as Mock).mockResolvedValue({ value: 'Test' });
       (mockGlossaryEvaluator.evaluate as Mock).mockResolvedValue(null);
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(null);
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock).mockResolvedValue(successScore);
 
       const result = await service.evaluateBatch(['trans-1', 'trans-2']);
@@ -352,7 +347,7 @@ describe('QualityEstimationService', () => {
         flagThreshold: 50,
       };
 
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(storedConfig);
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue(storedConfig);
 
       const result = await service.getConfig('proj-1');
 
@@ -360,7 +355,7 @@ describe('QualityEstimationService', () => {
     });
 
     it('should return default config when none exists', async () => {
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(null);
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue(null);
 
       const result = await service.getConfig('proj-1');
 
@@ -375,16 +370,11 @@ describe('QualityEstimationService', () => {
   });
 
   describe('updateConfig', () => {
-    it('should upsert config via prisma', async () => {
+    it('should upsert config via repository', async () => {
       await service.updateConfig('proj-1', { autoApproveThreshold: 90 });
 
-      expect(mockPrisma.qualityScoringConfig.upsert).toHaveBeenCalledWith({
-        where: { projectId: 'proj-1' },
-        update: { autoApproveThreshold: 90 },
-        create: {
-          projectId: 'proj-1',
-          autoApproveThreshold: 90,
-        },
+      expect(mockRepository.upsertQualityConfig).toHaveBeenCalledWith('proj-1', {
+        autoApproveThreshold: 90,
       });
     });
   });
@@ -424,7 +414,7 @@ describe('QualityEstimationService', () => {
         ['fr', { score: 85, issues: [] }],
       ]);
 
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue(null);
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue(null);
       (mockScoreRepository.save as Mock)
         .mockResolvedValueOnce({ score: 90, evaluationType: 'heuristic' })
         .mockResolvedValueOnce({ score: 85, evaluationType: 'heuristic' });
@@ -447,12 +437,12 @@ describe('QualityEstimationService', () => {
       const translations = [{ id: 'trans-de', language: 'de', value: 'Hallo' }];
       const heuristicResults = new Map([['de', { score: 90, issues: [] }]]);
 
-      (mockPrisma.qualityScoringConfig.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findQualityConfig as Mock).mockResolvedValue({
         aiEvaluationEnabled: true,
         aiEvaluationProvider: 'ANTHROPIC',
         aiEvaluationModel: 'claude-3-5-sonnet',
       });
-      (mockPrisma.aITranslationConfig.findUnique as Mock).mockResolvedValue({
+      (mockRepository.findAITranslationConfig as Mock).mockResolvedValue({
         isActive: false,
       });
       (mockScoreRepository.save as Mock).mockResolvedValue({

@@ -1,5 +1,5 @@
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { QualityEstimationService } from '../quality-estimation.service.js';
 import type { ValidateICUQuery } from './validate-icu.query.js';
 
 /**

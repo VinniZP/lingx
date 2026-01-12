@@ -1,6 +1,6 @@
 import type { AccessService } from '../../../services/access.service.js';
-import type { KeyContextService } from '../../../services/key-context.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { KeyContextService } from '../key-context.service.js';
 import type { GetAIContextQuery } from './get-ai-context.query.js';
 
 /**

@@ -5,18 +5,18 @@
  * retry logic, circuit breaker integration, and multi-language batching.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { CircuitBreaker } from '../../../src/services/quality/ai/circuit-breaker.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { CircuitBreaker } from '../../../src/modules/quality-estimation/quality/ai/circuit-breaker.js';
 import {
   AIEvaluator,
   type AIModelConfig,
-} from '../../../src/services/quality/evaluators/ai-evaluator.js';
+} from '../../../src/modules/quality-estimation/quality/evaluators/ai-evaluator.js';
 import {
   MOCK_MQM_RESPONSE,
   MOCK_MQM_RESPONSE_WITH_ISSUES,
+  createCacheHitMetrics,
   createMockMultiLanguageResponse,
   wrapInMarkdown,
-  createCacheHitMetrics,
 } from '../../mocks/ai-providers.js';
 
 // Mock the 'ai' module
@@ -136,15 +136,10 @@ describe('AIEvaluator', () => {
         },
       });
 
-      const result = await evaluator.evaluateSingle(
-        'key',
-        'source',
-        'target',
-        'en',
-        'de',
-        [],
-        { ...mockConfig, isAnthropic: true }
-      );
+      const result = await evaluator.evaluateSingle('key', 'source', 'target', 'en', 'de', [], {
+        ...mockConfig,
+        isAnthropic: true,
+      });
 
       expect(result.cacheMetrics.cacheRead).toBe(500);
       expect(result.cacheMetrics.cacheCreation).toBe(0);
@@ -214,9 +209,7 @@ describe('AIEvaluator', () => {
 
       // Verify the prompt includes related keys
       const callArgs = mockGenerateText.mock.calls[0][0];
-      const userMessage = callArgs.messages.find(
-        (m: { role: string }) => m.role === 'user'
-      );
+      const userMessage = callArgs.messages.find((m: { role: string }) => m.role === 'user');
       expect(userMessage.content).toContain('greeting.bye');
       expect(userMessage.content).toContain('Goodbye');
       expect(userMessage.content).toContain('Adios');
@@ -417,9 +410,7 @@ describe('AIEvaluator', () => {
       );
 
       const callArgs = mockGenerateText.mock.calls[0][0];
-      const userMessage = callArgs.messages.find(
-        (m: { role: string }) => m.role === 'user'
-      );
+      const userMessage = callArgs.messages.find((m: { role: string }) => m.role === 'user');
       expect(userMessage.content).toContain('greeting.bye');
       expect(userMessage.content).toContain('Tschüss');
       expect(userMessage.content).toContain('Au revoir');
@@ -466,20 +457,13 @@ describe('AIEvaluator', () => {
         providerMetadata: undefined,
       });
 
-      await evaluator.evaluateSingle(
-        'key',
-        'source',
-        'target',
-        'en',
-        'de',
-        [],
-        { ...mockConfig, isAnthropic: true }
-      );
+      await evaluator.evaluateSingle('key', 'source', 'target', 'en', 'de', [], {
+        ...mockConfig,
+        isAnthropic: true,
+      });
 
       const callArgs = mockGenerateText.mock.calls[0][0];
-      const systemMessage = callArgs.messages.find(
-        (m: { role: string }) => m.role === 'system'
-      );
+      const systemMessage = callArgs.messages.find((m: { role: string }) => m.role === 'system');
       expect(systemMessage.providerOptions).toEqual({
         anthropic: { cacheControl: { type: 'ephemeral' } },
       });
@@ -492,20 +476,13 @@ describe('AIEvaluator', () => {
         providerMetadata: undefined,
       });
 
-      await evaluator.evaluateSingle(
-        'key',
-        'source',
-        'target',
-        'en',
-        'de',
-        [],
-        { ...mockConfig, isAnthropic: false }
-      );
+      await evaluator.evaluateSingle('key', 'source', 'target', 'en', 'de', [], {
+        ...mockConfig,
+        isAnthropic: false,
+      });
 
       const callArgs = mockGenerateText.mock.calls[0][0];
-      const systemMessage = callArgs.messages.find(
-        (m: { role: string }) => m.role === 'system'
-      );
+      const systemMessage = callArgs.messages.find((m: { role: string }) => m.role === 'system');
       expect(systemMessage.providerOptions).toBeUndefined();
     });
   });

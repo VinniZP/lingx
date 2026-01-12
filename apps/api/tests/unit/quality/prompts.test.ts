@@ -11,7 +11,7 @@ import {
   buildMQMUserPrompt,
   buildMultiLanguagePrompt,
   escapeXml,
-} from '../../../src/services/quality/ai/prompts.js';
+} from '../../../src/modules/quality-estimation/quality/ai/prompts.js';
 
 // ============================================
 // System Prompt Constants

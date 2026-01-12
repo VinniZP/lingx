@@ -4,9 +4,9 @@
  * Tests quality score persistence with real database operations.
  */
 
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
-import { ScoreRepository } from '../../../src/services/quality/persistence/score-repository.js';
-import { getTestPrismaClient, disconnectTestPrisma } from '../../helpers/prisma.js';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { ScoreRepository } from '../../../src/modules/quality-estimation/quality/persistence/score-repository.js';
+import { disconnectTestPrisma, getTestPrismaClient } from '../../helpers/prisma.js';
 
 // Use the test database (set up by vitest globalSetup)
 const prisma = getTestPrismaClient();
@@ -313,7 +313,9 @@ describe('ScoreRepository', () => {
 
       await repo.save(translation3.id, {
         score: 50,
-        issues: [{ type: 'accuracy' as const, severity: 'error' as const, message: 'Poor quality' }],
+        issues: [
+          { type: 'accuracy' as const, severity: 'error' as const, message: 'Poor quality' },
+        ],
         evaluationType: 'heuristic',
       });
 

@@ -1,8 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MTService } from '../../../services/mt.service.js';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type { IEventBus, IQueryBus, ProgressReporter } from '../../../shared/cqrs/index.js';
+import type { QualityEstimationService } from '../../quality-estimation/quality-estimation.service.js';
 import { BulkTranslateSyncCommand } from '../commands/bulk-translate-sync.command.js';
 import { BulkTranslateSyncHandler } from '../commands/bulk-translate-sync.handler.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';

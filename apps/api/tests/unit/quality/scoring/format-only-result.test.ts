@@ -2,13 +2,13 @@
  * Format-Only Result Unit Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  ICU_VALID_SCORE,
   ICU_INVALID_SCORE,
+  ICU_VALID_SCORE,
   buildFormatOnlyResult,
   type ICUCheckResult,
-} from '../../../../src/services/quality/scoring/format-only-result.js';
+} from '../../../../src/modules/quality-estimation/quality/scoring/format-only-result.js';
 
 describe('constants', () => {
   it('should have ICU_VALID_SCORE as 100', () => {

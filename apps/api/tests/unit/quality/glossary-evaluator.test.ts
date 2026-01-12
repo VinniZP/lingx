@@ -4,13 +4,13 @@
  * Tests glossary term validation logic.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  GlossaryEvaluator,
-  GLOSSARY_MISSING_TERM_PENALTY,
   GLOSSARY_MAX_PENALTY,
+  GLOSSARY_MISSING_TERM_PENALTY,
+  GlossaryEvaluator,
   type GlossaryTerm,
-} from '../../../src/services/quality/evaluators/glossary-evaluator.js';
+} from '../../../src/modules/quality-estimation/quality/evaluators/glossary-evaluator.js';
 
 // Create a mock evaluator for testing (no prisma needed for evaluateWithTerms)
 const evaluator = new GlossaryEvaluator(null as never);
@@ -166,9 +166,7 @@ describe('GlossaryEvaluator.evaluateWithTerms', () => {
     });
 
     it('should treat terms without translations as passed', () => {
-      const terms: GlossaryTerm[] = [
-        { sourceTerm: 'special_term', translations: [] },
-      ];
+      const terms: GlossaryTerm[] = [{ sourceTerm: 'special_term', translations: [] }];
       // Term appears in source but has no translation to check against
       const result = evaluator.evaluateWithTerms(terms, 'Use special_term here', 'Translation');
 
@@ -217,7 +215,9 @@ describe('GlossaryEvaluator.calculatePenalty', () => {
 
   it('should return penalty capped at GLOSSARY_MAX_PENALTY', () => {
     // Score of 50 means 50 points lost, but cap is GLOSSARY_MAX_PENALTY (10)
-    expect(GlossaryEvaluator.calculatePenalty({ passed: false, score: 50 })).toBe(GLOSSARY_MAX_PENALTY);
+    expect(GlossaryEvaluator.calculatePenalty({ passed: false, score: 50 })).toBe(
+      GLOSSARY_MAX_PENALTY
+    );
   });
 
   it('should return actual penalty when below max', () => {
@@ -226,7 +226,9 @@ describe('GlossaryEvaluator.calculatePenalty', () => {
   });
 
   it('should handle score of 0', () => {
-    expect(GlossaryEvaluator.calculatePenalty({ passed: false, score: 0 })).toBe(GLOSSARY_MAX_PENALTY);
+    expect(GlossaryEvaluator.calculatePenalty({ passed: false, score: 0 })).toBe(
+      GLOSSARY_MAX_PENALTY
+    );
   });
 });
 

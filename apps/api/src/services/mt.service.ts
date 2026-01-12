@@ -6,8 +6,11 @@
  */
 import { MTProvider as MTProviderEnum, PrismaClient } from '@prisma/client';
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import {
+  KeyContextService,
+  type AIContextResult,
+} from '../modules/key-context/key-context.service.js';
 import { BadRequestError, NotFoundError } from '../plugins/error-handler.js';
-import { KeyContextService, type AIContextResult } from './key-context.service.js';
 import {
   createMTProvider,
   type MTProvider,
@@ -63,7 +66,10 @@ export interface TranslateWithContextResult extends TranslateResult {
 }
 
 export class MTService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private keyContextService?: KeyContextService
+  ) {}
 
   // ============================================
   // CONFIGURATION MANAGEMENT
@@ -272,15 +278,16 @@ export class MTService {
       throw new BadRequestError('Text to translate cannot be empty');
     }
 
-    // Get AI context for this key
-    const keyContextService = new KeyContextService(this.prisma);
+    // Get AI context for this key (requires KeyContextService to be provided)
     let aiContext: AIContextResult | null = null;
 
-    try {
-      aiContext = await keyContextService.getAIContext(branchId, keyId, targetLanguage);
-    } catch (error) {
-      // Context fetch failed - continue without context
-      console.warn('[MT] Failed to fetch AI context:', error);
+    if (this.keyContextService) {
+      try {
+        aiContext = await this.keyContextService.getAIContext(branchId, keyId, targetLanguage);
+      } catch (error) {
+        // Context fetch failed - continue without context
+        console.warn('[MT] Failed to fetch AI context:', error);
+      }
     }
 
     // Build context-enriched text if we have context

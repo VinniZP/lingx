@@ -1,6 +1,6 @@
 # CQRS-Lite Architecture Migration
 
-> **Updated**: 2026-01-09
+> **Updated**: 2026-01-12
 
 This document tracks the migration of API routes from the legacy service-based pattern to the CQRS-lite architecture.
 
@@ -28,7 +28,32 @@ This document tracks the migration of API routes from the legacy service-based p
 | 6   | 2026-01-09 | `totp.ts`, `webauthn.ts` | `modules/mfa/`         | `f93aefd`             |
 | 7   | 2026-01-09 | `health.ts`              | `modules/health/`      | [#40](../../pulls/40) |
 
-**Progress**: 7/21 routes migrated (33%)
+**Progress**: 9/21 routes migrated (43%) - includes 2 partial migrations
+
+---
+
+## Partial Migrations (Service Relocated, Route Pending)
+
+These services have been moved to their domain modules with repositories, but routes still call services directly. Next step: extract CQRS handlers and thin the route layer.
+
+| #   | Date       | Route                   | Module                        | Status | Remaining Work                       |
+| --- | ---------- | ----------------------- | ----------------------------- | ------ | ------------------------------------ |
+| 8   | 2026-01-12 | `key-context.ts`        | `modules/key-context/`        | 🚧     | Extract 5 handlers, thin route layer |
+| 9   | 2026-01-12 | `quality-estimation.ts` | `modules/quality-estimation/` | 🚧     | Extract 7 handlers, thin route layer |
+
+**What's done:**
+
+- Services relocated from `services/` to `modules/[domain]/`
+- New repositories created for data access
+- Handler tests added (mocking repositories)
+- DI container updated with new paths
+
+**What remains:**
+
+- Routes still call services directly (not via CommandBus/QueryBus)
+- Need to create command/query objects for each endpoint
+- Need to dispatch through CQRS buses
+- Need to make routes thin (validate → authorize → dispatch)
 
 ---
 
@@ -62,11 +87,11 @@ The following routes should be migrated in this order, grouped by priority and d
 
 ### Wave 4: AI & Quality
 
-| Route                   | Complexity | Dependencies           | Notes                      |
-| ----------------------- | ---------- | ---------------------- | -------------------------- |
-| `ai-translation.ts`     | Medium     | Translations, Glossary | AI-powered translation     |
-| `quality-estimation.ts` | Medium     | Translations           | MQM-based quality scoring  |
-| `key-context.ts`        | Low        | Translations           | Near-key context detection |
+| Route                   | Complexity | Dependencies           | Notes                                 |
+| ----------------------- | ---------- | ---------------------- | ------------------------------------- |
+| `ai-translation.ts`     | Medium     | Translations, Glossary | AI-powered translation                |
+| `quality-estimation.ts` | Medium     | Translations           | 🚧 Service migrated, handlers pending |
+| `key-context.ts`        | Low        | Translations           | 🚧 Service migrated, handlers pending |
 
 ### Wave 5: Infrastructure
 

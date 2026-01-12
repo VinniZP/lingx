@@ -1,7 +1,7 @@
 import type { AccessService } from '../../../services/access.service.js';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
 import { QualityEvaluatedEvent } from '../events/quality-evaluated.event.js';
+import type { QualityEstimationService } from '../quality-estimation.service.js';
 import type { EvaluateQualityCommand } from './evaluate-quality.command.js';
 
 /**

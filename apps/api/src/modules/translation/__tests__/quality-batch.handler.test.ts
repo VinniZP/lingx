@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type { IEventBus, ProgressReporter } from '../../../shared/cqrs/index.js';
+import type { QualityEstimationService } from '../../quality-estimation/quality-estimation.service.js';
 import { QualityBatchCommand } from '../commands/quality-batch.command.js';
 import { QualityBatchHandler } from '../commands/quality-batch.handler.js';
 import { QualityScoresUpdatedEvent } from '../events/quality-scores-updated.event.js';

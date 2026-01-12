@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccessService } from '../../../services/access.service.js';
-import type { QualityEstimationService } from '../../../services/quality-estimation.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { EvaluateQualityCommand } from '../commands/evaluate-quality.command.js';
 import { EvaluateQualityHandler } from '../commands/evaluate-quality.handler.js';
 import { QualityEvaluatedEvent } from '../events/quality-evaluated.event.js';
+import type { QualityEstimationService } from '../quality-estimation.service.js';
 
 describe('EvaluateQualityHandler', () => {
   const mockQualityService: { evaluate: ReturnType<typeof vi.fn> } = {
