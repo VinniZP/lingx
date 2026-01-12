@@ -1,7 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccessService } from '../../../services/access.service.js';
-import type { MTService } from '../../../services/mt.service.js';
 import type { IEventBus, IQueryBus } from '../../../shared/cqrs/index.js';
 import { BulkTranslateCommand } from '../commands/bulk-translate.command.js';
 import { BulkTranslateHandler } from '../commands/bulk-translate.handler.js';
@@ -33,12 +32,6 @@ describe('BulkTranslateHandler', () => {
     publish: vi.fn(),
   };
 
-  const mockMtService: {
-    translateWithContext: ReturnType<typeof vi.fn>;
-  } = {
-    translateWithContext: vi.fn(),
-  };
-
   const mockQueryBus: {
     execute: ReturnType<typeof vi.fn>;
   } = {
@@ -61,7 +54,6 @@ describe('BulkTranslateHandler', () => {
       mockRepository as unknown as TranslationRepository,
       mockAccessService as unknown as AccessService,
       mockEventBus as unknown as IEventBus,
-      mockMtService as unknown as MTService,
       mockQueryBus as unknown as IQueryBus,
       mockLogger as unknown as FastifyBaseLogger
     );
@@ -92,7 +84,7 @@ describe('BulkTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translateWithContext.mockResolvedValue({
+      mockQueryBus.execute.mockResolvedValue({
         translatedText: 'Translated',
       });
 
@@ -184,7 +176,7 @@ describe('BulkTranslateHandler', () => {
       const result = await handler.execute(command);
 
       expect(result).toEqual({ translated: 0, skipped: 1, failed: 0 });
-      expect(mockMtService.translateWithContext).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
     it('should skip translations that already have values', async () => {
@@ -210,10 +202,10 @@ describe('BulkTranslateHandler', () => {
       const result = await handler.execute(command);
 
       expect(result).toEqual({ translated: 0, skipped: 1, failed: 0 });
-      expect(mockMtService.translateWithContext).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
-    it('should use MT service when provider is MT', async () => {
+    it('should use MT query when provider is MT', async () => {
       const command = new BulkTranslateCommand('branch-1', ['key-1'], ['es'], 'MT', 'user-1');
 
       mockAccessService.verifyBranchAccess.mockResolvedValue({
@@ -230,24 +222,25 @@ describe('BulkTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translateWithContext.mockResolvedValue({
+      mockQueryBus.execute.mockResolvedValue({
         translatedText: 'Hola',
       });
 
       await handler.execute(command);
 
-      expect(mockMtService.translateWithContext).toHaveBeenCalledWith(
-        'project-1',
-        'branch-1',
-        'key-1',
-        'Hello',
-        'en',
-        'es'
-      );
-      expect(mockQueryBus.execute).not.toHaveBeenCalled();
+      // Should call queryBus.execute with TranslateWithContextQuery
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.projectId).toBe('project-1');
+      expect(queryArg.userId).toBe('user-1');
+      expect(queryArg.input.branchId).toBe('branch-1');
+      expect(queryArg.input.keyId).toBe('key-1');
+      expect(queryArg.input.text).toBe('Hello');
+      expect(queryArg.input.sourceLanguage).toBe('en');
+      expect(queryArg.input.targetLanguage).toBe('es');
     });
 
-    it('should use AI service when provider is AI', async () => {
+    it('should use AI query when provider is AI', async () => {
       const command = new BulkTranslateCommand('branch-1', ['key-1'], ['es'], 'AI', 'user-1');
 
       mockAccessService.verifyBranchAccess.mockResolvedValue({
@@ -270,8 +263,11 @@ describe('BulkTranslateHandler', () => {
 
       await handler.execute(command);
 
-      expect(mockQueryBus.execute).toHaveBeenCalled();
-      expect(mockMtService.translateWithContext).not.toHaveBeenCalled();
+      // Should call queryBus.execute with TranslateQuery (AI)
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.projectId).toBe('project-1');
+      expect(queryArg.userId).toBe('user-1');
     });
 
     it('should return failed count when translations fail', async () => {
@@ -292,7 +288,7 @@ describe('BulkTranslateHandler', () => {
       ]);
 
       // First call succeeds, second fails
-      mockMtService.translateWithContext
+      mockQueryBus.execute
         .mockResolvedValueOnce({ translatedText: 'Hola' })
         .mockRejectedValueOnce(new Error('Translation API error'));
 
@@ -348,22 +344,16 @@ describe('BulkTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translateWithContext.mockResolvedValue({
+      mockQueryBus.execute.mockResolvedValue({
         translatedText: 'Hola',
       });
 
       await handler.execute(command);
 
       // Should only translate to es, not en
-      expect(mockMtService.translateWithContext).toHaveBeenCalledTimes(1);
-      expect(mockMtService.translateWithContext).toHaveBeenCalledWith(
-        'project-1',
-        'branch-1',
-        'key-1',
-        'Hello',
-        'en',
-        'es'
-      );
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.input.targetLanguage).toBe('es');
     });
 
     it('should emit events for translated keys', async () => {
@@ -383,7 +373,7 @@ describe('BulkTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translateWithContext.mockResolvedValue({
+      mockQueryBus.execute.mockResolvedValue({
         translatedText: 'Hola',
       });
 

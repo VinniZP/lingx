@@ -163,7 +163,6 @@ model Project {
   aiContextConfig      AIContextConfig?
   glossaryEntries      GlossaryEntry[]
   glossaryTags         GlossaryTag[]
-  glossarySyncs        GlossaryProviderSync[]
   qualityScoringConfig QualityScoringConfig?
 
   @@index([slug])
@@ -712,27 +711,6 @@ model GlossaryEntryTag {
   @@index([tagId])
 }
 
-/// Stores synced glossaries with MT providers
-/// Tracks external glossary IDs for DeepL/Google APIs
-model GlossaryProviderSync {
-  id                 String     @id @default(cuid())
-  projectId          String
-  provider           MTProvider // DEEPL or GOOGLE_TRANSLATE
-  externalGlossaryId String // Provider's glossary ID
-  sourceLanguage     String
-  targetLanguage     String
-  entriesCount       Int        @default(0)
-  lastSyncedAt       DateTime
-  syncStatus         String     @default("synced") // synced, pending, error
-  syncError          String?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, provider, sourceLanguage, targetLanguage])
-  @@index([projectId, provider])
-}
 
 // ============================================
 // QUALITY ESTIMATION

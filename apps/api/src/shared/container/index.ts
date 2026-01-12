@@ -42,7 +42,6 @@ import { BatchEvaluationService } from '../../services/batch-evaluation.service.
 import { ChallengeStore } from '../../services/challenge-store.service.js';
 import { EmailService } from '../../services/email.service.js';
 import { FileStorageService } from '../../services/file-storage.service.js';
-import { MTService } from '../../services/mt.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 
 /**
@@ -64,7 +63,6 @@ export interface Cradle {
   emailService: EmailService;
   fileStorage: FileStorageService;
   keyContextService: KeyContextService;
-  mtService: MTService;
   qualityEstimationService: QualityEstimationService;
   challengeStore: ChallengeStore;
 
@@ -129,7 +127,6 @@ export function createAppContainer(
     emailService: asClass(EmailService).singleton(),
     fileStorage: asClass(FileStorageService).singleton(),
     keyContextService: asClass(KeyContextService).singleton(),
-    mtService: asClass(MTService).singleton(),
 
     // Security module dependencies
     sessionRepository: asClass(SessionRepository).singleton(),
