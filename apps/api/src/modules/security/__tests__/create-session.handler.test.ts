@@ -28,11 +28,14 @@ describe('CreateSessionHandler', () => {
   const CHROME_USER_AGENT =
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
+  // ua-parser-js provides detailed version info
+  const EXPECTED_DEVICE_INFO = 'Chrome 120 on macOS 10.15.7';
+
   const mockSession: Session = {
     id: 'session-123',
     userId: 'user-456',
     userAgent: CHROME_USER_AGENT,
-    deviceInfo: 'Chrome on macOS',
+    deviceInfo: EXPECTED_DEVICE_INFO,
     ipAddress: '192.168.1.1',
     lastActive: new Date(),
     createdAt: new Date(),
@@ -73,7 +76,7 @@ describe('CreateSessionHandler', () => {
     expect(mockRepository.create).toHaveBeenCalledWith({
       userId: 'user-456',
       userAgent: CHROME_USER_AGENT,
-      deviceInfo: 'Chrome on macOS',
+      deviceInfo: EXPECTED_DEVICE_INFO,
       ipAddress: '192.168.1.1',
     });
 
@@ -86,7 +89,7 @@ describe('CreateSessionHandler', () => {
     expect(publishedEvent).toBeInstanceOf(SessionCreatedEvent);
     expect(publishedEvent.sessionId).toBe('session-123');
     expect(publishedEvent.userId).toBe('user-456');
-    expect(publishedEvent.deviceInfo).toBe('Chrome on macOS');
+    expect(publishedEvent.deviceInfo).toBe(EXPECTED_DEVICE_INFO);
     expect(publishedEvent.ipAddress).toBe('192.168.1.1');
   });
 

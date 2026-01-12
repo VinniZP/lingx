@@ -4,6 +4,7 @@
  * Helper functions for session management and request metadata extraction.
  */
 import type { FastifyRequest } from 'fastify';
+import { UAParser } from 'ua-parser-js';
 
 /**
  * Request metadata extracted from HTTP request.
@@ -36,34 +37,29 @@ export function extractRequestMetadata(request: FastifyRequest): RequestMetadata
 
 /**
  * Parse user agent string into readable device info.
+ * Uses ua-parser-js for robust browser/OS/device detection.
  */
 export function parseUserAgent(userAgent: string): string {
-  // Simple parsing - extract browser and OS
-  let browser = 'Unknown Browser';
-  let os = 'Unknown OS';
+  const parser = new UAParser(userAgent);
+  const result = parser.getResult();
 
-  // Detect browser
-  if (userAgent.includes('Firefox/')) {
-    browser = 'Firefox';
-  } else if (userAgent.includes('Edg/')) {
-    browser = 'Edge';
-  } else if (userAgent.includes('Chrome/')) {
-    browser = 'Chrome';
-  } else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome')) {
-    browser = 'Safari';
-  }
+  // Build browser string (e.g., "Chrome 120", "Safari 17")
+  const browserName = result.browser.name || 'Unknown Browser';
+  const browserVersion = result.browser.major;
+  const browser = browserVersion ? `${browserName} ${browserVersion}` : browserName;
 
-  // Detect OS
-  if (userAgent.includes('Windows')) {
-    os = 'Windows';
-  } else if (userAgent.includes('Mac OS X')) {
-    os = 'macOS';
-  } else if (userAgent.includes('Linux')) {
-    os = 'Linux';
-  } else if (userAgent.includes('Android')) {
-    os = 'Android';
-  } else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-    os = 'iOS';
+  // Build OS string (e.g., "Windows 11", "macOS 14", "iOS 17")
+  const osName = result.os.name || 'Unknown OS';
+  const osVersion = result.os.version;
+  const os = osVersion ? `${osName} ${osVersion}` : osName;
+
+  // Include device type for mobile/tablet
+  const deviceType = result.device.type;
+  const deviceModel = result.device.model;
+
+  if (deviceType === 'mobile' || deviceType === 'tablet') {
+    const device = deviceModel || (deviceType === 'mobile' ? 'Mobile' : 'Tablet');
+    return `${browser} on ${device} (${os})`;
   }
 
   return `${browser} on ${os}`;
