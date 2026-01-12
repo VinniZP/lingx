@@ -27,17 +27,10 @@ export class DashboardRepository {
    * Calculates stats across all projects the user is a member of.
    */
   async getStatsForUser(userId: string): Promise<DashboardStats> {
-    let projectMembers;
-    try {
-      projectMembers = await this.prisma.projectMember.findMany({
-        where: { userId },
-        select: { projectId: true },
-      });
-    } catch (error) {
-      throw new Error(
-        `Failed to fetch project memberships for user ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
+    const projectMembers = await this.prisma.projectMember.findMany({
+      where: { userId },
+      select: { projectId: true },
+    });
 
     const projectIds = projectMembers.map((pm) => pm.projectId);
 
@@ -53,26 +46,11 @@ export class DashboardRepository {
       };
     }
 
-    let projectCount: number;
-    let languageStats: Array<{ code: string }>;
-    let keyStats: {
-      totalKeys: number;
-      totalTranslations: number;
-      translatedKeys: number;
-      pendingApprovalCount: number;
-    };
-
-    try {
-      [projectCount, languageStats, keyStats] = await Promise.all([
-        this.getProjectCount(projectIds),
-        this.getUniqueLanguages(projectIds),
-        this.getKeyAndTranslationStats(projectIds),
-      ]);
-    } catch (error) {
-      throw new Error(
-        `Failed to fetch dashboard statistics for user ${userId} across ${projectIds.length} projects: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
+    const [projectCount, languageStats, keyStats] = await Promise.all([
+      this.getProjectCount(projectIds),
+      this.getUniqueLanguages(projectIds),
+      this.getKeyAndTranslationStats(projectIds),
+    ]);
 
     const totalLanguages = languageStats.length;
     const { totalKeys, totalTranslations, translatedKeys, pendingApprovalCount } = keyStats;
@@ -118,6 +96,7 @@ export class DashboardRepository {
 
   /**
    * Get key and translation statistics across multiple projects.
+   * Uses nested relations to query branches directly from projects (avoiding N+1).
    * Traverses Project -> Space -> Branch -> TranslationKey -> Translation hierarchy.
    */
   private async getKeyAndTranslationStats(projectIds: string[]): Promise<{
@@ -126,35 +105,16 @@ export class DashboardRepository {
     translatedKeys: number;
     pendingApprovalCount: number;
   }> {
-    let spaces;
-    try {
-      spaces = await this.prisma.space.findMany({
-        where: { projectId: { in: projectIds } },
-        select: { id: true },
-      });
-    } catch (error) {
-      throw new Error(
-        `Failed to fetch spaces for ${projectIds.length} projects: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
-
-    const spaceIds = spaces.map((s) => s.id);
-
-    if (spaceIds.length === 0) {
-      return { totalKeys: 0, totalTranslations: 0, translatedKeys: 0, pendingApprovalCount: 0 };
-    }
-
-    let branches;
-    try {
-      branches = await this.prisma.branch.findMany({
-        where: { spaceId: { in: spaceIds } },
-        select: { id: true },
-      });
-    } catch (error) {
-      throw new Error(
-        `Failed to fetch branches for ${spaceIds.length} spaces: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
+    // Single query to get all branches across all projects using nested relations
+    // This avoids the N+1 pattern of: projects -> spaces -> branches
+    const branches = await this.prisma.branch.findMany({
+      where: {
+        space: {
+          projectId: { in: projectIds },
+        },
+      },
+      select: { id: true },
+    });
 
     const branchIds = branches.map((b) => b.id);
 
@@ -162,53 +122,42 @@ export class DashboardRepository {
       return { totalKeys: 0, totalTranslations: 0, translatedKeys: 0, pendingApprovalCount: 0 };
     }
 
-    let totalKeys: number;
-    let totalTranslations: number;
-    let keysWithTranslations: number;
-    let pendingApprovalCount: number;
+    const [totalKeys, totalTranslations, keysWithTranslations, pendingApprovalCount] =
+      await Promise.all([
+        this.prisma.translationKey.count({
+          where: { branchId: { in: branchIds } },
+        }),
 
-    try {
-      [totalKeys, totalTranslations, keysWithTranslations, pendingApprovalCount] =
-        await Promise.all([
-          this.prisma.translationKey.count({
-            where: { branchId: { in: branchIds } },
-          }),
+        // Count non-empty translations only (empty strings represent untranslated keys)
+        this.prisma.translation.count({
+          where: {
+            key: { branchId: { in: branchIds } },
+            value: { not: '' },
+          },
+        }),
 
-          // Count non-empty translations only (empty strings represent untranslated keys)
-          this.prisma.translation.count({
-            where: {
-              key: { branchId: { in: branchIds } },
-              value: { not: '' },
-            },
-          }),
-
-          // Count keys that have at least one non-empty translation
-          this.prisma.translationKey.count({
-            where: {
-              branchId: { in: branchIds },
-              translations: {
-                some: {
-                  value: { not: '' },
-                },
+        // Count keys that have at least one non-empty translation
+        this.prisma.translationKey.count({
+          where: {
+            branchId: { in: branchIds },
+            translations: {
+              some: {
+                value: { not: '' },
               },
             },
-          }),
+          },
+        }),
 
-          // Count translations awaiting review (PENDING status with content)
-          // Approval workflow: PENDING -> APPROVED or REJECTED
-          this.prisma.translation.count({
-            where: {
-              key: { branchId: { in: branchIds } },
-              status: 'PENDING',
-              value: { not: '' },
-            },
-          }),
-        ]);
-    } catch (error) {
-      throw new Error(
-        `Failed to compute key/translation statistics for ${branchIds.length} branches: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
+        // Count translations awaiting review (PENDING status with content)
+        // Approval workflow: PENDING -> APPROVED or REJECTED
+        this.prisma.translation.count({
+          where: {
+            key: { branchId: { in: branchIds } },
+            status: 'PENDING',
+            value: { not: '' },
+          },
+        }),
+      ]);
 
     return {
       totalKeys,
