@@ -12,7 +12,6 @@ import {
   type GlossarySearchParams,
   type GlossaryStats,
   type GlossaryTag,
-  type MTProvider,
   type UpdateGlossaryEntryInput,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -31,7 +30,6 @@ export const glossaryKeys = {
     [...glossaryKeys.all, 'entry', projectId, entryId] as const,
   tags: (projectId: string) => [...glossaryKeys.all, 'tags', projectId] as const,
   stats: (projectId: string) => [...glossaryKeys.all, 'stats', projectId] as const,
-  syncStatus: (projectId: string) => [...glossaryKeys.all, 'sync-status', projectId] as const,
 };
 
 /**
@@ -257,65 +255,6 @@ export function useGlossaryExport(projectId: string) {
         domain?: string;
       };
     }) => glossaryApi.export(projectId, format, options),
-  });
-}
-
-/**
- * Sync glossary to MT provider.
- *
- * @param projectId - Project ID
- */
-export function useGlossarySync(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: { provider: MTProvider; sourceLanguage: string; targetLanguage: string }) =>
-      glossaryApi.syncToProvider(projectId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: glossaryKeys.syncStatus(projectId),
-      });
-    },
-  });
-}
-
-/**
- * Get sync status for all providers.
- *
- * @param projectId - Project ID
- */
-export function useGlossarySyncStatus(projectId: string) {
-  return useQuery({
-    queryKey: glossaryKeys.syncStatus(projectId),
-    queryFn: () => glossaryApi.getSyncStatus(projectId),
-    enabled: !!projectId,
-    staleTime: 30 * 1000,
-  });
-}
-
-/**
- * Delete synced glossary from provider.
- *
- * @param projectId - Project ID
- */
-export function useDeleteGlossarySync(projectId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      provider,
-      sourceLanguage,
-      targetLanguage,
-    }: {
-      provider: MTProvider;
-      sourceLanguage: string;
-      targetLanguage: string;
-    }) => glossaryApi.deleteSyncedGlossary(projectId, provider, sourceLanguage, targetLanguage),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: glossaryKeys.syncStatus(projectId),
-      });
-    },
   });
 }
 

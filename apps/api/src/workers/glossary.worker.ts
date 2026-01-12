@@ -4,19 +4,13 @@
  * Processes async glossary operations:
  * - Usage tracking (record when terms are applied)
  * - Import processing (CSV/TBX)
- * - MT provider sync (DeepL/Google glossary API)
  */
-import { MTProvider, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { Job, Worker } from 'bullmq';
 import { redis } from '../lib/redis.js';
 import { GlossaryRepository } from '../modules/glossary/repositories/glossary.repository.js';
-import { MTService } from '../services/mt.service.js';
 
-export type GlossaryJobType =
-  | 'record-usage'
-  | 'import'
-  | 'sync-provider'
-  | 'delete-provider-glossary';
+export type GlossaryJobType = 'record-usage' | 'import';
 
 export interface GlossaryJobData {
   type: GlossaryJobType;
@@ -30,11 +24,6 @@ export interface GlossaryJobData {
   content?: string;
   overwrite?: boolean;
   userId?: string;
-
-  // Sync specific
-  provider?: MTProvider;
-  sourceLanguage?: string;
-  targetLanguage?: string;
 }
 
 export function createGlossaryWorker(prisma: PrismaClient): Worker {
@@ -54,19 +43,13 @@ export function createGlossaryWorker(prisma: PrismaClient): Worker {
         case 'import':
           return handleImport(glossaryRepository, job.data);
 
-        case 'sync-provider':
-          return handleProviderSync(prisma, glossaryRepository, job.data);
-
-        case 'delete-provider-glossary':
-          return handleDeleteProviderGlossary(prisma, job.data);
-
         default:
           throw new Error(`[GlossaryWorker] Unknown job type: ${type}`);
       }
     },
     {
       connection: redis,
-      concurrency: 2, // Limited due to external API calls
+      concurrency: 2,
     }
   );
 
@@ -120,236 +103,5 @@ async function handleImport(
     return repository.importFromCSV(projectId, content, overwrite ?? false, userId);
   } else {
     return repository.importFromTBX(projectId, content, overwrite ?? false, userId);
-  }
-}
-
-/**
- * Sync glossary to MT provider
- */
-async function handleProviderSync(
-  prisma: PrismaClient,
-  glossaryRepository: GlossaryRepository,
-  data: GlossaryJobData
-): Promise<void> {
-  const { projectId, provider, sourceLanguage, targetLanguage } = data;
-
-  if (!provider || !sourceLanguage || !targetLanguage) {
-    throw new Error(
-      `[GlossaryWorker] sync-provider: Missing required parameters (provider=${provider}, sourceLanguage=${sourceLanguage}, targetLanguage=${targetLanguage})`
-    );
-  }
-
-  try {
-    // Mark as pending
-    await prisma.glossaryProviderSync.upsert({
-      where: {
-        projectId_provider_sourceLanguage_targetLanguage: {
-          projectId,
-          provider,
-          sourceLanguage,
-          targetLanguage,
-        },
-      },
-      update: {
-        syncStatus: 'pending',
-        syncError: null,
-      },
-      create: {
-        projectId,
-        provider,
-        sourceLanguage,
-        targetLanguage,
-        externalGlossaryId: '', // Will be set after sync
-        lastSyncedAt: new Date(),
-        syncStatus: 'pending',
-      },
-    });
-
-    // Get entries for this language pair
-    const entries = await glossaryRepository.prepareForProviderSync(
-      projectId,
-      sourceLanguage,
-      targetLanguage
-    );
-
-    if (entries.length === 0) {
-      await prisma.glossaryProviderSync.update({
-        where: {
-          projectId_provider_sourceLanguage_targetLanguage: {
-            projectId,
-            provider,
-            sourceLanguage,
-            targetLanguage,
-          },
-        },
-        data: {
-          syncStatus: 'synced',
-          entriesCount: 0,
-          lastSyncedAt: new Date(),
-        },
-      });
-      console.log('[GlossaryWorker] No entries to sync');
-      return;
-    }
-
-    // Get MT config for this provider
-    const mtConfig = await prisma.machineTranslationConfig.findUnique({
-      where: {
-        projectId_provider: {
-          projectId,
-          provider,
-        },
-      },
-    });
-
-    if (!mtConfig) {
-      throw new Error(`No MT configuration found for provider ${provider}`);
-    }
-
-    // Create MT service and sync glossary
-    const mtService = new MTService(prisma);
-
-    // Check if we have an existing glossary
-    const existingSync = await prisma.glossaryProviderSync.findUnique({
-      where: {
-        projectId_provider_sourceLanguage_targetLanguage: {
-          projectId,
-          provider,
-          sourceLanguage,
-          targetLanguage,
-        },
-      },
-    });
-
-    // Delete existing glossary if it exists (providers don't support update)
-    if (existingSync?.externalGlossaryId) {
-      try {
-        await mtService.deleteGlossary(projectId, provider, existingSync.externalGlossaryId);
-      } catch (error) {
-        console.warn('[GlossaryWorker] Failed to delete existing glossary:', error);
-        // Continue anyway - may not exist on provider
-      }
-    }
-
-    // Create new glossary on provider
-    const glossaryName = `Lingx-${projectId.slice(-8)}-${sourceLanguage}-${targetLanguage}`;
-    const externalGlossaryId = await mtService.createGlossary(
-      projectId,
-      provider,
-      glossaryName,
-      sourceLanguage,
-      targetLanguage,
-      entries
-    );
-
-    // Update sync record
-    await prisma.glossaryProviderSync.update({
-      where: {
-        projectId_provider_sourceLanguage_targetLanguage: {
-          projectId,
-          provider,
-          sourceLanguage,
-          targetLanguage,
-        },
-      },
-      data: {
-        externalGlossaryId,
-        entriesCount: entries.length,
-        lastSyncedAt: new Date(),
-        syncStatus: 'synced',
-        syncError: null,
-      },
-    });
-
-    console.log(
-      `[GlossaryWorker] Synced ${entries.length} entries to ${provider} glossary ${externalGlossaryId}`
-    );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[GlossaryWorker] sync-provider failed:', error);
-
-    // Update sync status with error
-    await prisma.glossaryProviderSync.upsert({
-      where: {
-        projectId_provider_sourceLanguage_targetLanguage: {
-          projectId,
-          provider,
-          sourceLanguage,
-          targetLanguage,
-        },
-      },
-      update: {
-        syncStatus: 'error',
-        syncError: errorMessage,
-      },
-      create: {
-        projectId,
-        provider,
-        sourceLanguage,
-        targetLanguage,
-        externalGlossaryId: '',
-        lastSyncedAt: new Date(),
-        syncStatus: 'error',
-        syncError: errorMessage,
-      },
-    });
-
-    throw error;
-  }
-}
-
-/**
- * Delete glossary from MT provider
- */
-async function handleDeleteProviderGlossary(
-  prisma: PrismaClient,
-  data: GlossaryJobData
-): Promise<void> {
-  const { projectId, provider, sourceLanguage, targetLanguage } = data;
-
-  if (!provider || !sourceLanguage || !targetLanguage) {
-    throw new Error(
-      `[GlossaryWorker] delete-provider-glossary: Missing required parameters (provider=${provider}, sourceLanguage=${sourceLanguage}, targetLanguage=${targetLanguage})`
-    );
-  }
-
-  try {
-    // Get existing sync record
-    const sync = await prisma.glossaryProviderSync.findUnique({
-      where: {
-        projectId_provider_sourceLanguage_targetLanguage: {
-          projectId,
-          provider,
-          sourceLanguage,
-          targetLanguage,
-        },
-      },
-    });
-
-    if (!sync?.externalGlossaryId) {
-      console.log('[GlossaryWorker] No external glossary to delete');
-      return;
-    }
-
-    // Delete from provider
-    const mtService = new MTService(prisma);
-    await mtService.deleteGlossary(projectId, provider, sync.externalGlossaryId);
-
-    // Delete sync record
-    await prisma.glossaryProviderSync.delete({
-      where: {
-        projectId_provider_sourceLanguage_targetLanguage: {
-          projectId,
-          provider,
-          sourceLanguage,
-          targetLanguage,
-        },
-      },
-    });
-
-    console.log(`[GlossaryWorker] Deleted ${provider} glossary ${sync.externalGlossaryId}`);
-  } catch (error) {
-    console.error('[GlossaryWorker] delete-provider-glossary failed:', error);
-    throw error;
   }
 }

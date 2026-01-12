@@ -15,8 +15,6 @@ import {
   glossarySearchQuerySchema,
   glossarySearchResponseSchema,
   glossaryStatsResponseSchema,
-  glossarySyncRequestSchema,
-  glossarySyncStatusListResponseSchema,
   glossaryTagListResponseSchema,
   updateGlossaryEntrySchema,
   updateGlossaryTagSchema,
@@ -31,20 +29,17 @@ import {
   CreateEntryCommand,
   CreateTagCommand,
   DeleteEntryCommand,
-  DeleteProviderSyncCommand,
   DeleteTagCommand,
   DeleteTranslationCommand,
   ExportGlossaryQuery,
   GetEntryQuery,
   GetStatsQuery,
-  GetSyncStatusQuery,
   ImportGlossaryCommand,
   ListEntriesQuery,
   ListTagsQuery,
   RecordUsageCommand,
   // Queries
   SearchInTextQuery,
-  SyncProviderCommand,
   UpdateEntryCommand,
   UpdateTagCommand,
   UpsertTranslationCommand,
@@ -514,99 +509,6 @@ const glossaryRoutes: FastifyPluginAsync = async (fastify) => {
       reply.header('Content-Type', result.contentType);
       reply.header('Content-Disposition', `attachment; filename="${result.filename}"`);
       return result.content;
-    }
-  );
-
-  // ============================================
-  // MT PROVIDER SYNC
-  // ============================================
-
-  app.post(
-    '/api/projects/:projectId/glossary/sync',
-    {
-      onRequest: [fastify.authenticate],
-      schema: {
-        description:
-          'Sync glossary to MT provider (DeepL/Google) for language pair (MANAGER/OWNER only)',
-        tags: ['Glossary'],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: projectIdParam,
-        body: glossarySyncRequestSchema,
-        response: {
-          200: z.object({
-            message: z.string(),
-            jobId: z.string().optional(),
-          }),
-        },
-      },
-    },
-    async (request) => {
-      const { projectId } = request.params;
-      const { provider, sourceLanguage, targetLanguage } = request.body;
-
-      return fastify.commandBus.execute(
-        new SyncProviderCommand(
-          projectId,
-          request.user.userId,
-          provider,
-          sourceLanguage,
-          targetLanguage
-        )
-      );
-    }
-  );
-
-  app.get(
-    '/api/projects/:projectId/glossary/sync/status',
-    {
-      onRequest: [fastify.authenticate],
-      schema: {
-        description: 'Get glossary sync status for all MT providers',
-        tags: ['Glossary'],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: projectIdParam,
-        response: { 200: glossarySyncStatusListResponseSchema },
-      },
-    },
-    async (request) => {
-      const { projectId } = request.params;
-
-      return fastify.queryBus.execute(new GetSyncStatusQuery(projectId, request.user.userId));
-    }
-  );
-
-  app.delete(
-    '/api/projects/:projectId/glossary/sync/:provider',
-    {
-      onRequest: [fastify.authenticate],
-      schema: {
-        description: 'Remove glossary from MT provider (MANAGER/OWNER only)',
-        tags: ['Glossary'],
-        security: [{ bearerAuth: [] }, { apiKey: [] }],
-        params: z.object({
-          projectId: z.string(),
-          provider: z.enum(['DEEPL', 'GOOGLE_TRANSLATE']),
-        }),
-        querystring: z.object({
-          sourceLanguage: z.string(),
-          targetLanguage: z.string(),
-        }),
-        response: { 200: z.object({ success: z.boolean() }) },
-      },
-    },
-    async (request) => {
-      const { projectId, provider } = request.params;
-      const { sourceLanguage, targetLanguage } = request.query;
-
-      return fastify.commandBus.execute(
-        new DeleteProviderSyncCommand(
-          projectId,
-          request.user.userId,
-          provider,
-          sourceLanguage,
-          targetLanguage
-        )
-      );
     }
   );
 

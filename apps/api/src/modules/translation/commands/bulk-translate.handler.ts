@@ -1,8 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { mtBatchQueue } from '../../../lib/queues.js';
 import { TranslateQuery } from '../../../modules/ai-translation/index.js';
+import { TranslateWithContextQuery } from '../../../modules/machine-translation/index.js';
 import type { AccessService } from '../../../services/access.service.js';
-import type { MTService } from '../../../services/mt.service.js';
 import type {
   ICommandHandler,
   IEventBus,
@@ -29,7 +29,6 @@ export class BulkTranslateHandler implements ICommandHandler<BulkTranslateComman
     private readonly translationRepository: TranslationRepository,
     private readonly accessService: AccessService,
     private readonly eventBus: IEventBus,
-    private readonly mtService: MTService,
     private readonly queryBus: IQueryBus,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -119,13 +118,14 @@ export class BulkTranslateHandler implements ICommandHandler<BulkTranslateComman
           let translatedText: string;
 
           if (provider === 'MT') {
-            const result = await this.mtService.translateWithContext(
-              projectId,
-              branchId,
-              key.id,
-              sourceText,
-              sourceLanguage,
-              targetLang
+            const result = await this.queryBus.execute(
+              new TranslateWithContextQuery(projectId, userId, {
+                branchId,
+                keyId: key.id,
+                text: sourceText,
+                sourceLanguage,
+                targetLanguage: targetLang,
+              })
             );
             translatedText = result.translatedText;
           } else {
