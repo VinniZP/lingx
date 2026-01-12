@@ -257,4 +257,142 @@ describe('QualityEstimationRepository', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('findTranslationsForBatchEvaluation', () => {
+    it('should find translations for batch evaluation by branch', async () => {
+      const repository = createRepository();
+
+      const mockTranslations = [
+        {
+          id: 'trans-1',
+          keyId: 'key-1',
+          language: 'de',
+          value: 'Hallo Welt',
+          qualityScore: { contentHash: 'hash-1' },
+        },
+        {
+          id: 'trans-2',
+          keyId: 'key-1',
+          language: 'fr',
+          value: 'Bonjour le monde',
+          qualityScore: null,
+        },
+      ];
+
+      mockPrisma.translation.findMany.mockResolvedValue(mockTranslations);
+
+      const result = await repository.findTranslationsForBatchEvaluation('branch-1', ['de', 'fr']);
+
+      expect(mockPrisma.translation.findMany).toHaveBeenCalledWith({
+        where: {
+          key: { branchId: 'branch-1' },
+          value: { not: '' },
+          language: { in: ['de', 'fr'] },
+        },
+        select: {
+          id: true,
+          keyId: true,
+          language: true,
+          value: true,
+          qualityScore: {
+            select: { contentHash: true },
+          },
+        },
+      });
+      expect(result).toEqual(mockTranslations);
+    });
+
+    it('should find translations by specific IDs when provided', async () => {
+      const repository = createRepository();
+
+      const mockTranslations = [
+        {
+          id: 'trans-1',
+          keyId: 'key-1',
+          language: 'de',
+          value: 'Hallo',
+          qualityScore: null,
+        },
+      ];
+
+      mockPrisma.translation.findMany.mockResolvedValue(mockTranslations);
+
+      const result = await repository.findTranslationsForBatchEvaluation(
+        'branch-1',
+        ['de', 'fr'],
+        ['trans-1']
+      );
+
+      expect(mockPrisma.translation.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ['trans-1'] } },
+        select: {
+          id: true,
+          keyId: true,
+          language: true,
+          value: true,
+          qualityScore: {
+            select: { contentHash: true },
+          },
+        },
+      });
+      expect(result).toEqual(mockTranslations);
+    });
+
+    it('should return empty array when no translations found', async () => {
+      const repository = createRepository();
+
+      mockPrisma.translation.findMany.mockResolvedValue([]);
+
+      const result = await repository.findTranslationsForBatchEvaluation('branch-1', ['de', 'fr']);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('findSourceTranslationsForKeys', () => {
+    it('should find source translations and return as map', async () => {
+      const repository = createRepository();
+
+      const mockSources = [
+        { keyId: 'key-1', value: 'Hello World' },
+        { keyId: 'key-2', value: 'Goodbye' },
+      ];
+
+      mockPrisma.translation.findMany.mockResolvedValue(mockSources);
+
+      const result = await repository.findSourceTranslationsForKeys(['key-1', 'key-2'], 'en');
+
+      expect(mockPrisma.translation.findMany).toHaveBeenCalledWith({
+        where: {
+          keyId: { in: ['key-1', 'key-2'] },
+          language: 'en',
+        },
+        select: { keyId: true, value: true },
+      });
+      expect(result).toBeInstanceOf(Map);
+      expect(result.get('key-1')).toBe('Hello World');
+      expect(result.get('key-2')).toBe('Goodbye');
+    });
+
+    it('should return empty map when no sources found', async () => {
+      const repository = createRepository();
+
+      mockPrisma.translation.findMany.mockResolvedValue([]);
+
+      const result = await repository.findSourceTranslationsForKeys(['key-1'], 'en');
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
+    });
+
+    it('should return empty map when keyIds array is empty', async () => {
+      const repository = createRepository();
+
+      const result = await repository.findSourceTranslationsForKeys([], 'en');
+
+      expect(mockPrisma.translation.findMany).not.toHaveBeenCalled();
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
+    });
+  });
 });
