@@ -3,17 +3,16 @@
  *
  * Provides aggregate statistics for the user's dashboard.
  */
+import { dashboardStatsResponseSchema } from '@lingx/shared';
 import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { dashboardStatsResponseSchema } from '@lingx/shared';
-import { DashboardService } from '../services/dashboard.service.js';
+import { GetDashboardStatsQuery } from '../modules/dashboard/index.js';
 
 /**
  * Dashboard routes plugin
  */
 const dashboardRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
-  const dashboardService = new DashboardService(fastify.prisma);
 
   /**
    * GET /api/dashboard/stats
@@ -35,7 +34,7 @@ const dashboardRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (request) => {
-      const stats = await dashboardService.getStats(request.user.userId);
+      const stats = await fastify.queryBus.execute(new GetDashboardStatsQuery(request.user.userId));
       return stats;
     }
   );

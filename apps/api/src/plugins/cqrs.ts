@@ -15,6 +15,7 @@ import { registerActivityModule } from '../modules/activity/index.js';
 import { registerAITranslationModule } from '../modules/ai-translation/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerBranchModule } from '../modules/branch/index.js';
+import { registerDashboardModule } from '../modules/dashboard/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerGlossaryModule } from '../modules/glossary/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
@@ -51,6 +52,7 @@ const domainModules: ModuleRegistrar[] = [
   registerAITranslationModule,
   registerQualityEstimationModule,
   registerKeyContextModule,
+  registerDashboardModule,
 ];
 
 export interface CqrsPluginOptions {
