@@ -2,6 +2,7 @@
  * ChangePasswordHandler Unit Tests
  */
 import type { Session, User } from '@prisma/client';
+import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { ChangePasswordCommand } from '../commands/change-password.command.js';
@@ -36,6 +37,9 @@ describe('ChangePasswordHandler', () => {
   };
   let mockEventBus: {
     publish: ReturnType<typeof vi.fn>;
+  };
+  let mockLogger: {
+    warn: ReturnType<typeof vi.fn>;
   };
   let mockMetadata: RequestMetadata;
 
@@ -83,6 +87,7 @@ describe('ChangePasswordHandler', () => {
       setValid: vi.fn(),
     };
     mockEventBus = { publish: vi.fn() };
+    mockLogger = { warn: vi.fn() };
     mockMetadata = { userAgent: 'Test Browser', ipAddress: '127.0.0.1' };
 
     // Default mock implementations
@@ -95,7 +100,8 @@ describe('ChangePasswordHandler', () => {
       mockUserRepository as unknown as UserRepository,
       mockSessionRepository as unknown as SessionRepository,
       mockSessionCache as unknown as SessionCacheService,
-      mockEventBus as unknown as IEventBus
+      mockEventBus as unknown as IEventBus,
+      mockLogger as unknown as FastifyBaseLogger
     );
 
   it('should change password and publish PasswordChangedEvent', async () => {
@@ -191,5 +197,61 @@ describe('ChangePasswordHandler', () => {
     // Act & Assert
     await expect(handler.execute(command)).rejects.toThrow('Invalid current password');
     expect(mockEventBus.publish).not.toHaveBeenCalled();
+  });
+
+  it('should succeed and log warning when cache invalidation fails', async () => {
+    // Arrange
+    mockUserRepository.findByIdWithPassword.mockResolvedValue(mockUser);
+    mockUserRepository.updatePasswordAndDeleteSessions.mockResolvedValue(undefined);
+    mockSessionCache.invalidateAllForUser.mockRejectedValue(new Error('Redis unavailable'));
+    mockSessionRepository.create.mockResolvedValue(mockNewSession);
+
+    const handler = createHandler();
+    const command = new ChangePasswordCommand(
+      'user-123',
+      'session-123',
+      'currentPassword123',
+      'newPassword456',
+      mockMetadata
+    );
+
+    // Act
+    const result = await handler.execute(command);
+
+    // Assert - operation should succeed despite cache failure
+    expect(result).toEqual({ newSessionId: 'new-session-123' });
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-123' }),
+      'Failed to invalidate session cache after password change'
+    );
+    expect(mockEventBus.publish).toHaveBeenCalled();
+  });
+
+  it('should succeed and log warning when cache setValid fails', async () => {
+    // Arrange
+    mockUserRepository.findByIdWithPassword.mockResolvedValue(mockUser);
+    mockUserRepository.updatePasswordAndDeleteSessions.mockResolvedValue(undefined);
+    mockSessionRepository.create.mockResolvedValue(mockNewSession);
+    mockSessionCache.setValid.mockRejectedValue(new Error('Redis unavailable'));
+
+    const handler = createHandler();
+    const command = new ChangePasswordCommand(
+      'user-123',
+      'session-123',
+      'currentPassword123',
+      'newPassword456',
+      mockMetadata
+    );
+
+    // Act
+    const result = await handler.execute(command);
+
+    // Assert - operation should succeed despite cache failure
+    expect(result).toEqual({ newSessionId: 'new-session-123' });
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionId: 'new-session-123' }),
+      'Failed to cache new session after password change - falling back to database validation'
+    );
+    expect(mockEventBus.publish).toHaveBeenCalled();
   });
 });

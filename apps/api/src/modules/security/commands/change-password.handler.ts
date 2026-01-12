@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import type { FastifyBaseLogger } from 'fastify';
 import {
   BadRequestError,
   FieldValidationError,
@@ -25,7 +26,8 @@ export class ChangePasswordHandler implements ICommandHandler<ChangePasswordComm
     private readonly userRepository: UserRepository,
     private readonly sessionRepository: SessionRepository,
     private readonly sessionCacheService: SessionCacheService,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly logger: FastifyBaseLogger
   ) {}
 
   async execute(
@@ -66,8 +68,15 @@ export class ChangePasswordHandler implements ICommandHandler<ChangePasswordComm
     // Update password and delete all sessions atomically
     await this.userRepository.updatePasswordAndDeleteSessions(command.userId, hashedPassword);
 
-    // Invalidate all cached sessions for this user
-    await this.sessionCacheService.invalidateAllForUser(command.userId);
+    // Invalidate all cached sessions for this user (non-critical - DB already cleared sessions)
+    try {
+      await this.sessionCacheService.invalidateAllForUser(command.userId);
+    } catch (err) {
+      this.logger.warn(
+        { err, userId: command.userId },
+        'Failed to invalidate session cache after password change'
+      );
+    }
 
     // Create new session for current device
     const deviceInfo = command.requestMetadata.userAgent
@@ -81,8 +90,15 @@ export class ChangePasswordHandler implements ICommandHandler<ChangePasswordComm
       ipAddress: command.requestMetadata.ipAddress,
     });
 
-    // Cache the new session
-    await this.sessionCacheService.setValid(newSession.id, newSession.userId);
+    // Cache the new session (non-critical - DB is source of truth)
+    try {
+      await this.sessionCacheService.setValid(newSession.id, newSession.userId);
+    } catch (err) {
+      this.logger.warn(
+        { err, sessionId: newSession.id },
+        'Failed to cache new session after password change - falling back to database validation'
+      );
+    }
 
     // Publish event for side effects
     await this.eventBus.publish(new PasswordChangedEvent(command.userId, newSession.id));
