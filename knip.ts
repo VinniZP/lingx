@@ -27,7 +27,7 @@ const config: KnipConfig = {
     },
 
     'apps/api': {
-      entry: ['src/app.ts', 'src/workers/**/*.ts', 'tests/**/*.ts'],
+      entry: ['src/app.ts', 'src/workers/**/*.ts', 'tests/**/*.ts', 'src/**/__tests__/**/*.ts'],
       project: ['src/**/*.ts', 'prisma/**/*.ts', 'tests/**/*.ts'],
       ignoreDependencies: [
         'pino-pretty', // CLI-only, not imported
