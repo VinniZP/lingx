@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { FileStorageService } from '../../../services/file-storage.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { FileStorageService } from '../../../shared/infrastructure/file-storage.service.js';
 import { UpdateAvatarCommand } from '../commands/update-avatar.command.js';
 import { UpdateAvatarHandler } from '../commands/update-avatar.handler.js';
 import { AvatarUpdatedEvent } from '../events/avatar-updated.event.js';

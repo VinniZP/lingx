@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { EmailService } from '../../../services/email.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { EmailService } from '../../../shared/infrastructure/email.service.js';
 import { InitiateEmailChangeCommand } from '../commands/initiate-email-change.command.js';
 import { InitiateEmailChangeHandler } from '../commands/initiate-email-change.handler.js';
 import { EmailChangeInitiatedEvent } from '../events/email-change-initiated.event.js';

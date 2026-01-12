@@ -8,7 +8,7 @@ import type { PrismaClient } from '@prisma/client';
 import type { Job, Queue } from 'bullmq';
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { BatchEvaluationService } from '../../src/services/batch-evaluation.service.js';
+import { BatchEvaluationService } from '../../../services/batch-evaluation.service.js';
 
 function createMockPrisma(): PrismaClient {
   return {

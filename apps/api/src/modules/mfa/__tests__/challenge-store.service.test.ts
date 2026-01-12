@@ -2,10 +2,7 @@
  * ChallengeStore Service Unit Tests
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  ChallengeStore,
-  type StoredChallenge,
-} from '../../src/services/challenge-store.service.js';
+import { ChallengeStore, type StoredChallenge } from '../webauthn/challenge-store.service.js';
 
 describe('ChallengeStore', () => {
   let mockRedis: {

@@ -10,7 +10,7 @@ import {
   GLOSSARY_MISSING_TERM_PENALTY,
   GlossaryEvaluator,
   type GlossaryTerm,
-} from '../../../src/modules/quality-estimation/quality/evaluators/glossary-evaluator.js';
+} from '../../quality/evaluators/glossary-evaluator.js';
 
 // Create a mock evaluator for testing (no prisma needed for evaluateWithTerms)
 const evaluator = new GlossaryEvaluator(null as never);

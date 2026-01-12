@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   mapAIIssuesToQualityIssues,
   type AIIssue,
-} from '../../../../src/modules/quality-estimation/quality/scoring/map-ai-issues.js';
+} from '../../../quality/scoring/map-ai-issues.js';
 
 describe('mapAIIssuesToQualityIssues', () => {
   describe('empty input', () => {

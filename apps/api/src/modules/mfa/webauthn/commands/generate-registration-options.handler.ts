@@ -8,9 +8,9 @@ import { generateRegistrationOptions } from '@simplewebauthn/server';
 import { randomBytes } from 'crypto';
 import type { FastifyBaseLogger } from 'fastify';
 import { AppError, UnauthorizedError } from '../../../../plugins/error-handler.js';
-import type { ChallengeStore } from '../../../../services/challenge-store.service.js';
 import type { ICommandHandler } from '../../../../shared/cqrs/index.js';
 import type { WebAuthnConfigService } from '../../shared/webauthn-config.service.js';
+import type { ChallengeStore } from '../challenge-store.service.js';
 import type { WebAuthnRepository } from '../webauthn.repository.js';
 import {
   GenerateRegistrationOptionsCommand,

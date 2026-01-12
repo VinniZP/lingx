@@ -8,7 +8,7 @@ import {
   ICU_VALID_SCORE,
   buildFormatOnlyResult,
   type ICUCheckResult,
-} from '../../../../src/modules/quality-estimation/quality/scoring/format-only-result.js';
+} from '../../../quality/scoring/format-only-result.js';
 
 describe('constants', () => {
   it('should have ICU_VALID_SCORE as 100', () => {

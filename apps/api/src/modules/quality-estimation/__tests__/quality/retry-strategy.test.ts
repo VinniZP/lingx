@@ -13,7 +13,7 @@ import {
   sleep,
   withRetry,
   type RetryConfig,
-} from '../../../src/modules/quality-estimation/quality/ai/retry-strategy.js';
+} from '../../quality/ai/retry-strategy.js';
 
 describe('calculateBackoff', () => {
   it('should return initial delay for first attempt', () => {

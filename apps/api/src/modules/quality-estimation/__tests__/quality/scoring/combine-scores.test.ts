@@ -9,7 +9,7 @@ import {
   SCORE_WEIGHTS,
   calculateCombinedScore,
   type AIScores,
-} from '../../../../src/modules/quality-estimation/quality/scoring/combine-scores.js';
+} from '../../../quality/scoring/combine-scores.js';
 
 describe('SCORE_WEIGHTS', () => {
   it('should have weights that sum to 1.0', () => {

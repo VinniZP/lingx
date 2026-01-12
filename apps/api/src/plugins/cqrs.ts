@@ -1,7 +1,7 @@
 import type { AwilixContainer } from 'awilix';
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import type { ChallengeStore } from '../services/challenge-store.service.js';
+import type { ChallengeStore } from '../modules/mfa/webauthn/challenge-store.service.js';
 import {
   createAppContainer,
   registerModules,
