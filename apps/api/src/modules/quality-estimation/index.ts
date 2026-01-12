@@ -45,9 +45,13 @@ import { QualityEvaluatedEvent } from './events/quality-evaluated.event.js';
 // Event handlers
 import { QualityActivityHandler } from './handlers/quality-activity.handler.js';
 
-// Re-export commands
+// Re-export commands and types
 export { EvaluateQualityCommand } from './commands/evaluate-quality.command.js';
-export { QueueBatchEvaluationCommand } from './commands/queue-batch-evaluation.command.js';
+export {
+  QueueBatchEvaluationCommand,
+  type BatchEvaluationOptions,
+  type BatchEvaluationResult,
+} from './commands/queue-batch-evaluation.command.js';
 export { UpdateQualityConfigCommand } from './commands/update-quality-config.command.js';
 
 // Re-export queries
