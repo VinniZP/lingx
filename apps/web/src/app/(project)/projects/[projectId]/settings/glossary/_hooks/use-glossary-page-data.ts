@@ -1,14 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useGlossaryList, useGlossaryStats, useGlossaryTags } from '@/hooks';
 import { projectApi } from '@/lib/api';
-import {
-  useGlossaryList,
-  useGlossaryStats,
-  useGlossaryTags,
-  useGlossarySyncStatus,
-} from '@/hooks';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 interface UseGlossaryPageDataOptions {
   projectId: string;
@@ -34,20 +29,22 @@ export function useGlossaryPageData({
   });
 
   // List params
-  const listParams = useMemo(() => ({
-    search: search || undefined,
-    sourceLanguage: sourceLanguageFilter !== 'all' ? sourceLanguageFilter : undefined,
-    domain: domainFilter !== 'all' ? domainFilter : undefined,
-    tagId: tagFilter !== 'all' ? tagFilter : undefined,
-    page,
-    limit: 20,
-  }), [search, sourceLanguageFilter, domainFilter, tagFilter, page]);
+  const listParams = useMemo(
+    () => ({
+      search: search || undefined,
+      sourceLanguage: sourceLanguageFilter !== 'all' ? sourceLanguageFilter : undefined,
+      domain: domainFilter !== 'all' ? domainFilter : undefined,
+      tagId: tagFilter !== 'all' ? tagFilter : undefined,
+      page,
+      limit: 20,
+    }),
+    [search, sourceLanguageFilter, domainFilter, tagFilter, page]
+  );
 
   // Glossary queries
   const { data: entriesData, isLoading: isLoadingEntries } = useGlossaryList(projectId, listParams);
   const { data: statsData } = useGlossaryStats(projectId);
   const { data: tagsData } = useGlossaryTags(projectId);
-  const { data: syncStatusData } = useGlossarySyncStatus(projectId);
 
   // Derived data
   const languages = project?.languages || [];
@@ -55,14 +52,10 @@ export function useGlossaryPageData({
   const total = entriesData?.total || 0;
   const stats = statsData;
   const tags = tagsData?.tags || [];
-  const syncStatuses = syncStatusData?.syncs || [];
   const totalPages = Math.ceil(total / 20);
 
   // Get unique domains from stats
-  const domains = useMemo(() =>
-    stats?.topDomains?.map(d => d.domain) || [],
-    [stats]
-  );
+  const domains = useMemo(() => stats?.topDomains?.map((d) => d.domain) || [], [stats]);
 
   return {
     project,
@@ -72,7 +65,6 @@ export function useGlossaryPageData({
     totalPages,
     stats,
     tags,
-    syncStatuses,
     domains,
     isLoadingEntries,
   };

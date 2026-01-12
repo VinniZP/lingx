@@ -10,7 +10,7 @@ import type {
   GlossaryListQuery,
   UpdateGlossaryEntryInput,
 } from '@lingx/shared';
-import { MTProvider, PartOfSpeech, Prisma, type PrismaClient } from '@prisma/client';
+import { PartOfSpeech, Prisma, type PrismaClient } from '@prisma/client';
 
 // ============================================
 // TYPES
@@ -111,22 +111,6 @@ export interface ExportOptions {
   targetLanguages?: string[];
   tagIds?: string[];
   domain?: string;
-}
-
-export interface ProviderSyncEntry {
-  source: string;
-  target: string;
-}
-
-export interface GlossarySyncStatus {
-  provider: MTProvider;
-  sourceLanguage: string;
-  targetLanguage: string;
-  externalGlossaryId: string | null;
-  entriesCount: number;
-  lastSyncedAt: Date;
-  syncStatus: 'synced' | 'pending' | 'error';
-  syncError: string | null;
 }
 
 interface GlossaryMatchRow {
@@ -1001,58 +985,6 @@ export class GlossaryRepository {
     </body>
   </text>
 </tbx>`;
-  }
-
-  // ============================================
-  // MT PROVIDER SYNC
-  // ============================================
-
-  /**
-   * Prepare entries for MT provider sync.
-   */
-  async prepareForProviderSync(
-    projectId: string,
-    sourceLanguage: string,
-    targetLanguage: string
-  ): Promise<ProviderSyncEntry[]> {
-    const entries = await this.prisma.glossaryEntry.findMany({
-      where: {
-        projectId,
-        sourceLanguage,
-        translations: { some: { targetLanguage } },
-      },
-      include: {
-        translations: { where: { targetLanguage } },
-      },
-    });
-
-    return entries
-      .filter((e) => e.translations.length > 0)
-      .map((e) => ({
-        source: e.sourceTerm,
-        target: e.translations[0].targetTerm,
-      }));
-  }
-
-  /**
-   * Get sync status for all providers.
-   */
-  async getSyncStatus(projectId: string): Promise<GlossarySyncStatus[]> {
-    const syncs = await this.prisma.glossaryProviderSync.findMany({
-      where: { projectId },
-      orderBy: { lastSyncedAt: 'desc' },
-    });
-
-    return syncs.map((s) => ({
-      provider: s.provider,
-      sourceLanguage: s.sourceLanguage,
-      targetLanguage: s.targetLanguage,
-      externalGlossaryId: s.externalGlossaryId,
-      entriesCount: s.entriesCount,
-      lastSyncedAt: s.lastSyncedAt,
-      syncStatus: s.syncStatus as 'synced' | 'pending' | 'error',
-      syncError: s.syncError,
-    }));
   }
 
   // ============================================

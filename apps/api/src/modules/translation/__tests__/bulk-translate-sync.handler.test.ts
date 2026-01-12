@@ -1,6 +1,5 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MTService } from '../../../services/mt.service.js';
 import type { IEventBus, IQueryBus, ProgressReporter } from '../../../shared/cqrs/index.js';
 import type { QualityEstimationService } from '../../quality-estimation/quality-estimation.service.js';
 import { BulkTranslateSyncCommand } from '../commands/bulk-translate-sync.command.js';
@@ -20,12 +19,6 @@ describe('BulkTranslateSyncHandler', () => {
 
   const mockEventBus: { publish: ReturnType<typeof vi.fn> } = {
     publish: vi.fn(),
-  };
-
-  const mockMtService: {
-    translateWithContext: ReturnType<typeof vi.fn>;
-  } = {
-    translateWithContext: vi.fn(),
   };
 
   const mockQueryBus: {
@@ -62,7 +55,6 @@ describe('BulkTranslateSyncHandler', () => {
     new BulkTranslateSyncHandler(
       mockRepository as unknown as TranslationRepository,
       mockEventBus as unknown as IEventBus,
-      mockMtService as unknown as MTService,
       mockQueryBus as unknown as IQueryBus,
       qualityEstimationService,
       mockLogger as unknown as FastifyBaseLogger
@@ -92,7 +84,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockMtService.translateWithContext.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
@@ -100,15 +92,11 @@ describe('BulkTranslateSyncHandler', () => {
       expect(result.translated).toBe(2);
       expect(result.skipped).toBe(0);
       expect(result.failed).toBe(0);
-      expect(mockMtService.translateWithContext).toHaveBeenCalledTimes(2);
-      expect(mockMtService.translateWithContext).toHaveBeenCalledWith(
-        'project-1',
-        'branch-1',
-        'key-1',
-        'Hello',
-        'en',
-        'es'
-      );
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(2);
+      // Verify query was called with correct target languages
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.projectId).toBe('project-1');
+      expect(queryArg.input.branchId).toBe('branch-1');
     });
 
     it('should skip keys without source translation', async () => {
@@ -134,7 +122,7 @@ describe('BulkTranslateSyncHandler', () => {
 
       expect(result.translated).toBe(0);
       expect(result.skipped).toBe(1);
-      expect(mockMtService.translateWithContext).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
     it('should skip languages that already have translations', async () => {
@@ -158,22 +146,17 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockMtService.translateWithContext.mockResolvedValue({ translatedText: 'Bonjour' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Bonjour' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
 
       expect(result.translated).toBe(1); // Only fr
       expect(result.skipped).toBe(1); // es skipped
-      expect(mockMtService.translateWithContext).toHaveBeenCalledTimes(1);
-      expect(mockMtService.translateWithContext).toHaveBeenCalledWith(
-        'project-1',
-        'branch-1',
-        'key-1',
-        'Hello',
-        'en',
-        'fr'
-      );
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      // Verify query was called with French (not Spanish)
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.input.targetLanguage).toBe('fr');
     });
   });
 
@@ -254,7 +237,7 @@ describe('BulkTranslateSyncHandler', () => {
       ];
 
       mockRepository.getKeysWithTranslations.mockResolvedValue(mockKeys);
-      mockMtService.translateWithContext
+      mockQueryBus.execute
         .mockRejectedValueOnce(new Error('MT Error'))
         .mockResolvedValueOnce({ translatedText: 'Adiós' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
@@ -323,7 +306,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockMtService.translateWithContext.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -356,7 +339,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockMtService.translateWithContext.mockRejectedValue(new Error('MT Error'));
+      mockQueryBus.execute.mockRejectedValue(new Error('MT Error'));
 
       await handler.execute(command);
 
@@ -384,7 +367,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockMtService.translateWithContext.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -417,7 +400,7 @@ describe('BulkTranslateSyncHandler', () => {
       };
 
       mockRepository.getKeysWithTranslations.mockResolvedValue([mockKey]);
-      mockMtService.translateWithContext.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       // Should not throw

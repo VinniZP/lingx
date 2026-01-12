@@ -24,8 +24,6 @@ import { CreateTagCommand } from './commands/create-tag.command.js';
 import { CreateTagHandler } from './commands/create-tag.handler.js';
 import { DeleteEntryCommand } from './commands/delete-entry.command.js';
 import { DeleteEntryHandler } from './commands/delete-entry.handler.js';
-import { DeleteProviderSyncCommand } from './commands/delete-provider-sync.command.js';
-import { DeleteProviderSyncHandler } from './commands/delete-provider-sync.handler.js';
 import { DeleteTagCommand } from './commands/delete-tag.command.js';
 import { DeleteTagHandler } from './commands/delete-tag.handler.js';
 import { DeleteTranslationCommand } from './commands/delete-translation.command.js';
@@ -34,8 +32,6 @@ import { ImportGlossaryCommand } from './commands/import-glossary.command.js';
 import { ImportGlossaryHandler } from './commands/import-glossary.handler.js';
 import { RecordUsageCommand } from './commands/record-usage.command.js';
 import { RecordUsageHandler } from './commands/record-usage.handler.js';
-import { SyncProviderCommand } from './commands/sync-provider.command.js';
-import { SyncProviderHandler } from './commands/sync-provider.handler.js';
 import { UpdateEntryCommand } from './commands/update-entry.command.js';
 import { UpdateEntryHandler } from './commands/update-entry.handler.js';
 import { UpdateTagCommand } from './commands/update-tag.command.js';
@@ -50,8 +46,6 @@ import { GetEntryHandler } from './queries/get-entry.handler.js';
 import { GetEntryQuery } from './queries/get-entry.query.js';
 import { GetStatsHandler } from './queries/get-stats.handler.js';
 import { GetStatsQuery } from './queries/get-stats.query.js';
-import { GetSyncStatusHandler } from './queries/get-sync-status.handler.js';
-import { GetSyncStatusQuery } from './queries/get-sync-status.query.js';
 import { ListEntriesHandler } from './queries/list-entries.handler.js';
 import { ListEntriesQuery } from './queries/list-entries.query.js';
 import { ListTagsHandler } from './queries/list-tags.handler.js';
@@ -80,7 +74,6 @@ import { GlossaryRepository } from './repositories/glossary.repository.js';
 export { ExportGlossaryQuery, type ExportGlossaryResult } from './queries/export-glossary.query.js';
 export { GetEntryQuery, type GetEntryResult } from './queries/get-entry.query.js';
 export { GetStatsQuery } from './queries/get-stats.query.js';
-export { GetSyncStatusQuery, type GetSyncStatusResult } from './queries/get-sync-status.query.js';
 export { ListEntriesQuery, type ListEntriesResult } from './queries/list-entries.query.js';
 export { ListTagsQuery, type ListTagsResult } from './queries/list-tags.query.js';
 export { SearchInTextQuery, type SearchInTextResult } from './queries/search-in-text.query.js';
@@ -89,10 +82,6 @@ export { SearchInTextQuery, type SearchInTextResult } from './queries/search-in-
 export { CreateEntryCommand } from './commands/create-entry.command.js';
 export { CreateTagCommand } from './commands/create-tag.command.js';
 export { DeleteEntryCommand, type DeleteEntryResult } from './commands/delete-entry.command.js';
-export {
-  DeleteProviderSyncCommand,
-  type DeleteProviderSyncResult,
-} from './commands/delete-provider-sync.command.js';
 export { DeleteTagCommand, type DeleteTagResult } from './commands/delete-tag.command.js';
 export {
   DeleteTranslationCommand,
@@ -100,7 +89,6 @@ export {
 } from './commands/delete-translation.command.js';
 export { ImportGlossaryCommand } from './commands/import-glossary.command.js';
 export { RecordUsageCommand, type RecordUsageResult } from './commands/record-usage.command.js';
-export { SyncProviderCommand, type SyncProviderResult } from './commands/sync-provider.command.js';
 export { UpdateEntryCommand } from './commands/update-entry.command.js';
 export { UpdateTagCommand } from './commands/update-tag.command.js';
 export {
@@ -113,7 +101,6 @@ export type {
   GlossaryEntryWithRelations,
   GlossaryMatch,
   GlossaryStats,
-  GlossarySyncStatus,
   GlossaryTag,
   GlossaryTagWithCount,
   ImportResult,
@@ -130,7 +117,6 @@ const queryRegistrations = [
   defineQueryHandler(ListTagsQuery, ListTagsHandler, 'listTagsHandler'),
   defineQueryHandler(GetStatsQuery, GetStatsHandler, 'getStatsHandler'),
   defineQueryHandler(ExportGlossaryQuery, ExportGlossaryHandler, 'exportGlossaryHandler'),
-  defineQueryHandler(GetSyncStatusQuery, GetSyncStatusHandler, 'getSyncStatusHandler'),
 ];
 
 const commandRegistrations = [
@@ -152,12 +138,6 @@ const commandRegistrations = [
   defineCommandHandler(UpdateTagCommand, UpdateTagHandler, 'updateTagHandler'),
   defineCommandHandler(DeleteTagCommand, DeleteTagHandler, 'deleteTagHandler'),
   defineCommandHandler(ImportGlossaryCommand, ImportGlossaryHandler, 'importGlossaryHandler'),
-  defineCommandHandler(SyncProviderCommand, SyncProviderHandler, 'syncProviderHandler'),
-  defineCommandHandler(
-    DeleteProviderSyncCommand,
-    DeleteProviderSyncHandler,
-    'deleteProviderSyncHandler'
-  ),
 ];
 
 const eventRegistrations = [
@@ -195,7 +175,6 @@ export function registerGlossaryModule(container: AwilixContainer<Cradle>): void
     listTagsHandler: asClass(ListTagsHandler).singleton(),
     getStatsHandler: asClass(GetStatsHandler).singleton(),
     exportGlossaryHandler: asClass(ExportGlossaryHandler).singleton(),
-    getSyncStatusHandler: asClass(GetSyncStatusHandler).singleton(),
 
     // Command handlers
     createEntryHandler: asClass(CreateEntryHandler).singleton(),
@@ -208,8 +187,6 @@ export function registerGlossaryModule(container: AwilixContainer<Cradle>): void
     updateTagHandler: asClass(UpdateTagHandler).singleton(),
     deleteTagHandler: asClass(DeleteTagHandler).singleton(),
     importGlossaryHandler: asClass(ImportGlossaryHandler).singleton(),
-    syncProviderHandler: asClass(SyncProviderHandler).singleton(),
-    deleteProviderSyncHandler: asClass(DeleteProviderSyncHandler).singleton(),
 
     // Event handlers
     glossaryActivityHandler: asClass(GlossaryActivityHandler).singleton(),

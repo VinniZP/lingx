@@ -1,6 +1,11 @@
 import type { FastifyBaseLogger } from 'fastify';
-import type { MTService } from '../../../services/mt.service.js';
-import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import { TranslateTextQuery } from '../../../modules/machine-translation/index.js';
+import type {
+  ICommandHandler,
+  IEventBus,
+  IQueryBus,
+  InferCommandResult,
+} from '../../../shared/cqrs/index.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type { PreTranslateCommand } from './pre-translate.command.js';
@@ -23,7 +28,7 @@ const BATCH_DELAY = 500;
 export class PreTranslateHandler implements ICommandHandler<PreTranslateCommand> {
   constructor(
     private readonly translationRepository: TranslationRepository,
-    private readonly mtService: MTService,
+    private readonly queryBus: IQueryBus,
     private readonly eventBus: IEventBus,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -81,12 +86,13 @@ export class PreTranslateHandler implements ICommandHandler<PreTranslateCommand>
             }
 
             // Translate
-            const result = await this.mtService.translate(
-              projectId,
-              sourceTranslation.value,
-              sourceLanguage,
-              targetLang,
-              provider
+            const result = await this.queryBus.execute(
+              new TranslateTextQuery(projectId, userId, {
+                text: sourceTranslation.value,
+                sourceLanguage,
+                targetLanguage: targetLang,
+                provider,
+              })
             );
 
             // Save translation

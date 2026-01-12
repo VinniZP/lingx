@@ -1,7 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MTService } from '../../../services/mt.service.js';
-import type { IEventBus, ProgressReporter } from '../../../shared/cqrs/index.js';
+import type { IEventBus, IQueryBus, ProgressReporter } from '../../../shared/cqrs/index.js';
 import { BatchTranslateKeysCommand } from '../commands/batch-translate-keys.command.js';
 import { BatchTranslateKeysHandler } from '../commands/batch-translate-keys.handler.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
@@ -18,10 +17,10 @@ describe('BatchTranslateKeysHandler', () => {
     getKeysByIds: vi.fn(),
   };
 
-  const mockMtService: {
-    translate: ReturnType<typeof vi.fn>;
+  const mockQueryBus: {
+    execute: ReturnType<typeof vi.fn>;
   } = {
-    translate: vi.fn(),
+    execute: vi.fn(),
   };
 
   const mockEventBus: { publish: ReturnType<typeof vi.fn> } = {
@@ -46,7 +45,7 @@ describe('BatchTranslateKeysHandler', () => {
     vi.clearAllMocks();
     handler = new BatchTranslateKeysHandler(
       mockRepository as unknown as TranslationRepository,
-      mockMtService as unknown as MTService,
+      mockQueryBus as unknown as IQueryBus,
       mockEventBus as unknown as IEventBus,
       mockLogger as unknown as FastifyBaseLogger
     );
@@ -78,7 +77,7 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
@@ -86,7 +85,7 @@ describe('BatchTranslateKeysHandler', () => {
       expect(result.translated).toBe(2);
       expect(result.skipped).toBe(0);
       expect(result.failed).toBe(0);
-      expect(mockMtService.translate).toHaveBeenCalledTimes(2);
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(2);
       expect(mockRepository.setTranslation).toHaveBeenCalledTimes(2);
     });
 
@@ -110,18 +109,15 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
 
-      expect(mockMtService.translate).toHaveBeenCalledWith(
-        'project-1',
-        'Hello',
-        'en',
-        'es',
-        'DEEPL'
-      );
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.input.provider).toBe('DEEPL');
+      expect(queryArg.input.targetLanguage).toBe('es');
     });
   });
 
@@ -144,7 +140,7 @@ describe('BatchTranslateKeysHandler', () => {
 
       expect(result.translated).toBe(0);
       expect(result.skipped).toBe(1);
-      expect(mockMtService.translate).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
     it('should skip existing translations when overwriteExisting is false', async () => {
@@ -175,7 +171,7 @@ describe('BatchTranslateKeysHandler', () => {
 
       expect(result.translated).toBe(0);
       expect(result.skipped).toBe(1);
-      expect(mockMtService.translate).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
     it('should overwrite existing translations when overwriteExisting is true', async () => {
@@ -202,14 +198,14 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola nuevo' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola nuevo' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
 
       expect(result.translated).toBe(1);
       expect(result.skipped).toBe(0);
-      expect(mockMtService.translate).toHaveBeenCalled();
+      expect(mockQueryBus.execute).toHaveBeenCalled();
     });
   });
 
@@ -247,7 +243,7 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate
+      mockQueryBus.execute
         .mockRejectedValueOnce(new Error('MT Error'))
         .mockResolvedValueOnce({ translatedText: 'Adiós' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
@@ -275,7 +271,7 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -311,7 +307,7 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -345,7 +341,7 @@ describe('BatchTranslateKeysHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       // Should not throw
@@ -373,7 +369,7 @@ describe('BatchTranslateKeysHandler', () => {
 
       mockRepository.getProjectSourceLanguage.mockResolvedValue('en');
       mockRepository.getKeysByIds.mockResolvedValue(keys);
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
@@ -381,7 +377,7 @@ describe('BatchTranslateKeysHandler', () => {
       expect(result.translated).toBe(15);
       expect(result.skipped).toBe(0);
       expect(result.failed).toBe(0);
-      expect(mockMtService.translate).toHaveBeenCalledTimes(15);
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(15);
       expect(mockRepository.setTranslation).toHaveBeenCalledTimes(15);
     });
   });

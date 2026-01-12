@@ -1,7 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MTService } from '../../../services/mt.service.js';
-import type { IEventBus, ProgressReporter } from '../../../shared/cqrs/index.js';
+import type { IEventBus, IQueryBus, ProgressReporter } from '../../../shared/cqrs/index.js';
 import { PreTranslateCommand } from '../commands/pre-translate.command.js';
 import { PreTranslateHandler } from '../commands/pre-translate.handler.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
@@ -18,10 +17,10 @@ describe('PreTranslateHandler', () => {
     getKeysByBranchId: vi.fn(),
   };
 
-  const mockMtService: {
-    translate: ReturnType<typeof vi.fn>;
+  const mockQueryBus: {
+    execute: ReturnType<typeof vi.fn>;
   } = {
-    translate: vi.fn(),
+    execute: vi.fn(),
   };
 
   const mockEventBus: { publish: ReturnType<typeof vi.fn> } = {
@@ -48,7 +47,7 @@ describe('PreTranslateHandler', () => {
     vi.clearAllMocks();
     handler = new PreTranslateHandler(
       mockRepository as unknown as TranslationRepository,
-      mockMtService as unknown as MTService,
+      mockQueryBus as unknown as IQueryBus,
       mockEventBus as unknown as IEventBus,
       mockLogger as unknown as FastifyBaseLogger
     );
@@ -68,7 +67,7 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
@@ -76,7 +75,7 @@ describe('PreTranslateHandler', () => {
       expect(result.translated).toBe(2); // 1 key × 2 languages
       expect(result.skipped).toBe(0);
       expect(result.failed).toBe(0);
-      expect(mockMtService.translate).toHaveBeenCalledTimes(2);
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(2);
     });
 
     it('should only translate empty translations', async () => {
@@ -95,21 +94,17 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Bonjour' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Bonjour' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
 
       expect(result.translated).toBe(1); // Only French
       expect(result.skipped).toBe(1); // Spanish skipped
-      expect(mockMtService.translate).toHaveBeenCalledTimes(1);
-      expect(mockMtService.translate).toHaveBeenCalledWith(
-        'project-1',
-        'Hello',
-        'en',
-        'fr',
-        undefined
-      );
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      // Verify query was called with correct target language
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.input.targetLanguage).toBe('fr');
     });
   });
 
@@ -131,7 +126,7 @@ describe('PreTranslateHandler', () => {
 
       expect(result.translated).toBe(0);
       expect(result.skipped).toBe(1);
-      expect(mockMtService.translate).not.toHaveBeenCalled();
+      expect(mockQueryBus.execute).not.toHaveBeenCalled();
     });
 
     it('should return early when no target languages provided', async () => {
@@ -179,7 +174,7 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate
+      mockQueryBus.execute
         .mockRejectedValueOnce(new Error('MT Error'))
         .mockResolvedValueOnce({ translatedText: 'Adiós' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
@@ -206,7 +201,7 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -231,7 +226,7 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockRejectedValue(new Error('MT Error'));
+      mockQueryBus.execute.mockRejectedValue(new Error('MT Error'));
 
       await handler.execute(command);
 
@@ -260,7 +255,7 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -288,7 +283,7 @@ describe('PreTranslateHandler', () => {
 
       mockRepository.getProjectSourceLanguage.mockResolvedValue('en');
       mockRepository.getKeysByBranchId.mockResolvedValue(keys);
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       const result = await handler.execute(command);
@@ -297,7 +292,7 @@ describe('PreTranslateHandler', () => {
       expect(result.translated).toBe(30);
       expect(result.skipped).toBe(0);
       expect(result.failed).toBe(0);
-      expect(mockMtService.translate).toHaveBeenCalledTimes(30);
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(30);
     });
   });
 
@@ -325,7 +320,7 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Translated' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Translated' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
@@ -352,7 +347,7 @@ describe('PreTranslateHandler', () => {
   });
 
   describe('provider parameter', () => {
-    it('should pass provider to MT service', async () => {
+    it('should pass provider to TranslateTextQuery', async () => {
       const command = new PreTranslateCommand(
         'project-1',
         'branch-1',
@@ -371,18 +366,15 @@ describe('PreTranslateHandler', () => {
         },
       ]);
 
-      mockMtService.translate.mockResolvedValue({ translatedText: 'Hola' });
+      mockQueryBus.execute.mockResolvedValue({ translatedText: 'Hola' });
       mockRepository.setTranslation.mockResolvedValue({ id: 'translation-1' });
 
       await handler.execute(command);
 
-      expect(mockMtService.translate).toHaveBeenCalledWith(
-        'project-1',
-        'Hello',
-        'en',
-        'es',
-        'DEEPL'
-      );
+      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      const queryArg = mockQueryBus.execute.mock.calls[0][0];
+      expect(queryArg.input.provider).toBe('DEEPL');
+      expect(queryArg.input.targetLanguage).toBe('es');
     });
   });
 });

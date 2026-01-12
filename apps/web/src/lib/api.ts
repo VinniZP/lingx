@@ -1430,17 +1430,6 @@ export interface GlossaryStats {
   }>;
 }
 
-export interface GlossarySyncStatus {
-  provider: MTProvider;
-  sourceLanguage: string;
-  targetLanguage: string;
-  externalGlossaryId: string;
-  entriesCount: number;
-  lastSyncedAt: string;
-  syncStatus: 'synced' | 'pending' | 'error';
-  syncError: string | null;
-}
-
 export interface CreateGlossaryEntryInput {
   sourceTerm: string;
   sourceLanguage: string;
@@ -1647,34 +1636,6 @@ export const glossaryApi = {
       return res.blob();
     });
   },
-
-  /** Sync glossary to MT provider */
-  syncToProvider: (
-    projectId: string,
-    data: { provider: MTProvider; sourceLanguage: string; targetLanguage: string }
-  ) =>
-    fetchApi<{ message: string; jobId?: string }>(`/api/projects/${projectId}/glossary/sync`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
-  /** Get sync status for all providers */
-  getSyncStatus: (projectId: string) =>
-    fetchApi<{ syncs: GlossarySyncStatus[] }>(`/api/projects/${projectId}/glossary/sync/status`),
-
-  /** Delete synced glossary from provider */
-  deleteSyncedGlossary: (
-    projectId: string,
-    provider: MTProvider,
-    sourceLanguage: string,
-    targetLanguage: string
-  ) =>
-    fetchApi<{ success: boolean }>(
-      `/api/projects/${projectId}/glossary/sync/${provider}?sourceLanguage=${sourceLanguage}&targetLanguage=${targetLanguage}`,
-      {
-        method: 'DELETE',
-      }
-    ),
 };
 
 // ============================================
