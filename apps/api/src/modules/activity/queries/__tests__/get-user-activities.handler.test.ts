@@ -6,29 +6,29 @@
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { ActivityService } from '../../../../services/activity.service.js';
+import type { ActivityRepository } from '../../activity.repository.js';
 import { GetUserActivitiesHandler } from '../get-user-activities.handler.js';
 import { GetUserActivitiesQuery } from '../get-user-activities.query.js';
 
-interface MockActivityService {
-  log: Mock;
-  getUserActivities: Mock;
-  getProjectActivities: Mock;
-  getActivityChanges: Mock;
+interface MockActivityRepository {
+  findById: Mock;
+  findUserActivities: Mock;
+  findProjectActivities: Mock;
+  findActivityChanges: Mock;
 }
 
-function createMockActivityService(): MockActivityService {
+function createMockActivityRepository(): MockActivityRepository {
   return {
-    log: vi.fn(),
-    getUserActivities: vi.fn(),
-    getProjectActivities: vi.fn(),
-    getActivityChanges: vi.fn(),
+    findById: vi.fn(),
+    findUserActivities: vi.fn(),
+    findProjectActivities: vi.fn(),
+    findActivityChanges: vi.fn(),
   };
 }
 
 describe('GetUserActivitiesHandler', () => {
   let handler: GetUserActivitiesHandler;
-  let mockActivityService: MockActivityService;
+  let mockActivityRepository: MockActivityRepository;
 
   const mockActivitiesResponse = {
     activities: [
@@ -50,14 +50,14 @@ describe('GetUserActivitiesHandler', () => {
   };
 
   beforeEach(() => {
-    mockActivityService = createMockActivityService();
-    handler = new GetUserActivitiesHandler(mockActivityService as unknown as ActivityService);
+    mockActivityRepository = createMockActivityRepository();
+    handler = new GetUserActivitiesHandler(mockActivityRepository as unknown as ActivityRepository);
   });
 
   describe('execute', () => {
     it('should return user activities with default options', async () => {
       // Arrange
-      mockActivityService.getUserActivities.mockResolvedValue(mockActivitiesResponse);
+      mockActivityRepository.findUserActivities.mockResolvedValue(mockActivitiesResponse);
 
       const query = new GetUserActivitiesQuery('user-1');
 
@@ -66,12 +66,12 @@ describe('GetUserActivitiesHandler', () => {
 
       // Assert
       expect(result).toEqual(mockActivitiesResponse);
-      expect(mockActivityService.getUserActivities).toHaveBeenCalledWith('user-1', undefined);
+      expect(mockActivityRepository.findUserActivities).toHaveBeenCalledWith('user-1', undefined);
     });
 
-    it('should pass pagination options to service', async () => {
+    it('should pass pagination options to repository', async () => {
       // Arrange
-      mockActivityService.getUserActivities.mockResolvedValue(mockActivitiesResponse);
+      mockActivityRepository.findUserActivities.mockResolvedValue(mockActivitiesResponse);
 
       const query = new GetUserActivitiesQuery('user-1', { limit: 20, cursor: 'prev-cursor' });
 
@@ -80,7 +80,7 @@ describe('GetUserActivitiesHandler', () => {
 
       // Assert
       expect(result).toEqual(mockActivitiesResponse);
-      expect(mockActivityService.getUserActivities).toHaveBeenCalledWith('user-1', {
+      expect(mockActivityRepository.findUserActivities).toHaveBeenCalledWith('user-1', {
         limit: 20,
         cursor: 'prev-cursor',
       });
@@ -89,7 +89,7 @@ describe('GetUserActivitiesHandler', () => {
     it('should return empty activities when user has no projects', async () => {
       // Arrange
       const emptyResponse = { activities: [] };
-      mockActivityService.getUserActivities.mockResolvedValue(emptyResponse);
+      mockActivityRepository.findUserActivities.mockResolvedValue(emptyResponse);
 
       const query = new GetUserActivitiesQuery('user-without-projects');
 
@@ -98,15 +98,15 @@ describe('GetUserActivitiesHandler', () => {
 
       // Assert
       expect(result).toEqual(emptyResponse);
-      expect(mockActivityService.getUserActivities).toHaveBeenCalledWith(
+      expect(mockActivityRepository.findUserActivities).toHaveBeenCalledWith(
         'user-without-projects',
         undefined
       );
     });
 
-    it('should propagate service errors', async () => {
+    it('should propagate repository errors', async () => {
       // Arrange
-      mockActivityService.getUserActivities.mockRejectedValue(new Error('Database error'));
+      mockActivityRepository.findUserActivities.mockRejectedValue(new Error('Database error'));
 
       const query = new GetUserActivitiesQuery('user-1');
 

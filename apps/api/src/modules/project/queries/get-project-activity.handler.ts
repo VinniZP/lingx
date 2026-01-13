@@ -1,7 +1,7 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { ActivityService } from '../../../services/activity.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
 import type { AccessService } from '../../access/access.service.js';
+import type { ActivityRepository } from '../../activity/activity.repository.js';
 import type { ProjectRepository } from '../project.repository.js';
 import type { GetProjectActivityQuery } from './get-project-activity.query.js';
 
@@ -13,7 +13,7 @@ export class GetProjectActivityHandler implements IQueryHandler<GetProjectActivi
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly accessService: AccessService,
-    private readonly activityService: ActivityService
+    private readonly activityRepository: ActivityRepository
   ) {}
 
   async execute(
@@ -29,7 +29,7 @@ export class GetProjectActivityHandler implements IQueryHandler<GetProjectActivi
     await this.accessService.verifyProjectAccess(query.userId, project.id);
 
     // Get activities
-    return this.activityService.getProjectActivities(project.id, {
+    return this.activityRepository.findProjectActivities(project.id, {
       limit: query.limit,
       cursor: query.cursor,
     });

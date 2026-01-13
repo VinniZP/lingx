@@ -6,26 +6,25 @@
  * to prevent information disclosure.
  */
 
-import type { PrismaClient } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { ActivityService } from '../../../../services/activity.service.js';
 import type { AccessService } from '../../../access/access.service.js';
+import type { ActivityRepository } from '../../activity.repository.js';
 import { GetActivityChangesHandler } from '../get-activity-changes.handler.js';
 import { GetActivityChangesQuery } from '../get-activity-changes.query.js';
 
-interface MockActivityService {
-  log: Mock;
-  getUserActivities: Mock;
-  getProjectActivities: Mock;
-  getActivityChanges: Mock;
+interface MockActivityRepository {
+  findById: Mock;
+  findUserActivities: Mock;
+  findProjectActivities: Mock;
+  findActivityChanges: Mock;
 }
 
-function createMockActivityService(): MockActivityService {
+function createMockActivityRepository(): MockActivityRepository {
   return {
-    log: vi.fn(),
-    getUserActivities: vi.fn(),
-    getProjectActivities: vi.fn(),
-    getActivityChanges: vi.fn(),
+    findById: vi.fn(),
+    findUserActivities: vi.fn(),
+    findProjectActivities: vi.fn(),
+    findActivityChanges: vi.fn(),
   };
 }
 
@@ -45,25 +44,10 @@ function createMockAccessService(): MockAccessService {
   };
 }
 
-interface MockPrisma {
-  activity: {
-    findUnique: Mock;
-  };
-}
-
-function createMockPrisma(): MockPrisma {
-  return {
-    activity: {
-      findUnique: vi.fn(),
-    },
-  };
-}
-
 describe('GetActivityChangesHandler', () => {
   let handler: GetActivityChangesHandler;
-  let mockActivityService: MockActivityService;
+  let mockActivityRepository: MockActivityRepository;
   let mockAccessService: MockAccessService;
-  let mockPrisma: MockPrisma;
 
   const mockChangesResponse = {
     changes: [
@@ -84,24 +68,22 @@ describe('GetActivityChangesHandler', () => {
   };
 
   beforeEach(() => {
-    mockActivityService = createMockActivityService();
+    mockActivityRepository = createMockActivityRepository();
     mockAccessService = createMockAccessService();
-    mockPrisma = createMockPrisma();
     handler = new GetActivityChangesHandler(
-      mockActivityService as unknown as ActivityService,
-      mockAccessService as unknown as AccessService,
-      mockPrisma as unknown as PrismaClient
+      mockActivityRepository as unknown as ActivityRepository,
+      mockAccessService as unknown as AccessService
     );
   });
 
   describe('execute', () => {
     it('should return activity changes when found and authorized', async () => {
       // Arrange
-      mockPrisma.activity.findUnique.mockResolvedValue({
+      mockActivityRepository.findById.mockResolvedValue({
         id: 'activity-1',
         projectId: 'proj-1',
       });
-      mockActivityService.getActivityChanges.mockResolvedValue(mockChangesResponse);
+      mockActivityRepository.findActivityChanges.mockResolvedValue(mockChangesResponse);
 
       const query = new GetActivityChangesQuery('activity-1', 'user-1');
 
@@ -110,21 +92,21 @@ describe('GetActivityChangesHandler', () => {
 
       // Assert
       expect(result).toEqual(mockChangesResponse);
-      expect(mockPrisma.activity.findUnique).toHaveBeenCalledWith({
-        where: { id: 'activity-1' },
-        select: { projectId: true },
-      });
+      expect(mockActivityRepository.findById).toHaveBeenCalledWith('activity-1');
       expect(mockAccessService.verifyProjectAccess).toHaveBeenCalledWith('user-1', 'proj-1');
-      expect(mockActivityService.getActivityChanges).toHaveBeenCalledWith('activity-1', undefined);
+      expect(mockActivityRepository.findActivityChanges).toHaveBeenCalledWith(
+        'activity-1',
+        undefined
+      );
     });
 
-    it('should pass pagination options to service', async () => {
+    it('should pass pagination options to repository', async () => {
       // Arrange
-      mockPrisma.activity.findUnique.mockResolvedValue({
+      mockActivityRepository.findById.mockResolvedValue({
         id: 'activity-1',
         projectId: 'proj-1',
       });
-      mockActivityService.getActivityChanges.mockResolvedValue(mockChangesResponse);
+      mockActivityRepository.findActivityChanges.mockResolvedValue(mockChangesResponse);
 
       const query = new GetActivityChangesQuery('activity-1', 'user-1', {
         limit: 50,
@@ -136,7 +118,7 @@ describe('GetActivityChangesHandler', () => {
 
       // Assert
       expect(result).toEqual(mockChangesResponse);
-      expect(mockActivityService.getActivityChanges).toHaveBeenCalledWith('activity-1', {
+      expect(mockActivityRepository.findActivityChanges).toHaveBeenCalledWith('activity-1', {
         limit: 50,
         cursor: 'prev-cursor',
       });
@@ -144,7 +126,7 @@ describe('GetActivityChangesHandler', () => {
 
     it('should throw NotFoundError when activity not found', async () => {
       // Arrange
-      mockPrisma.activity.findUnique.mockResolvedValue(null);
+      mockActivityRepository.findById.mockResolvedValue(null);
 
       const query = new GetActivityChangesQuery('non-existent', 'user-1');
 
@@ -156,12 +138,12 @@ describe('GetActivityChangesHandler', () => {
       });
 
       expect(mockAccessService.verifyProjectAccess).not.toHaveBeenCalled();
-      expect(mockActivityService.getActivityChanges).not.toHaveBeenCalled();
+      expect(mockActivityRepository.findActivityChanges).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundError when user is not project member (hides resource existence)', async () => {
       // Arrange
-      mockPrisma.activity.findUnique.mockResolvedValue({
+      mockActivityRepository.findById.mockResolvedValue({
         id: 'activity-1',
         projectId: 'proj-1',
       });
@@ -180,12 +162,12 @@ describe('GetActivityChangesHandler', () => {
         statusCode: 404,
       });
 
-      expect(mockActivityService.getActivityChanges).not.toHaveBeenCalled();
+      expect(mockActivityRepository.findActivityChanges).not.toHaveBeenCalled();
     });
 
     it('should propagate non-ForbiddenError errors from AccessService', async () => {
       // Arrange
-      mockPrisma.activity.findUnique.mockResolvedValue({
+      mockActivityRepository.findById.mockResolvedValue({
         id: 'activity-1',
         projectId: 'proj-1',
       });
@@ -197,18 +179,18 @@ describe('GetActivityChangesHandler', () => {
       await expect(handler.execute(query)).rejects.toThrow('Database error');
     });
 
-    it('should propagate errors from ActivityService', async () => {
+    it('should propagate errors from ActivityRepository', async () => {
       // Arrange
-      mockPrisma.activity.findUnique.mockResolvedValue({
+      mockActivityRepository.findById.mockResolvedValue({
         id: 'activity-1',
         projectId: 'proj-1',
       });
-      mockActivityService.getActivityChanges.mockRejectedValue(new Error('Service error'));
+      mockActivityRepository.findActivityChanges.mockRejectedValue(new Error('Repository error'));
 
       const query = new GetActivityChangesQuery('activity-1', 'user-1');
 
       // Act & Assert
-      await expect(handler.execute(query)).rejects.toThrow('Service error');
+      await expect(handler.execute(query)).rejects.toThrow('Repository error');
     });
   });
 });

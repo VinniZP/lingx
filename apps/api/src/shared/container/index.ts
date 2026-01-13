@@ -20,6 +20,7 @@ import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
 import type { AccessRepository } from '../../modules/access/access.repository.js';
 import type { AccessService } from '../../modules/access/access.service.js';
+import type { ActivityRepository } from '../../modules/activity/activity.repository.js';
 import { ApiKeyRepository } from '../../modules/auth/repositories/api-key.repository.js';
 import { AuthRepository } from '../../modules/auth/repositories/auth.repository.js';
 import type { DashboardRepository } from '../../modules/dashboard/dashboard.repository.js';
@@ -58,6 +59,9 @@ export interface Cradle {
   // Access module
   accessRepository: AccessRepository;
   accessService: AccessService;
+
+  // Activity module
+  activityRepository: ActivityRepository;
   activityService: ActivityService;
   emailService: EmailService;
   fileStorage: FileStorageService;
