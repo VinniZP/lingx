@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { KeyDeletedEvent } from '../events/key-deleted.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type { DeleteKeyCommand } from './delete-key.command.js';

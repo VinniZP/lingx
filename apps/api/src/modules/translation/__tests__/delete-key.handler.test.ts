@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { DeleteKeyCommand } from '../commands/delete-key.command.js';
 import { DeleteKeyHandler } from '../commands/delete-key.handler.js';
 import { KeyDeletedEvent } from '../events/key-deleted.event.js';

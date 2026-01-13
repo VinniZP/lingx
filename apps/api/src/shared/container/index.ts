@@ -18,6 +18,8 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
+import type { AccessRepository } from '../../modules/access/access.repository.js';
+import type { AccessService } from '../../modules/access/access.service.js';
 import { ApiKeyRepository } from '../../modules/auth/repositories/api-key.repository.js';
 import { AuthRepository } from '../../modules/auth/repositories/auth.repository.js';
 import type { DashboardRepository } from '../../modules/dashboard/dashboard.repository.js';
@@ -38,7 +40,6 @@ import { SessionCacheService } from '../../modules/security/session-cache.servic
 import { SessionRepository } from '../../modules/security/session.repository.js';
 import { UserRepository } from '../../modules/security/user.repository.js';
 import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
-import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 import { EmailService } from '../infrastructure/email.service.js';
@@ -54,7 +55,8 @@ export interface Cradle {
   logger: FastifyBaseLogger;
   redis: Redis;
 
-  // Services
+  // Access module
+  accessRepository: AccessRepository;
   accessService: AccessService;
   activityService: ActivityService;
   emailService: EmailService;
@@ -120,9 +122,8 @@ export function createAppContainer(
     redis: asValue(redis),
   });
 
-  // Register services
+  // Register services (accessService registered by access module)
   container.register({
-    accessService: asClass(AccessService).singleton(),
     activityService: asClass(ActivityService).singleton(),
     emailService: asClass(EmailService).singleton(),
     fileStorage: asClass(FileStorageService).singleton(),

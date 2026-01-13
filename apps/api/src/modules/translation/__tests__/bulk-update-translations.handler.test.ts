@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BulkUpdateTranslationsCommand } from '../commands/bulk-update-translations.command.js';
 import { BulkUpdateTranslationsHandler } from '../commands/bulk-update-translations.handler.js';
 import { TranslationsImportedEvent } from '../events/translations-imported.event.js';

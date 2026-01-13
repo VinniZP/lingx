@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppError, ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { DeleteEntryCommand } from '../commands/delete-entry.command.js';
 import { DeleteEntryHandler } from '../commands/delete-entry.handler.js';
 import { GlossaryEntryDeletedEvent } from '../events/glossary-entry-deleted.event.js';

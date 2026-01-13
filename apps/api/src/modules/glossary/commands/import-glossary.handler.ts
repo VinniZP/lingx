@@ -1,6 +1,6 @@
 import { AppError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { GlossaryImportedEvent } from '../events/glossary-imported.event.js';
 import type { GlossaryRepository, ImportResult } from '../repositories/glossary.repository.js';
 import type { ImportGlossaryCommand } from './import-glossary.command.js';

@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { KeyCreatedEvent } from '../events/key-created.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type { CreateKeyCommand } from './create-key.command.js';

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppError, ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { QueuePreTranslateCommand } from '../commands/queue-pre-translate.command.js';
 import { QueuePreTranslateHandler } from '../commands/queue-pre-translate.handler.js';
 import type { MachineTranslationRepository } from '../repositories/machine-translation.repository.js';

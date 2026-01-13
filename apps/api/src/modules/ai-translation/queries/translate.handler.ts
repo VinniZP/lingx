@@ -1,8 +1,8 @@
 import { generateText } from 'ai';
 import type { FastifyBaseLogger } from 'fastify';
 import { BadRequestError, NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { AITranslationRepository } from '../repositories/ai-translation.repository.js';
 import type { AIProviderService } from '../services/ai-provider.service.js';
 import type { TranslateQuery } from './translate.query.js';

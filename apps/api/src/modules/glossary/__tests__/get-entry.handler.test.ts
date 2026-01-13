@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppError, ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { GetEntryHandler } from '../queries/get-entry.handler.js';
 import { GetEntryQuery } from '../queries/get-entry.query.js';
 import type { GlossaryRepository } from '../repositories/glossary.repository.js';

@@ -1,7 +1,7 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ActivityService } from '../../../services/activity.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { ProjectRepository } from '../project.repository.js';
 import type { GetProjectActivityQuery } from './get-project-activity.query.js';
 

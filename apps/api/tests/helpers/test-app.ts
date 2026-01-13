@@ -4,6 +4,7 @@
  * Provides utilities for setting up and tearing down the Fastify
  * application for integration testing with a test database.
  */
+import bcrypt from 'bcrypt';
 import { FastifyInstance } from 'fastify';
 import { buildApp } from '../../src/app.js';
 import { prisma, resetTestDatabase } from '../../src/lib/prisma.js';
@@ -286,12 +287,13 @@ export async function createTestUser(
     email: 'test@example.com',
   }
 ): Promise<TestUser> {
-  const { hashPassword } = await import('../../src/services/auth.service.js');
+  const BCRYPT_ROUNDS = 12;
+  const hashedPassword = await bcrypt.hash(data.password || 'TestPass123!', BCRYPT_ROUNDS);
 
   const user = await prisma.user.create({
     data: {
       email: data.email,
-      password: await hashPassword(data.password || 'TestPass123!'),
+      password: hashedPassword,
       name: data.name ?? null,
       role: data.role || 'user',
     },

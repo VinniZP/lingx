@@ -1,8 +1,8 @@
 import type { PrismaClient } from '@prisma/client';
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ActivityService } from '../../../services/activity.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { GetActivityChangesQuery } from './get-activity-changes.query.js';
 
 /**

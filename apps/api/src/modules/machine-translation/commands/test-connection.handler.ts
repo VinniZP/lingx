@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { MachineTranslationRepository } from '../repositories/machine-translation.repository.js';
 import type { TestConnectionCommand } from './test-connection.command.js';
 

@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { ProjectRepository, ProjectWithLanguages } from '../project.repository.js';
 import { GetProjectHandler } from '../queries/get-project.handler.js';
 import { GetProjectQuery } from '../queries/get-project.query.js';

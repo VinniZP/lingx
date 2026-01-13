@@ -1,8 +1,8 @@
 import { glossaryQueue } from '../../../lib/queues.js';
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, InferCommandResult } from '../../../shared/cqrs/index.js';
 import type { GlossaryJobData } from '../../../workers/glossary.worker.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { GlossaryRepository } from '../repositories/glossary.repository.js';
 import type { RecordUsageCommand } from './record-usage.command.js';
 

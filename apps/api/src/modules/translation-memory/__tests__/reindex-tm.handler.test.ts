@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ReindexTMCommand } from '../commands/reindex-tm.command.js';
 import { ReindexTMHandler } from '../commands/reindex-tm.handler.js';
 

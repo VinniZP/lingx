@@ -1,8 +1,8 @@
 import { translationMemoryQueue } from '../../../lib/queues.js';
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, InferCommandResult } from '../../../shared/cqrs/index.js';
 import type { TMJobData } from '../../../workers/translation-memory.worker.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { TranslationMemoryRepository } from '../repositories/translation-memory.repository.js';
 import type { RecordTMUsageCommand } from './record-tm-usage.command.js';
 

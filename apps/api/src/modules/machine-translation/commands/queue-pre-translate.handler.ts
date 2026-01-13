@@ -1,8 +1,8 @@
 import { mtBatchQueue } from '../../../lib/queues.js';
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, InferCommandResult } from '../../../shared/cqrs/index.js';
 import type { MTJobData } from '../../../workers/mt-batch.worker.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { MachineTranslationRepository } from '../repositories/machine-translation.repository.js';
 import type { QueuePreTranslateCommand } from './queue-pre-translate.command.js';
 

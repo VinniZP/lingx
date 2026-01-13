@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { GlossaryTranslationDeletedEvent } from '../events/glossary-translation-deleted.event.js';
 import type { GlossaryRepository } from '../repositories/glossary.repository.js';
 import type { DeleteTranslationCommand } from './delete-translation.command.js';

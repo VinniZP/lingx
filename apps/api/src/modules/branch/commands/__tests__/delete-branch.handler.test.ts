@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../../plugins/error-handler.js';
-import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { BranchRepository, BranchWithSpace } from '../../repositories/branch.repository.js';
 import { DeleteBranchCommand } from '../delete-branch.command.js';
 import { DeleteBranchHandler } from '../delete-branch.handler.js';

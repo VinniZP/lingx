@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { EnvironmentRepository } from '../environment.repository.js';
 import { EnvironmentUpdatedEvent } from '../events/environment-updated.event.js';
 import type { UpdateEnvironmentCommand } from './update-environment.command.js';

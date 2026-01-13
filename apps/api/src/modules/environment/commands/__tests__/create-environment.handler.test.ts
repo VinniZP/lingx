@@ -10,8 +10,8 @@ import { CreateEnvironmentCommand } from '../create-environment.command.js';
 import { CreateEnvironmentHandler } from '../create-environment.handler.js';
 // Error classes not imported - using toMatchObject for assertions
 import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
-import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 
 interface MockRepository {

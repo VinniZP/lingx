@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { UpdateProjectCommand } from '../commands/update-project.command.js';
 import { UpdateProjectHandler } from '../commands/update-project.handler.js';
 import { ProjectUpdatedEvent } from '../events/project-updated.event.js';

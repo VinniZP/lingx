@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { TranslateHandler } from '../queries/translate.handler.js';
 import { TranslateQuery } from '../queries/translate.query.js';
 import type { AITranslationRepository } from '../repositories/ai-translation.repository.js';

@@ -8,8 +8,8 @@
 
 import type { PrismaClient } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { AccessService } from '../../../../services/access.service.js';
 import type { ActivityService } from '../../../../services/activity.service.js';
+import type { AccessService } from '../../../access/access.service.js';
 import { GetActivityChangesHandler } from '../get-activity-changes.handler.js';
 import { GetActivityChangesQuery } from '../get-activity-changes.query.js';
 

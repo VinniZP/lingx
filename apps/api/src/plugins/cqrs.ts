@@ -11,6 +11,7 @@ import {
 import type { CommandBus, EventBus, QueryBus } from '../shared/cqrs/index.js';
 
 // Import module registrars
+import { registerAccessModule } from '../modules/access/index.js';
 import { registerActivityModule } from '../modules/activity/index.js';
 import { registerAITranslationModule } from '../modules/ai-translation/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
@@ -35,6 +36,7 @@ import { registerTranslationModule } from '../modules/translation/index.js';
  * Add new modules here as they are created.
  */
 const domainModules: ModuleRegistrar[] = [
+  registerAccessModule,
   registerHealthModule,
   registerEnvironmentModule,
   registerAuthModule,

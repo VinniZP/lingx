@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { TranslationsImportedEvent } from '../events/translations-imported.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type { BulkUpdateTranslationsCommand } from './bulk-update-translations.command.js';

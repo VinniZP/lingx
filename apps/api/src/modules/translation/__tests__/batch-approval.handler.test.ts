@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BatchApprovalCommand } from '../commands/batch-approval.command.js';
 import { BatchApprovalHandler } from '../commands/batch-approval.handler.js';
 import { TranslationsBatchApprovedEvent } from '../events/translation-approved.event.js';

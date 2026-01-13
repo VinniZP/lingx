@@ -2,13 +2,13 @@ import type { FastifyBaseLogger } from 'fastify';
 import { mtBatchQueue } from '../../../lib/queues.js';
 import { TranslateQuery } from '../../../modules/ai-translation/index.js';
 import { TranslateWithContextQuery } from '../../../modules/machine-translation/index.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type {
   ICommandHandler,
   IEventBus,
   IQueryBus,
   InferCommandResult,
 } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { KeyTranslationsUpdatedEvent } from '../events/translation-updated.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type { BulkTranslateCommand, BulkTranslateSyncResult } from './bulk-translate.command.js';

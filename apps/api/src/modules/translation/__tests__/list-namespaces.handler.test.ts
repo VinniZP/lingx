@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ListNamespacesHandler } from '../queries/list-namespaces.handler.js';
 import { ListNamespacesQuery } from '../queries/list-namespaces.query.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';

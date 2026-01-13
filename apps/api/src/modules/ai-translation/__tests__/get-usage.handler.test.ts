@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { GetUsageHandler } from '../queries/get-usage.handler.js';
 import { GetUsageQuery } from '../queries/get-usage.query.js';
 import type { AITranslationRepository } from '../repositories/ai-translation.repository.js';

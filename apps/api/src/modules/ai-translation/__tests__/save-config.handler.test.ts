@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { SaveConfigCommand } from '../commands/save-config.command.js';
 import { SaveConfigHandler } from '../commands/save-config.handler.js';
 import { ConfigSavedEvent } from '../events/config-saved.event.js';

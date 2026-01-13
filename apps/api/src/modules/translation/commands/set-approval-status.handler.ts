@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { TranslationApprovedEvent } from '../events/translation-approved.event.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';
 import type { SetApprovalStatusCommand } from './set-approval-status.command.js';

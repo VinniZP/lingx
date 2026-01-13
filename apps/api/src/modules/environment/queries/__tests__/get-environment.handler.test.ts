@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { AccessService } from '../../../../services/access.service.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 import { GetEnvironmentHandler } from '../get-environment.handler.js';
 import { GetEnvironmentQuery } from '../get-environment.query.js';

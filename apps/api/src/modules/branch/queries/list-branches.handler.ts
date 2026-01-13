@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { BranchRepository } from '../repositories/branch.repository.js';
 import type { ListBranchesQuery } from './list-branches.query.js';
 

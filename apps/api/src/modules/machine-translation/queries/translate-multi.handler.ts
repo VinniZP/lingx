@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { BadRequestError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { MachineTranslationRepository } from '../repositories/machine-translation.repository.js';
 import type {
   TranslateMultiError,

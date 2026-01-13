@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { QualityEstimationService } from '../quality-estimation.service.js';
 import { GetBranchSummaryHandler } from '../queries/get-branch-summary.handler.js';
 import { GetBranchSummaryQuery } from '../queries/get-branch-summary.query.js';

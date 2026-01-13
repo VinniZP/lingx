@@ -1,8 +1,8 @@
 import type { RelationshipType } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { AnalyzeRelationshipsCommand } from '../commands/analyze-relationships.command.js';
 import { AnalyzeRelationshipsHandler } from '../commands/analyze-relationships.handler.js';
 import { RelationshipsAnalyzedEvent } from '../events/relationships-analyzed.event.js';

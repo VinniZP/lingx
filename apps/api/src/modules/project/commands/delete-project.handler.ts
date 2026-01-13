@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ProjectDeletedEvent } from '../events/project-deleted.event.js';
 import type { ProjectRepository } from '../project.repository.js';
 import type { DeleteProjectCommand } from './delete-project.command.js';
