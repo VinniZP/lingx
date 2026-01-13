@@ -1,10 +1,12 @@
 /**
  * GetCurrentUserHandler Unit Tests
+ *
+ * Tests that the handler correctly retrieves user via repository.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AuthService } from '../../../services/auth.service.js';
 import { GetCurrentUserHandler } from '../queries/get-current-user.handler.js';
 import { GetCurrentUserQuery } from '../queries/get-current-user.query.js';
+import type { AuthRepository } from '../repositories/auth.repository.js';
 
 describe('GetCurrentUserHandler', () => {
   const mockUser = {
@@ -20,17 +22,18 @@ describe('GetCurrentUserHandler', () => {
     totpLockedUntil: null,
   };
 
-  let mockAuthService: { getUserById: ReturnType<typeof vi.fn> };
+  let mockAuthRepository: { findById: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    mockAuthService = { getUserById: vi.fn() };
+    mockAuthRepository = { findById: vi.fn() };
   });
 
-  const createHandler = () => new GetCurrentUserHandler(mockAuthService as unknown as AuthService);
+  const createHandler = () =>
+    new GetCurrentUserHandler(mockAuthRepository as unknown as AuthRepository);
 
   it('should return user by ID', async () => {
     // Arrange
-    mockAuthService.getUserById.mockResolvedValue(mockUser);
+    mockAuthRepository.findById.mockResolvedValue(mockUser);
 
     const handler = createHandler();
 
@@ -38,13 +41,13 @@ describe('GetCurrentUserHandler', () => {
     const result = await handler.execute(new GetCurrentUserQuery('user-123'));
 
     // Assert
-    expect(mockAuthService.getUserById).toHaveBeenCalledWith('user-123');
+    expect(mockAuthRepository.findById).toHaveBeenCalledWith('user-123');
     expect(result).toEqual(mockUser);
   });
 
   it('should throw NotFoundError when user not found', async () => {
     // Arrange
-    mockAuthService.getUserById.mockResolvedValue(null);
+    mockAuthRepository.findById.mockResolvedValue(null);
 
     const handler = createHandler();
 
@@ -55,9 +58,9 @@ describe('GetCurrentUserHandler', () => {
     });
   });
 
-  it('should propagate errors from authService', async () => {
+  it('should propagate errors from repository', async () => {
     // Arrange
-    mockAuthService.getUserById.mockRejectedValue(new Error('Database unavailable'));
+    mockAuthRepository.findById.mockRejectedValue(new Error('Database unavailable'));
 
     const handler = createHandler();
 

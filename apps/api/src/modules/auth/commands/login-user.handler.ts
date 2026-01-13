@@ -1,4 +1,5 @@
-import type { AuthService } from '../../../services/auth.service.js';
+import bcrypt from 'bcrypt';
+import { UnauthorizedError } from '../../../plugins/error-handler.js';
 import type {
   ICommandBus,
   ICommandHandler,
@@ -8,27 +9,41 @@ import type {
 import { CreateSessionCommand } from '../../security/commands/create-session.command.js';
 import { extractRequestMetadata } from '../../security/utils.js';
 import { UserLoggedInEvent } from '../events/user-logged-in.event.js';
+import type { AuthRepository } from '../repositories/auth.repository.js';
 import type { LoginUserCommand, TwoFactorRequiredResult } from './login-user.command.js';
 
 /**
  * Handler for LoginUserCommand.
- * Authenticates user and either creates session or requests 2FA.
+ * Orchestrates credential verification, 2FA check, session creation, and event publication.
  *
  * Note: JWT token generation is handled by the route layer (HTTP-specific).
  */
 export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
   constructor(
-    private readonly authService: AuthService,
+    private readonly authRepository: AuthRepository,
     private readonly commandBus: ICommandBus,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: LoginUserCommand): Promise<InferCommandResult<LoginUserCommand>> {
-    // Verify credentials via AuthService
-    const user = await this.authService.login({
-      email: command.email,
-      password: command.password,
-    });
+    // Find user by email
+    const user = await this.authRepository.findByEmailWithPassword(command.email);
+
+    if (!user) {
+      throw new UnauthorizedError('Invalid email or password');
+    }
+
+    // Check if user is passwordless
+    if (!user.password) {
+      throw new UnauthorizedError('Please sign in with your passkey');
+    }
+
+    // Verify password
+    const validPassword = await bcrypt.compare(command.password, user.password);
+
+    if (!validPassword) {
+      throw new UnauthorizedError('Invalid email or password');
+    }
 
     // Check if 2FA is required
     if (user.totpEnabled && !command.isDeviceTrusted) {
@@ -48,8 +63,11 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
     // Publish event for side effects (audit log, notifications, etc.)
     await this.eventBus.publish(new UserLoggedInEvent(user.id, session.id));
 
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+
     return {
-      user,
+      user: userWithoutPassword,
       sessionId: session.id,
     };
   }

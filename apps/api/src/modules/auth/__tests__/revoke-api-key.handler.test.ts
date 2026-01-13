@@ -1,40 +1,68 @@
 /**
  * RevokeApiKeyHandler Unit Tests
+ *
+ * Tests that the handler correctly orchestrates:
+ * - Ownership verification via repository
+ * - API key revocation via repository
+ * - Event publication
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { ApiKeyService } from '../../../services/api-key.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { RevokeApiKeyCommand } from '../commands/revoke-api-key.command.js';
 import { RevokeApiKeyHandler } from '../commands/revoke-api-key.handler.js';
 import { ApiKeyRevokedEvent } from '../events/api-key-revoked.event.js';
+import type { ApiKeyRepository } from '../repositories/api-key.repository.js';
 
 describe('RevokeApiKeyHandler', () => {
-  let mockApiKeyService: { revoke: ReturnType<typeof vi.fn> };
+  const mockApiKey = {
+    id: 'apikey-123',
+    keyPrefix: 'lf_abc123',
+    keyHash: 'hashed_key',
+    name: 'Test API Key',
+    userId: 'user-123',
+    createdAt: new Date(),
+    revokedAt: null,
+    lastUsedAt: null,
+    expiresAt: null,
+  };
+
+  let mockApiKeyRepository: {
+    findByIdAndUserId: ReturnType<typeof vi.fn>;
+    revoke: ReturnType<typeof vi.fn>;
+  };
   let mockEventBus: { publish: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    mockApiKeyService = { revoke: vi.fn() };
+    mockApiKeyRepository = {
+      findByIdAndUserId: vi.fn(),
+      revoke: vi.fn(),
+    };
     mockEventBus = { publish: vi.fn() };
   });
 
   const createHandler = () =>
     new RevokeApiKeyHandler(
-      mockApiKeyService as unknown as ApiKeyService,
+      mockApiKeyRepository as unknown as ApiKeyRepository,
       mockEventBus as unknown as IEventBus
     );
 
-  it('should revoke API key and publish ApiKeyRevokedEvent', async () => {
+  it('should verify ownership, revoke API key, and publish event', async () => {
     // Arrange
-    mockApiKeyService.revoke.mockResolvedValue(undefined);
+    mockApiKeyRepository.findByIdAndUserId.mockResolvedValue(mockApiKey);
+    mockApiKeyRepository.revoke.mockResolvedValue(undefined);
 
     const handler = createHandler();
 
     // Act
     await handler.execute(new RevokeApiKeyCommand('apikey-123', 'user-123'));
 
-    // Assert
-    expect(mockApiKeyService.revoke).toHaveBeenCalledWith('apikey-123', 'user-123');
+    // Assert - ownership verified
+    expect(mockApiKeyRepository.findByIdAndUserId).toHaveBeenCalledWith('apikey-123', 'user-123');
+
+    // Assert - revoked
+    expect(mockApiKeyRepository.revoke).toHaveBeenCalledWith('apikey-123');
+
+    // Assert - event published
     expect(mockEventBus.publish).toHaveBeenCalledTimes(1);
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(ApiKeyRevokedEvent));
 
@@ -43,9 +71,9 @@ describe('RevokeApiKeyHandler', () => {
     expect(publishedEvent.apiKeyId).toBe('apikey-123');
   });
 
-  it('should propagate NotFoundError for invalid API key', async () => {
+  it('should throw NotFoundError when API key not found', async () => {
     // Arrange
-    mockApiKeyService.revoke.mockRejectedValue(new NotFoundError('API key'));
+    mockApiKeyRepository.findByIdAndUserId.mockResolvedValue(null);
 
     const handler = createHandler();
 
@@ -57,6 +85,27 @@ describe('RevokeApiKeyHandler', () => {
       statusCode: 404,
     });
 
+    // Should NOT revoke or publish event
+    expect(mockApiKeyRepository.revoke).not.toHaveBeenCalled();
+    expect(mockEventBus.publish).not.toHaveBeenCalled();
+  });
+
+  it('should throw NotFoundError when API key belongs to different user', async () => {
+    // Arrange - findByIdAndUserId returns null because userId doesn't match
+    mockApiKeyRepository.findByIdAndUserId.mockResolvedValue(null);
+
+    const handler = createHandler();
+
+    // Act & Assert
+    await expect(
+      handler.execute(new RevokeApiKeyCommand('apikey-123', 'different-user'))
+    ).rejects.toMatchObject({
+      message: 'API key not found',
+      statusCode: 404,
+    });
+
+    // Should NOT revoke or publish event
+    expect(mockApiKeyRepository.revoke).not.toHaveBeenCalled();
     expect(mockEventBus.publish).not.toHaveBeenCalled();
   });
 });

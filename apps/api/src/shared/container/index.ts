@@ -18,6 +18,8 @@ import type { FastifyBaseLogger } from 'fastify';
 import type { Redis } from 'ioredis';
 import { mtBatchQueue } from '../../lib/queues.js';
 import { redis } from '../../lib/redis.js';
+import { ApiKeyRepository } from '../../modules/auth/repositories/api-key.repository.js';
+import { AuthRepository } from '../../modules/auth/repositories/auth.repository.js';
 import type { DashboardRepository } from '../../modules/dashboard/dashboard.repository.js';
 import { KeyContextService } from '../../modules/key-context/key-context.service.js';
 import { KeyContextRepository } from '../../modules/key-context/repositories/key-context.repository.js';
@@ -38,8 +40,6 @@ import { UserRepository } from '../../modules/security/user.repository.js';
 import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { AccessService } from '../../services/access.service.js';
 import { ActivityService } from '../../services/activity.service.js';
-import { ApiKeyService } from '../../services/api-key.service.js';
-import { AuthService } from '../../services/auth.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
 import { EmailService } from '../infrastructure/email.service.js';
 import { FileStorageService } from '../infrastructure/file-storage.service.js';
@@ -57,13 +57,15 @@ export interface Cradle {
   // Services
   accessService: AccessService;
   activityService: ActivityService;
-  authService: AuthService;
-  apiKeyService: ApiKeyService;
   emailService: EmailService;
   fileStorage: FileStorageService;
   keyContextService: KeyContextService;
   qualityEstimationService: QualityEstimationService;
   challengeStore: ChallengeStore;
+
+  // Auth module repositories
+  authRepository: AuthRepository;
+  apiKeyRepository: ApiKeyRepository;
 
   // Security module dependencies
   sessionRepository: SessionRepository;
@@ -122,11 +124,13 @@ export function createAppContainer(
   container.register({
     accessService: asClass(AccessService).singleton(),
     activityService: asClass(ActivityService).singleton(),
-    authService: asClass(AuthService).singleton(),
-    apiKeyService: asClass(ApiKeyService).singleton(),
     emailService: asClass(EmailService).singleton(),
     fileStorage: asClass(FileStorageService).singleton(),
     keyContextService: asClass(KeyContextService).singleton(),
+
+    // Auth module repositories
+    authRepository: asClass(AuthRepository).singleton(),
+    apiKeyRepository: asClass(ApiKeyRepository).singleton(),
 
     // Security module dependencies
     sessionRepository: asClass(SessionRepository).singleton(),
