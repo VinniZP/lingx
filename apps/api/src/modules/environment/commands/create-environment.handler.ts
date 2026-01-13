@@ -4,8 +4,8 @@ import {
   NotFoundError,
   ValidationError,
 } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { EnvironmentRepository } from '../environment.repository.js';
 import { EnvironmentCreatedEvent } from '../events/environment-created.event.js';
 import type { CreateEnvironmentCommand } from './create-environment.command.js';

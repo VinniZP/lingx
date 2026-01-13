@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { DeleteConfigCommand } from '../commands/delete-config.command.js';
 import { DeleteConfigHandler } from '../commands/delete-config.handler.js';
 import { ConfigDeletedEvent } from '../events/config-deleted.event.js';

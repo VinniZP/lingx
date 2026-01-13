@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { KeyContextService } from '../../key-context/key-context.service.js';
 import { TranslateWithContextHandler } from '../queries/translate-with-context.handler.js';
 import { TranslateWithContextQuery } from '../queries/translate-with-context.query.js';

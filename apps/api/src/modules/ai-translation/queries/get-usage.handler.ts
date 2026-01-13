@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { AITranslationRepository } from '../repositories/ai-translation.repository.js';
 import type { GetUsageQuery } from './get-usage.query.js';
 

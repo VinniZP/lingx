@@ -1,6 +1,6 @@
 import { NotFoundError, ValidationError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ProjectUpdatedEvent } from '../events/project-updated.event.js';
 import type { ProjectRepository } from '../project.repository.js';
 import type { UpdateProjectCommand } from './update-project.command.js';

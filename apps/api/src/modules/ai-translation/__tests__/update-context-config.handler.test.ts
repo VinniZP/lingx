@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { UpdateContextConfigCommand } from '../commands/update-context-config.command.js';
 import { UpdateContextConfigHandler } from '../commands/update-context-config.handler.js';
 import { ContextConfigUpdatedEvent } from '../events/context-config-updated.event.js';

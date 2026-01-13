@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { KeyContextUpdatedEvent } from '../events/key-context-updated.event.js';
 import type { KeyContextService } from '../key-context.service.js';
 import type { BulkUpdateKeyContextCommand } from './bulk-update-key-context.command.js';

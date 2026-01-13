@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ContextConfigUpdatedEvent } from '../events/context-config-updated.event.js';
 import type { AITranslationRepository } from '../repositories/ai-translation.repository.js';
 import type { UpdateContextConfigCommand } from './update-context-config.command.js';

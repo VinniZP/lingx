@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BranchesMergedEvent } from '../events/branches-merged.event.js';
 import type { BranchRepository } from '../repositories/branch.repository.js';
 import type { MergeExecutor } from '../services/merge-executor.js';

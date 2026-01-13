@@ -9,8 +9,8 @@ import { BranchSwitchedEvent } from '../../events/branch-switched.event.js';
 import { SwitchBranchCommand } from '../switch-branch.command.js';
 import { SwitchBranchHandler } from '../switch-branch.handler.js';
 // Error classes not imported - using toMatchObject for assertions
-import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 
 interface MockRepository {

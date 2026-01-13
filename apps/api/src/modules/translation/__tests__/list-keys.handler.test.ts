@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ListKeysHandler } from '../queries/list-keys.handler.js';
 import { ListKeysQuery } from '../queries/list-keys.query.js';
 import type {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { UpdateQualityConfigCommand } from '../commands/update-quality-config.command.js';
 import { UpdateQualityConfigHandler } from '../commands/update-quality-config.handler.js';
 import { QualityConfigUpdatedEvent } from '../events/quality-config-updated.event.js';

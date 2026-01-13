@@ -9,8 +9,8 @@ import { EnvironmentUpdatedEvent } from '../../events/environment-updated.event.
 import { UpdateEnvironmentCommand } from '../update-environment.command.js';
 import { UpdateEnvironmentHandler } from '../update-environment.handler.js';
 // Error classes not imported - using toMatchObject for assertions
-import type { AccessService } from '../../../../services/access.service.js';
 import type { IEventBus } from '../../../../shared/cqrs/index.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { EnvironmentRepository } from '../../environment.repository.js';
 
 interface MockRepository {

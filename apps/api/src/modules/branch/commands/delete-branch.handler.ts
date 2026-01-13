@@ -1,6 +1,6 @@
 import { NotFoundError, ValidationError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BranchDeletedEvent } from '../events/branch-deleted.event.js';
 import type { BranchRepository } from '../repositories/branch.repository.js';
 import type { DeleteBranchCommand } from './delete-branch.command.js';

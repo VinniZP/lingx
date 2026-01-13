@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../../plugins/error-handler.js';
-import type { AccessService } from '../../../../services/access.service.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { BranchRepository } from '../../repositories/branch.repository.js';
 import type { BranchDiffResult, DiffCalculator } from '../../services/diff-calculator.js';
 import { ComputeDiffHandler } from '../compute-diff.handler.js';

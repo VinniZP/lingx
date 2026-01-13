@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../../plugins/error-handler.js';
-import type { AccessService } from '../../../../services/access.service.js';
+import type { AccessService } from '../../../access/access.service.js';
 import type { BranchRepository, BranchWithKeyCount } from '../../repositories/branch.repository.js';
 import { ListBranchesHandler } from '../list-branches.handler.js';
 import { ListBranchesQuery } from '../list-branches.query.js';

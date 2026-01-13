@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { TranslateMultiHandler } from '../queries/translate-multi.handler.js';
 import { TranslateMultiQuery } from '../queries/translate-multi.query.js';
 import type { MachineTranslationRepository } from '../repositories/machine-translation.repository.js';

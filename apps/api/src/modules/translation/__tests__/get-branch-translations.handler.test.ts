@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { GetBranchTranslationsHandler } from '../queries/get-branch-translations.handler.js';
 import { GetBranchTranslationsQuery } from '../queries/get-branch-translations.query.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';

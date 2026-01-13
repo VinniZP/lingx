@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { SetApprovalStatusCommand } from '../commands/set-approval-status.command.js';
 import { SetApprovalStatusHandler } from '../commands/set-approval-status.handler.js';
 import { TranslationApprovedEvent } from '../events/translation-approved.event.js';

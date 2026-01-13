@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BulkDeleteKeysCommand } from '../commands/bulk-delete-keys.command.js';
 import { BulkDeleteKeysHandler } from '../commands/bulk-delete-keys.handler.js';
 import { KeysDeletedEvent } from '../events/key-deleted.event.js';

@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { EnvironmentRepository } from '../environment.repository.js';
 import { EnvironmentDeletedEvent } from '../events/environment-deleted.event.js';
 import type { DeleteEnvironmentCommand } from './delete-environment.command.js';

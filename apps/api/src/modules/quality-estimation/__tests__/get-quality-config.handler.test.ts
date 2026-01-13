@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { QualityEstimationService } from '../quality-estimation.service.js';
 import { GetQualityConfigHandler } from '../queries/get-quality-config.handler.js';
 import { GetQualityConfigQuery } from '../queries/get-quality-config.query.js';

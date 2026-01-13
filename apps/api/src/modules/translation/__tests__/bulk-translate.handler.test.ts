@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus, IQueryBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BulkTranslateCommand } from '../commands/bulk-translate.command.js';
 import { BulkTranslateHandler } from '../commands/bulk-translate.handler.js';
 import type { TranslationRepository } from '../repositories/translation.repository.js';

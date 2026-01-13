@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { ConfigSavedEvent } from '../events/config-saved.event.js';
 import type { AITranslationRepository } from '../repositories/ai-translation.repository.js';
 import type { SaveConfigCommand } from './save-config.command.js';

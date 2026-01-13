@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import { RecordTMUsageCommand } from '../commands/record-tm-usage.command.js';
 import { RecordTMUsageHandler } from '../commands/record-tm-usage.handler.js';
 import type { TranslationMemoryRepository } from '../repositories/translation-memory.repository.js';

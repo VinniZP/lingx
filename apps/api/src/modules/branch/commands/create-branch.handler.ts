@@ -5,8 +5,8 @@ import {
   NotFoundError,
   ValidationError,
 } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { BranchCreatedEvent } from '../events/branch-created.event.js';
 import type { BranchRepository } from '../repositories/branch.repository.js';
 import type { CreateBranchCommand } from './create-branch.command.js';

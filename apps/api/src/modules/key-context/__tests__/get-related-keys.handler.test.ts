@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForbiddenError, NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { KeyContextService, RelatedKeysResult } from '../key-context.service.js';
 import { GetRelatedKeysHandler } from '../queries/get-related-keys.handler.js';
 import { GetRelatedKeysQuery } from '../queries/get-related-keys.query.js';

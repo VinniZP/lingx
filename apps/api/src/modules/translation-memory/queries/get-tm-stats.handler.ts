@@ -1,5 +1,5 @@
-import type { AccessService } from '../../../services/access.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { TranslationMemoryRepository } from '../repositories/translation-memory.repository.js';
 import type { GetTMStatsQuery } from './get-tm-stats.query.js';
 

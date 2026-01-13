@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
+import type { AccessService } from '../../access/access.service.js';
 import type { ProjectRepository, ProjectTree } from '../project.repository.js';
 import { GetProjectTreeHandler } from '../queries/get-project-tree.handler.js';
 import { GetProjectTreeQuery } from '../queries/get-project-tree.query.js';

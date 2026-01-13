@@ -1,6 +1,6 @@
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { AccessService } from '../../../services/access.service.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { GlossaryEntryUpdatedEvent } from '../events/glossary-entry-updated.event.js';
 import type { GlossaryRepository } from '../repositories/glossary.repository.js';
 import type { UpdateEntryCommand } from './update-entry.command.js';

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AccessService } from '../../../services/access.service.js';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
+import type { AccessService } from '../../access/access.service.js';
 import { CreateKeyCommand } from '../commands/create-key.command.js';
 import { CreateKeyHandler } from '../commands/create-key.handler.js';
 import { KeyCreatedEvent } from '../events/key-created.event.js';
