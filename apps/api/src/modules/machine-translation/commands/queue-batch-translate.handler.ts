@@ -12,7 +12,7 @@ import type { QueueBatchTranslateCommand } from './queue-batch-translate.command
  */
 export class QueueBatchTranslateHandler implements ICommandHandler<QueueBatchTranslateCommand> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService
   ) {}
 
@@ -26,13 +26,13 @@ export class QueueBatchTranslateHandler implements ICommandHandler<QueueBatchTra
     const { keyIds, targetLanguage, provider, overwriteExisting } = command.input;
 
     // Get project default language for source
-    const project = await this.mtRepository.getProject(command.projectId);
+    const project = await this.machineTranslationRepository.getProject(command.projectId);
     if (!project) {
       throw new NotFoundError('Project');
     }
 
     // Estimate character count and track keys without source
-    const keys = await this.mtRepository.getKeysWithSourceTranslations(
+    const keys = await this.machineTranslationRepository.getKeysWithSourceTranslations(
       keyIds,
       project.defaultLanguage
     );

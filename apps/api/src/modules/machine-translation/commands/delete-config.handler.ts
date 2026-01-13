@@ -10,7 +10,7 @@ import type { DeleteConfigCommand } from './delete-config.command.js';
  */
 export class DeleteConfigHandler implements ICommandHandler<DeleteConfigCommand> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService,
     private readonly eventBus: IEventBus
   ) {}
@@ -22,7 +22,7 @@ export class DeleteConfigHandler implements ICommandHandler<DeleteConfigCommand>
       'OWNER',
     ]);
 
-    await this.mtRepository.deleteConfig(command.projectId, command.provider);
+    await this.machineTranslationRepository.deleteConfig(command.projectId, command.provider);
 
     await this.eventBus.publish(
       new ConfigDeletedEvent(command.provider, command.userId, command.projectId)

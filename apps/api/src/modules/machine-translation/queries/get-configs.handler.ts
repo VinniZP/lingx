@@ -9,14 +9,14 @@ import type { GetConfigsQuery } from './get-configs.query.js';
  */
 export class GetConfigsHandler implements IQueryHandler<GetConfigsQuery> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService
   ) {}
 
   async execute(query: GetConfigsQuery): Promise<InferQueryResult<GetConfigsQuery>> {
     await this.accessService.verifyProjectAccess(query.userId, query.projectId);
 
-    const configs = await this.mtRepository.getConfigs(query.projectId);
+    const configs = await this.machineTranslationRepository.getConfigs(query.projectId);
 
     return { configs };
   }

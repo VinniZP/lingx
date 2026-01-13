@@ -9,14 +9,14 @@ import type { GetUsageQuery } from './get-usage.query.js';
  */
 export class GetUsageHandler implements IQueryHandler<GetUsageQuery> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService
   ) {}
 
   async execute(query: GetUsageQuery): Promise<InferQueryResult<GetUsageQuery>> {
     await this.accessService.verifyProjectAccess(query.userId, query.projectId);
 
-    const providers = await this.mtRepository.getUsage(query.projectId);
+    const providers = await this.machineTranslationRepository.getUsage(query.projectId);
 
     return { providers };
   }

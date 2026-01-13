@@ -10,7 +10,7 @@ import type { TestConnectionCommand } from './test-connection.command.js';
  */
 export class TestConnectionHandler implements ICommandHandler<TestConnectionCommand> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -24,7 +24,7 @@ export class TestConnectionHandler implements ICommandHandler<TestConnectionComm
     ]);
 
     try {
-      const mtProvider = await this.mtRepository.getInitializedProvider(
+      const mtProvider = await this.machineTranslationRepository.getInitializedProvider(
         command.projectId,
         command.provider
       );

@@ -10,7 +10,7 @@ import type { SaveConfigCommand } from './save-config.command.js';
  */
 export class SaveConfigHandler implements ICommandHandler<SaveConfigCommand> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService,
     private readonly eventBus: IEventBus
   ) {}
@@ -22,7 +22,10 @@ export class SaveConfigHandler implements ICommandHandler<SaveConfigCommand> {
       'OWNER',
     ]);
 
-    const config = await this.mtRepository.saveConfig(command.projectId, command.input);
+    const config = await this.machineTranslationRepository.saveConfig(
+      command.projectId,
+      command.input
+    );
 
     await this.eventBus.publish(new ConfigSavedEvent(config, command.userId, command.projectId));
 

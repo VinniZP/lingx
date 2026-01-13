@@ -12,7 +12,7 @@ import type { QueuePreTranslateCommand } from './queue-pre-translate.command.js'
  */
 export class QueuePreTranslateHandler implements ICommandHandler<QueuePreTranslateCommand> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService
   ) {}
 
@@ -29,13 +29,13 @@ export class QueuePreTranslateHandler implements ICommandHandler<QueuePreTransla
     const { branchId, targetLanguages, provider } = command.input;
 
     // Get project default language for source
-    const project = await this.mtRepository.getProject(command.projectId);
+    const project = await this.machineTranslationRepository.getProject(command.projectId);
     if (!project) {
       throw new NotFoundError('Project');
     }
 
     // Count keys and estimate characters, tracking keys without source
-    const keys = await this.mtRepository.getBranchKeysWithSourceTranslations(
+    const keys = await this.machineTranslationRepository.getBranchKeysWithSourceTranslations(
       branchId,
       project.defaultLanguage
     );

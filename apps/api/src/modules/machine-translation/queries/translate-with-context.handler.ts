@@ -12,7 +12,7 @@ import type { TranslateWithContextQuery } from './translate-with-context.query.j
  */
 export class TranslateWithContextHandler implements IQueryHandler<TranslateWithContextQuery> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService,
     private readonly keyContextService: KeyContextService,
     private readonly logger: FastifyBaseLogger
@@ -93,13 +93,14 @@ export class TranslateWithContextHandler implements IQueryHandler<TranslateWithC
 
     // Select provider
     const selectedProvider =
-      requestedProvider || (await this.mtRepository.selectProvider(query.projectId));
+      requestedProvider ||
+      (await this.machineTranslationRepository.selectProvider(query.projectId));
     if (!selectedProvider) {
       throw new BadRequestError('No MT provider configured for this project');
     }
 
     // For cache key, we still use the original text (not enriched) to maintain consistency
-    const cached = await this.mtRepository.getCachedTranslation(
+    const cached = await this.machineTranslationRepository.getCachedTranslation(
       query.projectId,
       selectedProvider,
       sourceLanguage,
@@ -108,7 +109,13 @@ export class TranslateWithContextHandler implements IQueryHandler<TranslateWithC
     );
 
     if (cached) {
-      await this.mtRepository.updateUsage(query.projectId, selectedProvider, 0, 0, 1);
+      await this.machineTranslationRepository.updateUsage(
+        query.projectId,
+        selectedProvider,
+        0,
+        0,
+        1
+      );
       return {
         translatedText: cached.translatedText,
         provider: selectedProvider,
@@ -126,7 +133,7 @@ export class TranslateWithContextHandler implements IQueryHandler<TranslateWithC
     }
 
     // Get initialized provider
-    const mtProvider = await this.mtRepository.getInitializedProvider(
+    const mtProvider = await this.machineTranslationRepository.getInitializedProvider(
       query.projectId,
       selectedProvider
     );
@@ -147,7 +154,7 @@ export class TranslateWithContextHandler implements IQueryHandler<TranslateWithC
     const characterCount = text.length;
 
     // Cache with original text key
-    await this.mtRepository.cacheTranslation(
+    await this.machineTranslationRepository.cacheTranslation(
       query.projectId,
       selectedProvider,
       sourceLanguage,
@@ -157,7 +164,13 @@ export class TranslateWithContextHandler implements IQueryHandler<TranslateWithC
       characterCount
     );
 
-    await this.mtRepository.updateUsage(query.projectId, selectedProvider, characterCount, 1, 0);
+    await this.machineTranslationRepository.updateUsage(
+      query.projectId,
+      selectedProvider,
+      characterCount,
+      1,
+      0
+    );
 
     return {
       translatedText,

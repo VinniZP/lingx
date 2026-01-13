@@ -35,6 +35,11 @@ model User {
   // Passwordless / WebAuthn
   passwordlessAt DateTime? // When user went passwordless
 
+  // Admin disable/suspend
+  isDisabled   Boolean   @default(false)
+  disabledAt   DateTime?
+  disabledById String?
+
   apiKeys              ApiKey[]
   projectMembers       ProjectMember[]
   activities           Activity[]
@@ -43,6 +48,9 @@ model User {
   backupCodes          BackupCode[]
   webauthnCredentials  WebAuthnCredential[]
   translationApprovals Translation[]        @relation("TranslationApprovals")
+  disabledBy           User?                @relation("DisabledUsers", fields: [disabledById], references: [id], onDelete: SetNull)
+  disabledUsers        User[]               @relation("DisabledUsers")
+  sentInvitations      ProjectInvitation[]  @relation("SentInvitations")
 
   @@index([email])
 }
@@ -164,6 +172,7 @@ model Project {
   glossaryEntries      GlossaryEntry[]
   glossaryTags         GlossaryTag[]
   qualityScoringConfig QualityScoringConfig?
+  invitations          ProjectInvitation[]
 
   @@index([slug])
 }
@@ -200,6 +209,27 @@ enum ProjectRole {
   DEVELOPER
   MANAGER
   OWNER
+}
+
+model ProjectInvitation {
+  id          String      @id @default(cuid())
+  projectId   String
+  email       String      // Invitee email (may not be a user yet)
+  role        ProjectRole @default(DEVELOPER)
+  token       String      @unique
+  invitedById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime    @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invitedBy User    @relation("SentInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, email]) // One active invite per email per project
+  @@index([token])
+  @@index([email])
+  @@index([projectId])
 }
 
 // ============================================
