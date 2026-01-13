@@ -1,8 +1,7 @@
-import type { PrismaClient } from '@prisma/client';
 import { NotFoundError } from '../../../plugins/error-handler.js';
-import type { ActivityService } from '../../../services/activity.service.js';
 import type { IQueryHandler, InferQueryResult } from '../../../shared/cqrs/index.js';
 import type { AccessService } from '../../access/access.service.js';
+import type { ActivityRepository } from '../activity.repository.js';
 import type { GetActivityChangesQuery } from './get-activity-changes.query.js';
 
 /**
@@ -15,9 +14,8 @@ import type { GetActivityChangesQuery } from './get-activity-changes.query.js';
  */
 export class GetActivityChangesHandler implements IQueryHandler<GetActivityChangesQuery> {
   constructor(
-    private readonly activityService: ActivityService,
-    private readonly accessService: AccessService,
-    private readonly prisma: PrismaClient
+    private readonly activityRepository: ActivityRepository,
+    private readonly accessService: AccessService
   ) {}
 
   async execute(
@@ -26,10 +24,7 @@ export class GetActivityChangesHandler implements IQueryHandler<GetActivityChang
     const { activityId, userId, options } = query;
 
     // Find activity to get projectId for authorization
-    const activity = await this.prisma.activity.findUnique({
-      where: { id: activityId },
-      select: { projectId: true },
-    });
+    const activity = await this.activityRepository.findById(activityId);
 
     if (!activity) {
       throw new NotFoundError('Activity');
@@ -40,13 +35,12 @@ export class GetActivityChangesHandler implements IQueryHandler<GetActivityChang
     try {
       await this.accessService.verifyProjectAccess(userId, activity.projectId);
     } catch (error) {
-      // Check by error code (more reliable than instanceof across module boundaries)
       if (error instanceof Error && 'code' in error && error.code === 'FORBIDDEN') {
         throw new NotFoundError('Activity');
       }
       throw error;
     }
 
-    return this.activityService.getActivityChanges(activityId, options);
+    return this.activityRepository.findActivityChanges(activityId, options);
   }
 }

@@ -6,8 +6,8 @@
 
 import type { ActivityListResponse } from '@lingx/shared';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { ActivityService } from '../../../services/activity.service.js';
 import type { AccessService } from '../../access/access.service.js';
+import type { ActivityRepository } from '../../activity/activity.repository.js';
 import type { ProjectRepository } from '../project.repository.js';
 import { GetProjectActivityHandler } from '../queries/get-project-activity.handler.js';
 import { GetProjectActivityQuery } from '../queries/get-project-activity.query.js';
@@ -60,19 +60,19 @@ function createMockAccessService(): MockAccessService {
   };
 }
 
-interface MockActivityService {
-  log: Mock;
-  getProjectActivities: Mock;
-  getUserActivities: Mock;
-  getActivityChanges: Mock;
+interface MockActivityRepository {
+  findById: Mock;
+  findUserActivities: Mock;
+  findProjectActivities: Mock;
+  findActivityChanges: Mock;
 }
 
-function createMockActivityService(): MockActivityService {
+function createMockActivityRepository(): MockActivityRepository {
   return {
-    log: vi.fn(),
-    getProjectActivities: vi.fn(),
-    getUserActivities: vi.fn(),
-    getActivityChanges: vi.fn(),
+    findById: vi.fn(),
+    findUserActivities: vi.fn(),
+    findProjectActivities: vi.fn(),
+    findActivityChanges: vi.fn(),
   };
 }
 
@@ -80,7 +80,7 @@ describe('GetProjectActivityHandler', () => {
   let handler: GetProjectActivityHandler;
   let mockRepository: MockRepository;
   let mockAccessService: MockAccessService;
-  let mockActivityService: MockActivityService;
+  let mockActivityRepository: MockActivityRepository;
 
   const mockProject = {
     id: 'proj-1',
@@ -128,11 +128,11 @@ describe('GetProjectActivityHandler', () => {
   beforeEach(() => {
     mockRepository = createMockRepository();
     mockAccessService = createMockAccessService();
-    mockActivityService = createMockActivityService();
+    mockActivityRepository = createMockActivityRepository();
     handler = new GetProjectActivityHandler(
       mockRepository as unknown as ProjectRepository,
       mockAccessService as unknown as AccessService,
-      mockActivityService as unknown as ActivityService
+      mockActivityRepository as unknown as ActivityRepository
     );
   });
 
@@ -140,7 +140,7 @@ describe('GetProjectActivityHandler', () => {
     it('should return project activities when authorized', async () => {
       // Arrange
       mockRepository.findByIdOrSlug.mockResolvedValue(mockProject);
-      mockActivityService.getProjectActivities.mockResolvedValue(mockActivityResponse);
+      mockActivityRepository.findProjectActivities.mockResolvedValue(mockActivityResponse);
 
       const query = new GetProjectActivityQuery('proj-1', 'user-1');
 
@@ -151,7 +151,7 @@ describe('GetProjectActivityHandler', () => {
       expect(result).toEqual(mockActivityResponse);
       expect(mockRepository.findByIdOrSlug).toHaveBeenCalledWith('proj-1');
       expect(mockAccessService.verifyProjectAccess).toHaveBeenCalledWith('user-1', 'proj-1');
-      expect(mockActivityService.getProjectActivities).toHaveBeenCalledWith('proj-1', {
+      expect(mockActivityRepository.findProjectActivities).toHaveBeenCalledWith('proj-1', {
         limit: undefined,
         cursor: undefined,
       });
@@ -160,7 +160,7 @@ describe('GetProjectActivityHandler', () => {
     it('should pass limit and cursor options', async () => {
       // Arrange
       mockRepository.findByIdOrSlug.mockResolvedValue(mockProject);
-      mockActivityService.getProjectActivities.mockResolvedValue(mockActivityResponse);
+      mockActivityRepository.findProjectActivities.mockResolvedValue(mockActivityResponse);
 
       const query = new GetProjectActivityQuery('proj-1', 'user-1', 20, 'cursor-123');
 
@@ -168,7 +168,7 @@ describe('GetProjectActivityHandler', () => {
       await handler.execute(query);
 
       // Assert
-      expect(mockActivityService.getProjectActivities).toHaveBeenCalledWith('proj-1', {
+      expect(mockActivityRepository.findProjectActivities).toHaveBeenCalledWith('proj-1', {
         limit: 20,
         cursor: 'cursor-123',
       });
@@ -177,7 +177,7 @@ describe('GetProjectActivityHandler', () => {
     it('should work with slug as identifier', async () => {
       // Arrange
       mockRepository.findByIdOrSlug.mockResolvedValue(mockProject);
-      mockActivityService.getProjectActivities.mockResolvedValue(mockActivityResponse);
+      mockActivityRepository.findProjectActivities.mockResolvedValue(mockActivityResponse);
 
       const query = new GetProjectActivityQuery('test-project', 'user-1');
 
@@ -202,7 +202,7 @@ describe('GetProjectActivityHandler', () => {
       });
 
       expect(mockAccessService.verifyProjectAccess).not.toHaveBeenCalled();
-      expect(mockActivityService.getProjectActivities).not.toHaveBeenCalled();
+      expect(mockActivityRepository.findProjectActivities).not.toHaveBeenCalled();
     });
 
     it('should throw ForbiddenError when user is not a project member', async () => {
@@ -223,13 +223,13 @@ describe('GetProjectActivityHandler', () => {
         statusCode: 403,
       });
 
-      expect(mockActivityService.getProjectActivities).not.toHaveBeenCalled();
+      expect(mockActivityRepository.findProjectActivities).not.toHaveBeenCalled();
     });
 
     it('should return activities with user info', async () => {
       // Arrange
       mockRepository.findByIdOrSlug.mockResolvedValue(mockProject);
-      mockActivityService.getProjectActivities.mockResolvedValue(mockActivityResponse);
+      mockActivityRepository.findProjectActivities.mockResolvedValue(mockActivityResponse);
 
       const query = new GetProjectActivityQuery('proj-1', 'user-1');
 
@@ -244,7 +244,7 @@ describe('GetProjectActivityHandler', () => {
     it('should return nextCursor for pagination', async () => {
       // Arrange
       mockRepository.findByIdOrSlug.mockResolvedValue(mockProject);
-      mockActivityService.getProjectActivities.mockResolvedValue(mockActivityResponse);
+      mockActivityRepository.findProjectActivities.mockResolvedValue(mockActivityResponse);
 
       const query = new GetProjectActivityQuery('proj-1', 'user-1');
 

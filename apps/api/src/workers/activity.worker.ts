@@ -13,7 +13,11 @@ import type { ActivityMetadata, CreateActivityInput } from '@lingx/shared';
 import { ActivityType, Prisma, PrismaClient } from '@prisma/client';
 import { Job, Worker } from 'bullmq';
 import { redis } from '../lib/redis.js';
-import { ActivityService, MAX_PREVIEW_ITEMS } from '../services/activity.service.js';
+import {
+  buildPreview,
+  generateGroupKey,
+  MAX_PREVIEW_ITEMS,
+} from '../modules/activity/activity.utils.js';
 
 interface ActivityJobData extends CreateActivityInput {
   timestamp: number;
@@ -37,7 +41,7 @@ export function createActivityWorker(prisma: PrismaClient): Worker {
 
       // Generate group key
       const timestamp = new Date(data.timestamp);
-      const groupKey = ActivityService.generateGroupKey(
+      const groupKey = generateGroupKey(
         data.userId,
         data.projectId,
         data.type,
@@ -46,7 +50,7 @@ export function createActivityWorker(prisma: PrismaClient): Worker {
       );
 
       // Build preview from changes
-      const { preview, hasMore } = ActivityService.buildPreview(data.changes);
+      const { preview, hasMore } = buildPreview(data.changes);
 
       // Merge metadata with preview
       const metadata: ActivityMetadata = {
