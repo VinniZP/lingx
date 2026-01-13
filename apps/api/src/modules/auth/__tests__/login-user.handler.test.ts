@@ -1,20 +1,45 @@
 /**
  * LoginUserHandler Unit Tests
  *
- * TDD: Tests written BEFORE implementation.
- * Covers: normal login, 2FA required, invalid credentials
+ * Tests that the handler correctly orchestrates:
+ * - User lookup via repository
+ * - Password verification
+ * - 2FA check
+ * - Session creation
+ * - Event publication
  */
+import bcrypt from 'bcrypt';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { UnauthorizedError } from '../../../plugins/error-handler.js';
-import type { AuthService } from '../../../services/auth.service.js';
 import type { ICommandBus, IEventBus } from '../../../shared/cqrs/index.js';
 import { CreateSessionCommand } from '../../security/commands/create-session.command.js';
 import { LoginUserCommand } from '../commands/login-user.command.js';
 import { LoginUserHandler } from '../commands/login-user.handler.js';
 import { UserLoggedInEvent } from '../events/user-logged-in.event.js';
+import type { AuthRepository } from '../repositories/auth.repository.js';
+
+// Mock bcrypt to control password verification in tests
+vi.mock('bcrypt', () => ({
+  default: {
+    compare: vi.fn(),
+  },
+}));
 
 describe('LoginUserHandler', () => {
-  const mockUser = {
+  const mockUserWithPassword = {
+    id: 'user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    password: 'hashed_password',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    totpEnabled: false,
+    totpSecret: null,
+    totpIv: null,
+    totpFailedAttempts: 0,
+    totpLockedUntil: null,
+  };
+
+  const mockUserWithoutPassword = {
     id: 'user-123',
     email: 'test@example.com',
     name: 'Test User',
@@ -28,7 +53,7 @@ describe('LoginUserHandler', () => {
   };
 
   const mockUserWith2FA = {
-    ...mockUser,
+    ...mockUserWithPassword,
     totpEnabled: true,
   };
 
@@ -49,19 +74,20 @@ describe('LoginUserHandler', () => {
     ip: '127.0.0.1',
   };
 
-  let mockAuthService: { login: ReturnType<typeof vi.fn> };
+  let mockAuthRepository: { findByEmailWithPassword: ReturnType<typeof vi.fn> };
   let mockCommandBus: { execute: ReturnType<typeof vi.fn> };
   let mockEventBus: { publish: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    mockAuthService = { login: vi.fn() };
+    mockAuthRepository = { findByEmailWithPassword: vi.fn() };
     mockCommandBus = { execute: vi.fn() };
     mockEventBus = { publish: vi.fn() };
+    vi.mocked(bcrypt.compare).mockReset();
   });
 
   const createHandler = () =>
     new LoginUserHandler(
-      mockAuthService as unknown as AuthService,
+      mockAuthRepository as unknown as AuthRepository,
       mockCommandBus as unknown as ICommandBus,
       mockEventBus as unknown as IEventBus
     );
@@ -76,7 +102,8 @@ describe('LoginUserHandler', () => {
 
   it('should login user without 2FA and publish UserLoggedInEvent', async () => {
     // Arrange
-    mockAuthService.login.mockResolvedValue(mockUser);
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(mockUserWithPassword);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     mockCommandBus.execute.mockResolvedValue(mockSession);
 
     const handler = createHandler();
@@ -84,29 +111,32 @@ describe('LoginUserHandler', () => {
     // Act
     const result = await handler.execute(createCommand('test@example.com', 'Password123!', false));
 
-    // Assert
-    expect(mockAuthService.login).toHaveBeenCalledWith({
-      email: 'test@example.com',
-      password: 'Password123!',
-    });
+    // Assert - repository called
+    expect(mockAuthRepository.findByEmailWithPassword).toHaveBeenCalledWith('test@example.com');
+
+    // Assert - password verified
+    expect(bcrypt.compare).toHaveBeenCalledWith('Password123!', 'hashed_password');
+
+    // Assert - session created
     expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
     const executedCommand = mockCommandBus.execute.mock.calls[0][0] as CreateSessionCommand;
     expect(executedCommand).toBeInstanceOf(CreateSessionCommand);
-    expect(executedCommand.userId).toBe(mockUser.id);
+    expect(executedCommand.userId).toBe(mockUserWithPassword.id);
     expect(executedCommand.userAgent).toBe('test-agent');
     expect(executedCommand.ipAddress).toBe('127.0.0.1');
 
+    // Assert - event published
     expect(mockEventBus.publish).toHaveBeenCalledTimes(1);
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(UserLoggedInEvent));
 
     // Verify event data
     const publishedEvent = mockEventBus.publish.mock.calls[0][0] as UserLoggedInEvent;
-    expect(publishedEvent.userId).toBe(mockUser.id);
+    expect(publishedEvent.userId).toBe(mockUserWithPassword.id);
     expect(publishedEvent.sessionId).toBe(mockSession.id);
 
-    // Result should contain user and sessionId (not 2FA)
+    // Result should contain user without password and sessionId
     expect(result).toEqual({
-      user: mockUser,
+      user: mockUserWithoutPassword,
       sessionId: mockSession.id,
     });
     expect('requiresTwoFactor' in result).toBe(false);
@@ -114,7 +144,8 @@ describe('LoginUserHandler', () => {
 
   it('should return 2FA required when user has TOTP enabled and device not trusted', async () => {
     // Arrange
-    mockAuthService.login.mockResolvedValue(mockUserWith2FA);
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(mockUserWith2FA);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
     const handler = createHandler();
 
@@ -134,7 +165,8 @@ describe('LoginUserHandler', () => {
 
   it('should login user with 2FA when device is trusted', async () => {
     // Arrange
-    mockAuthService.login.mockResolvedValue(mockUserWith2FA);
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(mockUserWith2FA);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     mockCommandBus.execute.mockResolvedValue(mockSession);
 
     const handler = createHandler();
@@ -148,15 +180,16 @@ describe('LoginUserHandler', () => {
     expect(executedCommand.userId).toBe(mockUserWith2FA.id);
     expect(mockEventBus.publish).toHaveBeenCalledWith(expect.any(UserLoggedInEvent));
 
-    expect(result).toEqual({
-      user: mockUserWith2FA,
+    // Result should contain user without password
+    expect(result).toMatchObject({
       sessionId: mockSession.id,
     });
+    expect((result as { user: { password?: string } }).user.password).toBeUndefined();
   });
 
-  it('should propagate UnauthorizedError for invalid credentials', async () => {
+  it('should throw UnauthorizedError when user not found', async () => {
     // Arrange
-    mockAuthService.login.mockRejectedValue(new UnauthorizedError('Invalid email or password'));
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(null);
 
     const handler = createHandler();
 
@@ -168,6 +201,52 @@ describe('LoginUserHandler', () => {
       statusCode: 401,
     });
 
+    // Password check should NOT be called
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+
+    // Session and event should NOT be created
+    expect(mockCommandBus.execute).not.toHaveBeenCalled();
+    expect(mockEventBus.publish).not.toHaveBeenCalled();
+  });
+
+  it('should throw UnauthorizedError for invalid password', async () => {
+    // Arrange
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(mockUserWithPassword);
+    vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
+
+    const handler = createHandler();
+
+    // Act & Assert
+    await expect(
+      handler.execute(createCommand('test@example.com', 'WrongPass!', false))
+    ).rejects.toMatchObject({
+      message: 'Invalid email or password',
+      statusCode: 401,
+    });
+
+    // Session and event should NOT be created
+    expect(mockCommandBus.execute).not.toHaveBeenCalled();
+    expect(mockEventBus.publish).not.toHaveBeenCalled();
+  });
+
+  it('should throw UnauthorizedError for passwordless user', async () => {
+    // Arrange
+    const passwordlessUser = { ...mockUserWithPassword, password: null };
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(passwordlessUser);
+
+    const handler = createHandler();
+
+    // Act & Assert
+    await expect(
+      handler.execute(createCommand('test@example.com', 'Password123!', false))
+    ).rejects.toMatchObject({
+      message: 'Please sign in with your passkey',
+      statusCode: 401,
+    });
+
+    // Password check should NOT be called
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+
     // Session and event should NOT be created
     expect(mockCommandBus.execute).not.toHaveBeenCalled();
     expect(mockEventBus.publish).not.toHaveBeenCalled();
@@ -175,7 +254,8 @@ describe('LoginUserHandler', () => {
 
   it('should propagate errors when session creation fails', async () => {
     // Arrange
-    mockAuthService.login.mockResolvedValue(mockUser);
+    mockAuthRepository.findByEmailWithPassword.mockResolvedValue(mockUserWithPassword);
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
     mockCommandBus.execute.mockRejectedValue(new Error('Database error'));
 
     const handler = createHandler();

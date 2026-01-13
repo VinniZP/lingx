@@ -1,10 +1,12 @@
 /**
  * ListApiKeysHandler Unit Tests
+ *
+ * Tests that the handler correctly retrieves API keys via repository.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ApiKeyService } from '../../../services/api-key.service.js';
 import { ListApiKeysHandler } from '../queries/list-api-keys.handler.js';
 import { ListApiKeysQuery } from '../queries/list-api-keys.query.js';
+import type { ApiKeyRepository } from '../repositories/api-key.repository.js';
 
 describe('ListApiKeysHandler', () => {
   const mockApiKeys = [
@@ -30,17 +32,18 @@ describe('ListApiKeysHandler', () => {
     },
   ];
 
-  let mockApiKeyService: { list: ReturnType<typeof vi.fn> };
+  let mockApiKeyRepository: { findByUserId: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    mockApiKeyService = { list: vi.fn() };
+    mockApiKeyRepository = { findByUserId: vi.fn() };
   });
 
-  const createHandler = () => new ListApiKeysHandler(mockApiKeyService as unknown as ApiKeyService);
+  const createHandler = () =>
+    new ListApiKeysHandler(mockApiKeyRepository as unknown as ApiKeyRepository);
 
   it('should return list of API keys for user', async () => {
     // Arrange
-    mockApiKeyService.list.mockResolvedValue(mockApiKeys);
+    mockApiKeyRepository.findByUserId.mockResolvedValue(mockApiKeys);
 
     const handler = createHandler();
 
@@ -48,14 +51,14 @@ describe('ListApiKeysHandler', () => {
     const result = await handler.execute(new ListApiKeysQuery('user-123'));
 
     // Assert
-    expect(mockApiKeyService.list).toHaveBeenCalledWith('user-123');
+    expect(mockApiKeyRepository.findByUserId).toHaveBeenCalledWith('user-123');
     expect(result).toEqual(mockApiKeys);
     expect(result).toHaveLength(2);
   });
 
   it('should return empty array when user has no API keys', async () => {
     // Arrange
-    mockApiKeyService.list.mockResolvedValue([]);
+    mockApiKeyRepository.findByUserId.mockResolvedValue([]);
 
     const handler = createHandler();
 
@@ -63,14 +66,14 @@ describe('ListApiKeysHandler', () => {
     const result = await handler.execute(new ListApiKeysQuery('user-no-keys'));
 
     // Assert
-    expect(mockApiKeyService.list).toHaveBeenCalledWith('user-no-keys');
+    expect(mockApiKeyRepository.findByUserId).toHaveBeenCalledWith('user-no-keys');
     expect(result).toEqual([]);
     expect(result).toHaveLength(0);
   });
 
-  it('should propagate errors from apiKeyService', async () => {
+  it('should propagate errors from repository', async () => {
     // Arrange
-    mockApiKeyService.list.mockRejectedValue(new Error('Database error'));
+    mockApiKeyRepository.findByUserId.mockRejectedValue(new Error('Database error'));
 
     const handler = createHandler();
 

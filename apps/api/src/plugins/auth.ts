@@ -6,23 +6,21 @@
  */
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
-import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
+import { createHash } from 'crypto';
+import { FastifyBaseLogger, FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
+import type { ApiKeyRepository } from '../modules/auth/repositories/api-key.repository.js';
 import { UpdateSessionActivityCommand } from '../modules/security/commands/update-session-activity.command.js';
 import { ValidateSessionQuery } from '../modules/security/queries/validate-session.query.js';
-import { ApiKeyService } from '../services/api-key.service.js';
-import { AuthService } from '../services/auth.service.js';
 import { UnauthorizedError } from './error-handler.js';
 
 /**
- * Extend Fastify types with auth decorators and services
+ * Extend Fastify types with auth decorators
  */
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     authenticateOptional: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    authService: AuthService;
-    apiKeyService: ApiKeyService;
   }
 }
 
@@ -34,6 +32,37 @@ declare module '@fastify/jwt' {
     payload: { userId: string; sessionId?: string; purpose?: string };
     user: { userId: string; sessionId?: string; purpose?: string };
   }
+}
+
+/**
+ * Validate an API key and return user info if valid.
+ * Updates lastUsedAt timestamp on successful validation.
+ */
+async function validateApiKey(
+  apiKeyRepository: ApiKeyRepository,
+  key: string,
+  log: FastifyBaseLogger
+): Promise<{ userId: string; apiKeyId: string } | null> {
+  // Hash the provided key
+  const keyHash = createHash('sha256').update(key).digest('hex');
+
+  // Find matching API key
+  const apiKey = await apiKeyRepository.findByKeyHash(keyHash);
+
+  if (!apiKey) return null;
+
+  // Check if revoked
+  if (apiKey.revokedAt) return null;
+
+  // Check if expired
+  if (apiKey.expiresAt && apiKey.expiresAt < new Date()) return null;
+
+  // Update last used timestamp (fire and forget with logging)
+  apiKeyRepository.updateLastUsed(apiKey.id).catch((err) => {
+    log.warn({ err, apiKeyId: apiKey.id }, 'Failed to update API key lastUsedAt timestamp');
+  });
+
+  return { userId: apiKey.userId, apiKeyId: apiKey.id };
 }
 
 const authPlugin: FastifyPluginAsync = async (fastify) => {
@@ -52,12 +81,8 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     },
   });
 
-  // Create services with Prisma client
-  const authService = new AuthService(fastify.prisma);
-  const apiKeyService = new ApiKeyService(fastify.prisma);
-
-  fastify.decorate('authService', authService);
-  fastify.decorate('apiKeyService', apiKeyService);
+  // Get ApiKeyRepository from container
+  const apiKeyRepository = fastify.container.resolve<ApiKeyRepository>('apiKeyRepository');
 
   /**
    * Required authentication decorator
@@ -70,7 +95,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     // First, try API key from X-API-Key header
     const apiKey = request.headers['x-api-key'] as string;
     if (apiKey) {
-      const result = await apiKeyService.validateKey(apiKey);
+      const result = await validateApiKey(apiKeyRepository, apiKey, fastify.log);
       if (result) {
         request.user = { userId: result.userId };
         return;
@@ -125,7 +150,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       // Try API key
       const apiKey = request.headers['x-api-key'] as string;
       if (apiKey) {
-        const result = await apiKeyService.validateKey(apiKey);
+        const result = await validateApiKey(apiKeyRepository, apiKey, fastify.log);
         if (result) {
           request.user = { userId: result.userId };
           return;

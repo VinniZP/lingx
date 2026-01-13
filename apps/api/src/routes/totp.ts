@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { UnauthorizedError } from '../plugins/error-handler.js';
 
 // Import commands and queries from MFA module
+import { GetCurrentUserQuery } from '../modules/auth/index.js';
 import {
   CancelTotpSetupCommand,
   ConfirmTotpSetupCommand,
@@ -188,11 +189,8 @@ const totpRoutes: FastifyPluginAsync = async (fastify) => {
         maxAge: 60 * 60 * 24, // 24 hours
       });
 
-      // Get user details
-      const user = await fastify.authService.getUserById(userId);
-      if (!user) {
-        throw new UnauthorizedError('User not found');
-      }
+      // Get user details via query bus
+      const user = await fastify.queryBus.execute(new GetCurrentUserQuery(userId));
 
       return { user };
     }
@@ -265,11 +263,8 @@ const totpRoutes: FastifyPluginAsync = async (fastify) => {
         maxAge: 60 * 60 * 24,
       });
 
-      // Get user details
-      const user = await fastify.authService.getUserById(userId);
-      if (!user) {
-        throw new UnauthorizedError('User not found');
-      }
+      // Get user details via query bus
+      const user = await fastify.queryBus.execute(new GetCurrentUserQuery(userId));
 
       return { user, codesRemaining: result.remainingCodes };
     }

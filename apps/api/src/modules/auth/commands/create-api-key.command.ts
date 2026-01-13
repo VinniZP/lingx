@@ -1,5 +1,5 @@
-import type { ApiKeyWithFullKey } from '../../../services/api-key.service.js';
 import type { ICommand } from '../../../shared/cqrs/index.js';
+import type { ApiKeyWithFullKey } from './create-api-key.handler.js';
 
 /**
  * Command to create a new API key.

@@ -20,9 +20,9 @@ import { FastifyPluginAsync } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { toUserDto } from '../dto/user.dto.js';
-import { UnauthorizedError } from '../plugins/error-handler.js';
 
 // Import commands and queries from MFA module
+import { GetCurrentUserQuery } from '../modules/auth/index.js';
 import {
   DeleteCredentialCommand,
   GenerateAuthenticationOptionsCommand,
@@ -193,11 +193,8 @@ const webauthnRoutes: FastifyPluginAsync = async (fastify) => {
         maxAge: 60 * 60 * 24, // 24 hours
       });
 
-      // Get user details
-      const user = await fastify.authService.getUserById(result.userId);
-      if (!user) {
-        throw new UnauthorizedError('User not found');
-      }
+      // Get user details via query bus
+      const user = await fastify.queryBus.execute(new GetCurrentUserQuery(result.userId));
 
       return { user: toUserDto(user) };
     }

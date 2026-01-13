@@ -1,23 +1,48 @@
-import type { AuthService } from '../../../services/auth.service.js';
+import { UNIQUE_VIOLATION_CODES } from '@lingx/shared';
+import bcrypt from 'bcrypt';
+import { FieldValidationError } from '../../../plugins/error-handler.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
 import { UserRegisteredEvent } from '../events/user-registered.event.js';
+import type { AuthRepository } from '../repositories/auth.repository.js';
 import type { RegisterUserCommand } from './register-user.command.js';
+
+/** bcrypt cost factor per Design Doc NFRs */
+const BCRYPT_ROUNDS = 12;
 
 /**
  * Handler for RegisterUserCommand.
- * Creates a new user and publishes UserRegisteredEvent.
+ * Orchestrates email validation, password hashing, user creation, and event publication.
  */
 export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand> {
   constructor(
-    private readonly authService: AuthService,
+    private readonly authRepository: AuthRepository,
     private readonly eventBus: IEventBus
   ) {}
 
   async execute(command: RegisterUserCommand): Promise<InferCommandResult<RegisterUserCommand>> {
-    // Delegate to existing AuthService
-    const user = await this.authService.register({
+    // Check for existing user
+    const emailExists = await this.authRepository.emailExists(command.email);
+
+    if (emailExists) {
+      throw new FieldValidationError(
+        [
+          {
+            field: 'email',
+            message: 'This email is already registered',
+            code: UNIQUE_VIOLATION_CODES.USER_EMAIL,
+          },
+        ],
+        'Email already registered'
+      );
+    }
+
+    // Hash password with cost factor 12
+    const hashedPassword = await bcrypt.hash(command.password, BCRYPT_ROUNDS);
+
+    // Create user via repository
+    const user = await this.authRepository.create({
       email: command.email,
-      password: command.password,
+      password: hashedPassword,
       name: command.name,
     });
 
