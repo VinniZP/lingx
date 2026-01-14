@@ -13,7 +13,12 @@ Epic 2 (Member Backend) ──────────────────�
         ▼                                              ▼
 Epic 4 (Member UI) ────────────────────────► Epic 5 (Admin UI)
         │                                              │
-        └──────────────► Epic 6 (Testing) ◄────────────┘
+        ├──────────────► Epic 6 (Testing) ◄────────────┤
+        │                                              │
+        └──────► Epic 7 (RBAC Integration) ◄───────────┘
+                        │
+                        ▼
+               (Verifies Epic 2 + Epic 4)
 ```
 
 ---
@@ -272,11 +277,11 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-## Epic 4: Member Management UI `[depends on: Epic 2]`
+## Epic 4: Member Management UI ✅
 
-### Phase 4A: API Client `[depends on: Epic 2]`
+### Phase 4A: API Client ✅ `[depends on: Epic 2]`
 
-- [ ] Create `apps/web/src/lib/api/members.ts`:
+- [x] Create `apps/web/src/lib/api/members.ts`:
   - `memberApi.list(projectId)` - list project members
   - `memberApi.updateRole(projectId, userId, role)` - change member role
   - `memberApi.remove(projectId, userId)` - remove member
@@ -290,127 +295,136 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-### Phase 4B: Members List Page `[depends on: 4A]`
+### Phase 4B: Members List Page ✅ `[depends on: 4A]`
 
 #### 4B.1 Members Page
 
-- [ ] Create `app/(project)/projects/[projectId]/settings/members/page.tsx`
+- [x] Create `app/(project)/projects/[projectId]/settings/members/page.tsx`
   - Page header with "Team Members" title
   - Members list section (visible to all members)
   - Pending invitations section (visible to MANAGER+)
   - Invite button (visible to MANAGER+)
   - Use `useQuery` for data fetching
   - Premium styling with `.island` containers
+  - Danger zone section with Transfer Ownership (OWNER only)
 
-#### 4B.2 Members List Component
+#### 4B.2 Member Row Component
 
-- [ ] Create `_components/members-list.tsx`
-  - Row-based layout with avatar, name, email, role, actions
-  - Sort alphabetically by name
-  - Current user indicator "(You)"
-  - Responsive design
-
-#### 4B.3 Member Row Component
-
-- [ ] Create `_components/member-row.tsx`
-  - Avatar with fallback initials
-  - Name + email display
+- [x] Create `_components/member-row.tsx`
+  - Avatar with fallback initials (using shared `getInitials` utility)
+  - Name + email display with "(You)" indicator for current user
   - Role selector (conditional based on permissions)
   - Remove button (OWNER only)
+  - Leave button (for current user, if not sole OWNER)
+  - "Joined X ago" timestamp
 
 ---
 
-### Phase 4C: Invitation Components `[depends on: 4A]`
+### Phase 4C: Invitation Components ✅ `[depends on: 4A]`
 
-#### 4C.1 Invitations List
+#### 4C.1 Invitation Row Component
 
-- [ ] Create `_components/invitations-list.tsx`
+- [x] Create `_components/invitation-row.tsx`
   - Show pending invitations with email, role, inviter, expiry
-  - Expiry countdown or date display
-  - Revoke button for each invitation
-  - Empty state when no pending invitations
+  - Expiry status with visual indicators (expired/expiring soon/normal)
+  - Revoke button with loading state
+  - Role badge with consistent styling
 
 #### 4C.2 Invite Dialog
 
-- [ ] Create `_components/invite-dialog.tsx`
+- [x] Create `_components/invite-dialog.tsx`
   - Textarea for multiple emails (one per line or comma-separated)
   - Role selector (MANAGER can only select DEVELOPER)
   - Validation with email format checking
   - Submit with `useMutation`
-  - Show results: sent, skipped, errors
+  - Show results: sent, skipped, errors with visual breakdown
+  - Info callout about 7-day expiry
   - Rate limit error handling
 
 ---
 
-### Phase 4D: Member Actions `[depends on: 4B]`
+### Phase 4D: Member Actions ✅ `[depends on: 4B]`
 
 #### 4D.1 Role Selector
 
-- [ ] Create `_components/role-selector.tsx`
-  - OWNER can select any role (OWNER, MANAGER, DEVELOPER)
+- [x] Create `_components/role-selector.tsx`
+  - OWNER can select MANAGER or DEVELOPER
   - MANAGER can only select DEVELOPER
-  - Disabled state with tooltip explaining why
+  - OWNER role excluded (use Transfer Ownership instead)
+  - Visual role badges with color coding (OWNER=primary, MANAGER=info, DEVELOPER=success)
+  - Dropdown with role descriptions
+  - Loading state during role change
 
 #### 4D.2 Remove Member Dialog
 
-- [ ] Create `_components/remove-member-dialog.tsx`
+- [x] Create `_components/remove-member-dialog.tsx`
   - Confirmation dialog with member name
-  - Warning about permanent action
+  - Warning about permanent action and immediate access loss
   - Handle API errors (e.g., last OWNER)
 
-#### 4D.3 Transfer Ownership Dialog
+#### 4D.3 Leave Project Dialog
 
-- [ ] Create `_components/transfer-ownership-dialog.tsx`
+- [x] Create `_components/leave-project-dialog.tsx`
+  - Confirmation dialog for leaving project
+  - Warning about losing access
+  - Redirects to projects list on success
+
+#### 4D.4 Transfer Ownership Dialog
+
+- [x] Create `_components/transfer-ownership-dialog.tsx`
+  - Two-step wizard flow (select → confirm)
   - Select from current project members (exclude self)
   - Checkbox: "Keep me as owner" (default: true)
-  - Warning about implications
-  - Confirmation with project name typing
+  - Warning callout about implications
+  - Confirmation step with project name typing
+  - Uses React `Activity` component to preserve form state between steps
 
 ---
 
-### Phase 4E: Accept Invitation Page `[depends on: 4A]`
+### Phase 4E: Accept Invitation Page ✅ `[depends on: 4A]`
 
-- [ ] Create `app/(auth)/invite/[token]/page.tsx`
+- [x] Create `app/invite/[token]/page.tsx`
   - Fetch invitation details using token (public)
-  - Show: project name, role, inviter name
-  - States:
-    - Loading: skeleton
-    - Error (invalid/expired/revoked): error message
-    - Valid (not logged in): invitation details + login CTA
-    - Valid (logged in, email matches): accept button
-    - Valid (logged in, email mismatch): error about wrong account
-  - On accept: redirect to project
+  - Show: project name/slug, role badge, inviter name, expiry date
+  - States handled:
+    - Loading: spinner with message
+    - Error (network): retry button
+    - Error (invalid/expired/revoked): error message with dashboard link
+    - Declined: confirmation with dashboard link
+    - Valid (not logged in): invitation details + login/register CTAs
+    - Valid (logged in, email matches): accept/decline buttons
+    - Valid (logged in, email mismatch): warning about wrong account
+  - On accept: toast notification + redirect to project
+- [x] Extract `AuthSection` component for auth state handling
+- [x] Add reusable `StatusIcon`, `PageContainer`, `DashboardLink` components
 
 ---
 
-### Phase 4F: Navigation & Polish `[depends on: 4B, 4C, 4D, 4E]`
+### Phase 4F: Navigation & Polish ✅ `[depends on: 4B, 4C, 4D, 4E]`
 
 #### 4F.1 Enable Members Tab
 
-- [ ] Update `app/(project)/projects/[projectId]/settings/layout.tsx`
+- [x] Update `app/(project)/projects/[projectId]/settings/layout.tsx`
   - Move "Team" from "Coming Soon" to active navigation
   - Update href to `/projects/[projectId]/settings/members`
 
 #### 4F.2 Add i18n Keys
 
-- [ ] Add translation keys to `public/locales/en/common.json`:
-  - `projectSettings.members.*` - Section titles, descriptions
-  - `members.list.*` - List labels, empty states
-  - `members.role.*` - Role names and descriptions
-  - `dialogs.invite.*` - Invite dialog content
-  - `dialogs.removeMember.*` - Remove confirmation
-  - `dialogs.transferOwnership.*` - Transfer confirmation
-  - `invitations.*` - Accept page content
+- [x] Add translation keys to `public/locales/en.json`:
+  - `members.*` - Team members section (roles, actions, dialogs)
+  - `members.transfer.*` - Transfer ownership dialog
+  - `invitation.*` - Accept invitation page
+  - Common keys for errors and actions
 
 #### 4F.3 Polish & Accessibility
 
-- [ ] Keyboard navigation for role selector
-- [ ] Focus management in dialogs
-- [ ] Loading states for all mutations
-- [ ] Error handling with toast notifications
-- [ ] Responsive design for mobile
+- [x] Loading states for all mutations with spinner icons
+- [x] Error handling with toast notifications (sonner)
+- [x] Responsive design with flex layouts
+- [x] Keyboard-accessible role selector dropdown
+- [x] Focus management in dialogs (via Radix UI)
 
-### Permission Matrix (Frontend)
+### Permission Matrix (Frontend) - Implemented
 
 | Action                | OWNER    | MANAGER       | DEVELOPER |
 | --------------------- | -------- | ------------- | --------- |
@@ -419,12 +433,13 @@ Epic 4 (Member UI) ────────────────────�
 | Invite button visible | ✅       | ✅            | ❌        |
 | Can invite DEVELOPER  | ✅       | ✅            | ❌        |
 | Can invite MANAGER    | ✅       | ❌            | ❌        |
-| Change role dropdown  | ✅ (all) | ✅ (DEV only) | ❌        |
+| Change role dropdown  | ✅ (M/D) | ✅ (DEV only) | ❌        |
 | Remove member button  | ✅       | ❌            | ❌        |
 | Transfer ownership    | ✅       | ❌            | ❌        |
 | Leave project         | ✅\*     | ✅            | ✅        |
 
 \*OWNER can only leave if not sole OWNER
+\*\*Note: OWNER role can only be assigned via Transfer Ownership, not role selector
 
 ---
 
@@ -502,6 +517,73 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
+## Epic 7: RBAC Integration `[depends on: Epic 2, Epic 4]`
+
+### 7.1 Frontend Permission Checks `[depends on: Epic 4]`
+
+#### 7.1.1 Project Settings Pages Audit
+
+- [ ] Audit `settings/general/page.tsx` - verify role-based visibility
+- [ ] Audit `settings/languages/page.tsx` - verify role-based visibility
+- [ ] Audit `settings/members/page.tsx` - verify permission checks (already implemented)
+- [ ] Audit `settings/api-keys/page.tsx` - verify MANAGER+ restriction
+- [ ] Audit `settings/danger-zone/page.tsx` - verify OWNER only access
+
+#### 7.1.2 Project Core Pages Audit
+
+- [ ] Audit `projects/[projectId]/page.tsx` (dashboard) - verify member access
+- [ ] Audit `projects/[projectId]/keys/page.tsx` - verify role-based actions
+- [ ] Audit `projects/[projectId]/activity/page.tsx` - verify read access
+
+#### 7.1.3 Permission Hook Implementation
+
+- [ ] Create `hooks/useProjectPermission.ts` if not exists
+  - `canManageMembers` - MANAGER+
+  - `canInviteMembers` - MANAGER+
+  - `canManageApiKeys` - MANAGER+
+  - `canDeleteProject` - OWNER only
+  - `canTransferOwnership` - OWNER only
+- [ ] Ensure consistent permission checking across all pages
+
+---
+
+### 7.2 Backend RBAC Verification `[depends on: Epic 2]`
+
+#### 7.2.1 Member Endpoints Verification
+
+- [ ] Verify `GET /projects/:id/members` - requires membership
+- [ ] Verify `GET /projects/:id/invitations` - requires MANAGER+
+- [ ] Verify `POST /projects/:id/invitations` - requires MANAGER+
+- [ ] Verify `DELETE /projects/:id/invitations/:id` - requires MANAGER+
+- [ ] Verify `PATCH /projects/:id/members/:userId/role` - requires OWNER (or MANAGER for DEV)
+- [ ] Verify `DELETE /projects/:id/members/:userId` - requires OWNER
+- [ ] Verify `POST /projects/:id/leave` - requires membership
+- [ ] Verify `POST /projects/:id/transfer-ownership` - requires OWNER
+
+#### 7.2.2 Project Settings Endpoints Verification
+
+- [ ] Verify `PATCH /projects/:id` (update settings) - requires MANAGER+
+- [ ] Verify `DELETE /projects/:id` (delete project) - requires OWNER
+- [ ] Verify API key endpoints - require MANAGER+
+- [ ] Verify language settings endpoints - require MANAGER+
+
+#### 7.2.3 AccessService Integration
+
+- [ ] Audit `AccessService` methods for complete coverage
+- [ ] Ensure `verifyProjectAccess` checks `isDisabled` status
+- [ ] Add missing permission methods if needed
+
+---
+
+### 7.3 Role-Based UI Components `[depends on: 7.1]`
+
+- [ ] Create `<RequireRole>` wrapper component for conditional rendering
+- [ ] Create `<OwnerOnly>` shorthand component
+- [ ] Create `<ManagerPlus>` shorthand component
+- [ ] Document role hierarchy and permissions matrix
+
+---
+
 ## Recommended Execution Order
 
 1. **Epic 1** ✅ → Database foundation
@@ -512,24 +594,26 @@ Epic 4 (Member UI) ────────────────────�
    - Phase 2D ✅ → Invitation commands (invite, accept, revoke)
    - Phase 2E ✅ → Routes & module integration
    - Phase 2F ✅ → Events & activity logging
-3. **Epic 4** 🔄 → Member UI (current - can demo after)
-4. **Epic 3** → Admin backend
-5. **Epic 5** → Admin UI
-6. **Epic 6** → Testing (ongoing throughout)
+3. **Epic 4** ✅ → Member UI (complete)
+4. **Epic 7** 🔄 → RBAC Integration (current)
+5. **Epic 3** → Admin backend
+6. **Epic 5** → Admin UI
+7. **Epic 6** → Testing (ongoing throughout)
 
 ---
 
 ## Estimates
 
-| Phase/Epic        | Tasks  | Complexity | Status     |
-| ----------------- | ------ | ---------- | ---------- |
-| 1. Database       | 6      | Low        | ✅ Done    |
-| 2. Member Backend | 27     | High       | ✅ Done    |
-| 3. Admin Backend  | 14     | Medium     | Pending    |
-| 4. Member UI      | 13     | Medium     | 🔄 Current |
-| 5. Admin UI       | 8      | Medium     | Pending    |
-| 6. Testing        | 12     | Medium     | Ongoing    |
-| **Total**         | **80** |            |            |
+| Phase/Epic          | Tasks  | Complexity | Status     |
+| ------------------- | ------ | ---------- | ---------- |
+| 1. Database         | 6      | Low        | ✅ Done    |
+| 2. Member Backend   | 27     | High       | ✅ Done    |
+| 3. Admin Backend    | 14     | Medium     | Pending    |
+| 4. Member UI        | 13     | Medium     | ✅ Done    |
+| 5. Admin UI         | 8      | Medium     | Pending    |
+| 6. Testing          | 12     | Medium     | Ongoing    |
+| 7. RBAC Integration | 12     | Medium     | 🔄 Current |
+| **Total**           | **92** |            |            |
 
 ---
 
