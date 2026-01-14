@@ -125,15 +125,9 @@ export function TransferOwnershipDialog({
     }
   };
 
-  const handleSubmit = form.handleSubmit(
-    (data) => {
-      console.log('[TransferDialog] Form submitted successfully:', data);
-      onConfirm(data.newOwnerId, data.keepOwnership);
-    },
-    (errors) => {
-      console.log('[TransferDialog] Form validation errors:', errors);
-    }
-  );
+  const handleSubmit = form.handleSubmit((data) => {
+    onConfirm(data.newOwnerId, data.keepOwnership);
+  });
 
   const isNextDisabled =
     isTransferring ||
@@ -165,13 +159,7 @@ export function TransferOwnershipDialog({
         </div>
 
         <Form {...form}>
-          <form
-            onSubmit={(e) => {
-              console.log('[TransferDialog] Form onSubmit triggered');
-              handleSubmit(e);
-            }}
-            className="space-y-4 px-6 pb-6"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4 px-6 pb-6">
             {/* Step 1: Select Member - stays mounted via Activity */}
             <Activity mode={step === 'select' ? 'visible' : 'hidden'}>
               <div className="space-y-4">

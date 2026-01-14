@@ -57,11 +57,9 @@ export function InvitationRow({ invitation, onRevoke, isRevoking }: InvitationRo
       <div
         className={cn(
           'flex min-w-24 items-center gap-1.5 text-xs',
-          isExpired
-            ? 'text-destructive font-medium'
-            : isExpiringSoon
-              ? 'text-warning font-medium'
-              : 'text-muted-foreground'
+          isExpired && 'text-destructive font-medium',
+          isExpiringSoon && !isExpired && 'text-warning font-medium',
+          !isExpired && !isExpiringSoon && 'text-muted-foreground'
         )}
       >
         {(isExpiringSoon || isExpired) && <Clock className="size-3.5" />}
