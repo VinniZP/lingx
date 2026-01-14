@@ -28,12 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn, getInitials } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import type { ProjectMemberResponse } from '@lingx/shared';
 import { AlertTriangle, Crown, Loader2, ShieldAlert } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Activity, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -149,120 +149,124 @@ export function TransferOwnershipDialog({
 
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4 px-6 pb-6">
-            {/* Step 1: Select Member */}
-            <div className={cn('space-y-4', step !== 'select' && 'hidden')}>
-              {/* Member Selection */}
-              <FormField
-                control={form.control}
-                name="newOwnerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('members.transfer.newOwner')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-12">
-                          <SelectValue placeholder={t('members.transfer.selectMember')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {eligibleMembers.map((member) => (
-                          <SelectItem key={member.userId} value={member.userId}>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="size-7">
-                                <AvatarImage src={member.avatarUrl || undefined} />
-                                <AvatarFallback className="bg-muted text-xs">
-                                  {getInitials(member.name || member.email)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col text-left">
-                                <span className="text-sm font-medium">
-                                  {member.name || member.email}
-                                </span>
-                                {member.name && (
-                                  <span className="text-muted-foreground text-xs">
-                                    {member.email}
+            {/* Step 1: Select Member - stays mounted via Activity */}
+            <Activity mode={step === 'select' ? 'visible' : 'hidden'}>
+              <div className="space-y-4">
+                {/* Member Selection */}
+                <FormField
+                  control={form.control}
+                  name="newOwnerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('members.transfer.newOwner')}</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder={t('members.transfer.selectMember')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {eligibleMembers.map((member) => (
+                            <SelectItem key={member.userId} value={member.userId}>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="size-7">
+                                  <AvatarImage src={member.avatarUrl || undefined} />
+                                  <AvatarFallback className="bg-muted text-xs">
+                                    {getInitials(member.name || member.email)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col text-left">
+                                  <span className="text-sm font-medium">
+                                    {member.name || member.email}
                                   </span>
-                                )}
+                                  {member.name && (
+                                    <span className="text-muted-foreground text-xs">
+                                      {member.email}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Keep Ownership Checkbox */}
-              <FormField
-                control={form.control}
-                name="keepOwnership"
-                render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem className="border-border/50 flex flex-row items-start space-y-0 space-x-3 rounded-xl border p-4">
-                    <FormControl>
-                      <Checkbox checked={value} onCheckedChange={onChange} {...field} />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="cursor-pointer">
-                        {t('members.transfer.keepOwnership')}
+                {/* Keep Ownership Checkbox */}
+                <FormField
+                  control={form.control}
+                  name="keepOwnership"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem className="border-border/50 flex flex-row items-start space-y-0 space-x-3 rounded-xl border p-4">
+                      <FormControl>
+                        <Checkbox checked={value} onCheckedChange={onChange} {...field} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="cursor-pointer">
+                          {t('members.transfer.keepOwnership')}
+                        </FormLabel>
+                        <FormDescription>
+                          {t('members.transfer.keepOwnershipDescription')}
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Warning callout */}
+                <div className="bg-warning/5 border-warning/20 flex items-start gap-3 rounded-xl border p-3">
+                  <div className="bg-warning/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
+                    <AlertTriangle className="text-warning size-4" />
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    {keepOwnership
+                      ? t('members.transfer.warningKeep')
+                      : t('members.transfer.warningLose')}
+                  </p>
+                </div>
+              </div>
+            </Activity>
+
+            {/* Step 2: Confirm - stays mounted via Activity */}
+            <Activity mode={step === 'confirm' ? 'visible' : 'hidden'}>
+              <div className="space-y-4">
+                {/* Confirmation Warning */}
+                <div className="bg-destructive/5 border-destructive/20 flex items-start gap-3 rounded-xl border p-4">
+                  <div className="bg-destructive/10 flex size-10 shrink-0 items-center justify-center rounded-lg">
+                    <ShieldAlert className="text-destructive size-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-destructive text-sm font-medium">
+                      {t('members.transfer.confirmWarningTitle')}
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      {t('members.transfer.confirmWarningDescription', {
+                        name: selectedMember?.name || selectedMember?.email || '',
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="confirmProjectName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('members.transfer.typeProjectName', { name: projectName })}
                       </FormLabel>
-                      <FormDescription>
-                        {t('members.transfer.keepOwnershipDescription')}
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {/* Warning callout */}
-              <div className="bg-warning/5 border-warning/20 flex items-start gap-3 rounded-xl border p-3">
-                <div className="bg-warning/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
-                  <AlertTriangle className="text-warning size-4" />
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {keepOwnership
-                    ? t('members.transfer.warningKeep')
-                    : t('members.transfer.warningLose')}
-                </p>
+                      <FormControl>
+                        <Input placeholder={projectName} autoComplete="off" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </div>
-
-            {/* Step 2: Confirm */}
-            <div className={cn('space-y-4', step !== 'confirm' && 'hidden')}>
-              {/* Confirmation Warning */}
-              <div className="bg-destructive/5 border-destructive/20 flex items-start gap-3 rounded-xl border p-4">
-                <div className="bg-destructive/10 flex size-10 shrink-0 items-center justify-center rounded-lg">
-                  <ShieldAlert className="text-destructive size-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-destructive text-sm font-medium">
-                    {t('members.transfer.confirmWarningTitle')}
-                  </p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {t('members.transfer.confirmWarningDescription', {
-                      name: selectedMember?.name || selectedMember?.email || '',
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="confirmProjectName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t('members.transfer.typeProjectName', { name: projectName })}
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder={projectName} autoComplete="off" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            </Activity>
 
             <DialogFooter className="mt-6 gap-3">
               {step === 'confirm' && (
