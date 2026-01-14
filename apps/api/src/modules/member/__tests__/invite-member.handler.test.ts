@@ -570,6 +570,109 @@ describe('InviteMemberHandler', () => {
         expect(result.sent).toEqual(['new@example.com']);
         expect(mockInvitationRepository.create).toHaveBeenCalledOnce();
       });
+
+      it('should throw BadRequestError when bulk invite exceeds remaining project capacity', async () => {
+        // Arrange - 17 recent invites, so only 3 remaining capacity
+        mockMemberRepository.findMemberByUserId.mockResolvedValueOnce(ownerMember);
+        mockInvitationRepository.countRecentByProject.mockResolvedValue(17); // 3 remaining
+        mockInvitationRepository.countRecentByUser.mockResolvedValue(0);
+
+        // Trying to invite 5 emails when only 3 remaining
+        const command = new InviteMemberCommand(
+          projectId,
+          [
+            'user1@example.com',
+            'user2@example.com',
+            'user3@example.com',
+            'user4@example.com',
+            'user5@example.com',
+          ],
+          'DEVELOPER',
+          ownerId
+        );
+
+        // Act & Assert
+        await expect(handler.execute(command)).rejects.toThrow(
+          'Cannot invite 5 members. Only 3 invitation(s) remaining in project hourly limit.'
+        );
+        expect(mockInvitationRepository.create).not.toHaveBeenCalled();
+      });
+
+      it('should throw BadRequestError when bulk invite exceeds remaining user capacity', async () => {
+        // Arrange - 47 recent user invites, so only 3 remaining capacity
+        mockMemberRepository.findMemberByUserId.mockResolvedValueOnce(ownerMember);
+        mockInvitationRepository.countRecentByProject.mockResolvedValue(0); // Project limit OK
+        mockInvitationRepository.countRecentByUser.mockResolvedValue(47); // 3 remaining
+
+        // Trying to invite 5 emails when only 3 remaining
+        const command = new InviteMemberCommand(
+          projectId,
+          [
+            'user1@example.com',
+            'user2@example.com',
+            'user3@example.com',
+            'user4@example.com',
+            'user5@example.com',
+          ],
+          'DEVELOPER',
+          ownerId
+        );
+
+        // Act & Assert
+        await expect(handler.execute(command)).rejects.toThrow(
+          'Cannot invite 5 members. Only 3 invitation(s) remaining in your daily limit.'
+        );
+        expect(mockInvitationRepository.create).not.toHaveBeenCalled();
+      });
+
+      it('should allow bulk invite when exactly at remaining capacity', async () => {
+        // Arrange - 17 recent invites, so only 3 remaining - inviting exactly 3
+        mockMemberRepository.findMemberByUserId.mockResolvedValueOnce(ownerMember);
+        mockInvitationRepository.countRecentByProject.mockResolvedValue(17); // 3 remaining
+        mockInvitationRepository.countRecentByUser.mockResolvedValue(0);
+        mockMemberRepository.findUserByEmail.mockResolvedValue(null);
+        mockInvitationRepository.findPendingByEmail.mockResolvedValue(null);
+        mockInvitationRepository.create.mockResolvedValue(createMockInvitation());
+
+        const command = new InviteMemberCommand(
+          projectId,
+          ['user1@example.com', 'user2@example.com', 'user3@example.com'],
+          'DEVELOPER',
+          ownerId
+        );
+
+        // Act
+        const result = await handler.execute(command);
+
+        // Assert
+        expect(result.sent).toEqual([
+          'user1@example.com',
+          'user2@example.com',
+          'user3@example.com',
+        ]);
+        expect(mockInvitationRepository.create).toHaveBeenCalledTimes(3);
+      });
+
+      it('should check project rate limit before user rate limit', async () => {
+        // Arrange - both limits exceeded, project should be checked first
+        mockMemberRepository.findMemberByUserId.mockResolvedValueOnce(ownerMember);
+        mockInvitationRepository.countRecentByProject.mockResolvedValue(20); // At project limit
+        mockInvitationRepository.countRecentByUser.mockResolvedValue(50); // At user limit
+
+        const command = new InviteMemberCommand(
+          projectId,
+          ['new@example.com'],
+          'DEVELOPER',
+          ownerId
+        );
+
+        // Act & Assert - should fail on project limit first
+        await expect(handler.execute(command)).rejects.toThrow(
+          'Project invitation rate limit exceeded (20 per hour)'
+        );
+        // User rate limit should not even be checked
+        expect(mockInvitationRepository.countRecentByUser).not.toHaveBeenCalled();
+      });
     });
 
     describe('validation errors', () => {

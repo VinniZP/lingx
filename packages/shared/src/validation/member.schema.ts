@@ -28,10 +28,18 @@ export const inviteMemberSchema = z.object({
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
 
 /**
+ * Assignable roles - MANAGER or DEVELOPER only (cannot assign OWNER via role change)
+ * Use Transfer Ownership to make someone an owner.
+ */
+export const assignableRoleSchema = z.enum(['MANAGER', 'DEVELOPER']);
+export type AssignableRole = z.infer<typeof assignableRoleSchema>;
+
+/**
  * Schema for updating a member's role.
+ * Note: Cannot promote to OWNER - use Transfer Ownership instead.
  */
 export const updateMemberRoleSchema = z.object({
-  role: memberRoleSchema,
+  role: assignableRoleSchema,
 });
 
 export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>;

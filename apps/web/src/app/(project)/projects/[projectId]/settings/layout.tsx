@@ -1,25 +1,25 @@
 'use client';
 
-import { use } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from '@lingx/sdk-nextjs';
+import { useAIConfigs } from '@/hooks/use-ai-translation';
+import { useMTConfigs } from '@/hooks/use-machine-translation';
 import { projectApi } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
-  Settings,
-  Languages,
   BookOpen,
-  Users,
-  Shield,
-  Loader2,
-  Sparkles,
   Gauge,
+  Languages,
+  Loader2,
+  Settings,
+  Shield,
+  Sparkles,
+  Users,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useMTConfigs } from '@/hooks/use-machine-translation';
-import { useAIConfigs } from '@/hooks/use-ai-translation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { use } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -48,20 +48,21 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
   const isAITranslationActive = pathname === `/projects/${projectId}/settings/ai-translation`;
   const isGlossaryActive = pathname === `/projects/${projectId}/settings/glossary`;
   const isQualityActive = pathname === `/projects/${projectId}/settings/quality`;
+  const isMembersActive = pathname === `/projects/${projectId}/settings/members`;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
-            <div className="size-16 rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 animate-pulse" />
+            <div className="from-primary/20 to-primary/5 size-16 animate-pulse rounded-2xl bg-linear-to-br" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="size-6 text-primary animate-spin" />
+              <Loader2 className="text-primary size-6 animate-spin" />
             </div>
           </div>
-          <div className="text-center space-y-1">
+          <div className="space-y-1 text-center">
             <p className="text-sm font-medium">{t('projectSettings.layout.loadingSettings')}</p>
-            <p className="text-xs text-muted-foreground">{t('common.pleaseWait')}</p>
+            <p className="text-muted-foreground text-xs">{t('common.pleaseWait')}</p>
           </div>
         </div>
       </div>
@@ -109,42 +110,53 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       isActive: isQualityActive,
       badge: null,
     },
+    {
+      href: `/projects/${projectId}/settings/members`,
+      icon: Users,
+      label: t('projectSettings.layout.nav.team'),
+      description: t('projectSettings.layout.nav.teamDescription'),
+      isActive: isMembersActive,
+      badge: null,
+    },
   ];
 
   const comingSoonItems = [
-    { icon: Users, label: t('projectSettings.layout.nav.team'), description: t('projectSettings.layout.nav.teamDescription') },
-    { icon: Shield, label: t('projectSettings.layout.nav.security'), description: t('projectSettings.layout.nav.securityDescription') },
+    {
+      icon: Shield,
+      label: t('projectSettings.layout.nav.security'),
+      description: t('projectSettings.layout.nav.securityDescription'),
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Hero Header with Depth */}
-      <div className="relative overflow-hidden border-b border-border/40">
+      <div className="border-border/40 relative overflow-hidden border-b">
         {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-linear-to-br from-primary/[0.02] via-transparent to-transparent" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="from-primary/[0.02] absolute inset-0 bg-linear-to-br via-transparent to-transparent" />
+        <div className="from-primary/[0.03] absolute top-0 right-0 h-96 w-96 translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-bl to-transparent blur-3xl" />
 
         <div className="relative container max-w-6xl py-8">
           <div className="flex items-start gap-6">
             {/* Back Button */}
             <Link
               href={`/projects/${projectId}`}
-              className="mt-1 inline-flex items-center justify-center size-10 rounded-xl bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:shadow-sm transition-all duration-200"
+              className="bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border mt-1 inline-flex size-10 items-center justify-center rounded-xl border transition-all duration-200 hover:shadow-sm"
             >
               <ArrowLeft className="size-4" />
             </Link>
 
             {/* Title Section */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="size-11 rounded-xl bg-linear-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center shadow-sm">
-                  <Settings className="size-5 text-primary" />
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-3">
+                <div className="from-primary/15 to-primary/5 border-primary/10 flex size-11 items-center justify-center rounded-xl border bg-linear-to-br shadow-sm">
+                  <Settings className="text-primary size-5" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-semibold tracking-tight">
                     {t('projectSettings.layout.title')}
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {t('projectSettings.layout.subtitle', { projectName: project?.name || '' })}
                   </p>
                 </div>
@@ -162,7 +174,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
             <nav className="sticky top-8 space-y-6">
               {/* Active Navigation */}
               <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3">
+                <p className="text-muted-foreground/70 mb-3 px-3 text-[11px] font-semibold tracking-widest uppercase">
                   {t('projectSettings.layout.configure')}
                 </p>
 
@@ -173,36 +185,44 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+                        'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200',
                         item.isActive
                           ? 'bg-primary/10 text-primary shadow-sm'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                       )}
                     >
-                      <div className={cn(
-                        'size-9 rounded-lg flex items-center justify-center transition-all duration-200',
-                        item.isActive
-                          ? 'bg-primary/15 shadow-sm'
-                          : 'bg-muted/50 group-hover:bg-muted'
-                      )}>
-                        <Icon className={cn(
-                          'size-4.5 transition-colors',
-                          item.isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                        )} />
+                      <div
+                        className={cn(
+                          'flex size-9 items-center justify-center rounded-lg transition-all duration-200',
+                          item.isActive
+                            ? 'bg-primary/15 shadow-sm'
+                            : 'bg-muted/50 group-hover:bg-muted'
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            'size-4.5 transition-colors',
+                            item.isActive
+                              ? 'text-primary'
+                              : 'text-muted-foreground group-hover:text-foreground'
+                          )}
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={cn(
-                          'text-sm font-medium leading-none mb-0.5',
-                          item.isActive && 'text-primary'
-                        )}>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={cn(
+                            'mb-0.5 text-sm leading-none font-medium',
+                            item.isActive && 'text-primary'
+                          )}
+                        >
                           {item.label}
                         </p>
-                        <p className="text-[11px] text-muted-foreground truncate">
+                        <p className="text-muted-foreground truncate text-[11px]">
                           {item.description}
                         </p>
                       </div>
                       {item.badge && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-success/15 text-success border border-success/20">
+                        <span className="bg-success/15 text-success border-success/20 rounded-md border px-2 py-0.5 text-[10px] font-bold">
                           {item.badge}
                         </span>
                       )}
@@ -212,11 +232,11 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
               </div>
 
               {/* Divider */}
-              <div className="h-px bg-linear-to-r from-border/60 via-border/30 to-transparent mx-3" />
+              <div className="from-border/60 via-border/30 mx-3 h-px bg-linear-to-r to-transparent" />
 
               {/* Coming Soon */}
               <div className="space-y-1.5">
-                <p className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3">
+                <p className="text-muted-foreground/70 mb-3 px-3 text-[11px] font-semibold tracking-widest uppercase">
                   {t('projectSettings.layout.comingSoon')}
                 </p>
 
@@ -225,21 +245,17 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
                   return (
                     <div
                       key={item.label}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground/50 cursor-not-allowed"
+                      className="text-muted-foreground/50 flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5"
                     >
-                      <div className="size-9 rounded-lg bg-muted/30 flex items-center justify-center">
+                      <div className="bg-muted/30 flex size-9 items-center justify-center rounded-lg">
                         <Icon className="size-4.5" />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium leading-none">
-                            {item.label}
-                          </p>
-                          <Sparkles className="size-3 text-primary/40" />
+                          <p className="text-sm leading-none font-medium">{item.label}</p>
+                          <Sparkles className="text-primary/40 size-3" />
                         </div>
-                        <p className="text-[11px] truncate mt-0.5">
-                          {item.description}
-                        </p>
+                        <p className="mt-0.5 truncate text-[11px]">{item.description}</p>
                       </div>
                     </div>
                   );
@@ -247,9 +263,9 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
               </div>
 
               {/* Help Card */}
-              <div className="mx-1 p-4 rounded-xl bg-linear-to-br from-muted/50 to-muted/20 border border-border/40">
-                <p className="text-xs font-medium mb-1">{t('projectSettings.layout.needHelp')}</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <div className="from-muted/50 to-muted/20 border-border/40 mx-1 rounded-xl border bg-linear-to-br p-4">
+                <p className="mb-1 text-xs font-medium">{t('projectSettings.layout.needHelp')}</p>
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
                   {t('projectSettings.layout.needHelpDescription')}
                 </p>
               </div>
@@ -257,9 +273,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
           </div>
 
           {/* Page Content - Generous space */}
-          <div className="flex-1 min-w-0 max-w-3xl">
-            {children}
-          </div>
+          <div className="max-w-3xl min-w-0 flex-1">{children}</div>
         </div>
       </div>
     </div>

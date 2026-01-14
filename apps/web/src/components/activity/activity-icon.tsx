@@ -8,17 +8,22 @@ import type { ActivityType } from '@lingx/shared';
 import {
   Activity,
   CheckCircle,
+  Crown,
   Download,
   FileText,
   FolderPlus,
   GitBranch,
   GitMerge,
   Layers,
+  LogOut,
   Plus,
   Settings,
+  Shield,
   Sparkles,
   Trash2,
   Upload,
+  UserCheck,
+  UserMinus,
   XCircle,
   type LucideIcon,
 } from 'lucide-react';
@@ -45,6 +50,13 @@ const activityIcons: Record<ActivityType, LucideIcon> = {
   ai_translate: Sparkles,
   translation_approve: CheckCircle,
   translation_reject: XCircle,
+  // Member management activities
+  member_role_change: Shield,
+  member_remove: UserMinus,
+  member_leave: LogOut,
+  ownership_transfer: Crown,
+  member_invite: UserCheck,
+  invitation_accept: UserCheck,
 };
 
 /**

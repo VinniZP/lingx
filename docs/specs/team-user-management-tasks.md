@@ -34,7 +34,7 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-## Epic 2: Member Management Backend
+## Epic 2: Member Management Backend ✅
 
 ### Phase 2A: Foundation ✅ `[depends on: 1.1]`
 
@@ -205,10 +205,10 @@ Epic 4 (Member UI) ────────────────────�
 - [x] Register event handlers in module index
 - [x] Write activity handler tests (18 tests)
 
-#### 2F.3 Email Notifications (Deferred)
+#### 2F.3 Email Notifications (Deferred to Epic 7)
 
-- [ ] Create email templates (future task)
-- [ ] Add email event handlers (future task)
+- [ ] Create email templates
+- [ ] Add email event handlers
 
 ---
 
@@ -272,64 +272,159 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-## Epic 4: Member Management UI
+## Epic 4: Member Management UI `[depends on: Epic 2]`
 
-### 4.1 API Client & Types `[depends on: 2.7]`
+### Phase 4A: API Client `[depends on: Epic 2]`
 
-- [ ] Add API client functions in `lib/api/`:
-  - `getProjectMembers(projectId)`
-  - `getProjectInvitations(projectId)`
-  - `inviteMembers(projectId, emails, role)`
-  - `revokeInvitation(projectId, invitationId)`
-  - `updateMemberRole(projectId, userId, role)`
-  - `removeMember(projectId, userId)`
-  - `transferOwnership(projectId, userId)`
-  - `getInvitationByToken(token)`
-  - `acceptInvitation(token)`
+- [ ] Create `apps/web/src/lib/api/members.ts`:
+  - `memberApi.list(projectId)` - list project members
+  - `memberApi.updateRole(projectId, userId, role)` - change member role
+  - `memberApi.remove(projectId, userId)` - remove member
+  - `memberApi.leave(projectId)` - leave project
+  - `memberApi.transferOwnership(projectId, data)` - transfer ownership
+  - `memberApi.listInvitations(projectId)` - list pending invitations
+  - `memberApi.invite(projectId, data)` - send invitations
+  - `memberApi.revokeInvitation(projectId, invitationId)` - revoke invitation
+  - `invitationApi.getByToken(token)` - get invitation details (public)
+  - `invitationApi.accept(token)` - accept invitation
 
-### 4.2 Members Tab - List View `[depends on: 4.1]`
+---
 
-- [ ] Create `app/(dashboard)/projects/[slug]/settings/members/page.tsx`
-- [ ] Create `members-list.tsx` component
-  - Table with name, email, role, actions
-  - Role dropdown (respects permission rules)
-  - Remove button (OWNER only, with confirm dialog)
-  - Sort alphabetically
-- [ ] Create `role-select.tsx` component
-  - Dropdown with OWNER/MANAGER/DEVELOPER
-  - Disabled states based on actor permissions
+### Phase 4B: Members List Page `[depends on: 4A]`
 
-### 4.3 Invitation Components `[depends on: 4.1]`
+#### 4B.1 Members Page
 
-- [ ] Create `invitations-list.tsx` component
-  - Pending invites table
-  - Expiry countdown
-  - Revoke button
-- [ ] Create `invite-dialog.tsx` component
-  - Textarea for multiple emails
+- [ ] Create `app/(project)/projects/[projectId]/settings/members/page.tsx`
+  - Page header with "Team Members" title
+  - Members list section (visible to all members)
+  - Pending invitations section (visible to MANAGER+)
+  - Invite button (visible to MANAGER+)
+  - Use `useQuery` for data fetching
+  - Premium styling with `.island` containers
+
+#### 4B.2 Members List Component
+
+- [ ] Create `_components/members-list.tsx`
+  - Row-based layout with avatar, name, email, role, actions
+  - Sort alphabetically by name
+  - Current user indicator "(You)"
+  - Responsive design
+
+#### 4B.3 Member Row Component
+
+- [ ] Create `_components/member-row.tsx`
+  - Avatar with fallback initials
+  - Name + email display
+  - Role selector (conditional based on permissions)
+  - Remove button (OWNER only)
+
+---
+
+### Phase 4C: Invitation Components `[depends on: 4A]`
+
+#### 4C.1 Invitations List
+
+- [ ] Create `_components/invitations-list.tsx`
+  - Show pending invitations with email, role, inviter, expiry
+  - Expiry countdown or date display
+  - Revoke button for each invitation
+  - Empty state when no pending invitations
+
+#### 4C.2 Invite Dialog
+
+- [ ] Create `_components/invite-dialog.tsx`
+  - Textarea for multiple emails (one per line or comma-separated)
   - Role selector (MANAGER can only select DEVELOPER)
-  - Validation feedback
-  - Bulk invite support
+  - Validation with email format checking
+  - Submit with `useMutation`
+  - Show results: sent, skipped, errors
+  - Rate limit error handling
 
-### 4.4 Ownership Transfer `[depends on: 4.1]`
+---
 
-- [ ] Create `transfer-ownership-dialog.tsx`
-  - Select from existing members
-  - Confirmation with project name
-  - Option to remain as OWNER or demote
+### Phase 4D: Member Actions `[depends on: 4B]`
 
-### 4.5 Accept Invitation Page `[depends on: 4.1]`
+#### 4D.1 Role Selector
+
+- [ ] Create `_components/role-selector.tsx`
+  - OWNER can select any role (OWNER, MANAGER, DEVELOPER)
+  - MANAGER can only select DEVELOPER
+  - Disabled state with tooltip explaining why
+
+#### 4D.2 Remove Member Dialog
+
+- [ ] Create `_components/remove-member-dialog.tsx`
+  - Confirmation dialog with member name
+  - Warning about permanent action
+  - Handle API errors (e.g., last OWNER)
+
+#### 4D.3 Transfer Ownership Dialog
+
+- [ ] Create `_components/transfer-ownership-dialog.tsx`
+  - Select from current project members (exclude self)
+  - Checkbox: "Keep me as owner" (default: true)
+  - Warning about implications
+  - Confirmation with project name typing
+
+---
+
+### Phase 4E: Accept Invitation Page `[depends on: 4A]`
 
 - [ ] Create `app/(auth)/invite/[token]/page.tsx`
-  - Show project name, inviter, role
-  - "Accept" button (requires login)
-  - Handle expired/invalid tokens
-  - Redirect to project after accept
+  - Fetch invitation details using token (public)
+  - Show: project name, role, inviter name
+  - States:
+    - Loading: skeleton
+    - Error (invalid/expired/revoked): error message
+    - Valid (not logged in): invitation details + login CTA
+    - Valid (logged in, email matches): accept button
+    - Valid (logged in, email mismatch): error about wrong account
+  - On accept: redirect to project
 
-### 4.6 Navigation & Layout `[depends on: 4.2]`
+---
 
-- [ ] Add "Members" tab to project settings navigation
-- [ ] Show member count badge
+### Phase 4F: Navigation & Polish `[depends on: 4B, 4C, 4D, 4E]`
+
+#### 4F.1 Enable Members Tab
+
+- [ ] Update `app/(project)/projects/[projectId]/settings/layout.tsx`
+  - Move "Team" from "Coming Soon" to active navigation
+  - Update href to `/projects/[projectId]/settings/members`
+
+#### 4F.2 Add i18n Keys
+
+- [ ] Add translation keys to `public/locales/en/common.json`:
+  - `projectSettings.members.*` - Section titles, descriptions
+  - `members.list.*` - List labels, empty states
+  - `members.role.*` - Role names and descriptions
+  - `dialogs.invite.*` - Invite dialog content
+  - `dialogs.removeMember.*` - Remove confirmation
+  - `dialogs.transferOwnership.*` - Transfer confirmation
+  - `invitations.*` - Accept page content
+
+#### 4F.3 Polish & Accessibility
+
+- [ ] Keyboard navigation for role selector
+- [ ] Focus management in dialogs
+- [ ] Loading states for all mutations
+- [ ] Error handling with toast notifications
+- [ ] Responsive design for mobile
+
+### Permission Matrix (Frontend)
+
+| Action                | OWNER    | MANAGER       | DEVELOPER |
+| --------------------- | -------- | ------------- | --------- |
+| View members list     | ✅       | ✅            | ✅        |
+| View invitations      | ✅       | ✅            | ❌        |
+| Invite button visible | ✅       | ✅            | ❌        |
+| Can invite DEVELOPER  | ✅       | ✅            | ❌        |
+| Can invite MANAGER    | ✅       | ❌            | ❌        |
+| Change role dropdown  | ✅ (all) | ✅ (DEV only) | ❌        |
+| Remove member button  | ✅       | ❌            | ❌        |
+| Transfer ownership    | ✅       | ❌            | ❌        |
+| Leave project         | ✅\*     | ✅            | ✅        |
+
+\*OWNER can only leave if not sole OWNER
 
 ---
 
@@ -410,35 +505,31 @@ Epic 4 (Member UI) ────────────────────�
 ## Recommended Execution Order
 
 1. **Epic 1** ✅ → Database foundation
-2. **Phase 2A** ✅ → Schemas + Repositories
-3. **Phase 2B** ✅ → Member queries (read operations)
-4. **Phase 2C** ✅ → Member commands (role, remove, leave, transfer)
-5. **Phase 2D** ✅ → Invitation commands (invite, accept, revoke)
-6. **Phase 2E** ✅ → Routes & module integration
-7. **Phase 2F** 🔄 → Events & activity logging (event classes done, handlers pending)
-8. **Epic 4** → Member UI (can demo at this point)
-9. **Epic 3** → Admin backend
-10. **Epic 5** → Admin UI
-11. **Epic 6** → Testing (ongoing throughout)
+2. **Epic 2** ✅ → Member Management Backend (all phases complete)
+   - Phase 2A ✅ → Schemas + Repositories
+   - Phase 2B ✅ → Member queries (read operations)
+   - Phase 2C ✅ → Member commands (role, remove, leave, transfer)
+   - Phase 2D ✅ → Invitation commands (invite, accept, revoke)
+   - Phase 2E ✅ → Routes & module integration
+   - Phase 2F ✅ → Events & activity logging
+3. **Epic 4** 🔄 → Member UI (current - can demo after)
+4. **Epic 3** → Admin backend
+5. **Epic 5** → Admin UI
+6. **Epic 6** → Testing (ongoing throughout)
 
 ---
 
 ## Estimates
 
-| Phase/Epic          | Tasks  | Complexity | Status     |
-| ------------------- | ------ | ---------- | ---------- |
-| 1. Database         | 6      | Low        | ✅ Done    |
-| 2A. Foundation      | 5      | Medium     | ✅ Done    |
-| 2B. Read Ops        | 4      | Low        | ✅ Done    |
-| 2C. Member Commands | 5      | High       | ✅ Done    |
-| 2D. Invite Commands | 4      | High       | ✅ Done    |
-| 2E. Routes          | 5      | Medium     | ✅ Done    |
-| 2F. Events          | 4      | Low        | 🔄 Partial |
-| 3. Admin Backend    | 14     | Medium     | Pending    |
-| 4. Member UI        | 12     | Medium     | Pending    |
-| 5. Admin UI         | 8      | Medium     | Pending    |
-| 6. Testing          | 12     | Medium     | Ongoing    |
-| **Total**           | **79** |            |            |
+| Phase/Epic        | Tasks  | Complexity | Status     |
+| ----------------- | ------ | ---------- | ---------- |
+| 1. Database       | 6      | Low        | ✅ Done    |
+| 2. Member Backend | 27     | High       | ✅ Done    |
+| 3. Admin Backend  | 14     | Medium     | Pending    |
+| 4. Member UI      | 13     | Medium     | 🔄 Current |
+| 5. Admin UI       | 8      | Medium     | Pending    |
+| 6. Testing        | 12     | Medium     | Ongoing    |
+| **Total**         | **80** |            |            |
 
 ---
 

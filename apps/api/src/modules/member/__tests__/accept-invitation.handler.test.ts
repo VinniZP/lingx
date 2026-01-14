@@ -360,6 +360,127 @@ describe('AcceptInvitationHandler', () => {
       });
     });
 
+    describe('transaction behavior', () => {
+      it('should rollback member creation if invitation update fails', async () => {
+        // Arrange
+        mockMemberRepository.findUserById.mockResolvedValue({ id: userId, email: userEmail });
+        mockMemberRepository.findMemberByUserId.mockResolvedValue(null);
+        const invitation = createMockInvitation({
+          token,
+          email: userEmail,
+          expiresAt: futureDate,
+        });
+        mockInvitationRepository.findByToken.mockResolvedValue(invitation);
+
+        // Simulate transaction failure on invitation update
+        const transactionError = new Error('Database error during invitation update');
+        mockPrisma.$transaction.mockRejectedValueOnce(transactionError);
+
+        const command = new AcceptInvitationCommand(token, userId);
+
+        // Act & Assert
+        await expect(handler.execute(command)).rejects.toThrow(
+          'Database error during invitation update'
+        );
+
+        // Verify transaction was attempted (and would have rolled back)
+        expect(mockPrisma.$transaction).toHaveBeenCalledOnce();
+
+        // Event should NOT be emitted since transaction failed
+        expect(mockEventBus.publish).not.toHaveBeenCalled();
+      });
+
+      it('should rollback invitation acceptance if member creation fails', async () => {
+        // Arrange
+        mockMemberRepository.findUserById.mockResolvedValue({ id: userId, email: userEmail });
+        mockMemberRepository.findMemberByUserId.mockResolvedValue(null);
+        const invitation = createMockInvitation({
+          token,
+          email: userEmail,
+          expiresAt: futureDate,
+        });
+        mockInvitationRepository.findByToken.mockResolvedValue(invitation);
+
+        // Setup mock to execute transaction callback and fail on create
+        const mockTx = {
+          projectMember: { create: vi.fn().mockRejectedValue(new Error('Member creation failed')) },
+          projectInvitation: { update: vi.fn() },
+        };
+        mockPrisma.$transaction.mockImplementationOnce(
+          async (fn: (tx: typeof mockTx) => Promise<void>) => {
+            await fn(mockTx);
+          }
+        );
+
+        const command = new AcceptInvitationCommand(token, userId);
+
+        // Act & Assert
+        await expect(handler.execute(command)).rejects.toThrow('Member creation failed');
+
+        // Verify transaction was attempted
+        expect(mockPrisma.$transaction).toHaveBeenCalledOnce();
+        // Member create was called
+        expect(mockTx.projectMember.create).toHaveBeenCalled();
+        // Invitation update should NOT have been called since create failed first
+        expect(mockTx.projectInvitation.update).not.toHaveBeenCalled();
+        // Event should NOT be emitted since transaction failed
+        expect(mockEventBus.publish).not.toHaveBeenCalled();
+      });
+
+      it('should not emit event until transaction completes successfully', async () => {
+        // Arrange
+        mockMemberRepository.findUserById.mockResolvedValue({ id: userId, email: userEmail });
+        mockMemberRepository.findMemberByUserId.mockResolvedValue(null);
+        const invitation = createMockInvitation({
+          token,
+          email: userEmail,
+          expiresAt: futureDate,
+        });
+        mockInvitationRepository.findByToken.mockResolvedValue(invitation);
+
+        // Track call order
+        const callOrder: string[] = [];
+        mockPrisma.$transaction.mockImplementationOnce(
+          async (fn: (tx: unknown) => Promise<void>) => {
+            callOrder.push('transaction-start');
+            await fn({
+              projectMember: {
+                create: vi.fn().mockImplementation(() => {
+                  callOrder.push('create');
+                  return Promise.resolve();
+                }),
+              },
+              projectInvitation: {
+                update: vi.fn().mockImplementation(() => {
+                  callOrder.push('update');
+                  return Promise.resolve();
+                }),
+              },
+            });
+            callOrder.push('transaction-commit');
+          }
+        );
+        mockEventBus.publish.mockImplementation(() => {
+          callOrder.push('event-published');
+          return Promise.resolve();
+        });
+
+        const command = new AcceptInvitationCommand(token, userId);
+
+        // Act
+        await handler.execute(command);
+
+        // Assert - event is published AFTER transaction commits
+        expect(callOrder).toEqual([
+          'transaction-start',
+          'create',
+          'update',
+          'transaction-commit',
+          'event-published',
+        ]);
+      });
+    });
+
     describe('email validation', () => {
       it('should throw ForbiddenError when user email does not match invitation', async () => {
         // Arrange

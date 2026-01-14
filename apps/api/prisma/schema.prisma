@@ -226,7 +226,8 @@ model ProjectInvitation {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   invitedBy User    @relation("SentInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, email]) // One active invite per email per project
+  // Note: Uniqueness of pending invitations is enforced at application level
+  // via findPendingByEmail check, allowing re-inviting after revocation
   @@index([token])
   @@index([email])
   @@index([projectId])

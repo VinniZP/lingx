@@ -173,12 +173,16 @@ declare module '@lingx/sdk-nextjs' {
       | 'common.back'
       | 'common.branch'
       | 'common.cancel'
+      | 'common.checkConnectionRetry'
       | 'common.close'
+      | 'common.connectionError'
       | 'common.continue'
       | 'common.create'
       | 'common.delete'
       | 'common.deleting'
+      | 'common.done'
       | 'common.goBack'
+      | 'common.goToDashboard'
       | 'common.keys'
       | 'common.languages'
       | 'common.learnMore'
@@ -186,9 +190,13 @@ declare module '@lingx/sdk-nextjs' {
       | 'common.optional'
       | 'common.pleaseWait'
       | 'common.remove'
+      | 'common.retry'
+      | 'common.returnToDashboard'
       | 'common.saveChanges'
       | 'common.saving'
       | 'common.switching'
+      | 'common.tryAgain'
+      | 'common.unexpectedError'
       | 'common.verified'
       | 'common.viewAll'
       | 'dashboard.apiKeys.description'
@@ -369,6 +377,29 @@ declare module '@lingx/sdk-nextjs' {
       | 'integrations.usage.requests'
       | 'integrations.usage.subtitle'
       | 'integrations.usage.title'
+      | 'invitation.accept'
+      | 'invitation.acceptFailed'
+      | 'invitation.decline'
+      | 'invitation.declined'
+      | 'invitation.declinedDescription'
+      | 'invitation.expires'
+      | 'invitation.invitedBy'
+      | 'invitation.joinTeam'
+      | 'invitation.loading'
+      | 'invitation.loggedInAs'
+      | 'invitation.logInAs'
+      | 'invitation.notFound'
+      | 'invitation.notFoundDescription'
+      | 'invitation.nowMemberOf'
+      | 'invitation.readyToJoin'
+      | 'invitation.role'
+      | 'invitation.signInDescription'
+      | 'invitation.signInToAccept'
+      | 'invitation.teamMember'
+      | 'invitation.welcomeToTeam'
+      | 'invitation.wrongAccount'
+      | 'invitation.wrongAccountDescription'
+      | 'invitation.youveBeenInvited'
       | 'keyForm.cancel'
       | 'keyForm.context.description'
       | 'keyForm.context.label'
@@ -450,6 +481,81 @@ declare module '@lingx/sdk-nextjs' {
       | 'landing.startForFree'
       | 'landing.subheadline'
       | 'landing.viewOnGitHub'
+      | 'members.dangerZone'
+      | 'members.dangerZoneDescription'
+      | 'members.emailAddresses'
+      | 'members.emailsHint'
+      | 'members.enterValidEmail'
+      | 'members.expired'
+      | 'members.expiresIn'
+      | 'members.invitationExpiryInfo'
+      | 'members.invitationRevoked'
+      | 'members.invitationsFailed'
+      | 'members.invitationsLoadFailed'
+      | 'members.invitationsSent'
+      | 'members.invitationsSkipped'
+      | 'members.invitedBy'
+      | 'members.inviteDescription'
+      | 'members.inviteFailed'
+      | 'members.inviteMembers'
+      | 'members.inviteTeamMembers'
+      | 'members.joined'
+      | 'members.leave'
+      | 'members.leaveConfirm'
+      | 'members.leaveFailed'
+      | 'members.leaveProject'
+      | 'members.leaveRegainAccess'
+      | 'members.leaveWarning'
+      | 'members.leftProject'
+      | 'members.loadFailed'
+      | 'members.loading'
+      | 'members.managerCanOnlyInviteDevelopers'
+      | 'members.memberRemoved'
+      | 'members.noInvitations'
+      | 'members.noInvitationsDescription'
+      | 'members.noMembers'
+      | 'members.pendingInvitations'
+      | 'members.pendingInvitationsDescription'
+      | 'members.removeCannotUndo'
+      | 'members.removeConfirm'
+      | 'members.removeFailed'
+      | 'members.removeMember'
+      | 'members.removeWarning'
+      | 'members.revokeFailed'
+      | 'members.role'
+      | 'members.roles.developer'
+      | 'members.roles.developerDescription'
+      | 'members.roles.manager'
+      | 'members.roles.managerDescription'
+      | 'members.roles.owner'
+      | 'members.roles.ownerDescription'
+      | 'members.roleUpdated'
+      | 'members.roleUpdateFailed'
+      | 'members.sendInvitations'
+      | 'members.sendMore'
+      | 'members.skippedReason'
+      | 'members.stay'
+      | 'members.teamMembers'
+      | 'members.teamMembersDescription'
+      | 'members.transfer.buttonDescription'
+      | 'members.transfer.confirmDescription'
+      | 'members.transfer.confirmWarningDescription'
+      | 'members.transfer.confirmWarningTitle'
+      | 'members.transfer.failed'
+      | 'members.transfer.keepOwnership'
+      | 'members.transfer.keepOwnershipDescription'
+      | 'members.transfer.newOwner'
+      | 'members.transfer.projectNameMismatch'
+      | 'members.transfer.selectDescription'
+      | 'members.transfer.selectMember'
+      | 'members.transfer.selectNewOwner'
+      | 'members.transfer.success'
+      | 'members.transfer.title'
+      | 'members.transfer.transferOwnership'
+      | 'members.transfer.typeProjectName'
+      | 'members.transfer.warningKeep'
+      | 'members.transfer.warningLose'
+      | 'members.you'
       | 'nav.language'
       | 'nav.search'
       | 'nav.toggleNavigation'
@@ -1446,10 +1552,39 @@ declare module '@lingx/sdk-nextjs' {
     'integrations.toasts.configSavedDescription': { provider: string | number };
     /** {provider} is working correctly. */
     'integrations.toasts.connectionSuccessfulDescription': { provider: string | number };
+    /** You've declined the invitation to join {projectName}. */
+    'invitation.declinedDescription': { projectName: string | number };
+    /** Log in as {email} */
+    'invitation.logInAs': { email: string | number };
+    /** You are now a member of {projectName} */
+    'invitation.nowMemberOf': { projectName: string | number };
+    /** This invitation is for {invitedEmail} but you're logged in as {currentEmail} */
+    'invitation.wrongAccountDescription': {
+      invitedEmail: string | number;
+      currentEmail: string | number;
+    };
     /** "{name}" has been created. */
     'keyForm.createSuccessDescription': { name: string | number };
     /** © {year} Lingx. Open source under MIT License. */
     'landing.footer.copyright': { year: string | number };
+    /** Expires in {days}d */
+    'members.expiresIn': { days: string | number };
+    /** {count, plural, one {# failed} other {# failed}} */
+    'members.invitationsFailed': { count: number };
+    /** {count, plural, one {# invitation sent} other {# invitations sent}} */
+    'members.invitationsSent': { count: number };
+    /** {count, plural, one {# skipped} other {# skipped}} */
+    'members.invitationsSkipped': { count: number };
+    /** Invited by {name} */
+    'members.invitedBy': { name: string | number };
+    /** Joined {time} */
+    'members.joined': { time: string | number };
+    /** Are you sure you want to remove {name} from this project? */
+    'members.removeConfirm': { name: string | number };
+    /** You are about to transfer ownership to {name}. Please type the project name to confirm. */
+    'members.transfer.confirmWarningDescription': { name: string | number };
+    /** Type "{name}" to confirm */
+    'members.transfer.typeProjectName': { name: string | number };
     /** Page {page} of {total} */
     'pagination.pageOf': { page: string | number; total: string | number };
     /** Edit translations on the {branchName} branch */
