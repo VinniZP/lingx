@@ -76,9 +76,8 @@ export default function MembersPage({ params }: PageProps) {
   const currentMember = members.find((m) => m.userId === user?.id);
   const currentUserRole = currentMember?.role || 'DEVELOPER';
 
-  // Permission checks
+  // Permission checks - OWNER and MANAGER can manage invitations
   const canManageInvitations = currentUserRole === 'OWNER' || currentUserRole === 'MANAGER';
-  const canInvite = canManageInvitations;
 
   // Count owners to determine if current user is only owner
   const ownerCount = members.filter((m) => m.role === 'OWNER').length;
@@ -284,7 +283,7 @@ export default function MembersPage({ params }: PageProps) {
             description={t('members.teamMembersDescription')}
             color="primary"
           />
-          {canInvite && (
+          {canManageInvitations && (
             <Button onClick={() => setShowInviteDialog(true)} className="h-11 gap-2">
               <UserPlus className="size-4.5" />
               {t('members.inviteMembers')}

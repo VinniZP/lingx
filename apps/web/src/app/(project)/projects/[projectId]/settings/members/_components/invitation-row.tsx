@@ -14,11 +14,16 @@ interface InvitationRowProps {
   isRevoking?: boolean;
 }
 
+function getExpiryStatus(daysUntilExpiry: number): 'expired' | 'expiring' | 'normal' {
+  if (daysUntilExpiry < 0) return 'expired';
+  if (daysUntilExpiry <= 2) return 'expiring';
+  return 'normal';
+}
+
 export function InvitationRow({ invitation, onRevoke, isRevoking }: InvitationRowProps) {
   const { t } = useTranslation();
   const daysUntilExpiry = differenceInDays(new Date(invitation.expiresAt), new Date());
-  const isExpiringSoon = daysUntilExpiry <= 2;
-  const isExpired = daysUntilExpiry < 0;
+  const expiryStatus = getExpiryStatus(daysUntilExpiry);
 
   const style = roleStyles[invitation.role];
   const RoleIcon = style.icon;
@@ -57,13 +62,15 @@ export function InvitationRow({ invitation, onRevoke, isRevoking }: InvitationRo
       <div
         className={cn(
           'flex min-w-24 items-center gap-1.5 text-xs',
-          isExpired && 'text-destructive font-medium',
-          isExpiringSoon && !isExpired && 'text-warning font-medium',
-          !isExpired && !isExpiringSoon && 'text-muted-foreground'
+          expiryStatus === 'expired' && 'text-destructive font-medium',
+          expiryStatus === 'expiring' && 'text-warning font-medium',
+          expiryStatus === 'normal' && 'text-muted-foreground'
         )}
       >
-        {(isExpiringSoon || isExpired) && <Clock className="size-3.5" />}
-        {isExpired ? t('members.expired') : t('members.expiresIn', { days: daysUntilExpiry })}
+        {expiryStatus !== 'normal' && <Clock className="size-3.5" />}
+        {expiryStatus === 'expired'
+          ? t('members.expired')
+          : t('members.expiresIn', { days: daysUntilExpiry })}
       </div>
 
       {/* Revoke Button */}

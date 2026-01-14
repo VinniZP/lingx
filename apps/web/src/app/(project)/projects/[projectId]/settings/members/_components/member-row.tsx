@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import type { AssignableRole, ProjectMemberResponse, ProjectRole } from '@lingx/shared';
 import { formatDistanceToNow } from 'date-fns';
@@ -19,16 +19,6 @@ interface MemberRowProps {
   onLeave: () => void;
   isChangingRole?: boolean;
   isRemoving?: boolean;
-}
-
-function getInitials(name: string | null | undefined): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export function MemberRow({
