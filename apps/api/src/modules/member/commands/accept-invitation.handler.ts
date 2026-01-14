@@ -13,6 +13,12 @@ import type { AcceptInvitationCommand } from './accept-invitation.command.js';
  * Uses a transaction to ensure atomicity of:
  * - Adding member to project
  * - Marking invitation as accepted
+ *
+ * NOTE: This handler directly uses Prisma for the transaction, which is an
+ * exception to the CQRS rule "handlers never call Prisma directly". This is
+ * necessary because transactions require a shared transaction client (tx)
+ * that must be passed to all operations within the transaction scope.
+ * Repositories cannot manage cross-repository transactions internally.
  */
 export class AcceptInvitationHandler implements ICommandHandler<AcceptInvitationCommand> {
   constructor(

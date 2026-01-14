@@ -187,7 +187,7 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-### Phase 2F: Events & Activity `[depends on: 2C, 2D]`
+### Phase 2F: Events & Activity ✅ `[depends on: 2C, 2D]`
 
 #### 2F.1 Event Definitions ✅
 
@@ -199,11 +199,11 @@ Epic 4 (Member UI) ────────────────────�
   - `InvitationAcceptedEvent(invitation, userId)`
   - `OwnershipTransferredEvent(projectId, newOwnerId, previousOwnerId)`
 
-#### 2F.2 Activity Handler
+#### 2F.2 Activity Handler ✅
 
-- [ ] Create `MemberActivityHandler` to log all events
-- [ ] Register event handlers in module index
-- [ ] Write activity handler tests
+- [x] Create `MemberActivityHandler` to log all events
+- [x] Register event handlers in module index
+- [x] Write activity handler tests (18 tests)
 
 #### 2F.3 Email Notifications (Deferred)
 

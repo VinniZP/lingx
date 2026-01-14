@@ -20,6 +20,7 @@
  */
 
 import type { ProjectRole } from '@prisma/client';
+import type { FastifyBaseLogger } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { IEventBus } from '../../../shared/cqrs/index.js';
 import { InviteMemberCommand } from '../commands/invite-member.command.js';
@@ -55,6 +56,28 @@ interface MockInvitationRepository {
 
 interface MockEventBus {
   publish: Mock;
+}
+
+interface MockLogger {
+  info: Mock;
+  warn: Mock;
+  error: Mock;
+  debug: Mock;
+  trace: Mock;
+  fatal: Mock;
+  child: Mock;
+}
+
+function createMockLogger(): MockLogger {
+  return {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    trace: vi.fn(),
+    fatal: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  };
 }
 
 function createMockMemberRepository(): MockMemberRepository {
@@ -127,6 +150,7 @@ describe('InviteMemberHandler', () => {
   let mockMemberRepository: MockMemberRepository;
   let mockInvitationRepository: MockInvitationRepository;
   let mockEventBus: MockEventBus;
+  let mockLogger: MockLogger;
 
   const projectId = 'project-1';
   const ownerId = 'owner-1';
@@ -145,10 +169,12 @@ describe('InviteMemberHandler', () => {
     mockMemberRepository = createMockMemberRepository();
     mockInvitationRepository = createMockInvitationRepository();
     mockEventBus = createMockEventBus();
+    mockLogger = createMockLogger();
     handler = new InviteMemberHandler(
       mockMemberRepository as unknown as MemberRepository,
       mockInvitationRepository as unknown as InvitationRepository,
-      mockEventBus as unknown as IEventBus
+      mockEventBus as unknown as IEventBus,
+      mockLogger as unknown as FastifyBaseLogger
     );
   });
 

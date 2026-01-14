@@ -523,6 +523,15 @@ export const activityMetadataSchema = z.object({
       })
     )
     .optional(),
+  // Member management metadata
+  targetUserId: z.string().optional(),
+  oldRole: z.string().optional(),
+  newRole: z.string().optional(),
+  role: z.string().optional(),
+  newOwnerId: z.string().optional(),
+  previousOwnerKeptOwnership: z.boolean().optional(),
+  invitationId: z.string().optional(),
+  email: z.string().optional(),
 });
 
 export type ActivityMetadata = z.infer<typeof activityMetadataSchema>;

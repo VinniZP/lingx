@@ -49,8 +49,16 @@ import { GetInvitationByTokenQuery } from './queries/get-invitation-by-token.que
 import { ListProjectInvitationsQuery } from './queries/list-project-invitations.query.js';
 import { ListProjectMembersQuery } from './queries/list-project-members.query.js';
 
-// Event handlers (placeholder for future activity logging)
-// import { MemberActivityHandler } from './handlers/member-activity.handler.js';
+// Event handlers
+import { MemberActivityHandler } from './handlers/member-activity.handler.js';
+
+// Events (for event handler registrations)
+import { InvitationAcceptedEvent } from './events/invitation-accepted.event.js';
+import { MemberInvitedEvent } from './events/member-invited.event.js';
+import { MemberLeftEvent } from './events/member-left.event.js';
+import { MemberRemovedEvent } from './events/member-removed.event.js';
+import { MemberRoleChangedEvent } from './events/member-role-changed.event.js';
+import { OwnershipTransferredEvent } from './events/ownership-transferred.event.js';
 
 // Re-export commands for external use
 export { AcceptInvitationCommand } from './commands/accept-invitation.command.js';
@@ -117,15 +125,14 @@ const queryRegistrations = [
   ),
 ];
 
-// Event registrations (placeholder for activity logging - Phase 2F)
+// Event registrations for activity logging
 const eventRegistrations: ReturnType<typeof defineEventHandler>[] = [
-  // Will be added in Phase 2F:
-  // defineEventHandler(MemberRoleChangedEvent, MemberActivityHandler, 'memberActivityHandler'),
-  // defineEventHandler(MemberRemovedEvent, MemberActivityHandler, 'memberActivityHandler'),
-  // defineEventHandler(MemberLeftEvent, MemberActivityHandler, 'memberActivityHandler'),
-  // defineEventHandler(MemberInvitedEvent, MemberActivityHandler, 'memberActivityHandler'),
-  // defineEventHandler(InvitationAcceptedEvent, MemberActivityHandler, 'memberActivityHandler'),
-  // defineEventHandler(OwnershipTransferredEvent, MemberActivityHandler, 'memberActivityHandler'),
+  defineEventHandler(MemberRoleChangedEvent, MemberActivityHandler, 'memberActivityHandler'),
+  defineEventHandler(MemberRemovedEvent, MemberActivityHandler, 'memberActivityHandler'),
+  defineEventHandler(MemberLeftEvent, MemberActivityHandler, 'memberActivityHandler'),
+  defineEventHandler(MemberInvitedEvent, MemberActivityHandler, 'memberActivityHandler'),
+  defineEventHandler(InvitationAcceptedEvent, MemberActivityHandler, 'memberActivityHandler'),
+  defineEventHandler(OwnershipTransferredEvent, MemberActivityHandler, 'memberActivityHandler'),
 ];
 
 /**
@@ -156,10 +163,10 @@ export function registerMemberModule(container: AwilixContainer<Cradle>): void {
     getInvitationByTokenHandler: asClass(GetInvitationByTokenHandler).singleton(),
   });
 
-  // Register event handlers (Phase 2F)
-  // container.register({
-  //   memberActivityHandler: asClass(MemberActivityHandler).singleton(),
-  // });
+  // Register event handlers
+  container.register({
+    memberActivityHandler: asClass(MemberActivityHandler).singleton(),
+  });
 
   // Register with buses using type-safe registrations
   const commandBus = container.resolve('commandBus');

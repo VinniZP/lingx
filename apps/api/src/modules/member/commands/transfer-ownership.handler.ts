@@ -12,6 +12,11 @@ import type { TransferOwnershipCommand } from './transfer-ownership.command.js';
  * Uses a transaction to ensure atomicity of:
  * - Promoting target to OWNER
  * - Optionally demoting current owner to MANAGER
+ *
+ * NOTE: This handler directly uses Prisma for the transaction, which is an
+ * exception to the CQRS rule "handlers never call Prisma directly". This is
+ * necessary because transactions require a shared transaction client (tx)
+ * that must be passed to all operations within the transaction scope.
  */
 export class TransferOwnershipHandler implements ICommandHandler<TransferOwnershipCommand> {
   constructor(

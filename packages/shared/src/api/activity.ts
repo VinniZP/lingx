@@ -41,12 +41,23 @@ export type ActivityType =
   | 'environment_switch_branch'
   | 'ai_translate'
   | 'translation_approve'
-  | 'translation_reject';
+  | 'translation_reject'
+  // Member management (non-groupable)
+  | 'member_role_change'
+  | 'member_remove'
+  | 'member_leave'
+  | 'ownership_transfer'
+  | 'member_invite'
+  | 'invitation_accept';
 
 /**
  * Activity types that can be grouped when consecutive
  */
-export const GROUPABLE_ACTIVITY_TYPES: ActivityType[] = ['translation', 'key_add', 'key_delete'];
+export const GROUPABLE_ACTIVITY_TYPES = [
+  'translation',
+  'key_add',
+  'key_delete',
+] as const satisfies readonly ActivityType[];
 
 /**
  * Preview item for hover display (first 10 changes)

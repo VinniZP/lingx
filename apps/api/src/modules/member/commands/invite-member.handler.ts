@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+import type { FastifyBaseLogger } from 'fastify';
 import crypto from 'node:crypto';
 import { BadRequestError, ForbiddenError } from '../../../plugins/error-handler.js';
 import type { ICommandHandler, IEventBus, InferCommandResult } from '../../../shared/cqrs/index.js';
@@ -25,7 +27,8 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
   constructor(
     private readonly memberRepository: MemberRepository,
     private readonly invitationRepository: InvitationRepository,
-    private readonly eventBus: IEventBus
+    private readonly eventBus: IEventBus,
+    private readonly logger: FastifyBaseLogger
   ) {}
 
   async execute(command: InviteMemberCommand): Promise<InferCommandResult<InviteMemberCommand>> {
@@ -61,9 +64,15 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
       projectId,
       projectSince
     );
-    if (recentProjectInvites >= PROJECT_RATE_LIMIT) {
+    const projectRemainingCapacity = PROJECT_RATE_LIMIT - recentProjectInvites;
+    if (projectRemainingCapacity <= 0) {
       throw new BadRequestError(
         `Project invitation rate limit exceeded (${PROJECT_RATE_LIMIT} per hour)`
+      );
+    }
+    if (emails.length > projectRemainingCapacity) {
+      throw new BadRequestError(
+        `Cannot invite ${emails.length} members. Only ${projectRemainingCapacity} invitation(s) remaining in project hourly limit.`
       );
     }
 
@@ -71,8 +80,14 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
       inviterId,
       userSince
     );
-    if (recentUserInvites >= USER_RATE_LIMIT) {
+    const userRemainingCapacity = USER_RATE_LIMIT - recentUserInvites;
+    if (userRemainingCapacity <= 0) {
       throw new BadRequestError(`User invitation rate limit exceeded (${USER_RATE_LIMIT} per day)`);
+    }
+    if (emails.length > userRemainingCapacity) {
+      throw new BadRequestError(
+        `Cannot invite ${emails.length} members. Only ${userRemainingCapacity} invitation(s) remaining in your daily limit.`
+      );
     }
 
     // 6. Process each email with error handling for partial success
@@ -122,8 +137,17 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
         // Emit event (fire-and-forget, errors logged by EventBus)
         await this.eventBus.publish(new MemberInvitedEvent(invitation, inviterId));
       } catch (error) {
-        // Log error but continue processing remaining emails
-        // The error will be tracked in the result
+        // Handle unique constraint violation (race condition - invitation just created)
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          result.skipped.push(email);
+          continue;
+        }
+
+        // Log error and continue processing remaining emails
+        this.logger.error(
+          { error, email, projectId, inviterId },
+          `Failed to process invitation for email: ${email}`
+        );
         result.errors.push(email);
       }
     }
