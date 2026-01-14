@@ -19,6 +19,7 @@ import errorHandlerPlugin from './plugins/error-handler.js';
 import prismaPlugin from './plugins/prisma.js';
 import uploadsPlugin from './plugins/uploads.js';
 import activityRoutes from './routes/activity.js';
+import adminRoutes from './routes/admin.js';
 import aiTranslationRoutes from './routes/ai-translation.js';
 import authRoutes from './routes/auth.js';
 import branchRoutes from './routes/branches.js';
@@ -167,6 +168,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
+  await fastify.register(adminRoutes);
   await fastify.register(securityRoutes);
   await fastify.register(totpRoutes);
   await fastify.register(webauthnRoutes);

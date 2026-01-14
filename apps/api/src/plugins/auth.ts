@@ -6,13 +6,14 @@
  */
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
+import type { PrismaClient } from '@prisma/client';
 import { createHash } from 'crypto';
 import { FastifyBaseLogger, FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import type { ApiKeyRepository } from '../modules/auth/repositories/api-key.repository.js';
 import { UpdateSessionActivityCommand } from '../modules/security/commands/update-session-activity.command.js';
 import { ValidateSessionQuery } from '../modules/security/queries/validate-session.query.js';
-import { UnauthorizedError } from './error-handler.js';
+import { ForbiddenError, UnauthorizedError } from './error-handler.js';
 
 /**
  * Extend Fastify types with auth decorators
@@ -65,6 +66,18 @@ async function validateApiKey(
   return { userId: apiKey.userId, apiKeyId: apiKey.id };
 }
 
+/**
+ * Check if user is disabled.
+ * Returns true if disabled, false if active, null if not found.
+ */
+async function isUserDisabled(prisma: PrismaClient, userId: string): Promise<boolean | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isDisabled: true },
+  });
+  return user?.isDisabled ?? null;
+}
+
 const authPlugin: FastifyPluginAsync = async (fastify) => {
   // Register cookie plugin first (required for JWT cookie extraction)
   await fastify.register(fastifyCookie);
@@ -89,7 +102,9 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
    *
    * Checks for authentication via API key header or JWT cookie.
    * For JWT auth, validates session exists and is not expired.
+   * Also validates that the user account is not disabled.
    * Throws UnauthorizedError if not authenticated.
+   * Throws ForbiddenError if account is disabled.
    */
   fastify.decorate('authenticate', async function (request: FastifyRequest, _reply: FastifyReply) {
     // First, try API key from X-API-Key header
@@ -97,6 +112,14 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     if (apiKey) {
       const result = await validateApiKey(apiKeyRepository, apiKey, fastify.log);
       if (result) {
+        // Check if user is disabled or deleted
+        const disabled = await isUserDisabled(fastify.prisma, result.userId);
+        if (disabled === null) {
+          throw new UnauthorizedError('User not found');
+        }
+        if (disabled) {
+          throw new ForbiddenError('Account is disabled');
+        }
         request.user = { userId: result.userId };
         return;
       }
@@ -106,6 +129,15 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     // Then, try JWT from cookie
     try {
       await request.jwtVerify();
+
+      // Check if user is disabled or deleted (before validating session)
+      const disabled = await isUserDisabled(fastify.prisma, request.user.userId);
+      if (disabled === null) {
+        throw new UnauthorizedError('User not found');
+      }
+      if (disabled) {
+        throw new ForbiddenError('Account is disabled');
+      }
 
       // Validate session if sessionId is present in JWT
       // (JWTs without sessionId are from before session tracking was added)
@@ -131,7 +163,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       return;
     } catch (err) {
       // Re-throw our custom errors
-      if (err instanceof UnauthorizedError) {
+      if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
         throw err;
       }
       throw new UnauthorizedError('Authentication required');
@@ -152,6 +184,22 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       if (apiKey) {
         const result = await validateApiKey(apiKeyRepository, apiKey, fastify.log);
         if (result) {
+          // Check if user is disabled or deleted
+          const disabled = await isUserDisabled(fastify.prisma, result.userId);
+          if (disabled === null) {
+            fastify.log.warn(
+              { userId: result.userId },
+              'Optional auth skipped: user not found (orphaned API key)'
+            );
+            return;
+          }
+          if (disabled) {
+            fastify.log.info(
+              { userId: result.userId },
+              'Optional auth skipped: account is disabled (API key)'
+            );
+            return;
+          }
           request.user = { userId: result.userId };
           return;
         }
@@ -160,6 +208,25 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       // Try JWT
       try {
         await request.jwtVerify();
+
+        // Check if user is disabled or deleted
+        const disabled = await isUserDisabled(fastify.prisma, request.user.userId);
+        if (disabled === null) {
+          fastify.log.warn(
+            { userId: request.user.userId },
+            'Optional auth skipped: user not found (orphaned JWT)'
+          );
+          request.user = undefined as unknown as typeof request.user;
+          return;
+        }
+        if (disabled) {
+          fastify.log.info(
+            { userId: request.user.userId },
+            'Optional auth skipped: account is disabled (JWT)'
+          );
+          request.user = undefined as unknown as typeof request.user;
+          return;
+        }
 
         // Validate session if sessionId is present
         if (request.user?.sessionId) {

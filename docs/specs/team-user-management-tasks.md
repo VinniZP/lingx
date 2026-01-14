@@ -217,63 +217,160 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-## Epic 3: Admin Panel Backend
+## Epic 3: Admin Panel Backend ✅
 
-### 3.1 Admin Repository `[depends on: 1.1]`
+### Phase 3A: Foundation ✅ `[depends on: 1.1]`
 
-- [ ] Create `modules/admin/admin.repository.ts`
-  - `findAllUsers(filters, pagination)` - paginated user list
-  - `findUserById(id)` - user with projects
-  - `findUserActivity(userId, limit)` - recent activity
-  - `updateUserDisabled(userId, isDisabled, disabledById)`
-  - `anonymizeUserActivity(userId)` - replace name in activity
+#### 3A.1 Admin Shared Schemas
 
-### 3.2 Admin Shared Schemas `[depends on: 1.1]`
+- [x] Create `packages/shared/src/validation/admin.schema.ts`:
+  - `listUsersQuerySchema` (search, role, status, page, limit)
+  - `adminUserResponseSchema` (list item with projectCount)
+  - `adminUserDetailsResponseSchema` (full user + projects + stats + disabledBy)
+  - `impersonationTokenResponseSchema` (token, expiresAt)
+- [x] Export from `packages/shared/src/validation/index.ts`
 
-- [ ] Add to `packages/shared/src/validation/admin.schema.ts`:
-  - `listUsersQuerySchema` (filters, pagination)
-  - `adminUserResponseSchema`
-  - `adminUserDetailsResponseSchema`
-  - `impersonationTokenResponseSchema`
+#### 3A.2 Admin Repository
 
-### 3.3 Admin Queries `[depends on: 3.1, 3.2]`
+- [x] Create `modules/admin/repositories/admin.repository.ts`:
+  - `findAllUsers(filters, pagination)` - paginated user list with project counts
+  - `findUserById(id)` - user with projects and disabledBy relation
+  - `findUserActivity(userId, limit)` - recent activity entries
+  - `updateUserDisabled(userId, isDisabled, disabledById?)` - toggle disabled status
+  - `anonymizeUserActivity(userId)` - replace name with "Deleted User" (GDPR)
+- [x] Write repository unit tests (16 tests)
 
-- [ ] `ListUsersQuery` + handler
-  - Input: filters (role, status, search), pagination
-  - Requires: ADMIN role
-- [ ] `GetUserDetailsQuery` + handler
-  - Input: userId
-  - Returns: user + projects + stats
-- [ ] `GetUserActivityQuery` + handler
-  - Input: userId, limit
-  - Returns: recent activity entries
+---
 
-### 3.4 Admin Commands `[depends on: 3.1]`
+### Phase 3B: Read Operations ✅ `[depends on: 3A]`
 
-- [ ] `DisableUserCommand` + handler
-  - Set isDisabled = true
-  - Invalidate all sessions (add to token blacklist or check on auth)
-  - Anonymize user in activity logs
-- [ ] `EnableUserCommand` + handler
-  - Set isDisabled = false
-- [ ] `ImpersonateUserCommand` + handler
-  - Generate 1-hour JWT with impersonation claim
+#### 3B.1 Admin Queries
 
-### 3.5 Session Invalidation `[depends on: 3.4]`
+- [x] `ListUsersQuery` + handler
+  - Input: filters (role, status, search), pagination, actorId
+  - Validate: actor is ADMIN
+  - Return: paginated users with project counts
+- [x] `GetUserDetailsQuery` + handler
+  - Input: userId, actorId
+  - Validate: actor is ADMIN
+  - Return: user + projects + stats + disabledBy info
+- [x] `GetUserActivityQuery` + handler
+  - Input: userId, limit (default 50), actorId
+  - Validate: actor is ADMIN
+  - Return: recent activity entries
+- [x] Write query handler unit tests (18 tests)
 
-- [ ] Update auth middleware to check `isDisabled` on each request
-- [ ] Optionally: Add token blacklist in Redis for immediate revocation
+---
 
-### 3.6 Admin Routes `[depends on: 3.3, 3.4]`
+### Phase 3C: Admin Commands ✅ `[depends on: 3A]`
 
-- [ ] Create `routes/admin.ts`
-  - `GET /admin/users` → ListUsersQuery
-  - `GET /admin/users/:id` → GetUserDetailsQuery
-  - `GET /admin/users/:id/activity` → GetUserActivityQuery
-  - `POST /admin/users/:id/disable` → DisableUserCommand
-  - `POST /admin/users/:id/enable` → EnableUserCommand
-  - `POST /admin/users/:id/impersonate` → ImpersonateUserCommand
-- [ ] Add ADMIN role guard middleware
+#### 3C.1 Disable/Enable User
+
+- [x] `DisableUserCommand` + handler
+  - Input: targetUserId, actorId
+  - Validate: actor is ADMIN
+  - Validate: cannot disable self
+  - Validate: cannot disable another ADMIN (safety protection)
+  - Actions:
+    1. Set isDisabled=true, disabledAt=now(), disabledById=actorId
+    2. Delete all sessions for user (immediate logout)
+    3. Anonymize user in activity logs (GDPR)
+  - Emit: `UserDisabledEvent`
+- [x] `EnableUserCommand` + handler
+  - Input: targetUserId, actorId
+  - Validate: actor is ADMIN
+  - Actions: Set isDisabled=false, clear disabledAt/disabledById
+  - Emit: `UserEnabledEvent`
+
+#### 3C.2 Impersonation
+
+- [x] `ImpersonateUserCommand` + handler
+  - Input: targetUserId, actorId
+  - Validate: actor is ADMIN
+  - Validate: cannot impersonate self
+  - Validate: target is not disabled
+  - Actions:
+    1. Generate 1-hour JWT with userId, impersonatedBy, purpose='impersonation'
+  - Emit: `UserImpersonatedEvent` (audit trail)
+  - Return: token, expiresAt
+- [x] Write command handler unit tests (20 tests)
+
+---
+
+### Phase 3D: Session Invalidation ✅ `[depends on: 3C]`
+
+> **Critical Security Fix**: `isDisabled` field was NOT validated anywhere - now fixed
+
+#### 3D.1 Auth Middleware Update
+
+- [x] Update `plugins/auth.ts` JWT validation:
+  - After token verify, check `user.isDisabled`
+  - If disabled, throw `ForbiddenError('Account is disabled')`
+- [x] Update `plugins/auth.ts` API key validation:
+  - After key lookup, check owner's `isDisabled` status
+  - If disabled, throw `ForbiddenError('Account is disabled')`
+- [x] Auth middleware tests pass (25 tests)
+
+---
+
+### Phase 3E: Events & Audit ✅ `[depends on: 3C]`
+
+#### 3E.1 Event Definitions
+
+- [x] Create event classes in `modules/admin/events/`:
+  - `UserDisabledEvent(userId, actorId, anonymized)`
+  - `UserEnabledEvent(userId, actorId)`
+  - `UserImpersonatedEvent(targetUserId, actorId, tokenExpiry)`
+
+#### 3E.2 Audit Handler
+
+- [x] Events are emitted by command handlers
+- [x] Event handler registration placeholder for future audit logging
+- [ ] Create `AdminAuditHandler` to log all admin events to activity (future work)
+
+---
+
+### Phase 3F: Routes & Integration ✅ `[depends on: 3B, 3C, 3D, 3E]`
+
+#### 3F.1 Admin Guard Middleware
+
+- [x] Admin authorization handled by query/command handlers
+  - Each handler validates actor is ADMIN role
+  - Throws `ForbiddenError` if not admin
+
+#### 3F.2 Admin Routes
+
+- [x] Create `routes/admin.ts`:
+  - `GET /api/admin/users` → ListUsersQuery
+  - `GET /api/admin/users/:id` → GetUserDetailsQuery
+  - `GET /api/admin/users/:id/activity` → GetUserActivityQuery
+  - `POST /api/admin/users/:id/disable` → DisableUserCommand
+  - `POST /api/admin/users/:id/enable` → EnableUserCommand
+  - `POST /api/admin/users/:id/impersonate` → ImpersonateUserCommand
+
+#### 3F.3 Module Registration
+
+- [x] Create `modules/admin/index.ts` with all registrations
+- [x] Register admin module in `plugins/cqrs.ts`
+- [x] Register routes in `app.ts`
+
+**Total: 54 unit tests passing for admin module**
+
+---
+
+### Permission Matrix (Admin Backend)
+
+| Action             | ADMIN  | MANAGER | DEVELOPER |
+| ------------------ | ------ | ------- | --------- |
+| List all users     | ✅     | ❌      | ❌        |
+| View user details  | ✅     | ❌      | ❌        |
+| View user activity | ✅     | ❌      | ❌        |
+| Disable user       | ✅\*   | ❌      | ❌        |
+| Enable user        | ✅     | ❌      | ❌        |
+| Impersonate user   | ✅\*\* | ❌      | ❌        |
+
+\*Cannot disable self or other ADMINs
+\*\*Cannot impersonate self or disabled users
 
 ---
 
@@ -595,25 +692,31 @@ Epic 4 (Member UI) ────────────────────�
    - Phase 2E ✅ → Routes & module integration
    - Phase 2F ✅ → Events & activity logging
 3. **Epic 4** ✅ → Member UI (complete)
-4. **Epic 7** 🔄 → RBAC Integration (current)
-5. **Epic 3** → Admin backend
-6. **Epic 5** → Admin UI
+4. **Epic 3** 🔄 → Admin backend (current)
+   - Phase 3A → Foundation (schemas + repository)
+   - Phase 3B → Read operations (queries)
+   - Phase 3C → Admin commands (disable, enable, impersonate)
+   - Phase 3D → Session invalidation (critical security fix)
+   - Phase 3E → Events & audit logging
+   - Phase 3F → Routes & integration
+5. **Epic 5** → Admin UI
+6. **Epic 7** → RBAC Integration
 7. **Epic 6** → Testing (ongoing throughout)
 
 ---
 
 ## Estimates
 
-| Phase/Epic          | Tasks  | Complexity | Status     |
-| ------------------- | ------ | ---------- | ---------- |
-| 1. Database         | 6      | Low        | ✅ Done    |
-| 2. Member Backend   | 27     | High       | ✅ Done    |
-| 3. Admin Backend    | 14     | Medium     | Pending    |
-| 4. Member UI        | 13     | Medium     | ✅ Done    |
-| 5. Admin UI         | 8      | Medium     | Pending    |
-| 6. Testing          | 12     | Medium     | Ongoing    |
-| 7. RBAC Integration | 12     | Medium     | 🔄 Current |
-| **Total**           | **92** |            |            |
+| Phase/Epic          | Tasks   | Complexity | Status  |
+| ------------------- | ------- | ---------- | ------- |
+| 1. Database         | 6       | Low        | ✅ Done |
+| 2. Member Backend   | 27      | High       | ✅ Done |
+| 3. Admin Backend    | 24      | Medium     | ✅ Done |
+| 4. Member UI        | 13      | Medium     | ✅ Done |
+| 5. Admin UI         | 8       | Medium     | Pending |
+| 6. Testing          | 12      | Medium     | Ongoing |
+| 7. RBAC Integration | 12      | Medium     | Pending |
+| **Total**           | **102** |            |         |
 
 ---
 
