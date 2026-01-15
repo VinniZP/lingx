@@ -50,21 +50,17 @@ export async function registerUser(
 ): Promise<void> {
   await page.goto('/register');
 
-  // Fill registration form
-  await page.getByLabel(/full name/i).fill(user.name);
-  await page.getByLabel(/email address/i).fill(user.email);
-  await page.getByLabel(/^password$/i).fill(user.password);
-  await page.getByLabel(/confirm password/i).fill(user.password);
-
-  // Wait for button to be enabled (password validation)
-  const submitButton = page.getByRole('button', { name: /create account/i });
-  await expect(submitButton).toBeEnabled({ timeout: 5000 });
+  // Fill registration form using placeholders (more reliable due to FormControl wrapper)
+  await page.getByPlaceholder(/john doe/i).fill(user.name);
+  await page.getByPlaceholder(/you@example\.com/i).fill(user.email);
+  await page.getByPlaceholder(/create a strong password/i).fill(user.password);
 
   // Submit form
+  const submitButton = page.getByRole('button', { name: /create.*account/i });
   await submitButton.click();
 
   // Wait for redirect to dashboard
-  await page.waitForURL('/dashboard', { timeout: 15000 });
+  await page.waitForURL('/dashboard');
 }
 
 /**
@@ -79,15 +75,15 @@ export async function loginUser(
 ): Promise<void> {
   await page.goto('/login');
 
-  // Fill login form
-  await page.getByLabel(/email address/i).fill(user.email);
-  await page.getByLabel(/password/i).fill(user.password);
+  // Fill login form using placeholder text (more reliable than labels due to FormControl wrapper)
+  await page.getByPlaceholder(/you@example\.com/i).fill(user.email);
+  await page.getByPlaceholder(/enter your password/i).fill(user.password);
 
-  // Submit form
-  await page.getByRole('button', { name: /sign in/i }).click();
+  // Submit form (use exact to avoid matching "Sign in with passkey")
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
   // Wait for redirect to dashboard
-  await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
+  await expect(page).toHaveURL('/dashboard');
 }
 
 /**
@@ -96,21 +92,19 @@ export async function loginUser(
  * @param page - Playwright page object
  */
 export async function logout(page: Page): Promise<void> {
-  // Make sure we're on a dashboard page first
-  await page.waitForSelector('aside', { timeout: 5000 });
-
-  // Open user menu using data-testid
+  // Open user menu using data-testid (works on all pages)
   const userMenu = page.getByTestId('user-menu');
+  await userMenu.waitFor({ state: 'visible' });
   await userMenu.click();
 
   // Wait for dropdown to appear and click sign out
   // Use role menuitem since Radix renders in a portal
   const logoutButton = page.getByRole('menuitem', { name: /sign out/i });
-  await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+  await logoutButton.waitFor({ state: 'visible' });
   await logoutButton.click();
 
   // Wait for navigation to complete (logout clears user state)
-  await page.waitForURL('/login', { timeout: 15000 });
+  await page.waitForURL('/login');
 }
 
 // =============================================================================
@@ -133,9 +127,9 @@ export async function createProject(
 ): Promise<void> {
   await page.goto('/projects/new');
 
-  // Fill project form
-  await page.getByLabel(/project name/i).fill(name);
-  await page.getByLabel(/project slug/i).fill(slug);
+  // Fill project form using placeholders (more reliable due to FormControl wrapper)
+  await page.getByPlaceholder(/my application/i).fill(name);
+  await page.getByPlaceholder(/my-application/i).fill(slug);
 
   // Select languages if language selector exists
   const languageSelector = page.locator('[data-testid="language-selector"]');
@@ -269,15 +263,9 @@ export async function addTranslationKey(
  * @param name - Environment name (e.g., "Production")
  * @param slug - Environment slug (e.g., "production")
  */
-export async function createEnvironment(
-  page: Page,
-  name: string,
-  slug: string
-): Promise<void> {
+export async function createEnvironment(page: Page, name: string, slug: string): Promise<void> {
   // Click new environment button
-  await page
-    .getByRole('button', { name: /new environment|create environment/i })
-    .click();
+  await page.getByRole('button', { name: /new environment|create environment/i }).click();
 
   // Fill environment form
   await page.getByLabel(/environment name|name/i).fill(name);
@@ -328,12 +316,8 @@ export function createUniqueUser(prefix: string = 'test'): {
  * @param page - Playwright page object
  * @param message - Toast message to wait for (partial match)
  */
-export async function waitForToast(
-  page: Page,
-  message: string | RegExp
-): Promise<void> {
-  const toastSelector =
-    typeof message === 'string' ? `text=${message}` : message;
+export async function waitForToast(page: Page, message: string | RegExp): Promise<void> {
+  const toastSelector = typeof message === 'string' ? `text=${message}` : message;
   await expect(page.locator('[data-sonner-toast]').filter({ hasText: toastSelector })).toBeVisible({
     timeout: 10000,
   });

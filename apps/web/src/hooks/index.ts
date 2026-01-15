@@ -57,6 +57,11 @@ export {
 export { useLocalStorage } from './use-local-storage';
 export { useIsMobile } from './use-mobile';
 export { usePlatform, type PlatformInfo } from './use-platform';
+export {
+  useProjectPermission,
+  type ProjectPermissions,
+  type ProjectRole,
+} from './use-project-permission';
 export { useProjects } from './use-projects';
 export {
   useRelatedKeys,
@@ -66,5 +71,6 @@ export {
   type RelatedKeysResponse,
   type RelationshipType,
 } from './use-related-keys';
+export { useRequirePermission } from './use-require-permission';
 export { useKeySuggestions, type UnifiedSuggestion } from './use-suggestions';
 export { useRecordTMUsage, type TMMatch, type TMSearchParams } from './use-translation-memory';

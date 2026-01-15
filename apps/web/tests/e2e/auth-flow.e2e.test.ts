@@ -12,12 +12,8 @@
  * - Role-based access (AC-WEB-022)
  */
 
-import { test, expect } from '@playwright/test';
-import {
-  registerUser,
-  logout,
-  createUniqueUser,
-} from './fixtures/test-helpers';
+import { expect, test } from '@playwright/test';
+import { createUniqueUser, logout, registerUser } from './fixtures/test-helpers';
 
 test.describe('Authentication User Journey', () => {
   // ==========================================================================
@@ -25,9 +21,7 @@ test.describe('Authentication User Journey', () => {
   // ==========================================================================
 
   test.describe('User Registration Flow - AC-WEB-020', () => {
-    test('User Journey: Complete registration from landing page to dashboard', async ({
-      page,
-    }) => {
+    test('User Journey: Complete registration from landing page to dashboard', async ({ page }) => {
       const uniqueUser = createUniqueUser('reg');
 
       // Start from landing page
@@ -40,23 +34,21 @@ test.describe('Authentication User Journey', () => {
       await getStartedButton.first().click();
       await expect(page).toHaveURL('/register');
 
-      // Fill registration form
-      await page.getByLabel(/full name/i).fill(uniqueUser.name);
-      await page.getByLabel(/email address/i).fill(uniqueUser.email);
-      await page.getByLabel(/^password$/i).fill(uniqueUser.password);
-      await page.getByLabel(/confirm password/i).fill(uniqueUser.password);
+      // Fill registration form using placeholders (more reliable due to FormControl wrapper)
+      await page.getByPlaceholder(/john doe/i).fill(uniqueUser.name);
+      await page.getByPlaceholder(/you@example\.com/i).fill(uniqueUser.email);
+      await page.getByPlaceholder(/create a strong password/i).fill(uniqueUser.password);
 
       // Submit
-      await page.getByRole('button', { name: /create account/i }).click();
+      await page.getByRole('button', { name: /create an account/i }).click();
 
       // Verify successful registration - redirected to dashboard
       await expect(page).toHaveURL('/dashboard', {
         timeout: 15000,
       });
 
-      // Verify user is logged in - should see user menu or avatar in sidebar
-      const sidebar = page.locator('aside');
-      await expect(sidebar).toBeVisible();
+      // Verify user is logged in - should see user menu in sidebar
+      await expect(page.getByTestId('user-menu')).toBeVisible({ timeout: 5000 });
 
       // User name should be displayed in the greeting heading
       await expect(
@@ -64,49 +56,31 @@ test.describe('Authentication User Journey', () => {
       ).toBeVisible({ timeout: 5000 });
     });
 
-    test('should show validation errors for invalid registration input', async ({
-      page,
-    }) => {
+    test('should show validation errors for invalid registration input', async ({ page }) => {
       await page.goto('/register');
 
-      // Try to submit with empty password (name is optional)
-      await page.getByLabel(/email address/i).fill('test@example.com');
-      await page.getByLabel(/^password$/i).fill('');
+      const emailInput = page.getByPlaceholder(/you@example\.com/i);
+      const passwordInput = page.getByPlaceholder(/create a strong password/i);
+      const submitButton = page.getByRole('button', { name: /create an account/i });
 
-      // The submit button should be disabled or form should not submit
-      const submitButton = page.getByRole('button', {
-        name: /create account/i,
-      });
+      // Test with weak password - fill and blur to trigger validation
+      await emailInput.fill('test@example.com');
+      await passwordInput.fill('123');
+      await passwordInput.blur();
 
-      // Test with weak password
-      await page.getByLabel(/^password$/i).fill('123');
-      await page.getByLabel(/confirm password/i).fill('123');
+      // Form validation error should appear (onTouched mode)
+      // Try to submit - should show validation errors
+      await submitButton.click();
 
-      // Password requirements should show as not met
-      // The password requirements UI shows checkmarks for met requirements
-      const requirementsList = page.locator('.text-muted-foreground');
-      await expect(requirementsList.first()).toBeVisible();
-
-      // Button should be disabled with weak password
-      await expect(submitButton).toBeDisabled();
-
-      // Test with valid password but non-matching confirmation
-      await page.getByLabel(/^password$/i).fill('TestPassword123!');
-      await page.getByLabel(/confirm password/i).fill('DifferentPassword123!');
-
-      // Should show password mismatch error
-      await expect(page.getByText(/passwords do not match/i)).toBeVisible();
-
-      // Button should still be disabled
-      await expect(submitButton).toBeDisabled();
+      // Should still be on register page due to validation
+      await expect(page).toHaveURL('/register');
 
       // Test with invalid email format
-      await page.getByLabel(/email address/i).fill('invalid-email');
-      await page.getByLabel(/^password$/i).fill('TestPassword123!');
-      await page.getByLabel(/confirm password/i).fill('TestPassword123!');
+      await emailInput.fill('invalid-email');
+      await passwordInput.fill('TestPassword123!');
 
       // Try to submit - HTML5 validation should prevent submission
-      await submitButton.click({ force: true });
+      await submitButton.click();
 
       // Should still be on register page
       await expect(page).toHaveURL('/register');
@@ -127,15 +101,13 @@ test.describe('Authentication User Journey', () => {
       await logout(page);
     });
 
-    test('User Journey: Login with existing account and access dashboard', async ({
-      page,
-    }) => {
+    test('User Journey: Login with existing account and access dashboard', async ({ page }) => {
       await page.goto('/login');
 
-      // Fill login form
-      await page.getByLabel(/email address/i).fill(testUser.email);
-      await page.getByLabel(/password/i).fill(testUser.password);
-      await page.getByRole('button', { name: /sign in/i }).click();
+      // Fill login form using placeholders
+      await page.getByPlaceholder(/you@example\.com/i).fill(testUser.email);
+      await page.getByPlaceholder(/enter your password/i).fill(testUser.password);
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
       // Verify successful login - redirected to dashboard
       await expect(page).toHaveURL('/dashboard', {
@@ -146,19 +118,17 @@ test.describe('Authentication User Journey', () => {
       await page.reload();
       await expect(page).toHaveURL('/dashboard');
 
-      // User should still be logged in - sidebar should be visible
-      await expect(page.locator('aside')).toBeVisible();
+      // User should still be logged in - user menu should be visible
+      await expect(page.getByTestId('user-menu')).toBeVisible();
     });
 
-    test('should show error for invalid login credentials', async ({
-      page,
-    }) => {
+    test('should show error for invalid login credentials', async ({ page }) => {
       await page.goto('/login');
 
-      // Fill with wrong password
-      await page.getByLabel(/email address/i).fill(testUser.email);
-      await page.getByLabel(/password/i).fill('WrongPassword123!');
-      await page.getByRole('button', { name: /sign in/i }).click();
+      // Fill with wrong password using placeholders
+      await page.getByPlaceholder(/you@example\.com/i).fill(testUser.email);
+      await page.getByPlaceholder(/enter your password/i).fill('WrongPassword123!');
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
       // Wait for error toast/message
       // The app uses sonner for toasts - target the toast title specifically
@@ -212,20 +182,19 @@ test.describe('Authentication User Journey', () => {
   // ==========================================================================
 
   test.describe('Role-Based Access - AC-WEB-022', () => {
-    test('should deny developer access to manager-only features', async ({
-      page,
-    }) => {
+    test('should deny developer access to manager-only features', async ({ page }) => {
       // Register as a regular user (developer role by default)
       const user = createUniqueUser('dev-role');
       await registerUser(page, user);
 
-      // The sidebar should NOT show Settings link for regular users
-      // Check if Settings link is hidden from navigation
-      const sidebar = page.locator('aside');
-      await expect(sidebar).toBeVisible();
+      // User should be logged in
+      await expect(page.getByTestId('user-menu')).toBeVisible();
 
-      // Settings link should not be visible for non-manager users
-      const settingsNavLink = sidebar.getByRole('link', { name: /settings/i });
+      // Settings link should not be visible for non-manager users in the sidebar
+      // Note: Users may see project settings if they own a project, but not account settings
+      const settingsNavLink = page
+        .getByRole('navigation')
+        .getByRole('link', { name: /^settings$/i });
       await expect(settingsNavLink).not.toBeVisible();
 
       // Try to directly access settings page

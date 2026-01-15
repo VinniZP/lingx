@@ -1,5 +1,6 @@
 'use client';
 
+import { LoadingPulse } from '@/components/namespace-loader';
 import { SettingsSectionHeader } from '@/components/settings';
 import {
   AlertDialog,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { useRequirePermission } from '@/hooks';
 import {
   formatCharacterCount,
   formatCost,
@@ -425,6 +427,12 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
   const { projectId } = use(params);
   const { t } = useTranslation();
 
+  // Permission check - MANAGER+ required (uses canManageSettings for consistency)
+  const { isLoading: isLoadingPermissions, hasPermission } = useRequirePermission({
+    projectId,
+    permission: 'canManageSettings',
+  });
+
   const { data: configsData, refetch: refetchConfigs } = useMTConfigs(projectId);
   const { data: usageData } = useMTUsage(projectId);
 
@@ -433,6 +441,15 @@ export default function IntegrationsSettingsPage({ params }: PageProps) {
 
   const getConfig = (provider: MTProvider): MTConfig | undefined =>
     configs.find((c) => c.provider === provider);
+
+  // Show loading state while checking permissions
+  if (isLoadingPermissions || !hasPermission) {
+    return (
+      <div className="flex min-h-100 items-center justify-center">
+        <LoadingPulse />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

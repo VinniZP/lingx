@@ -1,5 +1,6 @@
 'use client';
 
+import { LoadingPulse } from '@/components/namespace-loader';
 import { SettingsSectionHeader } from '@/components/settings';
 import {
   AlertDialog,
@@ -31,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useRequirePermission } from '@/hooks';
 import { ApiError, projectApi, UpdateProjectInput } from '@/lib/api';
 import { AVAILABLE_LANGUAGES, getLanguageByCode } from '@/lib/languages';
 import { cn } from '@/lib/utils';
@@ -65,6 +67,13 @@ export default function ProjectSettingsPage({ params }: PageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+
+  // Permission check - MANAGER+ required for settings page
+  const {
+    isLoading: isLoadingPermissions,
+    hasPermission,
+    permissions: { canDeleteProject },
+  } = useRequirePermission({ projectId, permission: 'canManageSettings' });
 
   const { data: project } = useQuery({
     queryKey: ['project', projectId],
@@ -153,8 +162,13 @@ export default function ProjectSettingsPage({ params }: PageProps) {
     });
   };
 
-  if (!project) {
-    return null; // Layout handles loading state
+  // Show loading state while checking permissions or loading project data
+  if (!project || isLoadingPermissions || !hasPermission) {
+    return (
+      <div className="flex min-h-100 items-center justify-center">
+        <LoadingPulse />
+      </div>
+    );
   }
 
   return (
@@ -376,62 +390,68 @@ export default function ProjectSettingsPage({ params }: PageProps) {
         </form>
       </Form>
 
-      {/* Danger Zone */}
-      <section className="space-y-6">
-        <SettingsSectionHeader
-          icon={AlertTriangle}
-          title={t('projectSettings.dangerZone.title')}
-          description={t('projectSettings.dangerZone.subtitle')}
-          color="destructive"
-        />
+      {/* Danger Zone - OWNER only */}
+      {canDeleteProject && (
+        <section className="space-y-6">
+          <SettingsSectionHeader
+            icon={AlertTriangle}
+            title={t('projectSettings.dangerZone.title')}
+            description={t('projectSettings.dangerZone.subtitle')}
+            color="destructive"
+          />
 
-        <div className="border-destructive/20 bg-destructive/[0.02] overflow-hidden rounded-2xl border">
-          <div className="p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium">{t('projectSettings.dangerZone.deleteTitle')}</p>
-                <p className="text-muted-foreground mt-1 max-w-md text-[11px] leading-relaxed">
-                  {t('projectSettings.dangerZone.deleteDescription')}
-                </p>
+          <div className="border-destructive/20 bg-destructive/[0.02] overflow-hidden rounded-2xl border">
+            <div className="p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    {t('projectSettings.dangerZone.deleteTitle')}
+                  </p>
+                  <p className="text-muted-foreground mt-1 max-w-md text-[11px] leading-relaxed">
+                    {t('projectSettings.dangerZone.deleteDescription')}
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="shrink-0 gap-2">
+                      <Trash2 className="size-4" />
+                      {t('projectSettings.dangerZone.deleteButton')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t('dialogs.deleteConfirm.deleteProject')}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('projectSettings.dangerZone.deleteDialogDescription', {
+                          projectName: project.name,
+                        })}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteMutation.mutate()}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {deleteMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 size-4 animate-spin" />
+                            {t('common.deleting')}
+                          </>
+                        ) : (
+                          t('common.delete')
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" className="shrink-0 gap-2">
-                    <Trash2 className="size-4" />
-                    {t('projectSettings.dangerZone.deleteButton')}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('dialogs.deleteConfirm.deleteProject')}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t('projectSettings.dangerZone.deleteDialogDescription', {
-                        projectName: project.name,
-                      })}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => deleteMutation.mutate()}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {deleteMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 size-4 animate-spin" />
-                          {t('common.deleting')}
-                        </>
-                      ) : (
-                        t('common.delete')
-                      )}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

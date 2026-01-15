@@ -2,6 +2,7 @@
 
 import { LoadingPulse } from '@/components/namespace-loader';
 import { SettingsSectionHeader } from '@/components/settings';
+import { useRequirePermission } from '@/hooks';
 import { useAIConfigs } from '@/hooks/use-ai-translation';
 import { useTranslation } from '@lingx/sdk-nextjs';
 import { BarChart3, Brain, Gauge, Sparkles } from 'lucide-react';
@@ -20,6 +21,13 @@ export default function AITranslationSettingsPage({
 }) {
   const { t, ready } = useTranslation('aiTranslation');
   const { projectId } = use(params);
+
+  // Permission check - MANAGER+ required
+  const { isLoading: isLoadingPermissions, hasPermission } = useRequirePermission({
+    projectId,
+    permission: 'canManageSettings',
+  });
+
   const { data: configsData, refetch } = useAIConfigs(projectId);
   const configs = configsData?.configs || [];
 
@@ -28,8 +36,8 @@ export default function AITranslationSettingsPage({
   const googleAIConfig = configs.find((c) => c.provider === 'GOOGLE_AI');
   const mistralConfig = configs.find((c) => c.provider === 'MISTRAL');
 
-  // Show loading state while translations are loading
-  if (!ready) {
+  // Show loading state while translations or permissions are loading
+  if (!ready || isLoadingPermissions || !hasPermission) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <LoadingPulse />

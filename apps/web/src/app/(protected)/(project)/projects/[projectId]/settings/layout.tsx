@@ -2,6 +2,7 @@
 
 import { useAIConfigs } from '@/hooks/use-ai-translation';
 import { useMTConfigs } from '@/hooks/use-machine-translation';
+import { useProjectPermission } from '@/hooks/use-project-permission';
 import { projectApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@lingx/sdk-nextjs';
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { use } from 'react';
+import { use, useMemo } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -36,6 +37,9 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
     queryFn: () => projectApi.get(projectId),
   });
 
+  // Get user's project permissions for nav filtering
+  const { canManageSettings, isLoading: isLoadingPermissions } = useProjectPermission(projectId);
+
   const { data: mtConfigsData } = useMTConfigs(projectId);
   const mtConnectedCount = mtConfigsData?.configs?.filter((c) => c.isActive).length || 0;
 
@@ -50,7 +54,89 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
   const isQualityActive = pathname === `/projects/${projectId}/settings/quality`;
   const isMembersActive = pathname === `/projects/${projectId}/settings/members`;
 
-  if (isLoading) {
+  // Nav items with role requirements
+  // requiresManager: true = OWNER or MANAGER only
+  // requiresManager: false = visible to all project members
+  // NOTE: useMemo must be called before any early returns to maintain hooks order
+  const allNavItems = useMemo(
+    () => [
+      {
+        href: `/projects/${projectId}/settings`,
+        icon: Settings,
+        label: t('projectSettings.layout.nav.general'),
+        description: t('projectSettings.layout.nav.generalDescription'),
+        isActive: isGeneralActive,
+        badge: null,
+        requiresManager: true,
+      },
+      {
+        href: `/projects/${projectId}/settings/glossary`,
+        icon: BookOpen,
+        label: t('projectSettings.layout.nav.glossary'),
+        description: t('projectSettings.layout.nav.glossaryDescription'),
+        isActive: isGlossaryActive,
+        badge: null,
+        requiresManager: true,
+      },
+      {
+        href: `/projects/${projectId}/settings/integrations`,
+        icon: Languages,
+        label: t('projectSettings.layout.nav.integrations'),
+        description: t('projectSettings.layout.nav.integrationsDescription'),
+        isActive: isIntegrationsActive,
+        badge: mtConnectedCount > 0 ? `${mtConnectedCount}` : null,
+        requiresManager: true,
+      },
+      {
+        href: `/projects/${projectId}/settings/ai-translation`,
+        icon: Sparkles,
+        label: 'AI Translation',
+        description: 'Configure AI providers for context-aware translations',
+        isActive: isAITranslationActive,
+        badge: aiConnectedCount > 0 ? `${aiConnectedCount}` : null,
+        requiresManager: true,
+      },
+      {
+        href: `/projects/${projectId}/settings/quality`,
+        icon: Gauge,
+        label: 'Quality Scoring',
+        description: 'AI-powered translation quality evaluation',
+        isActive: isQualityActive,
+        badge: null,
+        requiresManager: true,
+      },
+      {
+        href: `/projects/${projectId}/settings/members`,
+        icon: Users,
+        label: t('projectSettings.layout.nav.team'),
+        description: t('projectSettings.layout.nav.teamDescription'),
+        isActive: isMembersActive,
+        badge: null,
+        requiresManager: false, // Visible to all members
+      },
+    ],
+    [
+      projectId,
+      t,
+      isGeneralActive,
+      isGlossaryActive,
+      isIntegrationsActive,
+      isAITranslationActive,
+      isQualityActive,
+      isMembersActive,
+      mtConnectedCount,
+      aiConnectedCount,
+    ]
+  );
+
+  // Filter nav items based on user's permissions
+  const navItems = useMemo(
+    () => allNavItems.filter((item) => !item.requiresManager || canManageSettings),
+    [allNavItems, canManageSettings]
+  );
+
+  // Loading state - must be after all hooks to maintain hooks order
+  if (isLoading || isLoadingPermissions) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-6">
@@ -68,57 +154,6 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       </div>
     );
   }
-
-  const navItems = [
-    {
-      href: `/projects/${projectId}/settings`,
-      icon: Settings,
-      label: t('projectSettings.layout.nav.general'),
-      description: t('projectSettings.layout.nav.generalDescription'),
-      isActive: isGeneralActive,
-      badge: null,
-    },
-    {
-      href: `/projects/${projectId}/settings/glossary`,
-      icon: BookOpen,
-      label: t('projectSettings.layout.nav.glossary'),
-      description: t('projectSettings.layout.nav.glossaryDescription'),
-      isActive: isGlossaryActive,
-      badge: null,
-    },
-    {
-      href: `/projects/${projectId}/settings/integrations`,
-      icon: Languages,
-      label: t('projectSettings.layout.nav.integrations'),
-      description: t('projectSettings.layout.nav.integrationsDescription'),
-      isActive: isIntegrationsActive,
-      badge: mtConnectedCount > 0 ? `${mtConnectedCount}` : null,
-    },
-    {
-      href: `/projects/${projectId}/settings/ai-translation`,
-      icon: Sparkles,
-      label: 'AI Translation',
-      description: 'Configure AI providers for context-aware translations',
-      isActive: isAITranslationActive,
-      badge: aiConnectedCount > 0 ? `${aiConnectedCount}` : null,
-    },
-    {
-      href: `/projects/${projectId}/settings/quality`,
-      icon: Gauge,
-      label: 'Quality Scoring',
-      description: 'AI-powered translation quality evaluation',
-      isActive: isQualityActive,
-      badge: null,
-    },
-    {
-      href: `/projects/${projectId}/settings/members`,
-      icon: Users,
-      label: t('projectSettings.layout.nav.team'),
-      description: t('projectSettings.layout.nav.teamDescription'),
-      isActive: isMembersActive,
-      badge: null,
-    },
-  ];
 
   const comingSoonItems = [
     {

@@ -8,6 +8,7 @@ import {
   useDeleteGlossaryTag,
   useGlossaryExport,
   useGlossaryImport,
+  useRequirePermission,
   useUpdateGlossaryEntry,
 } from '@/hooks';
 import type { GlossaryEntry, GlossaryTag, PartOfSpeech } from '@/lib/api';
@@ -37,6 +38,12 @@ interface PageProps {
 export default function GlossarySettingsPage({ params }: PageProps) {
   const { projectId } = use(params);
   const { t, ready } = useTranslation('glossary');
+
+  // Permission check - MANAGER+ required
+  const { isLoading: isLoadingPermissions, hasPermission } = useRequirePermission({
+    projectId,
+    permission: 'canManageSettings',
+  });
 
   // Filter State
   const [search, setSearch] = useState('');
@@ -220,8 +227,9 @@ export default function GlossarySettingsPage({ params }: PageProps) {
     sourceLanguageFilter !== 'all' ||
     domainFilter !== 'all' ||
     tagFilter !== 'all';
-  // Show loading state while translations are loading
-  if (!ready) {
+
+  // Show loading state while translations or permissions are loading
+  if (!ready || isLoadingPermissions || !hasPermission) {
     return (
       <div className="flex min-h-100 items-center justify-center">
         <LoadingPulse />

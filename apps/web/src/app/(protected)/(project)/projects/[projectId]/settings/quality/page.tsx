@@ -1,10 +1,12 @@
 'use client';
 
+import { LoadingPulse } from '@/components/namespace-loader';
 import { SettingsSectionHeader } from '@/components/settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useRequirePermission } from '@/hooks';
 import { getQualityConfig, updateQualityConfig } from '@/lib/api/quality';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@lingx/sdk-nextjs';
@@ -35,6 +37,12 @@ export default function QualitySettingsPage() {
   const projectId = params.projectId as string;
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  // Permission check - MANAGER+ required
+  const { isLoading: isLoadingPermissions, hasPermission } = useRequirePermission({
+    projectId,
+    permission: 'canManageSettings',
+  });
 
   // Fetch current config
   const { data: config, isLoading } = useQuery({
@@ -84,21 +92,11 @@ export default function QualitySettingsPage() {
     saveMutation.mutate();
   };
 
-  if (isLoading) {
+  // Show loading state while checking permissions or loading config
+  if (isLoading || isLoadingPermissions || !hasPermission) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="from-primary/20 to-primary/5 size-16 animate-pulse rounded-2xl bg-linear-to-br" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="text-primary size-6 animate-spin" />
-            </div>
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-medium">{t('settings.quality.loading')}</p>
-            <p className="text-muted-foreground text-xs">{t('common.pleaseWait')}</p>
-          </div>
-        </div>
+      <div className="flex min-h-100 items-center justify-center">
+        <LoadingPulse />
       </div>
     );
   }
