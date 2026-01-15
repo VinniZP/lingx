@@ -10,7 +10,6 @@
 import {
   adminUserDetailsResponseSchema,
   adminUserListResponseSchema,
-  impersonationTokenResponseSchema,
   listUsersQuerySchema,
 } from '@lingx/shared';
 import type { FastifyPluginAsync } from 'fastify';
@@ -281,29 +280,74 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   /**
-   * POST /api/admin/users/:id/impersonate - Generate impersonation token
+   * POST /api/admin/users/:id/impersonate - Start impersonation session
+   *
+   * Sets an impersonation token cookie (checked before regular auth token).
+   * The admin's regular session remains intact - when impersonation expires
+   * or is exited, they automatically fall back to their admin session.
    */
   app.post(
     '/api/admin/users/:id/impersonate',
     {
       onRequest: [fastify.authenticate],
       schema: {
-        description: 'Generate a 1-hour impersonation token (ADMIN only)',
+        description: 'Start a 1-hour impersonation session (ADMIN only)',
         tags: ['Admin'],
         security: [{ bearerAuth: [] }],
         params: z.object({
           id: z.string(),
         }),
         response: {
-          200: impersonationTokenResponseSchema,
+          200: z.object({
+            message: z.string(),
+            expiresAt: z.string(),
+          }),
         },
       },
     },
-    async (request, _reply) => {
+    async (request, reply) => {
+      // Handler validates permissions and returns data for JWT generation
       const result = await fastify.commandBus.execute(
         new ImpersonateUserCommand(request.params.id, request.user.userId)
       );
-      return result;
+
+      // Generate impersonation JWT (checked before regular token by auth plugin)
+      const impersonationToken = fastify.jwt.sign(
+        {
+          userId: result.targetUserId,
+          impersonatedBy: result.actorId,
+          purpose: 'impersonation',
+        },
+        { expiresIn: '1h' }
+      );
+
+      // Set impersonation token (httpOnly - auth plugin reads this)
+      reply.setCookie('impersonation_token', impersonationToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60, // 1 hour
+      });
+
+      // Set metadata for frontend banner display (NOT httpOnly, JS can read)
+      const metadata = JSON.stringify({
+        userName: result.targetUserName,
+        userEmail: result.targetUserEmail,
+        expiresAt: result.expiresAt,
+      });
+      reply.setCookie('impersonation_meta', metadata, {
+        httpOnly: false, // JS needs to read this for banner
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60, // 1 hour
+      });
+
+      return {
+        message: 'Impersonation session started',
+        expiresAt: result.expiresAt,
+      };
     }
   );
 };

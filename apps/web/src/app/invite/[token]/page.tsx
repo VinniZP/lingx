@@ -1,6 +1,6 @@
 'use client';
 
-import { roleStyles } from '@/app/(project)/projects/[projectId]/settings/members/_components/role-selector';
+import { roleStyles } from '@/app/(protected)/(project)/projects/[projectId]/settings/members/_components/role-selector';
 import { Button } from '@/components/ui/button';
 import { invitationApi, MemberApiError } from '@/lib/api/members';
 import { useAuth } from '@/lib/auth';

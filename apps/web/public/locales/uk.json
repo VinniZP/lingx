@@ -1381,7 +1381,8 @@
     "dashboard": "Панель керування",
     "settings": "Налаштування",
     "brand": "Lingx",
-    "tagline": "Переклади"
+    "tagline": "Переклади",
+    "admin": ""
   },
   "time": {
     "date": "{date}",
@@ -1451,5 +1452,9 @@
     "toggleNavigation": "Перемкнути навігацію",
     "toggleTheme": "Перемкнути тему",
     "toggleSidebar": "Перемкнути бічну панель"
+  },
+  "members": {
+    "remove": "",
+    "revokeInvitation": ""
   }
 }

@@ -1,10 +1,16 @@
 import type { ICommand } from '../../../shared/cqrs/index.js';
 
-/** Result of impersonation command */
+/** Result of impersonation command - validation only, JWT signing in route */
 export interface ImpersonationResult {
-  /** JWT token for impersonation */
-  token: string;
-  /** When the token expires (ISO string) */
+  /** ID of the target user (validated) */
+  targetUserId: string;
+  /** Name of the target user (for display) */
+  targetUserName: string | null;
+  /** Email of the target user (for display) */
+  targetUserEmail: string;
+  /** ID of the admin performing impersonation */
+  actorId: string;
+  /** When the token should expire (ISO string) */
   expiresAt: string;
 }
 

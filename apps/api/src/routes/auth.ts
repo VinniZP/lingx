@@ -297,6 +297,51 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.status(204).send();
     }
   );
+
+  /**
+   * POST /api/auth/exit-impersonation
+   *
+   * Exit impersonation mode by clearing the impersonation cookies.
+   * The user will automatically fall back to their regular session.
+   */
+  app.post(
+    '/api/auth/exit-impersonation',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Exit impersonation mode',
+        tags: ['Auth'],
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: z.object({
+            message: z.string(),
+          }),
+        },
+      },
+    },
+    async (_request, reply) => {
+      // Clear impersonation cookies
+      reply.setCookie('impersonation_token', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 0, // Expire immediately
+      });
+
+      reply.setCookie('impersonation_meta', '', {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 0, // Expire immediately
+      });
+
+      return {
+        message: 'Exited impersonation mode',
+      };
+    }
+  );
 };
 
 export default authRoutes;

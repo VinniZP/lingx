@@ -1381,7 +1381,8 @@
     "dashboard": "",
     "settings": "",
     "brand": "",
-    "tagline": ""
+    "tagline": "",
+    "admin": ""
   },
   "time": {
     "date": "",
@@ -1451,5 +1452,9 @@
     "toggleNavigation": "",
     "toggleTheme": "",
     "toggleSidebar": ""
+  },
+  "members": {
+    "remove": "",
+    "revokeInvitation": ""
   }
 }

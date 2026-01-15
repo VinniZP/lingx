@@ -4,23 +4,18 @@ import { UserImpersonatedEvent } from '../events/user-impersonated.event.js';
 import type { AdminRepository } from '../repositories/admin.repository.js';
 import type { ImpersonateUserCommand } from './impersonate-user.command.js';
 
-/** Interface for JWT service dependency */
-interface JwtServiceLike {
-  sign(payload: Record<string, unknown>, options: { expiresIn: string }): string;
-}
-
-/** Impersonation token expiry duration */
-const IMPERSONATION_EXPIRY = '1h';
-const IMPERSONATION_EXPIRY_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+/** Impersonation token expiry duration in milliseconds */
+const IMPERSONATION_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 /**
  * Handler for ImpersonateUserCommand.
- * Generates a short-lived JWT for admin impersonation.
+ * Validates permissions and returns data for JWT generation (signing happens in route).
+ *
+ * Note: JWT token generation is handled by the route layer (HTTP-specific).
  */
 export class ImpersonateUserHandler implements ICommandHandler<ImpersonateUserCommand> {
   constructor(
     private readonly adminRepository: AdminRepository,
-    private readonly jwtService: JwtServiceLike,
     private readonly eventBus: IEventBus
   ) {}
 
@@ -52,22 +47,18 @@ export class ImpersonateUserHandler implements ICommandHandler<ImpersonateUserCo
       throw new BadRequestError('Cannot impersonate a disabled user');
     }
 
-    // 4. Generate impersonation token
+    // 4. Calculate expiry time
     const expiresAt = new Date(Date.now() + IMPERSONATION_EXPIRY_MS);
-    const token = this.jwtService.sign(
-      {
-        userId: targetUserId,
-        impersonatedBy: actorId,
-        purpose: 'impersonation',
-      },
-      { expiresIn: IMPERSONATION_EXPIRY }
-    );
 
     // 5. Emit event for audit trail
     await this.eventBus.publish(new UserImpersonatedEvent(targetUserId, actorId, expiresAt));
 
+    // Return validation result - JWT signing happens in route layer
     return {
-      token,
+      targetUserId,
+      targetUserName: targetUser.name,
+      targetUserEmail: targetUser.email,
+      actorId,
       expiresAt: expiresAt.toISOString(),
     };
   }

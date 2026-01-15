@@ -742,7 +742,9 @@
       "buttonDescription": "Transfer project ownership to another team member",
       "success": "Ownership transferred successfully",
       "failed": "Failed to transfer ownership"
-    }
+    },
+    "remove": "Remove member",
+    "revokeInvitation": "Revoke invitation"
   },
   "invitation": {
     "loading": "Loading invitation...",
@@ -1495,7 +1497,8 @@
     "dashboard": "Dashboard",
     "settings": "Settings",
     "brand": "Lingx",
-    "tagline": "Translations"
+    "tagline": "Translations",
+    "admin": "Admin"
   },
   "time": {
     "date": "{date}",
@@ -1565,5 +1568,79 @@
     "toggleNavigation": "Toggle navigation menu",
     "toggleTheme": "Toggle theme",
     "toggleSidebar": "Toggle sidebar"
+  },
+  "admin": {
+    "title": "Administration",
+    "users": {
+      "title": "User Management",
+      "description": "Manage user accounts across the platform",
+      "search": "Search users...",
+      "emptyState": "No users found",
+      "emptyStateDescription": "Try adjusting your search or filters",
+      "filters": {
+        "role": "Filter by role",
+        "status": "Filter by status",
+        "allRoles": "All roles",
+        "allStatuses": "All statuses"
+      },
+      "memberSince": "Member since {date}",
+      "disabledOn": "Disabled on {date}",
+      "disabledBy": "by {admin}",
+      "projects": "Projects",
+      "projectCount": "{count, plural, one {# project} other {# projects}}",
+      "noProjects": "Not a member of any projects",
+      "activity": "Recent Activity",
+      "noActivity": "No recent activity",
+      "count": "users"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "roles": {
+      "admin": "Admin",
+      "manager": "Manager",
+      "developer": "Developer"
+    },
+    "actions": {
+      "viewDetails": "View details",
+      "disable": "Disable Account",
+      "enable": "Enable Account",
+      "impersonate": "Impersonate User",
+      "dangerZone": "Danger Zone",
+      "disableDescription": "Immediately log them out and prevent future logins.",
+      "enableDescription": "Allow the user to log in again.",
+      "impersonateDescription": "Act as this user for 1 hour."
+    },
+    "disable": {
+      "title": "Disable User Account",
+      "description": "Are you sure you want to disable {name}'s account?",
+      "warning": "This will immediately log them out and prevent future logins.",
+      "confirm": "Disable Account",
+      "success": "User account has been disabled",
+      "error": "Failed to disable user account"
+    },
+    "enable": {
+      "title": "Enable User Account",
+      "description": "Enable {name}'s account?",
+      "info": "This will allow them to log in again.",
+      "confirm": "Enable Account",
+      "success": "User account has been enabled",
+      "error": "Failed to enable user account"
+    },
+    "impersonate": {
+      "title": "Impersonate User",
+      "description": "You are about to impersonate {name}.",
+      "warning": "All actions will be performed as this user. Use with caution.",
+      "duration": "Session will expire in 1 hour.",
+      "confirm": "Start Impersonation",
+      "success": "Now impersonating {name}",
+      "error": "Failed to start impersonation"
+    },
+    "impersonationBanner": {
+      "label": "Impersonating",
+      "expiresIn": "Expires in {time}",
+      "exit": "Exit"
+    }
   }
 }

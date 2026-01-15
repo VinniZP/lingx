@@ -540,46 +540,55 @@ Epic 4 (Member UI) ────────────────────�
 
 ---
 
-## Epic 5: Admin Panel UI
+## Epic 5: Admin Panel UI ✅
 
-### 5.1 Admin API Client `[depends on: 3.6]`
+### 5.1 Admin API Client ✅ `[depends on: 3.6]`
 
-- [ ] Add admin API functions:
+- [x] Add admin API functions in `apps/web/src/lib/api/admin.ts`:
   - `getUsers(filters, pagination)`
   - `getUserDetails(userId)`
   - `getUserActivity(userId)`
   - `disableUser(userId)`
   - `enableUser(userId)`
-  - `impersonateUser(userId)`
+  - `impersonateUser(userId)` - sets httpOnly cookies directly
 
-### 5.2 Admin Layout `[depends on: 5.1]`
+### 5.2 Admin Layout ✅ `[depends on: 5.1]`
 
-- [ ] Create `app/(dashboard)/admin/layout.tsx`
+- [x] Create `app/(protected)/(dashboard)/admin/layout.tsx`
   - ADMIN role guard (redirect if not admin)
   - Admin navigation sidebar
-- [ ] Add "Admin" link to main nav (visible to ADMINs only)
+- [x] Add "Admin" link to main nav (visible to ADMINs only)
 
-### 5.3 Users List Page `[depends on: 5.1, 5.2]`
+### 5.3 Users List Page ✅ `[depends on: 5.1, 5.2]`
 
-- [ ] Create `app/(dashboard)/admin/users/page.tsx`
-  - Paginated table
+- [x] Create `app/(protected)/(dashboard)/admin/users/page.tsx`
+  - Paginated table with premium styling
   - Search by name/email
   - Filter by role, status
   - Quick actions (disable/enable)
 
-### 5.4 User Details Page `[depends on: 5.1, 5.2]`
+### 5.4 User Details Page ✅ `[depends on: 5.1, 5.2]`
 
-- [ ] Create `app/(dashboard)/admin/users/[id]/page.tsx`
-  - User profile info
-  - Projects list
-  - Recent activity
-  - Disable/Enable button
-  - Impersonate button
+- [x] Create `app/(protected)/(dashboard)/admin/users/[id]/page.tsx`
+  - User profile header with avatar
+  - Projects list section
+  - Recent activity section
+  - Danger zone with Disable/Enable buttons
+  - Impersonate button with confirmation dialog
 
-### 5.5 Impersonation Flow `[depends on: 5.4]`
+### 5.5 Impersonation Flow ✅ `[depends on: 5.4]`
 
-- [ ] Impersonation banner component (shown when impersonating)
-- [ ] "Exit impersonation" button
+- [x] Impersonation banner component (`ImpersonationBanner`)
+  - Fixed amber gradient banner at top of viewport
+  - Shows impersonated user name and time remaining
+  - Exit button with API call to clear cookies
+- [x] Cookie-based impersonation architecture:
+  - `impersonation_token` (httpOnly) - JWT checked before regular token
+  - `impersonation_meta` (JS-readable) - display metadata for banner
+  - Auth plugin prioritizes impersonation token when present
+  - When token expires, falls back seamlessly to admin session
+- [x] `useImpersonation` hook for frontend state management
+- [x] `POST /api/auth/exit-impersonation` endpoint to clear cookies
 
 ---
 
@@ -692,14 +701,16 @@ Epic 4 (Member UI) ────────────────────�
    - Phase 2E ✅ → Routes & module integration
    - Phase 2F ✅ → Events & activity logging
 3. **Epic 4** ✅ → Member UI (complete)
-4. **Epic 3** 🔄 → Admin backend (current)
-   - Phase 3A → Foundation (schemas + repository)
-   - Phase 3B → Read operations (queries)
-   - Phase 3C → Admin commands (disable, enable, impersonate)
-   - Phase 3D → Session invalidation (critical security fix)
-   - Phase 3E → Events & audit logging
-   - Phase 3F → Routes & integration
-5. **Epic 5** → Admin UI
+4. **Epic 3** ✅ → Admin backend (complete)
+   - Phase 3A ✅ → Foundation (schemas + repository)
+   - Phase 3B ✅ → Read operations (queries)
+   - Phase 3C ✅ → Admin commands (disable, enable, impersonate)
+   - Phase 3D ✅ → Session invalidation (critical security fix)
+   - Phase 3E ✅ → Events & audit logging
+   - Phase 3F ✅ → Routes & integration
+5. **Epic 5** ✅ → Admin UI (complete)
+   - Cookie-based impersonation (no localStorage tokens)
+   - Auth plugin checks `impersonation_token` before `token`
 6. **Epic 7** → RBAC Integration
 7. **Epic 6** → Testing (ongoing throughout)
 
@@ -713,7 +724,7 @@ Epic 4 (Member UI) ────────────────────�
 | 2. Member Backend   | 27      | High       | ✅ Done |
 | 3. Admin Backend    | 24      | Medium     | ✅ Done |
 | 4. Member UI        | 13      | Medium     | ✅ Done |
-| 5. Admin UI         | 8       | Medium     | Pending |
+| 5. Admin UI         | 8       | Medium     | ✅ Done |
 | 6. Testing          | 12      | Medium     | Ongoing |
 | 7. RBAC Integration | 12      | Medium     | Pending |
 | **Total**           | **102** |            |         |

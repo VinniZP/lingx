@@ -30,8 +30,8 @@ declare module 'fastify' {
  */
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { userId: string; sessionId?: string; purpose?: string };
-    user: { userId: string; sessionId?: string; purpose?: string };
+    payload: { userId: string; sessionId?: string; purpose?: string; impersonatedBy?: string };
+    user: { userId: string; sessionId?: string; purpose?: string; impersonatedBy?: string };
   }
 }
 
@@ -98,9 +98,42 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
   const apiKeyRepository = fastify.container.resolve<ApiKeyRepository>('apiKeyRepository');
 
   /**
+   * Try to verify an impersonation token from cookie.
+   * Returns the decoded payload if valid, null otherwise.
+   */
+  async function tryImpersonationToken(
+    request: FastifyRequest
+  ): Promise<{ userId: string; impersonatedBy: string } | null> {
+    const impersonationToken = request.cookies.impersonation_token;
+    if (!impersonationToken) return null;
+
+    try {
+      const decoded = fastify.jwt.verify<{
+        userId: string;
+        impersonatedBy: string;
+        purpose: string;
+      }>(impersonationToken);
+
+      // Verify it's actually an impersonation token
+      if (decoded.purpose !== 'impersonation' || !decoded.impersonatedBy) {
+        return null;
+      }
+
+      return { userId: decoded.userId, impersonatedBy: decoded.impersonatedBy };
+    } catch {
+      // Token invalid or expired - fall back to regular auth
+      return null;
+    }
+  }
+
+  /**
    * Required authentication decorator
    *
-   * Checks for authentication via API key header or JWT cookie.
+   * Checks for authentication in this order:
+   * 1. API key from X-API-Key header
+   * 2. Impersonation token from impersonation_token cookie
+   * 3. Regular JWT from token cookie
+   *
    * For JWT auth, validates session exists and is not expired.
    * Also validates that the user account is not disabled.
    * Throws UnauthorizedError if not authenticated.
@@ -126,7 +159,27 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       throw new UnauthorizedError('Invalid or revoked API key');
     }
 
-    // Then, try JWT from cookie
+    // Second, try impersonation token (takes priority over regular token)
+    const impersonation = await tryImpersonationToken(request);
+    if (impersonation) {
+      // Check if impersonated user is disabled or deleted
+      const disabled = await isUserDisabled(fastify.prisma, impersonation.userId);
+      if (disabled === null) {
+        throw new UnauthorizedError('User not found');
+      }
+      if (disabled) {
+        throw new ForbiddenError('Account is disabled');
+      }
+
+      // Set user with impersonation context
+      request.user = {
+        userId: impersonation.userId,
+        impersonatedBy: impersonation.impersonatedBy,
+      };
+      return;
+    }
+
+    // Third, try regular JWT from cookie
     try {
       await request.jwtVerify();
 

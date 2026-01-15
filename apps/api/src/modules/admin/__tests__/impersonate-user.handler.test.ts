@@ -2,6 +2,7 @@
  * ImpersonateUserHandler Unit Tests
  *
  * Tests for impersonating user command handler (admin only).
+ * Note: JWT signing happens in the route layer, handler returns validation data.
  */
 
 import type { Role } from '@prisma/client';
@@ -22,10 +23,6 @@ interface MockAdminRepository {
   findUserRoleById: Mock;
 }
 
-interface MockJwtService {
-  sign: Mock;
-}
-
 interface MockEventBus {
   publish: Mock;
 }
@@ -42,12 +39,6 @@ function createMockRepository(): MockAdminRepository {
   };
 }
 
-function createMockJwtService(): MockJwtService {
-  return {
-    sign: vi.fn(),
-  };
-}
-
 function createMockEventBus(): MockEventBus {
   return {
     publish: vi.fn(),
@@ -57,7 +48,6 @@ function createMockEventBus(): MockEventBus {
 describe('ImpersonateUserHandler', () => {
   let handler: ImpersonateUserHandler;
   let mockRepository: MockAdminRepository;
-  let mockJwtService: MockJwtService;
   let mockEventBus: MockEventBus;
 
   const mockTargetUser: UserWithProjects = {
@@ -75,23 +65,18 @@ describe('ImpersonateUserHandler', () => {
 
   beforeEach(() => {
     mockRepository = createMockRepository();
-    mockJwtService = createMockJwtService();
     mockEventBus = createMockEventBus();
     handler = new ImpersonateUserHandler(
       mockRepository as unknown as AdminRepository,
-      mockJwtService as unknown as {
-        sign: (payload: Record<string, unknown>, options: { expiresIn: string }) => string;
-      },
       mockEventBus as unknown as IEventBus
     );
   });
 
   describe('execute', () => {
-    it('should return impersonation token when actor is ADMIN', async () => {
+    it('should return validation data when actor is ADMIN', async () => {
       // Arrange
       mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN');
       mockRepository.findUserById.mockResolvedValue(mockTargetUser);
-      mockJwtService.sign.mockReturnValue('impersonation-jwt-token');
       mockEventBus.publish.mockResolvedValue(undefined);
 
       const command = new ImpersonateUserCommand('user-1', 'admin-user');
@@ -99,17 +84,12 @@ describe('ImpersonateUserHandler', () => {
       // Act
       const result = await handler.execute(command);
 
-      // Assert
-      expect(result.token).toBe('impersonation-jwt-token');
+      // Assert - handler returns validation data, JWT signing in route
+      expect(result.targetUserId).toBe('user-1');
+      expect(result.targetUserName).toBe('Alice');
+      expect(result.targetUserEmail).toBe('alice@example.com');
+      expect(result.actorId).toBe('admin-user');
       expect(result.expiresAt).toBeDefined();
-      expect(mockJwtService.sign).toHaveBeenCalledWith(
-        {
-          userId: 'user-1',
-          impersonatedBy: 'admin-user',
-          purpose: 'impersonation',
-        },
-        { expiresIn: '1h' }
-      );
       expect(mockEventBus.publish).toHaveBeenCalledOnce();
       const publishedEvent = mockEventBus.publish.mock.calls[0][0];
       expect(publishedEvent).toBeInstanceOf(UserImpersonatedEvent);
@@ -123,7 +103,6 @@ describe('ImpersonateUserHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow('Admin access required');
-      expect(mockJwtService.sign).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestError when trying to impersonate self', async () => {
@@ -173,7 +152,6 @@ describe('ImpersonateUserHandler', () => {
       // Arrange
       mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN');
       mockRepository.findUserById.mockResolvedValue(mockTargetUser);
-      mockJwtService.sign.mockReturnValue('token');
       mockEventBus.publish.mockResolvedValue(undefined);
 
       const command = new ImpersonateUserCommand('user-1', 'admin-user');

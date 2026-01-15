@@ -63,6 +63,60 @@ declare module '@lingx/sdk-nextjs' {
       | 'activity.title'
       | 'activity.viewAll'
       | 'activity.viewAllChanges'
+      | 'admin.actions.dangerZone'
+      | 'admin.actions.disable'
+      | 'admin.actions.disableDescription'
+      | 'admin.actions.enable'
+      | 'admin.actions.enableDescription'
+      | 'admin.actions.impersonate'
+      | 'admin.actions.impersonateDescription'
+      | 'admin.actions.viewDetails'
+      | 'admin.disable.confirm'
+      | 'admin.disable.description'
+      | 'admin.disable.error'
+      | 'admin.disable.success'
+      | 'admin.disable.title'
+      | 'admin.disable.warning'
+      | 'admin.enable.confirm'
+      | 'admin.enable.description'
+      | 'admin.enable.error'
+      | 'admin.enable.info'
+      | 'admin.enable.success'
+      | 'admin.enable.title'
+      | 'admin.impersonate.confirm'
+      | 'admin.impersonate.description'
+      | 'admin.impersonate.duration'
+      | 'admin.impersonate.error'
+      | 'admin.impersonate.success'
+      | 'admin.impersonate.title'
+      | 'admin.impersonate.warning'
+      | 'admin.impersonationBanner.exit'
+      | 'admin.impersonationBanner.expiresIn'
+      | 'admin.impersonationBanner.label'
+      | 'admin.roles.admin'
+      | 'admin.roles.developer'
+      | 'admin.roles.manager'
+      | 'admin.status.active'
+      | 'admin.status.disabled'
+      | 'admin.title'
+      | 'admin.users.activity'
+      | 'admin.users.count'
+      | 'admin.users.description'
+      | 'admin.users.disabledBy'
+      | 'admin.users.disabledOn'
+      | 'admin.users.emptyState'
+      | 'admin.users.emptyStateDescription'
+      | 'admin.users.filters.allRoles'
+      | 'admin.users.filters.allStatuses'
+      | 'admin.users.filters.role'
+      | 'admin.users.filters.status'
+      | 'admin.users.memberSince'
+      | 'admin.users.noActivity'
+      | 'admin.users.noProjects'
+      | 'admin.users.projectCount'
+      | 'admin.users.projects'
+      | 'admin.users.search'
+      | 'admin.users.title'
       | 'apiKeys.activeKeys'
       | 'apiKeys.copiedToClipboard'
       | 'apiKeys.copyFailed'
@@ -516,12 +570,14 @@ declare module '@lingx/sdk-nextjs' {
       | 'members.noMembers'
       | 'members.pendingInvitations'
       | 'members.pendingInvitationsDescription'
+      | 'members.remove'
       | 'members.removeCannotUndo'
       | 'members.removeConfirm'
       | 'members.removeFailed'
       | 'members.removeMember'
       | 'members.removeWarning'
       | 'members.revokeFailed'
+      | 'members.revokeInvitation'
       | 'members.role'
       | 'members.roles.developer'
       | 'members.roles.developerDescription'
@@ -919,6 +975,7 @@ declare module '@lingx/sdk-nextjs' {
       | 'settings.tips.strongPasswordDesc'
       | 'settings.tips.title'
       | 'settings.title'
+      | 'sidebar.admin'
       | 'sidebar.apiKeys'
       | 'sidebar.brand'
       | 'sidebar.dashboard'
@@ -1494,6 +1551,24 @@ declare module '@lingx/sdk-nextjs' {
     'activity.preview.viewAllHint': { count: string | number };
     /** View all {count} changes */
     'activity.viewAllChanges': { count: string | number };
+    /** Are you sure you want to disable {name}'s account? */
+    'admin.disable.description': { name: string | number };
+    /** Enable {name}'s account? */
+    'admin.enable.description': { name: string | number };
+    /** You are about to impersonate {name}. */
+    'admin.impersonate.description': { name: string | number };
+    /** Now impersonating {name} */
+    'admin.impersonate.success': { name: string | number };
+    /** Expires in {time} */
+    'admin.impersonationBanner.expiresIn': { time: string | number };
+    /** by {admin} */
+    'admin.users.disabledBy': { admin: string | number };
+    /** Disabled on {date} */
+    'admin.users.disabledOn': { date: string | number };
+    /** Member since {date} */
+    'admin.users.memberSince': { date: string | number };
+    /** {count, plural, one {# project} other {# projects}} */
+    'admin.users.projectCount': { count: number };
     /** {count, plural, one {# key} other {# keys}} */
     'common.keys': { count: number };
     /** {count, plural, one {# language} other {# languages}} */
