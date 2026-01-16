@@ -100,6 +100,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
   /**
    * Try to verify an impersonation token from cookie.
    * Returns the decoded payload if valid, null otherwise.
+   * Also validates that the admin's session is still active (invalidates on admin logout).
    */
   async function tryImpersonationToken(
     request: FastifyRequest
@@ -111,12 +112,28 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
       const decoded = fastify.jwt.verify<{
         userId: string;
         impersonatedBy: string;
+        adminSessionId?: string;
         purpose: string;
       }>(impersonationToken);
 
       // Verify it's actually an impersonation token
       if (decoded.purpose !== 'impersonation' || !decoded.impersonatedBy) {
         return null;
+      }
+
+      // Validate admin's session is still active (if sessionId is present)
+      // This ensures impersonation is invalidated when admin logs out
+      if (decoded.adminSessionId) {
+        const isAdminSessionValid = await fastify.queryBus.execute(
+          new ValidateSessionQuery(decoded.adminSessionId)
+        );
+        if (!isAdminSessionValid) {
+          fastify.log.info(
+            { adminSessionId: decoded.adminSessionId, impersonatedBy: decoded.impersonatedBy },
+            'Impersonation token rejected: admin session no longer valid'
+          );
+          return null;
+        }
       }
 
       return { userId: decoded.userId, impersonatedBy: decoded.impersonatedBy };

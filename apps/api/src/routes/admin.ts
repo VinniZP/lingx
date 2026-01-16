@@ -355,10 +355,12 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
       );
 
       // Generate impersonation JWT (checked before regular token by auth plugin)
+      // Include admin's sessionId so impersonation is invalidated when admin logs out
       const impersonationToken = fastify.jwt.sign(
         {
           userId: result.targetUserId,
           impersonatedBy: result.actorId,
+          adminSessionId: request.user.sessionId, // Bind to admin's session
           purpose: 'impersonation',
         },
         { expiresIn: '1h' }

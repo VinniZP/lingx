@@ -232,6 +232,7 @@ model ProjectInvitation {
   @@index([token])
   @@index([email])
   @@index([projectId])
+  @@index([projectId, email]) // Composite index for findPendingByEmail queries
 }
 
 // ============================================
