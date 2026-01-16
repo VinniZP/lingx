@@ -210,10 +210,18 @@ Epic 4 (Member UI) ────────────────────�
 - [x] Register event handlers in module index
 - [x] Write activity handler tests (18 tests)
 
-#### 2F.3 Email Notifications (Deferred to Epic 7)
+#### 2F.3 Email Notifications ✅
 
-- [ ] Create email templates
-- [ ] Add email event handlers
+- [x] Create email templates (React Email with Lingx design system)
+  - `invitation.tsx` - Project invitation
+  - `invitation-accepted.tsx` - Notification to inviter
+  - `member-removed.tsx` - Notification to removed member
+  - `role-changed.tsx` - Role change notification
+  - `ownership-transferred.tsx` - Transfer notification (both parties)
+  - `member-left.tsx` - Notification to owners when member leaves
+- [x] Add email event handlers (`MemberEmailHandler`)
+- [x] Email queue with BullMQ (3 retries, exponential backoff)
+- [x] Email worker with concurrency of 5
 
 ---
 
@@ -762,13 +770,13 @@ Extracted common guard pattern into reusable hook (`hooks/use-require-permission
 | Phase/Epic          | Tasks   | Complexity | Status      |
 | ------------------- | ------- | ---------- | ----------- |
 | 1. Database         | 6       | Low        | ✅ Done     |
-| 2. Member Backend   | 27      | High       | ✅ Done     |
+| 2. Member Backend   | 31      | High       | ✅ Done     |
 | 3. Admin Backend    | 24      | Medium     | ✅ Done     |
 | 4. Member UI        | 13      | Medium     | ✅ Done     |
 | 5. Admin UI         | 8       | Medium     | ✅ Done     |
 | 6. Testing          | 12      | Medium     | ✅ Done     |
 | 7. RBAC Integration | 18      | Medium     | ✅ Done     |
-| **Total**           | **108** |            | ✅ All Done |
+| **Total**           | **112** |            | ✅ All Done |
 
 ---
 
