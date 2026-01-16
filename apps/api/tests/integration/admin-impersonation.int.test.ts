@@ -26,6 +26,7 @@ describe('Admin Impersonation Integration Tests', () => {
 
   beforeEach(async () => {
     // Clean up test data before each test
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.session.deleteMany({});
     await app.prisma.apiKey.deleteMany({});
     await app.prisma.projectMember.deleteMany({});

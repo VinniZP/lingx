@@ -41,6 +41,7 @@ describe('Auth Module Integration', () => {
 
   beforeEach(async () => {
     // Clean up test data
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.apiKey.deleteMany({});
     await app.prisma.session.deleteMany({});
     await app.prisma.projectMember.deleteMany({});

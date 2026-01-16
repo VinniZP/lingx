@@ -22,6 +22,7 @@ describe('Authentication Integration Tests', () => {
 
   beforeEach(async () => {
     // Clean up test data before each test
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.apiKey.deleteMany({});
     await app.prisma.projectMember.deleteMany({});
     await app.prisma.user.deleteMany({

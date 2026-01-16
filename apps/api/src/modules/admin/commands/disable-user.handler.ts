@@ -21,7 +21,7 @@ export class DisableUserHandler implements ICommandHandler<DisableUserCommand> {
   ) {}
 
   async execute(command: DisableUserCommand): Promise<InferCommandResult<DisableUserCommand>> {
-    const { targetUserId, actorId } = command;
+    const { targetUserId, actorId, requestContext } = command;
 
     // 1. Verify actor is an admin
     const actorRole = await this.adminRepository.findUserRoleById(actorId);
@@ -37,27 +37,41 @@ export class DisableUserHandler implements ICommandHandler<DisableUserCommand> {
       throw new BadRequestError('Cannot disable yourself');
     }
 
-    // 3. Get target user role
-    const targetRole = await this.adminRepository.findUserRoleById(targetUserId);
-    if (!targetRole) {
+    // 3. Get target user (for role check and before state)
+    const targetUser = await this.adminRepository.findUserById(targetUserId);
+    if (!targetUser) {
       throw new NotFoundError('User not found');
     }
 
     // 4. Cannot disable another ADMIN (safety protection)
-    if (targetRole === 'ADMIN') {
+    if (targetUser.role === 'ADMIN') {
       throw new BadRequestError('Cannot disable another admin');
     }
 
-    // 5. Disable the user
+    // 5. Capture before state for audit
+    const beforeState = {
+      isDisabled: targetUser.isDisabled,
+      disabledAt: targetUser.disabledAt?.toISOString() ?? null,
+    };
+
+    // 6. Disable the user
     await this.adminRepository.updateUserDisabled(targetUserId, true, actorId);
 
-    // 6. Delete all sessions (immediate logout)
+    // 7. Delete all sessions (immediate logout)
     await this.sessionRepository.deleteAllByUserId(targetUserId);
 
-    // 7. Anonymize user in activity logs (GDPR)
+    // 8. Anonymize user in activity logs (GDPR)
     await this.adminRepository.anonymizeUserActivity(targetUserId);
 
-    // 8. Emit event
-    await this.eventBus.publish(new UserDisabledEvent(targetUserId, actorId, true));
+    // 9. Capture after state for audit
+    const afterState = {
+      isDisabled: true,
+      disabledAt: new Date().toISOString(),
+    };
+
+    // 10. Emit event with audit data
+    await this.eventBus.publish(
+      new UserDisabledEvent(targetUserId, actorId, true, requestContext, beforeState, afterState)
+    );
   }
 }

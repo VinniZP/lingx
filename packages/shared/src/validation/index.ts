@@ -7,6 +7,7 @@ export * from './errors.js';
 // Entity-specific schemas (request validation)
 export * from './admin.schema.js';
 export * from './ai-translation.schema.js';
+export * from './audit.schema.js';
 export * from './auth.schema.js';
 export * from './branch.schema.js';
 export * from './environment.schema.js';

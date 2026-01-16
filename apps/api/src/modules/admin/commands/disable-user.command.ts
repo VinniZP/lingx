@@ -1,5 +1,11 @@
 import type { ICommand } from '../../../shared/cqrs/index.js';
 
+/** Request context for audit logging */
+export interface RequestContext {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
 /**
  * Command to disable a user account.
  *
@@ -21,6 +27,8 @@ export class DisableUserCommand implements ICommand<void> {
     /** ID of the user to disable */
     public readonly targetUserId: string,
     /** ID of the admin performing the action */
-    public readonly actorId: string
+    public readonly actorId: string,
+    /** Request context for audit logging */
+    public readonly requestContext: RequestContext = {}
   ) {}
 }

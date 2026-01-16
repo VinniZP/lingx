@@ -39,6 +39,7 @@ describe('Access Module Integration', () => {
 
   beforeEach(async () => {
     // Clean up test data
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.translation.deleteMany({});
     await app.prisma.translationKey.deleteMany({});
     await app.prisma.branch.deleteMany({});

@@ -1,5 +1,11 @@
 import type { ICommand } from '../../../shared/cqrs/index.js';
 
+/** Request context for audit logging */
+export interface RequestContext {
+  ipAddress?: string;
+  userAgent?: string;
+}
+
 /** Result of impersonation command - validation only, JWT signing in route */
 export interface ImpersonationResult {
   /** ID of the target user (validated) */
@@ -34,6 +40,8 @@ export class ImpersonateUserCommand implements ICommand<ImpersonationResult> {
     /** ID of the user to impersonate */
     public readonly targetUserId: string,
     /** ID of the admin performing the impersonation */
-    public readonly actorId: string
+    public readonly actorId: string,
+    /** Request context for audit logging */
+    public readonly requestContext: RequestContext = {}
   ) {}
 }

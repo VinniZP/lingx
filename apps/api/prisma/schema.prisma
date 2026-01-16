@@ -51,6 +51,7 @@ model User {
   disabledBy           User?                @relation("DisabledUsers", fields: [disabledById], references: [id], onDelete: SetNull)
   disabledUsers        User[]               @relation("DisabledUsers")
   sentInvitations      ProjectInvitation[]  @relation("SentInvitations")
+  auditLogsPerformed   AuditLog[]           @relation("AuditLogAdmin")
 
   @@index([email])
 }
@@ -810,4 +811,31 @@ model QualityScoringConfig {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// ADMIN AUDIT LOG
+// ============================================
+
+/// Audit log for admin actions (disable, enable, impersonate)
+/// Captures before/after state and request context for compliance
+model AuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  action      String // 'USER_DISABLED' | 'USER_ENABLED' | 'USER_IMPERSONATED'
+  targetType  String // 'USER'
+  targetId    String
+  beforeState Json? // State before action
+  afterState  Json? // State after action
+  metadata    Json? // Additional context (e.g., tokenExpiry for impersonation)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  admin User @relation("AuditLogAdmin", fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@index([action])
 }

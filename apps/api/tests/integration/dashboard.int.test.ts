@@ -86,6 +86,9 @@ describe('Dashboard API Integration Tests', () => {
       where: { slug: { startsWith: 'test-dashboard-' } },
     });
 
+    // Delete audit logs
+    await app.prisma.auditLog.deleteMany({});
+
     // Delete users
     await app.prisma.user.deleteMany({
       where: { email: { contains: 'dashboard-test' } },

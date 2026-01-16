@@ -10,6 +10,8 @@
 import {
   adminUserDetailsResponseSchema,
   adminUserListResponseSchema,
+  auditLogListResponseSchema,
+  auditLogQuerySchema,
   listUsersQuerySchema,
 } from '@lingx/shared';
 import type { FastifyPluginAsync } from 'fastify';
@@ -18,6 +20,7 @@ import { z } from 'zod';
 import {
   DisableUserCommand,
   EnableUserCommand,
+  GetAuditLogsQuery,
   GetUserActivityQuery,
   GetUserDetailsQuery,
   ImpersonateUserCommand,
@@ -139,6 +142,37 @@ function toActivityListDto(
   };
 }
 
+/** Transform audit log list to response DTO */
+function toAuditLogListDto(result: {
+  auditLogs: Array<{
+    id: string;
+    adminId: string;
+    action: string;
+    targetType: string;
+    targetId: string;
+    beforeState: unknown;
+    afterState: unknown;
+    metadata: unknown;
+    ipAddress: string | null;
+    userAgent: string | null;
+    createdAt: Date;
+    admin: { id: string; email: string; name: string | null };
+  }>;
+  total: number;
+  page: number;
+  limit: number;
+}) {
+  return {
+    auditLogs: result.auditLogs.map(({ createdAt, ...rest }) => ({
+      ...rest,
+      createdAt: createdAt.toISOString(),
+    })),
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+  };
+}
+
 const adminRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
 
@@ -246,7 +280,10 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       await fastify.commandBus.execute(
-        new DisableUserCommand(request.params.id, request.user.userId)
+        new DisableUserCommand(request.params.id, request.user.userId, {
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'],
+        })
       );
       return reply.status(204).send();
     }
@@ -273,7 +310,10 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       await fastify.commandBus.execute(
-        new EnableUserCommand(request.params.id, request.user.userId)
+        new EnableUserCommand(request.params.id, request.user.userId, {
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'],
+        })
       );
       return reply.status(204).send();
     }
@@ -308,7 +348,10 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       // Handler validates permissions and returns data for JWT generation
       const result = await fastify.commandBus.execute(
-        new ImpersonateUserCommand(request.params.id, request.user.userId)
+        new ImpersonateUserCommand(request.params.id, request.user.userId, {
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'],
+        })
       );
 
       // Generate impersonation JWT (checked before regular token by auth plugin)
@@ -348,6 +391,40 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
         message: 'Impersonation session started',
         expiresAt: result.expiresAt,
       };
+    }
+  );
+
+  /**
+   * GET /api/admin/audit-logs - Get audit logs with optional filters
+   */
+  app.get(
+    '/api/admin/audit-logs',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        description: 'Get audit logs for admin actions (ADMIN only)',
+        tags: ['Admin'],
+        security: [{ bearerAuth: [] }],
+        querystring: auditLogQuerySchema,
+        response: {
+          200: auditLogListResponseSchema,
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { page, limit, startDate, endDate, ...filters } = request.query;
+      const result = await fastify.queryBus.execute(
+        new GetAuditLogsQuery(
+          {
+            ...filters,
+            startDate: startDate,
+            endDate: endDate,
+          },
+          { page, limit },
+          request.user.userId
+        )
+      );
+      return toAuditLogListDto(result);
     }
   );
 };

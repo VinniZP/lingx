@@ -22,7 +22,7 @@ export class ImpersonateUserHandler implements ICommandHandler<ImpersonateUserCo
   async execute(
     command: ImpersonateUserCommand
   ): Promise<InferCommandResult<ImpersonateUserCommand>> {
-    const { targetUserId, actorId } = command;
+    const { targetUserId, actorId, requestContext } = command;
 
     // 1. Verify actor is an admin
     const actorRole = await this.adminRepository.findUserRoleById(actorId);
@@ -50,8 +50,18 @@ export class ImpersonateUserHandler implements ICommandHandler<ImpersonateUserCo
     // 4. Calculate expiry time
     const expiresAt = new Date(Date.now() + IMPERSONATION_EXPIRY_MS);
 
-    // 5. Emit event for audit trail
-    await this.eventBus.publish(new UserImpersonatedEvent(targetUserId, actorId, expiresAt));
+    // 5. Capture target user state for audit
+    const targetUserState = {
+      id: targetUser.id,
+      email: targetUser.email,
+      name: targetUser.name,
+      role: targetUser.role,
+    };
+
+    // 6. Emit event for audit trail
+    await this.eventBus.publish(
+      new UserImpersonatedEvent(targetUserId, actorId, expiresAt, requestContext, targetUserState)
+    );
 
     // Return validation result - JWT signing happens in route layer
     return {

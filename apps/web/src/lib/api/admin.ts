@@ -9,6 +9,8 @@ import type {
   AdminUserDetailsResponse,
   AdminUserListResponse,
   AdminUserResponse,
+  AuditLogListResponse,
+  AuditLogQuery,
   ImpersonationTokenResponse,
   ListUsersQuery,
   UserRole,
@@ -20,6 +22,8 @@ export type {
   AdminUserDetailsResponse,
   AdminUserListResponse,
   AdminUserResponse,
+  AuditLogListResponse,
+  AuditLogQuery,
   ImpersonationTokenResponse,
   ListUsersQuery,
   UserRole,
@@ -183,4 +187,10 @@ export const adminApi = {
         body: JSON.stringify({}),
       }
     ),
+
+  /**
+   * Get audit logs with optional filters and pagination
+   */
+  getAuditLogs: (params?: Partial<AuditLogQuery>) =>
+    fetchAdminApi<AuditLogListResponse>(`/api/admin/audit-logs${buildQueryString(params || {})}`),
 };

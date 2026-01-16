@@ -75,9 +75,16 @@ describe('DisableUserHandler', () => {
   describe('execute', () => {
     it('should disable user when actor is ADMIN', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN') // actor
-        .mockResolvedValueOnce('DEVELOPER'); // target
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN'); // actor
+      mockRepository.findUserById.mockResolvedValueOnce({
+        id: 'user-1',
+        email: 'user@example.com',
+        name: 'Test User',
+        role: 'DEVELOPER',
+        isDisabled: false,
+        disabledAt: null,
+        createdAt: new Date(),
+      }); // target
       mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: true });
       mockRepository.anonymizeUserActivity.mockResolvedValue(undefined);
       mockSessionRepository.deleteAllByUserId.mockResolvedValue(3);
@@ -123,9 +130,16 @@ describe('DisableUserHandler', () => {
 
     it('should throw BadRequestError when trying to disable another ADMIN', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN') // actor
-        .mockResolvedValueOnce('ADMIN'); // target
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN'); // actor
+      mockRepository.findUserById.mockResolvedValueOnce({
+        id: 'other-admin',
+        email: 'admin@example.com',
+        name: 'Other Admin',
+        role: 'ADMIN',
+        isDisabled: false,
+        disabledAt: null,
+        createdAt: new Date(),
+      }); // target
 
       const command = new DisableUserCommand('other-admin', 'admin-user');
 
@@ -136,9 +150,8 @@ describe('DisableUserHandler', () => {
 
     it('should throw NotFoundError when target user not found', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN') // actor
-        .mockResolvedValueOnce(null); // target
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN'); // actor
+      mockRepository.findUserById.mockResolvedValueOnce(null); // target
 
       const command = new DisableUserCommand('nonexistent', 'admin-user');
 
@@ -158,9 +171,16 @@ describe('DisableUserHandler', () => {
 
     it('should delete all user sessions on disable', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN')
-        .mockResolvedValueOnce('DEVELOPER');
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN');
+      mockRepository.findUserById.mockResolvedValueOnce({
+        id: 'user-1',
+        email: 'user@example.com',
+        name: 'Test User',
+        role: 'DEVELOPER',
+        isDisabled: false,
+        disabledAt: null,
+        createdAt: new Date(),
+      });
       mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: true });
       mockRepository.anonymizeUserActivity.mockResolvedValue(undefined);
       mockSessionRepository.deleteAllByUserId.mockResolvedValue(5);
@@ -177,9 +197,16 @@ describe('DisableUserHandler', () => {
 
     it('should anonymize user activity on disable', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN')
-        .mockResolvedValueOnce('DEVELOPER');
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN');
+      mockRepository.findUserById.mockResolvedValueOnce({
+        id: 'user-1',
+        email: 'user@example.com',
+        name: 'Test User',
+        role: 'DEVELOPER',
+        isDisabled: false,
+        disabledAt: null,
+        createdAt: new Date(),
+      });
       mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: true });
       mockRepository.anonymizeUserActivity.mockResolvedValue(undefined);
       mockSessionRepository.deleteAllByUserId.mockResolvedValue(0);

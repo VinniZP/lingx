@@ -60,9 +60,16 @@ describe('EnableUserHandler', () => {
   describe('execute', () => {
     it('should enable user when actor is ADMIN', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN') // actor check
-        .mockResolvedValueOnce('DEVELOPER'); // target exists check
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN'); // actor check
+      mockRepository.findUserById.mockResolvedValueOnce({
+        id: 'user-1',
+        email: 'user@example.com',
+        name: 'Test User',
+        role: 'DEVELOPER',
+        isDisabled: true,
+        disabledAt: new Date('2024-01-01'),
+        createdAt: new Date(),
+      }); // target exists check
       mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: false });
       mockEventBus.publish.mockResolvedValue(undefined);
 
@@ -113,9 +120,16 @@ describe('EnableUserHandler', () => {
 
     it('should clear disabled fields on enable', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN') // actor check
-        .mockResolvedValueOnce('DEVELOPER'); // target exists check
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN'); // actor check
+      mockRepository.findUserById.mockResolvedValueOnce({
+        id: 'user-1',
+        email: 'user@example.com',
+        name: 'Test User',
+        role: 'DEVELOPER',
+        isDisabled: true,
+        disabledAt: new Date('2024-01-01'),
+        createdAt: new Date(),
+      }); // target exists check
       mockRepository.updateUserDisabled.mockResolvedValue({
         id: 'user-1',
         isDisabled: false,
@@ -135,9 +149,8 @@ describe('EnableUserHandler', () => {
 
     it('should throw NotFoundError when target user not found', async () => {
       // Arrange
-      mockRepository.findUserRoleById
-        .mockResolvedValueOnce('ADMIN') // actor check passes
-        .mockResolvedValueOnce(null); // target not found
+      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN'); // actor check passes
+      mockRepository.findUserById.mockResolvedValueOnce(null); // target not found
 
       const command = new EnableUserCommand('nonexistent-user', 'admin-user');
 

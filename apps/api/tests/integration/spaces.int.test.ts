@@ -62,6 +62,7 @@ describe('Space API Integration Tests', () => {
     await app.prisma.project.deleteMany({
       where: { slug: { startsWith: 'test-space-' } },
     });
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.user.deleteMany({
       where: { email: { contains: 'space-crud' } },
     });
