@@ -218,18 +218,77 @@ export class AdminRepository {
 
   /**
    * Anonymize user in activity logs.
-   * Replaces actor name with "Deleted User" for GDPR compliance.
+   * Merges actorName: "Deleted User" into existing metadata for GDPR compliance.
+   * Preserves other metadata fields while only updating the actor name.
    */
   async anonymizeUserActivity(userId: string): Promise<void> {
-    await this.prisma.activity.updateMany({
+    // Fetch all activities to preserve existing metadata
+    const activities = await this.prisma.activity.findMany({
       where: { userId },
-      data: {
-        metadata: {
-          set: {
-            actorName: 'Deleted User',
+      select: { id: true, metadata: true },
+    });
+
+    // Update each activity with merged metadata
+    await Promise.all(
+      activities.map((activity) =>
+        this.prisma.activity.update({
+          where: { id: activity.id },
+          data: {
+            metadata: {
+              ...((activity.metadata as Record<string, unknown>) ?? {}),
+              actorName: 'Deleted User',
+            },
           },
+        })
+      )
+    );
+  }
+
+  /**
+   * Disable user with all side effects in a single transaction.
+   * Ensures atomicity of: disable user, delete sessions, anonymize activity.
+   */
+  async disableUserTransaction(
+    userId: string,
+    disabledById: string
+  ): Promise<{ sessionsDeleted: number }> {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Disable the user
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          isDisabled: true,
+          disabledAt: new Date(),
+          disabledById,
         },
-      },
+      });
+
+      // 2. Delete all sessions (immediate logout)
+      const { count: sessionsDeleted } = await tx.session.deleteMany({
+        where: { userId },
+      });
+
+      // 3. Anonymize user in activity logs (GDPR)
+      const activities = await tx.activity.findMany({
+        where: { userId },
+        select: { id: true, metadata: true },
+      });
+
+      await Promise.all(
+        activities.map((activity) =>
+          tx.activity.update({
+            where: { id: activity.id },
+            data: {
+              metadata: {
+                ...((activity.metadata as Record<string, unknown>) ?? {}),
+                actorName: 'Deleted User',
+              },
+            },
+          })
+        )
+      );
+
+      return { sessionsDeleted };
     });
   }
 

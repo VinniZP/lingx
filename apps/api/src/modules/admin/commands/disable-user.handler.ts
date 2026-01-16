@@ -4,19 +4,14 @@ import { UserDisabledEvent } from '../events/user-disabled.event.js';
 import type { AdminRepository } from '../repositories/admin.repository.js';
 import type { DisableUserCommand } from './disable-user.command.js';
 
-/** Interface for session repository dependency */
-interface SessionRepositoryLike {
-  deleteAllByUserId(userId: string): Promise<number>;
-}
-
 /**
  * Handler for DisableUserCommand.
  * Disables a user account with all side effects (session invalidation, anonymization).
+ * All operations are performed atomically in a single transaction.
  */
 export class DisableUserHandler implements ICommandHandler<DisableUserCommand> {
   constructor(
     private readonly adminRepository: AdminRepository,
-    private readonly sessionRepository: SessionRepositoryLike,
     private readonly eventBus: IEventBus
   ) {}
 
@@ -54,22 +49,16 @@ export class DisableUserHandler implements ICommandHandler<DisableUserCommand> {
       disabledAt: targetUser.disabledAt?.toISOString() ?? null,
     };
 
-    // 6. Disable the user
-    await this.adminRepository.updateUserDisabled(targetUserId, true, actorId);
+    // 6. Disable the user, delete sessions, anonymize activity - all in one transaction
+    await this.adminRepository.disableUserTransaction(targetUserId, actorId);
 
-    // 7. Delete all sessions (immediate logout)
-    await this.sessionRepository.deleteAllByUserId(targetUserId);
-
-    // 8. Anonymize user in activity logs (GDPR)
-    await this.adminRepository.anonymizeUserActivity(targetUserId);
-
-    // 9. Capture after state for audit
+    // 7. Capture after state for audit
     const afterState = {
       isDisabled: true,
       disabledAt: new Date().toISOString(),
     };
 
-    // 10. Emit event with audit data
+    // 8. Emit event with audit data
     await this.eventBus.publish(
       new UserDisabledEvent(targetUserId, actorId, true, requestContext, beforeState, afterState)
     );

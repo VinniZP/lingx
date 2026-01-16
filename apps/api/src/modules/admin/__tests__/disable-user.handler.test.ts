@@ -19,10 +19,7 @@ interface MockAdminRepository {
   anonymizeUserActivity: Mock;
   getLastActiveAt: Mock;
   findUserRoleById: Mock;
-}
-
-interface MockSessionRepository {
-  deleteAllByUserId: Mock;
+  disableUserTransaction: Mock;
 }
 
 interface MockEventBus {
@@ -38,12 +35,7 @@ function createMockRepository(): MockAdminRepository {
     anonymizeUserActivity: vi.fn(),
     getLastActiveAt: vi.fn(),
     findUserRoleById: vi.fn(),
-  };
-}
-
-function createMockSessionRepository(): MockSessionRepository {
-  return {
-    deleteAllByUserId: vi.fn(),
+    disableUserTransaction: vi.fn(),
   };
 }
 
@@ -56,18 +48,13 @@ function createMockEventBus(): MockEventBus {
 describe('DisableUserHandler', () => {
   let handler: DisableUserHandler;
   let mockRepository: MockAdminRepository;
-  let mockSessionRepository: MockSessionRepository;
   let mockEventBus: MockEventBus;
 
   beforeEach(() => {
     mockRepository = createMockRepository();
-    mockSessionRepository = createMockSessionRepository();
     mockEventBus = createMockEventBus();
     handler = new DisableUserHandler(
       mockRepository as unknown as AdminRepository,
-      mockSessionRepository as unknown as {
-        deleteAllByUserId: (userId: string) => Promise<number>;
-      },
       mockEventBus as unknown as IEventBus
     );
   });
@@ -85,9 +72,7 @@ describe('DisableUserHandler', () => {
         disabledAt: null,
         createdAt: new Date(),
       }); // target
-      mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: true });
-      mockRepository.anonymizeUserActivity.mockResolvedValue(undefined);
-      mockSessionRepository.deleteAllByUserId.mockResolvedValue(3);
+      mockRepository.disableUserTransaction.mockResolvedValue({ sessionsDeleted: 3 });
       mockEventBus.publish.mockResolvedValue(undefined);
 
       const command = new DisableUserCommand('user-1', 'admin-user');
@@ -96,9 +81,7 @@ describe('DisableUserHandler', () => {
       await handler.execute(command);
 
       // Assert
-      expect(mockRepository.updateUserDisabled).toHaveBeenCalledWith('user-1', true, 'admin-user');
-      expect(mockSessionRepository.deleteAllByUserId).toHaveBeenCalledWith('user-1');
-      expect(mockRepository.anonymizeUserActivity).toHaveBeenCalledWith('user-1');
+      expect(mockRepository.disableUserTransaction).toHaveBeenCalledWith('user-1', 'admin-user');
       expect(mockEventBus.publish).toHaveBeenCalledOnce();
       const publishedEvent = mockEventBus.publish.mock.calls[0][0];
       expect(publishedEvent).toBeInstanceOf(UserDisabledEvent);
@@ -114,7 +97,7 @@ describe('DisableUserHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow('Admin access required');
-      expect(mockRepository.updateUserDisabled).not.toHaveBeenCalled();
+      expect(mockRepository.disableUserTransaction).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestError when trying to disable self', async () => {
@@ -125,7 +108,7 @@ describe('DisableUserHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow('Cannot disable yourself');
-      expect(mockRepository.updateUserDisabled).not.toHaveBeenCalled();
+      expect(mockRepository.disableUserTransaction).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestError when trying to disable another ADMIN', async () => {
@@ -145,7 +128,7 @@ describe('DisableUserHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow('Cannot disable another admin');
-      expect(mockRepository.updateUserDisabled).not.toHaveBeenCalled();
+      expect(mockRepository.disableUserTransaction).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundError when target user not found', async () => {
@@ -169,7 +152,7 @@ describe('DisableUserHandler', () => {
       await expect(handler.execute(command)).rejects.toThrow('User not found');
     });
 
-    it('should delete all user sessions on disable', async () => {
+    it('should execute all disable operations atomically in a transaction', async () => {
       // Arrange
       mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN');
       mockRepository.findUserById.mockResolvedValueOnce({
@@ -181,9 +164,7 @@ describe('DisableUserHandler', () => {
         disabledAt: null,
         createdAt: new Date(),
       });
-      mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: true });
-      mockRepository.anonymizeUserActivity.mockResolvedValue(undefined);
-      mockSessionRepository.deleteAllByUserId.mockResolvedValue(5);
+      mockRepository.disableUserTransaction.mockResolvedValue({ sessionsDeleted: 5 });
       mockEventBus.publish.mockResolvedValue(undefined);
 
       const command = new DisableUserCommand('user-1', 'admin-user');
@@ -191,34 +172,9 @@ describe('DisableUserHandler', () => {
       // Act
       await handler.execute(command);
 
-      // Assert
-      expect(mockSessionRepository.deleteAllByUserId).toHaveBeenCalledWith('user-1');
-    });
-
-    it('should anonymize user activity on disable', async () => {
-      // Arrange
-      mockRepository.findUserRoleById.mockResolvedValueOnce('ADMIN');
-      mockRepository.findUserById.mockResolvedValueOnce({
-        id: 'user-1',
-        email: 'user@example.com',
-        name: 'Test User',
-        role: 'DEVELOPER',
-        isDisabled: false,
-        disabledAt: null,
-        createdAt: new Date(),
-      });
-      mockRepository.updateUserDisabled.mockResolvedValue({ id: 'user-1', isDisabled: true });
-      mockRepository.anonymizeUserActivity.mockResolvedValue(undefined);
-      mockSessionRepository.deleteAllByUserId.mockResolvedValue(0);
-      mockEventBus.publish.mockResolvedValue(undefined);
-
-      const command = new DisableUserCommand('user-1', 'admin-user');
-
-      // Act
-      await handler.execute(command);
-
-      // Assert
-      expect(mockRepository.anonymizeUserActivity).toHaveBeenCalledWith('user-1');
+      // Assert - transaction handles: disable user, delete sessions, anonymize activity
+      expect(mockRepository.disableUserTransaction).toHaveBeenCalledWith('user-1', 'admin-user');
+      expect(mockRepository.disableUserTransaction).toHaveBeenCalledTimes(1);
     });
   });
 });

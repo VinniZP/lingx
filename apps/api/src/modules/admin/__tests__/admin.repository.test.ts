@@ -18,6 +18,7 @@ describe('AdminRepository', () => {
     },
     activity: {
       findMany: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
     },
     session: {
@@ -401,23 +402,50 @@ describe('AdminRepository', () => {
   });
 
   describe('anonymizeUserActivity', () => {
-    it('should replace user name in activity metadata', async () => {
+    it('should merge actorName into existing activity metadata', async () => {
       const repository = createRepository();
 
-      mockPrisma.activity.updateMany.mockResolvedValue({ count: 15 });
+      // Mock finding activities with existing metadata
+      mockPrisma.activity.findMany.mockResolvedValue([
+        { id: 'act-1', metadata: { keyName: 'greeting', oldValue: 'hi' } },
+        { id: 'act-2', metadata: { keyName: 'farewell' } },
+        { id: 'act-3', metadata: null },
+      ]);
+      mockPrisma.activity.update.mockResolvedValue({});
 
       await repository.anonymizeUserActivity('user-1');
 
-      expect(mockPrisma.activity.updateMany).toHaveBeenCalledWith({
+      // Should fetch activities first
+      expect(mockPrisma.activity.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
-        data: {
-          metadata: {
-            set: {
-              actorName: 'Deleted User',
-            },
-          },
-        },
+        select: { id: true, metadata: true },
       });
+
+      // Should update each activity with merged metadata
+      expect(mockPrisma.activity.update).toHaveBeenCalledTimes(3);
+      expect(mockPrisma.activity.update).toHaveBeenCalledWith({
+        where: { id: 'act-1' },
+        data: { metadata: { keyName: 'greeting', oldValue: 'hi', actorName: 'Deleted User' } },
+      });
+      expect(mockPrisma.activity.update).toHaveBeenCalledWith({
+        where: { id: 'act-2' },
+        data: { metadata: { keyName: 'farewell', actorName: 'Deleted User' } },
+      });
+      expect(mockPrisma.activity.update).toHaveBeenCalledWith({
+        where: { id: 'act-3' },
+        data: { metadata: { actorName: 'Deleted User' } },
+      });
+    });
+
+    it('should handle empty activity list', async () => {
+      const repository = createRepository();
+
+      mockPrisma.activity.findMany.mockResolvedValue([]);
+
+      await repository.anonymizeUserActivity('user-1');
+
+      expect(mockPrisma.activity.findMany).toHaveBeenCalled();
+      expect(mockPrisma.activity.update).not.toHaveBeenCalled();
     });
   });
 
