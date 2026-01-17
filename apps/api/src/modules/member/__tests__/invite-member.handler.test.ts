@@ -593,7 +593,7 @@ describe('InviteMemberHandler', () => {
 
         // Act & Assert
         await expect(handler.execute(command)).rejects.toThrow(
-          'Cannot invite 5 members. Only 3 invitation(s) remaining in project hourly limit.'
+          'Cannot invite 5 new members. Only 3 invitation(s) remaining in project hourly limit.'
         );
         expect(mockInvitationRepository.create).not.toHaveBeenCalled();
       });
@@ -620,7 +620,7 @@ describe('InviteMemberHandler', () => {
 
         // Act & Assert
         await expect(handler.execute(command)).rejects.toThrow(
-          'Cannot invite 5 members. Only 3 invitation(s) remaining in your daily limit.'
+          'Cannot invite 5 new members. Only 3 invitation(s) remaining in your daily limit.'
         );
         expect(mockInvitationRepository.create).not.toHaveBeenCalled();
       });

@@ -227,8 +227,10 @@ model ProjectInvitation {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   invitedBy User    @relation("SentInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
 
-  // Note: Uniqueness of pending invitations is enforced at application level
-  // via findPendingByEmail check, allowing re-inviting after revocation
+  // Uniqueness of pending invitations enforced at DATABASE level via partial unique index:
+  // CREATE UNIQUE INDEX ... ON "ProjectInvitation"("projectId", "email")
+  // WHERE "acceptedAt" IS NULL AND "revokedAt" IS NULL;
+  // This allows re-inviting after revocation/acceptance while preventing duplicate pending invitations.
   @@index([token])
   @@index([email])
   @@index([projectId])

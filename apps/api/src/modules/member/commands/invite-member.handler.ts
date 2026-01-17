@@ -55,8 +55,47 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
       throw new ForbiddenError('Managers can only invite as developer');
     }
 
-    // 5. Check rate limits
+    // 5. Pre-validate all emails BEFORE creating any invitations
+    // This ensures rate limit is checked against actual invitations needed
     const now = new Date();
+    const result = {
+      sent: [] as string[],
+      skipped: [] as string[],
+      errors: [] as string[],
+    };
+
+    // Collect emails that should be skipped (existing members or pending invites)
+    const emailsToInvite: string[] = [];
+    for (const email of emails) {
+      // Check if user is already a member
+      const existingUser = await this.memberRepository.findUserByEmail(email);
+      if (existingUser) {
+        const existingMembership = await this.memberRepository.findMemberByUserId(
+          projectId,
+          existingUser.id
+        );
+        if (existingMembership) {
+          result.skipped.push(email);
+          continue;
+        }
+      }
+
+      // Check if pending invitation exists
+      const pendingInvite = await this.invitationRepository.findPendingByEmail(projectId, email);
+      if (pendingInvite) {
+        result.skipped.push(email);
+        continue;
+      }
+
+      emailsToInvite.push(email);
+    }
+
+    // 6. Check rate limits against actual invitations to be created
+    if (emailsToInvite.length === 0) {
+      // All emails were skipped, no rate limit check needed
+      return result;
+    }
+
     const projectSince = new Date(now.getTime() - PROJECT_RATE_WINDOW_MS);
     const userSince = new Date(now.getTime() - USER_RATE_WINDOW_MS);
 
@@ -70,9 +109,9 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
         `Project invitation rate limit exceeded (${PROJECT_RATE_LIMIT} per hour)`
       );
     }
-    if (emails.length > projectRemainingCapacity) {
+    if (emailsToInvite.length > projectRemainingCapacity) {
       throw new BadRequestError(
-        `Cannot invite ${emails.length} members. Only ${projectRemainingCapacity} invitation(s) remaining in project hourly limit.`
+        `Cannot invite ${emailsToInvite.length} new members. Only ${projectRemainingCapacity} invitation(s) remaining in project hourly limit.`
       );
     }
 
@@ -84,42 +123,15 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand>
     if (userRemainingCapacity <= 0) {
       throw new BadRequestError(`User invitation rate limit exceeded (${USER_RATE_LIMIT} per day)`);
     }
-    if (emails.length > userRemainingCapacity) {
+    if (emailsToInvite.length > userRemainingCapacity) {
       throw new BadRequestError(
-        `Cannot invite ${emails.length} members. Only ${userRemainingCapacity} invitation(s) remaining in your daily limit.`
+        `Cannot invite ${emailsToInvite.length} new members. Only ${userRemainingCapacity} invitation(s) remaining in your daily limit.`
       );
     }
 
-    // 6. Process each email with error handling for partial success
-    const result = {
-      sent: [] as string[],
-      skipped: [] as string[],
-      errors: [] as string[],
-    };
-
-    for (const email of emails) {
+    // 7. Create invitations for validated emails
+    for (const email of emailsToInvite) {
       try {
-        // Check if user is already a member
-        const existingUser = await this.memberRepository.findUserByEmail(email);
-        if (existingUser) {
-          const existingMembership = await this.memberRepository.findMemberByUserId(
-            projectId,
-            existingUser.id
-          );
-          if (existingMembership) {
-            result.skipped.push(email);
-            continue;
-          }
-        }
-
-        // Check if pending invitation exists
-        const pendingInvite = await this.invitationRepository.findPendingByEmail(projectId, email);
-        if (pendingInvite) {
-          result.skipped.push(email);
-          continue;
-        }
-
-        // Create invitation
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(now.getTime() + INVITATION_EXPIRY_MS);
 
