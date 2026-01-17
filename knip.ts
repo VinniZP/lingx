@@ -31,6 +31,7 @@ const config: KnipConfig = {
       project: ['src/**/*.ts', 'prisma/**/*.ts', 'tests/**/*.ts'],
       ignoreDependencies: [
         'pino-pretty', // CLI-only, not imported
+        '@react-email/components', // Used in email templates via JSX
       ],
     },
 

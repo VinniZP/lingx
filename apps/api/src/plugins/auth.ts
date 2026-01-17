@@ -30,8 +30,20 @@ declare module 'fastify' {
  */
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { userId: string; sessionId?: string; purpose?: string; impersonatedBy?: string };
-    user: { userId: string; sessionId?: string; purpose?: string; impersonatedBy?: string };
+    payload: {
+      userId: string;
+      sessionId?: string;
+      purpose?: string;
+      impersonatedBy?: string;
+      adminSessionId?: string; // For impersonation tokens - binds to admin's session
+    };
+    user: {
+      userId: string;
+      sessionId?: string;
+      purpose?: string;
+      impersonatedBy?: string;
+      adminSessionId?: string;
+    };
   }
 }
 

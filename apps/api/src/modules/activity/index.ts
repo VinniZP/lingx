@@ -28,12 +28,7 @@ import { GetUserActivitiesQuery } from './queries/get-user-activities.query.js';
 export { ActivityRepository } from './activity.repository.js';
 
 // Re-export utilities
-export {
-  buildPreview,
-  generateGroupKey,
-  MAX_PREVIEW_ITEMS,
-  SESSION_GAP_MS,
-} from './activity.utils.js';
+export { buildPreview, generateGroupKey, MAX_PREVIEW_ITEMS } from './activity.utils.js';
 
 // Re-export queries for external use
 export { GetActivityChangesQuery } from './queries/get-activity-changes.query.js';

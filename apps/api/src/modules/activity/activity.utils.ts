@@ -12,11 +12,6 @@ import type { ActivityMetadata } from '@lingx/shared';
 export const MAX_PREVIEW_ITEMS = 10;
 
 /**
- * Session gap threshold for grouping (15 minutes).
- */
-export const SESSION_GAP_MS = 15 * 60 * 1000;
-
-/**
  * Generate a group key for activity grouping.
  * Uses 30-second time windows for groupable activity types.
  */
