@@ -35,6 +35,11 @@ model User {
   // Passwordless / WebAuthn
   passwordlessAt DateTime? // When user went passwordless
 
+  // Admin disable/suspend
+  isDisabled   Boolean   @default(false)
+  disabledAt   DateTime?
+  disabledById String?
+
   apiKeys              ApiKey[]
   projectMembers       ProjectMember[]
   activities           Activity[]
@@ -43,6 +48,10 @@ model User {
   backupCodes          BackupCode[]
   webauthnCredentials  WebAuthnCredential[]
   translationApprovals Translation[]        @relation("TranslationApprovals")
+  disabledBy           User?                @relation("DisabledUsers", fields: [disabledById], references: [id], onDelete: SetNull)
+  disabledUsers        User[]               @relation("DisabledUsers")
+  sentInvitations      ProjectInvitation[]  @relation("SentInvitations")
+  auditLogsPerformed   AuditLog[]           @relation("AuditLogAdmin")
 
   @@index([email])
 }
@@ -164,6 +173,7 @@ model Project {
   glossaryEntries      GlossaryEntry[]
   glossaryTags         GlossaryTag[]
   qualityScoringConfig QualityScoringConfig?
+  invitations          ProjectInvitation[]
 
   @@index([slug])
 }
@@ -200,6 +210,31 @@ enum ProjectRole {
   DEVELOPER
   MANAGER
   OWNER
+}
+
+model ProjectInvitation {
+  id          String      @id @default(cuid())
+  projectId   String
+  email       String      // Invitee email (may not be a user yet)
+  role        ProjectRole @default(DEVELOPER)
+  token       String      @unique
+  invitedById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime    @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invitedBy User    @relation("SentInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  // Uniqueness of pending invitations enforced at DATABASE level via partial unique index:
+  // CREATE UNIQUE INDEX ... ON "ProjectInvitation"("projectId", "email")
+  // WHERE "acceptedAt" IS NULL AND "revokedAt" IS NULL;
+  // This allows re-inviting after revocation/acceptance while preventing duplicate pending invitations.
+  @@index([token])
+  @@index([email])
+  @@index([projectId])
+  @@index([projectId, email]) // Composite index for findPendingByEmail queries
 }
 
 // ============================================
@@ -779,4 +814,31 @@ model QualityScoringConfig {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// ADMIN AUDIT LOG
+// ============================================
+
+/// Audit log for admin actions (disable, enable, impersonate)
+/// Captures before/after state and request context for compliance
+model AuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  action      String // 'USER_DISABLED' | 'USER_ENABLED' | 'USER_IMPERSONATED'
+  targetType  String // 'USER'
+  targetId    String
+  beforeState Json? // State before action
+  afterState  Json? // State after action
+  metadata    Json? // Additional context (e.g., tokenExpiry for impersonation)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  admin User @relation("AuditLogAdmin", fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@index([action])
 }

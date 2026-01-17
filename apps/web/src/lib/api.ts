@@ -73,6 +73,16 @@ export const authApi = {
     }),
 
   me: () => fetchApi<{ user: User }>('/api/auth/me'),
+
+  /**
+   * Exit impersonation mode by clearing impersonation cookies.
+   * User will automatically fall back to their regular session.
+   */
+  exitImpersonation: () =>
+    fetchApi<{ message: string }>('/api/auth/exit-impersonation', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
 };
 
 // Types

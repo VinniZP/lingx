@@ -1,19 +1,21 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import {
-  LayoutDashboard,
+  ChevronsUpDown,
   FolderOpen,
-  Settings,
-  LogOut,
+  Globe,
   Key,
   Languages,
-  ChevronsUpDown,
-  Globe,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  ShieldAlert,
 } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
+import { LanguagePickerCompact } from '@/components/language-picker';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -34,20 +36,21 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LanguagePickerCompact } from '@/components/language-picker';
-import { useTranslation, tKey, type TKey } from '@lingx/sdk-nextjs';
+import { tKey, useTranslation, type TKey } from '@lingx/sdk-nextjs';
 
 interface NavItem {
   href: string;
   icon: LucideIcon;
   labelKey: TKey;
   requiresManager?: boolean;
+  requiresAdmin?: boolean;
 }
 
 const navigationItems: NavItem[] = [
   { href: '/dashboard', icon: LayoutDashboard, labelKey: tKey('sidebar.dashboard') },
   { href: '/projects', icon: FolderOpen, labelKey: tKey('sidebar.projects') },
   { href: '/settings', icon: Settings, labelKey: tKey('sidebar.settings'), requiresManager: true },
+  { href: '/admin', icon: ShieldAlert, labelKey: tKey('sidebar.admin'), requiresAdmin: true },
 ];
 
 interface AppSidebarProps {
@@ -57,6 +60,7 @@ interface AppSidebarProps {
     name: string | null;
     avatarUrl?: string | null;
     isManager: boolean;
+    isAdmin: boolean;
   } | null;
   pathname: string;
   onLogout: () => void;
@@ -83,7 +87,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
   const { setOpenMobile, isMobile } = useSidebar();
 
   const filteredNavItems = navigationItems.filter(
-    (item) => !item.requiresManager || user?.isManager
+    (item) => (!item.requiresManager || user?.isManager) && (!item.requiresAdmin || user?.isAdmin)
   );
 
   const handleNavClick = React.useCallback(() => {
@@ -97,7 +101,7 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <div className="flex flex-col h-full">
+      <div className="flex h-full flex-col">
         {/* Header - Logo */}
         <SidebarHeader className="p-3">
           <SidebarMenu>
@@ -106,12 +110,14 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
                 href="/dashboard"
                 className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center"
               >
-                <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-primary-foreground shrink-0">
+                <div className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-xl">
                   <Languages className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span className="truncate font-semibold text-sm">{t('sidebar.brand')}</span>
-                  <span className="truncate text-[11px] text-muted-foreground">{t('sidebar.tagline')}</span>
+                  <span className="truncate text-sm font-semibold">{t('sidebar.brand')}</span>
+                  <span className="text-muted-foreground truncate text-[11px]">
+                    {t('sidebar.tagline')}
+                  </span>
                 </div>
               </Link>
             </SidebarMenuItem>
@@ -124,15 +130,12 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
             <SidebarGroupContent>
               <SidebarMenu className="gap-1.5">
                 {filteredNavItems.map((item) => {
-                  const isActive = pathname === item.href ||
+                  const isActive =
+                    pathname === item.href ||
                     (item.href !== '/dashboard' && pathname.startsWith(item.href));
                   return (
                     <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={td(item.labelKey)}
-                      >
+                      <SidebarMenuButton asChild isActive={isActive} tooltip={td(item.labelKey)}>
                         <Link href={item.href} onClick={handleNavClick}>
                           <item.icon className="shrink-0" />
                           <span>{td(item.labelKey)}</span>
@@ -147,12 +150,14 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
         </SidebarContent>
 
         {/* Footer - Language & User */}
-        <SidebarFooter className="mt-auto border-t border-border p-3 space-y-2">
+        <SidebarFooter className="border-border mt-auto space-y-2 border-t p-3">
           {/* Language Picker */}
           <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
             <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
-              <Globe className="size-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">{t('sidebar.language')}</span>
+              <Globe className="text-muted-foreground size-4" />
+              <span className="text-muted-foreground text-xs font-medium">
+                {t('sidebar.language')}
+              </span>
             </div>
             <LanguagePickerCompact />
           </div>
@@ -161,44 +166,49 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton
-                    size="lg"
-                    data-testid="user-menu"
-                  >
-                    <Avatar className="size-8 rounded-lg shrink-0">
+                  <SidebarMenuButton size="lg" data-testid="user-menu">
+                    <Avatar className="size-8 shrink-0 rounded-lg">
                       {user?.avatarUrl && (
-                        <AvatarImage src={user.avatarUrl} alt={displayName} className="rounded-lg object-cover" />
+                        <AvatarImage
+                          src={user.avatarUrl}
+                          alt={displayName}
+                          className="rounded-lg object-cover"
+                        />
                       )}
-                      <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                      <AvatarFallback className="bg-primary/10 text-primary rounded-lg text-xs font-medium">
                         {userInitials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left leading-tight">
-                      <span className="truncate font-medium text-sm">{displayName}</span>
-                      <span className="truncate text-xs text-muted-foreground">{user?.email || t('sidebar.userFallback')}</span>
+                      <span className="truncate text-sm font-medium">{displayName}</span>
+                      <span className="text-muted-foreground truncate text-xs">
+                        {user?.email || t('sidebar.userFallback')}
+                      </span>
                     </div>
-                    <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
+                    <ChevronsUpDown className="text-muted-foreground ml-auto size-4" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  side="top"
-                  className="w-64"
-                  align="start"
-                >
+                <DropdownMenuContent side="top" className="w-64" align="start">
                   {/* User header with gradient accent */}
-                  <div className="px-3 py-3 mb-1">
+                  <div className="mb-1 px-3 py-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="size-10 rounded-xl ring-2 ring-primary/10">
+                      <Avatar className="ring-primary/10 size-10 rounded-xl ring-2">
                         {user?.avatarUrl && (
-                          <AvatarImage src={user.avatarUrl} alt={displayName} className="rounded-xl object-cover" />
+                          <AvatarImage
+                            src={user.avatarUrl}
+                            alt={displayName}
+                            className="rounded-xl object-cover"
+                          />
                         )}
-                        <AvatarFallback className="rounded-xl bg-linear-to-br from-primary/20 to-warm/20 text-primary font-semibold">
+                        <AvatarFallback className="from-primary/20 to-warm/20 text-primary rounded-xl bg-linear-to-br font-semibold">
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left leading-tight">
-                        <span className="truncate font-semibold text-sm">{displayName}</span>
-                        <span className="truncate text-xs text-muted-foreground">{user?.email || t('sidebar.userFallback')}</span>
+                        <span className="truncate text-sm font-semibold">{displayName}</span>
+                        <span className="text-muted-foreground truncate text-xs">
+                          {user?.email || t('sidebar.userFallback')}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -238,9 +248,4 @@ export function AppSidebar({ user, pathname, onLogout }: AppSidebarProps) {
   );
 }
 
-export {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-  useSidebar,
-} from '@/components/ui/sidebar';
+export { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';

@@ -2,7 +2,8 @@
   "extends": "@lingx/config/tsconfig/node",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "jsx": "react-jsx"
   },
   "references": [{ "path": "../../packages/shared" }],
   "include": ["src", "prisma", "prisma.config.ts"],

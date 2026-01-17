@@ -13,15 +13,18 @@ import type { CommandBus, EventBus, QueryBus } from '../shared/cqrs/index.js';
 // Import module registrars
 import { registerAccessModule } from '../modules/access/index.js';
 import { registerActivityModule } from '../modules/activity/index.js';
+import { registerAdminModule } from '../modules/admin/index.js';
 import { registerAITranslationModule } from '../modules/ai-translation/index.js';
 import { registerAuthModule } from '../modules/auth/index.js';
 import { registerBranchModule } from '../modules/branch/index.js';
 import { registerDashboardModule } from '../modules/dashboard/index.js';
+import { registerEmailModule } from '../modules/email/index.js';
 import { registerEnvironmentModule } from '../modules/environment/index.js';
 import { registerGlossaryModule } from '../modules/glossary/index.js';
 import { registerHealthModule } from '../modules/health/index.js';
 import { registerKeyContextModule } from '../modules/key-context/index.js';
 import { registerMachineTranslationModule } from '../modules/machine-translation/index.js';
+import { registerMemberModule } from '../modules/member/index.js';
 import { registerMfaModule } from '../modules/mfa/index.js';
 import { registerProfileModule } from '../modules/profile/index.js';
 import { registerProjectModule } from '../modules/project/index.js';
@@ -55,6 +58,9 @@ const domainModules: ModuleRegistrar[] = [
   registerQualityEstimationModule,
   registerKeyContextModule,
   registerDashboardModule,
+  registerMemberModule,
+  registerAdminModule,
+  registerEmailModule,
 ];
 
 export interface CqrsPluginOptions {

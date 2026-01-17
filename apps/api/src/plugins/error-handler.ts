@@ -71,6 +71,7 @@ export class BadRequestError extends AppError {
 export class UnauthorizedError extends AppError {
   constructor(message: string = 'Unauthorized') {
     super(message, 401, 'UNAUTHORIZED');
+    Object.setPrototypeOf(this, UnauthorizedError.prototype);
   }
 }
 
@@ -80,6 +81,7 @@ export class UnauthorizedError extends AppError {
 export class ForbiddenError extends AppError {
   constructor(message: string = 'Forbidden') {
     super(message, 403, 'FORBIDDEN');
+    Object.setPrototypeOf(this, ForbiddenError.prototype);
   }
 }
 

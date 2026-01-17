@@ -1,13 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginInput } from '@lingx/shared';
-import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -16,19 +9,40 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { handleApiFieldErrors } from '@/lib/form-errors';
-import { toast } from 'sonner';
-import { Loader2, ArrowRight, Mail, Lock, Eye, EyeOff, Fingerprint } from 'lucide-react';
-import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from '@lingx/sdk-nextjs';
+import { loginSchema, type LoginInput } from '@lingx/shared';
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { ArrowRight, Eye, EyeOff, Fingerprint, Loader2, Lock, Mail } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const { login, loginWithPasskey } = useAuth();
+
+  // Get URL params for prefill and redirect
+  const emailFromUrl = searchParams.get('email') || '';
+  const redirectUrlParam = searchParams.get('redirect') || '';
+
+  // Validate redirect URL to prevent open redirect attacks
+  // Only allow relative paths starting with / (not //)
+  const isValidRedirect = (url: string): boolean => {
+    return url.startsWith('/') && !url.startsWith('//');
+  };
+  const redirectUrl = isValidRedirect(redirectUrlParam) ? redirectUrlParam : '';
 
   // Check for WebAuthn support on client
   const supportsPasskey = typeof window !== 'undefined' && browserSupportsWebAuthn();
@@ -40,6 +54,10 @@ export default function LoginPage() {
       toast.success(t('auth.welcomeToast'), {
         description: t('auth.passkeySignInSuccess'),
       });
+      // Redirect to the specified URL or default to dashboard
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : t('auth.passkeyAuthFailed');
       toast.error(t('auth.passkeySignInFailed'), {
@@ -54,7 +72,7 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     defaultValues: {
-      email: '',
+      email: emailFromUrl,
       password: '',
     },
   });
@@ -65,12 +83,14 @@ export default function LoginPage() {
       toast.success(t('auth.welcomeToast'), {
         description: t('auth.welcomeDescription'),
       });
+      // Redirect to the specified URL or default to dashboard
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      }
     } catch (error) {
       // Try to map field-level errors to form fields first
       if (!handleApiFieldErrors(error, form.setError)) {
-        const message = error instanceof ApiError
-          ? error.message
-          : t('auth.unexpectedError');
+        const message = error instanceof ApiError ? error.message : t('auth.unexpectedError');
         toast.error(t('auth.signInFailed'), {
           description: message,
         });
@@ -83,7 +103,7 @@ export default function LoginPage() {
       {/* Header */}
       <div className="space-y-3">
         <h1
-          className="text-[2rem] font-semibold tracking-tight text-foreground"
+          className="text-foreground text-[2rem] font-semibold tracking-tight"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
           {t('auth.welcomeBack')}
@@ -101,7 +121,7 @@ export default function LoginPage() {
             variant="outline"
             onClick={handlePasskeyLogin}
             disabled={passkeyLoading}
-            className="w-full h-12 rounded-xl border-border/60 bg-card hover:bg-accent text-foreground font-medium text-[15px] transition-all duration-200 touch-manipulation hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0"
+            className="border-border/60 bg-card hover:bg-accent text-foreground h-12 w-full touch-manipulation rounded-xl text-[15px] font-medium transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50"
           >
             {passkeyLoading ? (
               <>
@@ -119,10 +139,10 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative py-1">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent" />
+              <div className="via-border h-px w-full bg-linear-to-r from-transparent to-transparent" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
+              <span className="bg-background text-muted-foreground/60 px-4 text-xs font-medium tracking-wider uppercase">
                 {t('auth.orContinueWithEmail')}
               </span>
             </div>
@@ -143,9 +163,11 @@ export default function LoginPage() {
                   <FormLabel>{t('auth.emailAddress')}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
-                        focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
-                      }`}>
+                      <div
+                        className={`absolute top-1/2 left-4 -translate-y-1/2 transition-colors duration-200 ${
+                          focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
+                        }`}
+                      >
                         <Mail className="size-4.5" />
                       </div>
                       <Input
@@ -153,8 +175,11 @@ export default function LoginPage() {
                         placeholder={t('auth.emailPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('email')}
-                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
-                        className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        onBlur={() => {
+                          field.onBlur();
+                          setFocusedField(null);
+                        }}
+                        className="bg-card border-border/60 placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/10 h-12 w-full touch-manipulation rounded-xl pr-4 pl-12 text-[15px] transition-all duration-200 focus:ring-2"
                         autoComplete="email"
                       />
                     </div>
@@ -174,16 +199,18 @@ export default function LoginPage() {
                     <FormLabel>{t('auth.password')}</FormLabel>
                     <Link
                       href="/forgot-password"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 touch-manipulation"
+                      className="text-muted-foreground hover:text-primary touch-manipulation text-sm transition-colors duration-200"
                     >
                       {t('auth.forgotPassword')}
                     </Link>
                   </div>
                   <FormControl>
                     <div className="relative">
-                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
-                        focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
-                      }`}>
+                      <div
+                        className={`absolute top-1/2 left-4 -translate-y-1/2 transition-colors duration-200 ${
+                          focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
+                        }`}
+                      >
                         <Lock className="size-4.5" />
                       </div>
                       <Input
@@ -191,14 +218,17 @@ export default function LoginPage() {
                         placeholder={t('auth.passwordPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('password')}
-                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
-                        className="h-12 w-full pl-12 pr-12 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        onBlur={() => {
+                          field.onBlur();
+                          setFocusedField(null);
+                        }}
+                        className="bg-card border-border/60 placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/10 h-12 w-full touch-manipulation rounded-xl pr-12 pl-12 text-[15px] transition-all duration-200 focus:ring-2"
                         autoComplete="current-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors duration-200 touch-manipulation"
+                        className="text-muted-foreground/50 hover:text-muted-foreground absolute top-1/2 right-4 -translate-y-1/2 touch-manipulation transition-colors duration-200"
                         tabIndex={-1}
                       >
                         {showPassword ? (
@@ -218,7 +248,7 @@ export default function LoginPage() {
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-[15px] transition-all duration-200 touch-manipulation shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 hover:shadow-primary/25 h-12 w-full touch-manipulation rounded-xl text-[15px] font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (
@@ -239,10 +269,10 @@ export default function LoginPage() {
       {/* Divider */}
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent" />
+          <div className="via-border h-px w-full bg-linear-to-r from-transparent to-transparent" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
+          <span className="bg-background text-muted-foreground/60 px-4 text-xs font-medium tracking-wider uppercase">
             {t('auth.newToLingx')}
           </span>
         </div>
@@ -251,8 +281,12 @@ export default function LoginPage() {
       {/* Sign up link */}
       <div className="text-center">
         <Link
-          href="/register"
-          className="group inline-flex items-center gap-2 py-2.5 px-5 text-sm font-medium text-foreground rounded-xl border border-border/60 bg-card hover:bg-accent hover:border-border transition-all duration-200 touch-manipulation"
+          href={
+            redirectUrl
+              ? `/register?redirect=${encodeURIComponent(redirectUrl)}${emailFromUrl ? `&email=${encodeURIComponent(emailFromUrl)}` : ''}`
+              : '/register'
+          }
+          className="group text-foreground border-border/60 bg-card hover:bg-accent hover:border-border inline-flex touch-manipulation items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all duration-200"
         >
           {t('auth.createAnAccount')}
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />

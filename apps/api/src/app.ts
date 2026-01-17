@@ -19,6 +19,7 @@ import errorHandlerPlugin from './plugins/error-handler.js';
 import prismaPlugin from './plugins/prisma.js';
 import uploadsPlugin from './plugins/uploads.js';
 import activityRoutes from './routes/activity.js';
+import adminRoutes from './routes/admin.js';
 import aiTranslationRoutes from './routes/ai-translation.js';
 import authRoutes from './routes/auth.js';
 import branchRoutes from './routes/branches.js';
@@ -26,9 +27,11 @@ import dashboardRoutes from './routes/dashboard.js';
 import environmentRoutes from './routes/environments.js';
 import glossaryRoutes from './routes/glossary.js';
 import healthRoutes from './routes/health.js';
+import invitationRoutes from './routes/invitations.js';
 import jobRoutes from './routes/jobs.js';
 import keyContextRoutes from './routes/key-context.js';
 import machineTranslationRoutes from './routes/machine-translation.js';
+import memberRoutes from './routes/members.js';
 import profileRoutes from './routes/profile.js';
 import projectRoutes from './routes/projects.js';
 import qualityEstimationRoutes from './routes/quality-estimation.js';
@@ -165,6 +168,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
+  await fastify.register(adminRoutes);
   await fastify.register(securityRoutes);
   await fastify.register(totpRoutes);
   await fastify.register(webauthnRoutes);
@@ -182,6 +186,8 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   await fastify.register(keyContextRoutes);
   await fastify.register(environmentRoutes);
   await fastify.register(qualityEstimationRoutes);
+  await fastify.register(memberRoutes);
+  await fastify.register(invitationRoutes);
   await fastify.register(sdkRoutes);
   await fastify.register(jobRoutes);
 

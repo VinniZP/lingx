@@ -15,7 +15,7 @@ import type {
  */
 export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService,
     private readonly logger: FastifyBaseLogger
   ) {}
@@ -32,7 +32,8 @@ export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery>
 
     // Select provider
     const selectedProvider =
-      requestedProvider || (await this.mtRepository.selectProvider(query.projectId));
+      requestedProvider ||
+      (await this.machineTranslationRepository.selectProvider(query.projectId));
     if (!selectedProvider) {
       throw new BadRequestError('No MT provider configured for this project');
     }
@@ -42,7 +43,7 @@ export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery>
     let totalCharacters = 0;
 
     // Get initialized provider once
-    const mtProvider = await this.mtRepository.getInitializedProvider(
+    const mtProvider = await this.machineTranslationRepository.getInitializedProvider(
       query.projectId,
       selectedProvider
     );
@@ -53,7 +54,7 @@ export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery>
     for (const targetLang of targetLanguages) {
       try {
         // Check cache first
-        const cached = await this.mtRepository.getCachedTranslation(
+        const cached = await this.machineTranslationRepository.getCachedTranslation(
           query.projectId,
           selectedProvider,
           sourceLanguage,
@@ -62,7 +63,13 @@ export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery>
         );
 
         if (cached) {
-          await this.mtRepository.updateUsage(query.projectId, selectedProvider, 0, 0, 1);
+          await this.machineTranslationRepository.updateUsage(
+            query.projectId,
+            selectedProvider,
+            0,
+            0,
+            1
+          );
           translations[targetLang] = {
             translatedText: cached.translatedText,
             provider: selectedProvider,
@@ -78,7 +85,7 @@ export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery>
         const characterCount = text.length;
 
         // Cache the result
-        await this.mtRepository.cacheTranslation(
+        await this.machineTranslationRepository.cacheTranslation(
           query.projectId,
           selectedProvider,
           sourceLanguage,
@@ -89,7 +96,7 @@ export class TranslateMultiHandler implements IQueryHandler<TranslateMultiQuery>
         );
 
         // Update usage stats
-        await this.mtRepository.updateUsage(
+        await this.machineTranslationRepository.updateUsage(
           query.projectId,
           selectedProvider,
           characterCount,

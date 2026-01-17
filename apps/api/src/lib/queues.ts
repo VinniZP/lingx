@@ -104,6 +104,26 @@ export const glossaryQueue = new Queue('glossary', {
 });
 
 /**
+ * Email Queue
+ *
+ * Handles async email sending. Emails are queued from
+ * event handlers and processed by the email worker.
+ * Retries with exponential backoff for transient SMTP failures.
+ */
+export const emailQueue = new Queue('email', {
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 500,
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000,
+    },
+  },
+});
+
+/**
  * Close all queue connections gracefully
  */
 export async function closeQueues(): Promise<void> {
@@ -113,5 +133,6 @@ export async function closeQueues(): Promise<void> {
     retentionQueue.close(),
     mtBatchQueue.close(),
     glossaryQueue.close(),
+    emailQueue.close(),
   ]);
 }

@@ -10,7 +10,7 @@ import type { TranslateTextQuery } from './translate-text.query.js';
  */
 export class TranslateTextHandler implements IQueryHandler<TranslateTextQuery> {
   constructor(
-    private readonly mtRepository: MachineTranslationRepository,
+    private readonly machineTranslationRepository: MachineTranslationRepository,
     private readonly accessService: AccessService
   ) {}
 
@@ -26,13 +26,14 @@ export class TranslateTextHandler implements IQueryHandler<TranslateTextQuery> {
 
     // Select provider
     const selectedProvider =
-      requestedProvider || (await this.mtRepository.selectProvider(query.projectId));
+      requestedProvider ||
+      (await this.machineTranslationRepository.selectProvider(query.projectId));
     if (!selectedProvider) {
       throw new BadRequestError('No MT provider configured for this project');
     }
 
     // Check cache first
-    const cached = await this.mtRepository.getCachedTranslation(
+    const cached = await this.machineTranslationRepository.getCachedTranslation(
       query.projectId,
       selectedProvider,
       sourceLanguage,
@@ -42,7 +43,13 @@ export class TranslateTextHandler implements IQueryHandler<TranslateTextQuery> {
 
     if (cached) {
       // Update usage stats for cache hit
-      await this.mtRepository.updateUsage(query.projectId, selectedProvider, 0, 0, 1);
+      await this.machineTranslationRepository.updateUsage(
+        query.projectId,
+        selectedProvider,
+        0,
+        0,
+        1
+      );
 
       return {
         translatedText: cached.translatedText,
@@ -53,7 +60,7 @@ export class TranslateTextHandler implements IQueryHandler<TranslateTextQuery> {
     }
 
     // Get initialized provider and translate
-    const mtProvider = await this.mtRepository.getInitializedProvider(
+    const mtProvider = await this.machineTranslationRepository.getInitializedProvider(
       query.projectId,
       selectedProvider
     );
@@ -62,7 +69,7 @@ export class TranslateTextHandler implements IQueryHandler<TranslateTextQuery> {
     const characterCount = text.length;
 
     // Cache the result
-    await this.mtRepository.cacheTranslation(
+    await this.machineTranslationRepository.cacheTranslation(
       query.projectId,
       selectedProvider,
       sourceLanguage,
@@ -73,7 +80,13 @@ export class TranslateTextHandler implements IQueryHandler<TranslateTextQuery> {
     );
 
     // Update usage stats
-    await this.mtRepository.updateUsage(query.projectId, selectedProvider, characterCount, 1, 0);
+    await this.machineTranslationRepository.updateUsage(
+      query.projectId,
+      selectedProvider,
+      characterCount,
+      1,
+      0
+    );
 
     return {
       translatedText: result.text,

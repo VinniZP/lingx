@@ -1,20 +1,20 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import { join } from 'path';
-import { loadConfig } from '../../lib/config.js';
 import { createApiClientFromConfig } from '../../lib/api.js';
+import { loadConfig } from '../../lib/config.js';
 import { logger } from '../../utils/logger.js';
 import { createSpinner } from '../../utils/spinner.js';
 import { regenerateTypesIfEnabled } from '../types.js';
 import {
-  parseKeyArgument,
-  getProjectLanguages,
-  writeKeyValue,
-  keyExists,
-  extractLanguageValues,
-  resolveBranchId,
   createKeyRemote,
+  extractLanguageValues,
+  getProjectLanguages,
+  keyExists,
+  parseKeyArgument,
+  resolveBranchId,
+  writeKeyValue,
 } from './utils.js';
-import chalk from 'chalk';
 
 interface AddOptions {
   namespace?: string;
@@ -23,6 +23,7 @@ interface AddOptions {
   project?: string;
   space?: string;
   branch?: string;
+  overwrite?: boolean;
 }
 
 export function createKeyAddCommand(): Command {
@@ -35,6 +36,11 @@ export function createKeyAddCommand(): Command {
     .option('-p, --project <slug>', 'Project slug (for --push)')
     .option('-s, --space <slug>', 'Space slug (for --push)')
     .option('-b, --branch <name>', 'Branch name (for --push)')
+    .option('-o, --overwrite', 'Overwrite existing values')
+    .addHelpText(
+      'afterAll',
+      'You can also specify language-specific values using --lang <lang> <value>. Example: --en "Hello" --de "Hallo"'
+    )
     .allowUnknownOption(true) // Allow dynamic --lang options
     .allowExcessArguments(true) // Allow extra args from unknown options
     .action(async (keyArg: string, options: AddOptions) => {
@@ -66,7 +72,7 @@ async function add(
 
   // Check if key already exists
   const exists = await keyExists(translationsPath, parsedKey, config);
-  if (exists) {
+  if (exists && !options.overwrite) {
     throw new Error(`Key "${parsedKey.userKey}" already exists`);
   }
 
@@ -101,16 +107,12 @@ async function add(
   try {
     // Write to all language files
     for (const lang of languages) {
-      await writeKeyValue(
-        translationsPath,
-        parsedKey,
-        lang,
-        values[lang],
-        config
-      );
+      await writeKeyValue(translationsPath, parsedKey, lang, values[lang], config);
     }
 
-    spinner.succeed(`Added key "${chalk.cyan(parsedKey.userKey)}" to ${chalk.yellow(languages.length)} language(s)`);
+    spinner.succeed(
+      `Added key "${chalk.cyan(parsedKey.userKey)}" to ${chalk.yellow(languages.length)} language(s)`
+    );
 
     // Show values that were set
     const setLanguages = Object.entries(values)
@@ -159,17 +161,9 @@ async function pushToApi(
     const { branchId } = await resolveBranchId(client, project, space, branch);
 
     // Filter out empty values for API
-    const nonEmptyValues = Object.fromEntries(
-      Object.entries(values).filter(([, v]) => v !== '')
-    );
+    const nonEmptyValues = Object.fromEntries(Object.entries(values).filter(([, v]) => v !== ''));
 
-    await createKeyRemote(
-      client,
-      branchId,
-      parsedKey.key,
-      parsedKey.namespace,
-      nonEmptyValues
-    );
+    await createKeyRemote(client, branchId, parsedKey.key, parsedKey.namespace, nonEmptyValues);
 
     spinner.succeed(`Pushed key "${chalk.cyan(parsedKey.userKey)}" to API`);
   } catch (error) {

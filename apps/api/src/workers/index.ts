@@ -9,6 +9,7 @@ import type { AwilixContainer } from 'awilix';
 import { Worker } from 'bullmq';
 import type { Cradle } from '../shared/container/index.js';
 import { createActivityWorker } from './activity.worker.js';
+import { createEmailWorker } from './email.worker.js';
 import { createGlossaryWorker } from './glossary.worker.js';
 import { createMTBatchWorker } from './mt-batch.worker.js';
 import { createRetentionWorker, registerRetentionJob } from './retention.worker.js';
@@ -54,6 +55,12 @@ export async function startWorkers(container: AwilixContainer<Cradle>): Promise<
   const glossaryWorker = createGlossaryWorker(prisma);
   workers.push(glossaryWorker);
   console.log('[Workers] Glossary worker started');
+
+  // Create email worker
+  const emailService = container.resolve('emailService');
+  const emailWorker = createEmailWorker(emailService);
+  workers.push(emailWorker);
+  console.log('[Workers] Email worker started');
 
   // Register scheduled jobs
   await registerRetentionJob();

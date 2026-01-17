@@ -24,15 +24,18 @@ export default defineConfig({
   workers: 1,
 
   // Reporter configuration
-  reporter: [
-    ['html', { open: 'never', outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  reporter: [['html', { open: 'never', outputFolder: 'playwright-report' }], ['list']],
 
   // Shared settings for all projects
   use: {
     // Base URL to use in actions like `await page.goto('/')`
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
+
+    // Fast fail: 10 second timeout for actions (click, fill, etc.)
+    actionTimeout: 10000,
+
+    // Fast fail: 10 second timeout for navigation
+    navigationTimeout: 10000,
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -58,8 +61,8 @@ export default defineConfig({
     },
   ],
 
-  // Global timeout settings
-  timeout: 60000,
+  // Global timeout settings - fail fast (10 seconds)
+  timeout: 30000,
   expect: {
     timeout: 10000,
   },

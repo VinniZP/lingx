@@ -58,6 +58,9 @@ describe('ChangePasswordHandler', () => {
     totpFailedAttempts: 0,
     totpLockedUntil: null,
     passwordlessAt: null,
+    isDisabled: false,
+    disabledAt: null,
+    disabledById: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

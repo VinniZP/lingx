@@ -13,12 +13,8 @@
  * - API key management (AC-WEB-023)
  */
 
-import { test, expect } from '@playwright/test';
-import {
-  registerUser,
-  createUniqueUser,
-  generateUniqueId,
-} from './fixtures/test-helpers';
+import { expect, test } from '@playwright/test';
+import { createUniqueUser, generateUniqueId, registerUser } from './fixtures/test-helpers';
 
 test.describe('Translation Management User Journey', () => {
   // Create unique identifiers for test data isolation
@@ -29,9 +25,7 @@ test.describe('Translation Management User Journey', () => {
   // ==========================================================================
 
   test.describe('Project Setup Flow - AC-WEB-001, AC-WEB-004', () => {
-    test('User Journey: Create new project with languages and first space', async ({
-      page,
-    }) => {
+    test('User Journey: Create new project with languages and first space', async ({ page }) => {
       // Register and login
       const user = createUniqueUser('project');
       await registerUser(page, user);
@@ -43,25 +37,14 @@ test.describe('Translation Management User Journey', () => {
       await page.goto('/projects/new');
       await expect(page).toHaveURL('/projects/new');
 
-      // Fill project form
-      await page.getByLabel(/project name|name/i).first().fill(projectName);
+      // Fill project form using placeholders
+      await page.getByPlaceholder(/my application/i).fill(projectName);
+      await page.getByPlaceholder(/my-application/i).fill(projectSlug);
 
-      // Fill slug if field exists
-      const slugField = page.getByLabel(/slug/i);
-      if (await slugField.isVisible()) {
-        await slugField.fill(projectSlug);
-      }
-
-      // Select languages if selector exists
-      const languageSelector = page.getByRole('combobox').first();
-      if (await languageSelector.isVisible()) {
-        await languageSelector.click();
-        // Click on language options
-        await page.getByText('English', { exact: false }).first().click();
-      }
+      // Languages are pre-selected (English is default), no need to select
 
       // Submit project creation
-      await page.getByRole('button', { name: /create|save/i }).click();
+      await page.getByRole('button', { name: /create project/i }).click();
 
       // Verify project created - should redirect to project page
       await expect(page).toHaveURL(/\/projects\/[^/]+/, { timeout: 15000 });
@@ -114,7 +97,10 @@ test.describe('Translation Management User Journey', () => {
 
       // Create a project first
       await page.goto('/projects/new');
-      await page.getByLabel(/project name|name/i).first().fill(projectName);
+      await page
+        .getByLabel(/project name|name/i)
+        .first()
+        .fill(projectName);
 
       // Submit project
       await page.getByRole('button', { name: /create|save/i }).click();
@@ -144,10 +130,13 @@ test.describe('Translation Management User Journey', () => {
         }
 
         // Fill translation for English if available
-        const enInput = page.locator(
-          '[data-testid="translation-en"], [name*="en"], textarea'
-        );
-        if (await enInput.first().isVisible().catch(() => false)) {
+        const enInput = page.locator('[data-testid="translation-en"], [name*="en"], textarea');
+        if (
+          await enInput
+            .first()
+            .isVisible()
+            .catch(() => false)
+        ) {
           await enInput.first().fill('Submit');
         }
 
@@ -173,9 +162,7 @@ test.describe('Translation Management User Journey', () => {
       }
     });
 
-    test('User Journey: Add new translation key with values', async ({
-      page,
-    }) => {
+    test('User Journey: Add new translation key with values', async ({ page }) => {
       // Register and login
       const user = createUniqueUser('addkey');
       await registerUser(page, user);
@@ -184,7 +171,10 @@ test.describe('Translation Management User Journey', () => {
 
       // Create a project
       await page.goto('/projects/new');
-      await page.getByLabel(/project name/i).first().fill(projectName);
+      await page
+        .getByLabel(/project name/i)
+        .first()
+        .fill(projectName);
       await page.getByRole('button', { name: /create|save/i }).click();
       await expect(page).toHaveURL(/\/projects\/[^/]+/, { timeout: 15000 });
 
@@ -213,7 +203,9 @@ test.describe('Translation Management User Journey', () => {
               await keyInput.fill('new.test.key');
 
               // Add description if field exists
-              const descField = page.locator('input[name*="description"], textarea[name*="description"]');
+              const descField = page.locator(
+                'input[name*="description"], textarea[name*="description"]'
+              );
               if (await descField.isVisible().catch(() => false)) {
                 await descField.fill('A test key for E2E testing');
               }
@@ -240,9 +232,7 @@ test.describe('Translation Management User Journey', () => {
   // ==========================================================================
 
   test.describe('Branch Workflow - AC-WEB-012, AC-WEB-014, AC-WEB-015', () => {
-    test('User Journey: Complete branch workflow from creation to merge', async ({
-      page,
-    }) => {
+    test('User Journey: Complete branch workflow from creation to merge', async ({ page }) => {
       // Register and login
       const user = createUniqueUser('branch');
       await registerUser(page, user);
@@ -251,7 +241,10 @@ test.describe('Translation Management User Journey', () => {
 
       // Create project
       await page.goto('/projects/new');
-      await page.getByLabel(/project name|name/i).first().fill(projectName);
+      await page
+        .getByLabel(/project name|name/i)
+        .first()
+        .fill(projectName);
       await page.getByRole('button', { name: /create|save/i }).click();
       await expect(page).toHaveURL(/\/projects\/[^/]+/, { timeout: 15000 });
 
@@ -266,9 +259,7 @@ test.describe('Translation Management User Journey', () => {
         name: /new branch|create branch/i,
       });
 
-      if (
-        await newBranchButton.isVisible({ timeout: 5000 }).catch(() => false)
-      ) {
+      if (await newBranchButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await newBranchButton.click();
 
         // Fill branch name
@@ -290,16 +281,14 @@ test.describe('Translation Management User Journey', () => {
           await diffButton.click();
 
           // Verify diff UI is shown
-          await expect(
-            page.getByText(/added|modified|deleted|changes/i)
-          ).toBeVisible({ timeout: 10000 });
+          await expect(page.getByText(/added|modified|deleted|changes/i)).toBeVisible({
+            timeout: 10000,
+          });
         }
       }
     });
 
-    test('should show branch comparison with all change types', async ({
-      page,
-    }) => {
+    test('should show branch comparison with all change types', async ({ page }) => {
       // Register and login
       const user = createUniqueUser('diff');
       await registerUser(page, user);
@@ -308,7 +297,10 @@ test.describe('Translation Management User Journey', () => {
 
       // Create project
       await page.goto('/projects/new');
-      await page.getByLabel(/project name|name/i).first().fill(projectName);
+      await page
+        .getByLabel(/project name|name/i)
+        .first()
+        .fill(projectName);
       await page.getByRole('button', { name: /create|save/i }).click();
       await expect(page).toHaveURL(/\/projects\/[^/]+/, { timeout: 15000 });
 
@@ -323,9 +315,9 @@ test.describe('Translation Management User Journey', () => {
           await diffLink.click();
 
           // Verify diff view elements
-          await expect(
-            page.getByRole('heading', { name: /diff|compare|changes/i })
-          ).toBeVisible({ timeout: 10000 });
+          await expect(page.getByRole('heading', { name: /diff|compare|changes/i })).toBeVisible({
+            timeout: 10000,
+          });
         }
       }
     });
@@ -336,9 +328,7 @@ test.describe('Translation Management User Journey', () => {
   // ==========================================================================
 
   test.describe('Environment Management - AC-WEB-017, AC-WEB-018', () => {
-    test('User Journey: Setup production environment pointing to main branch', async ({
-      page,
-    }) => {
+    test('User Journey: Setup production environment pointing to main branch', async ({ page }) => {
       // Register and login
       const user = createUniqueUser('env');
       await registerUser(page, user);
@@ -347,7 +337,10 @@ test.describe('Translation Management User Journey', () => {
 
       // Create project
       await page.goto('/projects/new');
-      await page.getByLabel(/project name|name/i).first().fill(projectName);
+      await page
+        .getByLabel(/project name|name/i)
+        .first()
+        .fill(projectName);
       await page.getByRole('button', { name: /create|save/i }).click();
       await expect(page).toHaveURL(/\/projects\/[^/]+/, { timeout: 15000 });
 
@@ -390,9 +383,7 @@ test.describe('Translation Management User Journey', () => {
   // ==========================================================================
 
   test.describe('API Key Management - AC-WEB-023', () => {
-    test('User Journey: Generate and manage API keys for CLI/SDK', async ({
-      page,
-    }) => {
+    test('User Journey: Generate and manage API keys for CLI/SDK', async ({ page }) => {
       // Register and login
       const user = createUniqueUser('apikey');
       await registerUser(page, user);
@@ -412,9 +403,7 @@ test.describe('Translation Management User Journey', () => {
       if (!url.includes('/api-keys')) {
         // Verify we were redirected (expected for non-manager users)
         expect(
-          url.includes('/dashboard') ||
-          url.includes('/projects') ||
-          url.includes('/login')
+          url.includes('/dashboard') || url.includes('/projects') || url.includes('/login')
         ).toBeTruthy();
 
         // Test passes - non-manager users correctly don't have access
@@ -426,9 +415,7 @@ test.describe('Translation Management User Journey', () => {
         name: /generate|create|new/i,
       });
 
-      if (
-        await generateButton.isVisible({ timeout: 5000 }).catch(() => false)
-      ) {
+      if (await generateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await generateButton.click();
 
         // Fill key name
@@ -474,9 +461,9 @@ test.describe('Translation Management User Journey', () => {
           }
 
           // Verify key revoked/removed
-          await expect(
-            page.getByText(/revoked|deleted|no api keys/i)
-          ).toBeVisible({ timeout: 10000 });
+          await expect(page.getByText(/revoked|deleted|no api keys/i)).toBeVisible({
+            timeout: 10000,
+          });
         }
       }
     });

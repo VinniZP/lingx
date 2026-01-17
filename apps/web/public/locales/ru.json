@@ -1381,7 +1381,8 @@
     "dashboard": "Панель управления",
     "settings": "Настройки",
     "brand": "Lingx",
-    "tagline": "Переводы"
+    "tagline": "Переводы",
+    "admin": ""
   },
   "time": {
     "date": "{date}",
@@ -1451,5 +1452,9 @@
     "toggleNavigation": "Переключить навигацию",
     "toggleTheme": "Переключить тему",
     "toggleSidebar": "Переключить боковую панель"
+  },
+  "members": {
+    "remove": "",
+    "revokeInvitation": ""
   }
 }

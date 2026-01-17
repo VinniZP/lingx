@@ -52,6 +52,7 @@ describe('Profile Module Integration', () => {
     vi.spyOn(emailService, 'sendEmailChangeNotification').mockResolvedValue(undefined);
 
     // Clean up test data
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.emailVerification.deleteMany({});
     await app.prisma.session.deleteMany({});
     await app.prisma.projectMember.deleteMany({});

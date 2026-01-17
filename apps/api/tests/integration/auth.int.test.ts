@@ -4,8 +4,8 @@
  * Tests for user registration, login, and API key management.
  * Per Design Doc: AC-WEB-020, AC-WEB-021, AC-WEB-023
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.js';
 
 describe('Authentication Integration Tests', () => {
@@ -22,6 +22,7 @@ describe('Authentication Integration Tests', () => {
 
   beforeEach(async () => {
     // Clean up test data before each test
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.apiKey.deleteMany({});
     await app.prisma.projectMember.deleteMany({});
     await app.prisma.user.deleteMany({
@@ -239,6 +240,144 @@ describe('Authentication Integration Tests', () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe('Disabled User Authentication', () => {
+    it('should reject disabled user with valid JWT', async () => {
+      // Register and login
+      await app.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          email: 'disabled-jwt-test@example.com',
+          password: 'SecurePass123!',
+        },
+      });
+
+      const loginResponse = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: {
+          email: 'disabled-jwt-test@example.com',
+          password: 'SecurePass123!',
+        },
+      });
+
+      const tokenCookie = loginResponse.cookies.find((c) => c.name === 'token');
+      const authCookie = `token=${tokenCookie?.value}`;
+
+      // Disable the user directly in DB
+      await app.prisma.user.update({
+        where: { email: 'disabled-jwt-test@example.com' },
+        data: { isDisabled: true, disabledAt: new Date() },
+      });
+
+      // Try to access protected endpoint
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/auth/me',
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Account is disabled');
+    });
+
+    it('should reject disabled user with valid API key', async () => {
+      // Register and login
+      await app.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          email: 'disabled-apikey-test@example.com',
+          password: 'SecurePass123!',
+        },
+      });
+
+      const loginResponse = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: {
+          email: 'disabled-apikey-test@example.com',
+          password: 'SecurePass123!',
+        },
+      });
+
+      const tokenCookie = loginResponse.cookies.find((c) => c.name === 'token');
+      const authCookie = `token=${tokenCookie?.value}`;
+
+      // Create API key
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/auth/api-keys',
+        headers: { cookie: authCookie },
+        payload: {
+          name: 'Disabled User Test Key',
+        },
+      });
+      const { key } = JSON.parse(createResponse.body);
+
+      // Disable the user directly in DB
+      await app.prisma.user.update({
+        where: { email: 'disabled-apikey-test@example.com' },
+        data: { isDisabled: true, disabledAt: new Date() },
+      });
+
+      // Try to use API key
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/auth/me',
+        headers: { 'X-API-Key': key },
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe('Account is disabled');
+    });
+
+    it('should allow re-enabled user to authenticate', async () => {
+      // Register and login
+      await app.inject({
+        method: 'POST',
+        url: '/api/auth/register',
+        payload: {
+          email: 'reenable-test@example.com',
+          password: 'SecurePass123!',
+        },
+      });
+
+      const loginResponse = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: {
+          email: 'reenable-test@example.com',
+          password: 'SecurePass123!',
+        },
+      });
+
+      const tokenCookie = loginResponse.cookies.find((c) => c.name === 'token');
+      const authCookie = `token=${tokenCookie?.value}`;
+
+      // Disable then re-enable the user
+      await app.prisma.user.update({
+        where: { email: 'reenable-test@example.com' },
+        data: { isDisabled: true, disabledAt: new Date() },
+      });
+      await app.prisma.user.update({
+        where: { email: 'reenable-test@example.com' },
+        data: { isDisabled: false, disabledAt: null, disabledById: null },
+      });
+
+      // Try to access protected endpoint - should work again
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/auth/me',
+        headers: { cookie: authCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 });

@@ -523,6 +523,15 @@ export const activityMetadataSchema = z.object({
       })
     )
     .optional(),
+  // Member management metadata
+  targetUserId: z.string().optional(),
+  oldRole: z.string().optional(),
+  newRole: z.string().optional(),
+  role: z.string().optional(),
+  newOwnerId: z.string().optional(),
+  previousOwnerKeptOwnership: z.boolean().optional(),
+  invitationId: z.string().optional(),
+  email: z.string().optional(),
 });
 
 export type ActivityMetadata = z.infer<typeof activityMetadataSchema>;
@@ -578,3 +587,79 @@ export const cliTranslationsResponseSchema = z.object({
 });
 
 export type CliTranslationsResponse = z.infer<typeof cliTranslationsResponseSchema>;
+
+// ============================================
+// Project Member Response Schemas
+// ============================================
+
+/** Project member in list responses */
+export const projectMemberResponseSchema = z.object({
+  userId: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+  avatarUrl: z.string().nullable(),
+  role: memberRoleSchema,
+  joinedAt: z.string(),
+});
+
+export type ProjectMemberResponse = z.infer<typeof projectMemberResponseSchema>;
+
+/** Project member list response */
+export const projectMemberListResponseSchema = z.object({
+  members: z.array(projectMemberResponseSchema),
+});
+
+export type ProjectMemberListResponse = z.infer<typeof projectMemberListResponseSchema>;
+
+// ============================================
+// Project Invitation Response Schemas
+// ============================================
+
+/** Inviter reference in invitation responses */
+export const inviterRefSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+});
+
+export type InviterRef = z.infer<typeof inviterRefSchema>;
+
+/** Project invitation in list responses */
+export const projectInvitationResponseSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  role: memberRoleSchema,
+  invitedBy: inviterRefSchema,
+  expiresAt: z.string(),
+  createdAt: z.string(),
+});
+
+export type ProjectInvitationResponse = z.infer<typeof projectInvitationResponseSchema>;
+
+/** Project invitation list response */
+export const projectInvitationListResponseSchema = z.object({
+  invitations: z.array(projectInvitationResponseSchema),
+});
+
+export type ProjectInvitationListResponse = z.infer<typeof projectInvitationListResponseSchema>;
+
+/** Public invitation details response (for accept page) */
+export const invitationDetailsResponseSchema = z.object({
+  projectName: z.string(),
+  projectSlug: z.string(),
+  role: memberRoleSchema,
+  inviterName: z.string().nullable(),
+  email: z.string(),
+  expiresAt: z.string(),
+});
+
+export type InvitationDetailsResponse = z.infer<typeof invitationDetailsResponseSchema>;
+
+/** Invite member result response */
+export const inviteMemberResultResponseSchema = z.object({
+  sent: z.array(z.string()),
+  skipped: z.array(z.string()),
+  errors: z.array(z.string()),
+});
+
+export type InviteMemberResultResponse = z.infer<typeof inviteMemberResultResponseSchema>;

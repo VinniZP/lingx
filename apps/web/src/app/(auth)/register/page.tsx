@@ -1,14 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { registerSchema, type RegisterInput } from '@lingx/shared';
-import { useTranslation } from '@lingx/sdk-nextjs';
-import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -17,23 +9,45 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { ApiError } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { handleApiFieldErrors } from '@/lib/form-errors';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from '@lingx/sdk-nextjs';
+import { registerSchema, type RegisterInput } from '@lingx/shared';
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Loader2, ArrowRight, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const { t } = useTranslation();
   const { register: registerUser } = useAuth();
+
+  // Get URL params for prefill and redirect
+  const emailFromUrl = searchParams.get('email') || '';
+  const redirectUrlParam = searchParams.get('redirect') || '';
+
+  // Validate redirect URL to prevent open redirect attacks
+  // Only allow relative paths starting with / (not //)
+  const isValidRedirect = (url: string): boolean => {
+    return url.startsWith('/') && !url.startsWith('//');
+  };
+  const redirectUrl = isValidRedirect(redirectUrlParam) ? redirectUrlParam : '';
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
-      email: '',
+      email: emailFromUrl,
       password: '',
     },
   });
@@ -44,13 +58,15 @@ export default function RegisterPage() {
       toast.success(t('auth.accountCreated'), {
         description: t('auth.accountCreatedDescription'),
       });
+      // Redirect to the specified URL or default to dashboard
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      }
     } catch (error) {
       // Try to map field-level errors to form fields first
       if (!handleApiFieldErrors(error, form.setError)) {
         // Only show toast for non-field errors (network issues, 500s, etc.)
-        const message = error instanceof ApiError
-          ? error.message
-          : t('auth.unexpectedError');
+        const message = error instanceof ApiError ? error.message : t('auth.unexpectedError');
         toast.error(t('auth.registrationFailed'), {
           description: message,
         });
@@ -63,7 +79,7 @@ export default function RegisterPage() {
       {/* Header */}
       <div className="space-y-3">
         <h1
-          className="text-[2rem] font-semibold tracking-tight text-foreground"
+          className="text-foreground text-[2rem] font-semibold tracking-tight"
           style={{ fontFamily: 'var(--font-instrument-serif)' }}
         >
           {t('auth.createAccount')}
@@ -85,21 +101,28 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>
                     {t('auth.fullName')}
-                    <span className="ml-1 text-muted-foreground/60 font-normal">{t('common.optional')}</span>
+                    <span className="text-muted-foreground/60 ml-1 font-normal">
+                      {t('common.optional')}
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
-                        focusedField === 'name' ? 'text-primary' : 'text-muted-foreground/50'
-                      }`}>
+                      <div
+                        className={`absolute top-1/2 left-4 -translate-y-1/2 transition-colors duration-200 ${
+                          focusedField === 'name' ? 'text-primary' : 'text-muted-foreground/50'
+                        }`}
+                      >
                         <User className="size-4.5" />
                       </div>
                       <Input
                         placeholder={t('auth.fullNamePlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('name')}
-                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
-                        className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        onBlur={() => {
+                          field.onBlur();
+                          setFocusedField(null);
+                        }}
+                        className="bg-card border-border/60 placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/10 h-12 w-full touch-manipulation rounded-xl pr-4 pl-12 text-[15px] transition-all duration-200 focus:ring-2"
                         autoComplete="name"
                       />
                     </div>
@@ -118,9 +141,11 @@ export default function RegisterPage() {
                   <FormLabel>{t('auth.emailAddress')}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
-                        focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
-                      }`}>
+                      <div
+                        className={`absolute top-1/2 left-4 -translate-y-1/2 transition-colors duration-200 ${
+                          focusedField === 'email' ? 'text-primary' : 'text-muted-foreground/50'
+                        }`}
+                      >
                         <Mail className="size-4.5" />
                       </div>
                       <Input
@@ -128,8 +153,11 @@ export default function RegisterPage() {
                         placeholder={t('auth.emailPlaceholder')}
                         {...field}
                         onFocus={() => setFocusedField('email')}
-                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
-                        className="h-12 w-full pl-12 pr-4 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        onBlur={() => {
+                          field.onBlur();
+                          setFocusedField(null);
+                        }}
+                        className="bg-card border-border/60 placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/10 h-12 w-full touch-manipulation rounded-xl pr-4 pl-12 text-[15px] transition-all duration-200 focus:ring-2"
                         autoComplete="email"
                       />
                     </div>
@@ -148,9 +176,11 @@ export default function RegisterPage() {
                   <FormLabel>{t('auth.password')}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
-                        focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
-                      }`}>
+                      <div
+                        className={`absolute top-1/2 left-4 -translate-y-1/2 transition-colors duration-200 ${
+                          focusedField === 'password' ? 'text-primary' : 'text-muted-foreground/50'
+                        }`}
+                      >
                         <Lock className="size-4.5" />
                       </div>
                       <Input
@@ -158,14 +188,17 @@ export default function RegisterPage() {
                         placeholder={t('auth.createPassword')}
                         {...field}
                         onFocus={() => setFocusedField('password')}
-                        onBlur={() => { field.onBlur(); setFocusedField(null); }}
-                        className="h-12 w-full pl-12 pr-12 bg-card border-border/60 rounded-xl text-[15px] placeholder:text-muted-foreground/40 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200 touch-manipulation"
+                        onBlur={() => {
+                          field.onBlur();
+                          setFocusedField(null);
+                        }}
+                        className="bg-card border-border/60 placeholder:text-muted-foreground/40 focus:border-primary focus:ring-primary/10 h-12 w-full touch-manipulation rounded-xl pr-12 pl-12 text-[15px] transition-all duration-200 focus:ring-2"
                         autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors duration-200 touch-manipulation"
+                        className="text-muted-foreground/50 hover:text-muted-foreground absolute top-1/2 right-4 -translate-y-1/2 touch-manipulation transition-colors duration-200"
                         tabIndex={-1}
                       >
                         {showPassword ? (
@@ -185,7 +218,7 @@ export default function RegisterPage() {
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-[15px] transition-all duration-200 touch-manipulation shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:translate-y-0"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 hover:shadow-primary/25 h-12 w-full touch-manipulation rounded-xl text-[15px] font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (
@@ -206,10 +239,10 @@ export default function RegisterPage() {
       {/* Divider */}
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full h-px bg-linear-to-r from-transparent via-border to-transparent" />
+          <div className="via-border h-px w-full bg-linear-to-r from-transparent to-transparent" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-background px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">
+          <span className="bg-background text-muted-foreground/60 px-4 text-xs font-medium tracking-wider uppercase">
             {t('auth.alreadyHaveAccount')}
           </span>
         </div>
@@ -218,8 +251,8 @@ export default function RegisterPage() {
       {/* Sign in link */}
       <div className="text-center">
         <Link
-          href="/login"
-          className="group inline-flex items-center gap-2 py-2.5 px-5 text-sm font-medium text-foreground rounded-xl border border-border/60 bg-card hover:bg-accent hover:border-border transition-all duration-200 touch-manipulation"
+          href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'}
+          className="group text-foreground border-border/60 bg-card hover:bg-accent hover:border-border inline-flex touch-manipulation items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all duration-200"
         >
           {t('auth.signInInstead')}
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />

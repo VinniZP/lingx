@@ -4,8 +4,8 @@
  * Tests for project CRUD operations via HTTP endpoints.
  * Per Design Doc: AC-WEB-001, AC-WEB-002, AC-WEB-003
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.js';
 
 describe('Project API Integration Tests', () => {
@@ -37,6 +37,8 @@ describe('Project API Integration Tests', () => {
     await app.prisma.project.deleteMany({
       where: { slug: { startsWith: 'test-' } },
     });
+    // Delete audit logs
+    await app.prisma.auditLog.deleteMany({});
     // Finally delete users
     await app.prisma.user.deleteMany({
       where: { email: { contains: 'project-crud' } },
@@ -245,9 +247,7 @@ describe('Project API Integration Tests', () => {
           password: 'OtherPass123!',
         },
       });
-      const otherTokenCookie = otherLoginResponse.cookies.find(
-        (c) => c.name === 'token'
-      );
+      const otherTokenCookie = otherLoginResponse.cookies.find((c) => c.name === 'token');
       const otherAuthCookie = `token=${otherTokenCookie?.value}`;
 
       // Try to get project as non-member

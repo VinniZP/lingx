@@ -4,8 +4,8 @@
  * Tests for translation key and value CRUD operations via API endpoints.
  * Per Design Doc: AC-WEB-007 through AC-WEB-011
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.js';
 
 describe('Translation Integration Tests', () => {
@@ -34,6 +34,7 @@ describe('Translation Integration Tests', () => {
     await app.prisma.project.deleteMany({
       where: { slug: { startsWith: 'trans-int-proj-' } },
     });
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.user.deleteMany({
       where: { email: { startsWith: 'trans-int-' } },
     });
@@ -168,9 +169,9 @@ describe('Translation Integration Tests', () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.translations).toHaveLength(3);
-      expect(
-        body.translations.find((t: { language: string }) => t.language === 'en')?.value
-      ).toBe('English value');
+      expect(body.translations.find((t: { language: string }) => t.language === 'en')?.value).toBe(
+        'English value'
+      );
     });
 
     it('should update translations for multiple languages simultaneously', async () => {
@@ -219,17 +220,13 @@ describe('Translation Integration Tests', () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body);
-      expect(body.description).toBe(
-        'This is a helpful description for translators'
-      );
+      expect(body.description).toBe('This is a helpful description for translators');
 
       // Verify persisted
       const key = await app.prisma.translationKey.findUnique({
         where: { id: body.id },
       });
-      expect(key?.description).toBe(
-        'This is a helpful description for translators'
-      );
+      expect(key?.description).toBe('This is a helpful description for translators');
     });
 
     it('should bulk delete keys and cascade to translations', async () => {

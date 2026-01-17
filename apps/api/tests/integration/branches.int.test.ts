@@ -4,8 +4,8 @@
  * Tests for branch CRUD operations with copy-on-write functionality.
  * Per Design Doc: AC-WEB-012, AC-WEB-013, AC-WEB-014
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.js';
 
 describe('Branch Integration Tests', () => {
@@ -34,6 +34,7 @@ describe('Branch Integration Tests', () => {
     await app.prisma.project.deleteMany({
       where: { slug: { startsWith: 'branch-int-proj-' } },
     });
+    await app.prisma.auditLog.deleteMany({});
     await app.prisma.user.deleteMany({
       where: { email: { startsWith: 'branch-int-' } },
     });
@@ -204,9 +205,7 @@ describe('Branch Integration Tests', () => {
       expect(newBranchTranslations.length).toBe(6);
 
       // Verify translation values match source
-      const enTranslations = newBranchTranslations.filter(
-        (t) => t.language === 'en'
-      );
+      const enTranslations = newBranchTranslations.filter((t) => t.language === 'en');
       expect(enTranslations.length).toBe(3);
     });
 
@@ -238,9 +237,7 @@ describe('Branch Integration Tests', () => {
       for (let i = 0; i < currentKeys.length; i++) {
         expect(currentKeys[i].id).toBe(originalKeys[i].id);
         expect(currentKeys[i].name).toBe(originalKeys[i].name);
-        expect(currentKeys[i].translations.length).toBe(
-          originalKeys[i].translations.length
-        );
+        expect(currentKeys[i].translations.length).toBe(originalKeys[i].translations.length);
       }
     });
   });
@@ -834,9 +831,7 @@ describe('Branch Integration Tests', () => {
         headers: { cookie: authCookie },
         payload: {
           targetBranchId: mainBranchId,
-          resolutions: [
-            { key: 'custom.resolve', resolution: { en: 'Custom Merged Value' } },
-          ],
+          resolutions: [{ key: 'custom.resolve', resolution: { en: 'Custom Merged Value' } }],
         },
       });
 

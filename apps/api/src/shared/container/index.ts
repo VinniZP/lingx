@@ -24,6 +24,8 @@ import type { ActivityRepository } from '../../modules/activity/activity.reposit
 import { ApiKeyRepository } from '../../modules/auth/repositories/api-key.repository.js';
 import { AuthRepository } from '../../modules/auth/repositories/auth.repository.js';
 import type { DashboardRepository } from '../../modules/dashboard/dashboard.repository.js';
+import type { EmailService } from '../../modules/email/email.service.js';
+import type { MemberEmailHandler } from '../../modules/email/handlers/member-email.handler.js';
 import { KeyContextService } from '../../modules/key-context/key-context.service.js';
 import { KeyContextRepository } from '../../modules/key-context/repositories/key-context.repository.js';
 import { ChallengeStore } from '../../modules/mfa/webauthn/challenge-store.service.js';
@@ -43,7 +45,6 @@ import { UserRepository } from '../../modules/security/user.repository.js';
 import type { TranslationRepository } from '../../modules/translation/repositories/translation.repository.js';
 import { ActivityService } from '../../services/activity.service.js';
 import { CommandBus, EventBus, QueryBus } from '../cqrs/index.js';
-import { EmailService } from '../infrastructure/email.service.js';
 import { FileStorageService } from '../infrastructure/file-storage.service.js';
 
 /**
@@ -63,8 +64,11 @@ export interface Cradle {
   // Activity module
   activityRepository: ActivityRepository;
   activityService: ActivityService;
-  emailService: EmailService;
   fileStorage: FileStorageService;
+
+  // Email module
+  emailService: EmailService;
+  memberEmailHandler: MemberEmailHandler;
   keyContextService: KeyContextService;
   qualityEstimationService: QualityEstimationService;
   challengeStore: ChallengeStore;
@@ -127,9 +131,9 @@ export function createAppContainer(
   });
 
   // Register services (accessService registered by access module)
+  // Note: emailService and memberEmailHandler are registered by email module
   container.register({
     activityService: asClass(ActivityService).singleton(),
-    emailService: asClass(EmailService).singleton(),
     fileStorage: asClass(FileStorageService).singleton(),
     keyContextService: asClass(KeyContextService).singleton(),
 
